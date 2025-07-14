@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>模块商店 | ErisPulse</title>
+    <title>旧版模块商店 | ErisPulse</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -178,27 +178,6 @@
             color: var(--dark);
             padding-bottom: 0.5rem;
             border-bottom: 2px solid var(--gray);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .legacy-btn {
-            background: var(--warning);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: var(--transition);
-        }
-        
-        .legacy-btn:hover {
-            background: #dd6b20;
-            transform: translateY(-2px);
         }
         
         .stats-grid {
@@ -287,45 +266,6 @@
             transform: translateX(100%);
         }
         
-        /* 标签过滤区域 */
-        .tag-filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .tag-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            background: var(--gray);
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-        
-        .tag-btn.active, .tag-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .tag-btn .tag-count {
-            font-size: 0.75rem;
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
-            padding: 0.1rem 0.4rem;
-            margin-left: 0.3rem;
-        }
-        
-        .tag-btn.active .tag-count, .tag-btn:hover .tag-count {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        /* 模块网格布局 */
         .module-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -422,13 +362,13 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .official-badge {
+        .module-platform {
             font-size: 0.85rem;
             font-weight: 500;
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            background: var(--success);
-            color: white;
+            background: var(--gray);
+            color: var(--dark);
             display: inline-block;
         }
         
@@ -444,21 +384,6 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-        
-        .module-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .module-tag {
-            font-size: 0.75rem;
-            padding: 0.3rem 0.7rem;
-            border-radius: 50px;
-            background: var(--gray);
-            color: var(--dark);
         }
         
         .module-meta {
@@ -1057,12 +982,6 @@
                 width: 100%;
                 justify-content: center;
             }
-            
-            .section-title {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
         }
     </style>
 </head>
@@ -1077,7 +996,7 @@
                     <h1 class="header-title">ErisPulse 模块商店</h1>
                 </a>
             </div>
-            
+            <p>这是一个过时的模块源，当前仅作为归档保留页面，请尽量不要再使用本模块源</p>
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" id="search-input" placeholder="搜索模块...">
@@ -1088,12 +1007,7 @@
     <main>
         <div class="container">
             <section class="section">
-                <h2 class="section-title">
-                    <span>模块商店</span>
-                    <a href="/legacy_mods" class="legacy-btn">
-                        <i class="fas fa-history"></i> 查看旧版模块源
-                    </a>
-                </h2>
+                <h2 class="section-title">模块商店</h2>
                 
                 <!-- 模块统计 -->
                 <div class="stats-grid">
@@ -1124,10 +1038,6 @@
                 
                 <div class="module-categories" id="categories-container">
                     <!-- 分类按钮将由JS动态生成 -->
-                </div>
-                
-                <div class="tag-filters" id="tags-container">
-                    <!-- 标签按钮将由JS动态生成 -->
                 </div>
                 
                 <div class="module-grid" id="modules-container">
@@ -1203,20 +1113,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 模块存储变量
             let allModules = [];
-            let allAdapters = [];
             let modulesByCategory = {};
-            let adaptersByCategory = {};
             let categories = {};
-            let tags = {};
             let currentModule = null;
-            let activeCategory = 'all';
-            let activeTags = [];
             
+            // DOM元素引用
             const searchInput = document.getElementById('search-input');
             const modulesContainer = document.getElementById('modules-container');
             const categoriesContainer = document.getElementById('categories-container');
-            const tagsContainer = document.getElementById('tags-container');
             const totalModulesElem = document.getElementById('total-modules');
             const adapterCountElem = document.getElementById('adapter-count');
             const lastUpdatedElem = document.getElementById('last-updated');
@@ -1227,15 +1133,18 @@
             const docsContainer = document.getElementById('docs-container');
             const copyCommandBtn = document.getElementById('copy-command');
             
-            async function fetchPackages() {
+            // 从远程获取模块数据
+            async function fetchModules() {
                 try {
-                    const response = await fetch('https://erisdev.com/packages.json');
+                    const response = await fetch('https://erisdev.com/map.json');
                     if (!response.ok) throw new Error('模块API请求失败');
                     const data = await response.json();
                     
-                    lastUpdatedElem.textContent = new Date(data.last_updated).toLocaleDateString();
+                    // 获取最后更新时间
+                    const now = new Date();
+                    lastUpdatedElem.textContent = now.toLocaleDateString();
                     
-                    return data;
+                    return data.modules;
                 } catch (error) {
                     console.error('加载模块列表失败:', error);
                     showError('加载模块失败，请稍后再试');
@@ -1243,144 +1152,124 @@
                 }
             }
             
-            // 模块数据
-            async function processPackages() {
-                const packages = await fetchPackages();
-                
-                // 处理模块
-                allModules = Object.entries(packages.modules || {}).map(([name, info]) => {
+            // 处理模块数据
+            async function processModules() {
+                const modules = await fetchModules();
+                allModules = Object.entries(modules).map(([name, info]) => {
+                    // 确定模块类别
+                    const category = determineCategory(name);
+                    
                     return {
                         name,
-                        package: info.package,
-                        version: info.version,
-                        author: info.author,
-                        description: info.description,
-                        repository: info.repository,
-                        official: info.official || false,
-                        tags: info.tags || [],
-                        type: 'module'
-                    };
-                });
-                
-                // 处理适配器
-                allAdapters = Object.entries(packages.adapters || {}).map(([name, info]) => {
-                    return {
-                        name,
-                        package: info.package,
-                        version: info.version,
-                        author: 'ErisPulse Team',
-                        description: info.description,
-                        repository: info.repository,
-                        official: info.official || false,
-                        tags: info.tags || [],
-                        type: 'adapter'
+                        description: info.meta.description || '此模块未提供描述信息',
+                        version: info.meta.version || '未知版本',
+                        author: info.meta.author || '未知作者',
+                        homepage: info.meta.homepage,
+                        category,
+                        dependencies: info.dependencies,
+                        isAdapter: name.endsWith('Adapter')
                     };
                 });
                 
                 // 统计模块
-                updatePackageStats();
+                updateModuleStats();
                 
                 // 生成分类
                 generateCategories();
                 
-                // 生成标签
-                generateTags();
-                
                 // 默认显示所有模块
-                renderPackages(allModules);
+                renderModules(allModules);
             }
             
+            // 确定模块类别
+            function determineCategory(name) {
+                if (name.endsWith('Adapter')) return '适配器';
+                if (name.includes('Admin') || name.includes('Manager')) return '管理工具';
+                if (name.includes('Game') || name.includes('Play')) return '娱乐游戏';
+                if (name.includes('Tool') || name.includes('Utils')) return '实用工具';
+                if (name.includes('AI') || name.includes('Chat')) return '人工智能';
+                return '其他';
+            }
+            
+            // 生成分类
             function generateCategories() {
-                categories = {
-                    'all': '全部模块',
-                    'modules': '功能模块',
-                    'adapters': '平台适配器'
-                };
+                categories = {};
+                modulesByCategory = {};
                 
+                // 统计分类
+                allModules.forEach(module => {
+                    if (!categories[module.category]) {
+                        categories[module.category] = 0;
+                        modulesByCategory[module.category] = [];
+                    }
+                    categories[module.category]++;
+                    modulesByCategory[module.category].push(module);
+                });
+                
+                // 清空容器
                 categoriesContainer.innerHTML = '';
                 
-                Object.entries(categories).forEach(([category, label]) => {
+                // 创建"全部"按钮
+                const allBtn = document.createElement('button');
+                allBtn.className = 'category-btn active';
+                allBtn.dataset.category = 'all';
+                allBtn.textContent = '全部模块';
+                allBtn.addEventListener('click', () => filterModules('all'));
+                categoriesContainer.appendChild(allBtn);
+                
+                // 为每个分类创建按钮
+                Object.entries(categories).forEach(([category, count]) => {
                     const btn = document.createElement('button');
                     btn.className = 'category-btn';
-                    if (category === 'all') btn.classList.add('active');
                     btn.dataset.category = category;
-                    btn.textContent = label;
-                    btn.addEventListener('click', () => {
-                        activeCategory = category;
-                        filterPackages();
-                    });
+                    btn.textContent = `${category} (${count})`;
+                    btn.addEventListener('click', () => filterModules(category));
                     categoriesContainer.appendChild(btn);
                 });
             }
             
-            function generateTags() {
-                tags = {};
+            // 更新模块统计信息
+            function updateModuleStats() {
+                // 计算适配器数量
+                const adapterCount = allModules.filter(m => m.isAdapter).length;
                 
-                [...allModules, ...allAdapters].forEach(pkg => {
-                    pkg.tags.forEach(tag => {
-                        if (!tags[tag]) tags[tag] = 0;
-                        tags[tag]++;
-                    });
-                });
-                
-                tagsContainer.innerHTML = '';
-                
-                Object.entries(tags).forEach(([tag, count]) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'tag-btn';
-                    btn.dataset.tag = tag;
-                    btn.innerHTML = `${tag} <span class="tag-count">${count}</span>`;
-                    btn.addEventListener('click', () => {
-                        btn.classList.toggle('active');
-                        updateActiveTags();
-                    });
-                    tagsContainer.appendChild(btn);
-                });
-            }
-            
-            function updateActiveTags() {
-                activeTags = Array.from(document.querySelectorAll('.tag-btn.active')).map(btn => btn.dataset.tag);
-                filterPackages();
-            }
-            
-            function updatePackageStats() {
                 totalModulesElem.textContent = allModules.length;
-                adapterCountElem.textContent = allAdapters.length;
+                adapterCountElem.textContent = adapterCount;
             }
             
-            function filterPackages() {
-                let filteredPackages = [];
+            // 过滤模块
+            function filterModules(category) {
+                // 更新活动按钮
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.category === category);
+                });
                 
-                if (activeCategory === 'all') {
-                    filteredPackages = [...allModules, ...allAdapters];
-                } else if (activeCategory === 'modules') {
-                    filteredPackages = allModules;
-                } else if (activeCategory === 'adapters') {
-                    filteredPackages = allAdapters;
+                // 根据分类选择模块
+                let filteredModules = [];
+                if (category === 'all') {
+                    filteredModules = allModules;
+                } else {
+                    filteredModules = modulesByCategory[category] || [];
                 }
                 
-                if (activeTags.length > 0) {
-                    filteredPackages = filteredPackages.filter(pkg => 
-                        activeTags.some(tag => pkg.tags.includes(tag))
-                    );
-                }
-                
+                // 应用搜索过滤
                 if (searchInput.value) {
                     const searchTerm = searchInput.value.toLowerCase();
-                    filteredPackages = filteredPackages.filter(pkg => 
-                        pkg.name.toLowerCase().includes(searchTerm) || 
-                        pkg.description.toLowerCase().includes(searchTerm) ||
-                        (pkg.author && pkg.author.toLowerCase().includes(searchTerm))
+                    filteredModules = filteredModules.filter(module => 
+                        module.name.toLowerCase().includes(searchTerm) || 
+                        module.description.toLowerCase().includes(searchTerm)
                     );
                 }
                 
-                renderPackages(filteredPackages);
+                renderModules(filteredModules);
             }
             
-            function renderPackages(packages) {
+            // 渲染模块
+            function renderModules(modules) {
+                // 清空容器
                 modulesContainer.innerHTML = '';
                 
-                if (packages.length === 0) {
+                if (modules.length === 0) {
                     modulesContainer.innerHTML = `
                         <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
                             <i class="fas fa-box-open" style="font-size: 3rem; color: var(--gray); margin-bottom: 1rem;"></i>
@@ -1391,7 +1280,8 @@
                     return;
                 }
                 
-                packages.forEach((pkg, index) => {
+                // 渲染每个模块
+                modules.forEach((module, index) => {
                     const card = document.createElement('div');
                     card.className = 'module-card';
                     card.style.animationDelay = `${index * 0.1}s`;
@@ -1399,34 +1289,28 @@
                     card.innerHTML = `
                         <div class="module-header">
                             <div class="module-icon">
-                                ${getIconByType(pkg.type)}
+                                ${getIconByCategory(module.category)}
                             </div>
                             <div class="module-info">
-                                <div class="module-name">${pkg.name}</div>
+                                <div class="module-name">${module.name}</div>
                                 <div class="module-meta">
-                                    <span class="module-version">v${pkg.version}</span>
-                                    ${pkg.official ? '<span class="official-badge">官方</span>' : ''}
+                                    <span class="module-version">v${module.version}</span>
+                                    <span class="module-platform">${module.category}</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="module-desc">${pkg.description}</div>
-                        
-                        ${pkg.tags.length > 0 ? `
-                        <div class="module-tags">
-                            ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
-                        </div>
-                        ` : ''}
+                        <div class="module-desc">${module.description}</div>
                         
                         <div class="module-meta">
                             <div class="module-author">
-                                <i class="fas fa-user"></i> ${pkg.author}
+                                <i class="fas fa-user"></i> ${module.author}
                             </div>
                             <div class="module-actions">
-                                <button class="module-btn" data-action="install" data-package="${pkg.package}">
+                                <button class="module-btn" data-action="install" data-module="${module.name}">
                                     <i class="fas fa-download"></i> 安装
                                 </button>
-                                ${pkg.repository ? `<button class="module-btn docs" data-action="docs" data-package="${pkg.package}" data-repo="${pkg.repository}">
+                                ${module.homepage ? `<button class="module-btn docs" data-action="docs" data-module="${module.name}">
                                     <i class="fas fa-book"></i> 文档
                                 </button>` : ''}
                             </div>
@@ -1436,23 +1320,29 @@
                     modulesContainer.appendChild(card);
                 });
                 
+                // 添加事件监听器
                 document.querySelectorAll('[data-action="install"]').forEach(btn => {
-                    btn.addEventListener('click', (e) => showInstallModal(e.target.dataset.package));
+                    btn.addEventListener('click', (e) => showInstallModal(e.target.dataset.module));
                 });
                 
                 document.querySelectorAll('[data-action="docs"]').forEach(btn => {
-                    btn.addEventListener('click', (e) => showDocsModal(e.target.dataset.package, e.target.dataset.repo));
+                    btn.addEventListener('click', (e) => showDocsModal(e.target.dataset.module));
                 });
             }
             
-            function getIconByType(type) {
+            // 根据类别获取图标
+            function getIconByCategory(category) {
                 const icons = {
-                    'module': '<i class="fas fa-puzzle-piece"></i>',
-                    'adapter': '<i class="fas fa-plug"></i>'
+                    '适配器': '<i class="fas fa-plug"></i>',
+                    '管理工具': '<i class="fas fa-cogs"></i>',
+                    '娱乐游戏': '<i class="fas fa-gamepad"></i>',
+                    '实用工具': '<i class="fas fa-tools"></i>',
+                    '人工智能': '<i class="fas fa-brain"></i>',
                 };
-                return icons[type] || '<i class="fas fa-box"></i>';
+                return icons[category] || '<i class="fas fa-box"></i>';
             }
             
+            // 显示错误信息
             function showError(message) {
                 modulesContainer.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
@@ -1463,44 +1353,69 @@
                 `;
             }
             
-            function showInstallModal(packageName) {
-                const pkg = [...allModules, ...allAdapters].find(m => m.package === packageName);
-                if (!pkg) return;
+            // 显示安装模态框
+            function showInstallModal(moduleName) {
+                const module = allModules.find(m => m.name === moduleName);
+                if (!module) return;
                 
-                moduleModalTitle.textContent = `安装 ${pkg.name}`;
-                installCommand.textContent = `epsdk install ${pkg.package}`;
+                // 设置模态框内容
+                moduleModalTitle.textContent = `安装 ${module.name}`;
+                installCommand.textContent = `epsdk install ${module.name}`;
                 docsContainer.innerHTML = `
                     <div class="docs-content">
-                        <h3>${pkg.name} v${pkg.version}</h3>
-                        <p>${pkg.description}</p>
-                        <p><strong>作者：</strong>${pkg.author}</p>
-                        <p><strong>类型：</strong>${pkg.type === 'module' ? '功能模块' : '平台适配器'}</p>
+                        <h3>${module.name} v${module.version}</h3>
+                        <p>${module.description}</p>
+                        <p><strong>作者：</strong>${module.author}</p>
                         
-                        ${pkg.tags.length > 0 ? `
-                        <h4>标签</h4>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
-                        </div>
-                        ` : ''}
-                        
-                        ${pkg.repository ? `
-                        <h4>仓库信息</h4>
-                        <p><a href="${pkg.repository}" target="_blank">查看源代码</a></p>
-                        ` : ''}
+                        <h4>依赖项</h4>
+                        <ul>
+                            ${renderDependencies(module.dependencies)}
+                        </ul>
                     </div>
                 `;
                 
+                // 显示模态框
                 modalOverlay.classList.add('active');
             }
             
-            function showDocsModal(packageName, repoUrl) {
-                const pkg = [...allModules, ...allAdapters].find(m => m.package === packageName);
-                if (!pkg || !repoUrl) return;
+            // 渲染依赖项
+            function renderDependencies(deps) {
+                if (!deps) return '<li>无依赖项</li>';
                 
-                moduleModalTitle.textContent = `${pkg.name} 文档`;
-                installCommand.textContent = `epsdk install ${pkg.package}`;
-                currentModule = pkg;
+                let html = '';
                 
+                if (deps.requires && deps.requires.length > 0) {
+                    html += '<li><strong>必须依赖：</strong>';
+                    deps.requires.forEach(dep => html += `<span class="dependency-tag">${dep} </span>`);
+                    html += '</li>';
+                }
+                
+                if (deps.optional && deps.optional.length > 0) {
+                    html += '<li><strong>可选依赖：</strong>';
+                    deps.optional.forEach(dep => html += `<span class="dependency-tag">${dep} </span>`);
+                    html += '</li>';
+                }
+                
+                if (deps.pip && deps.pip.length > 0) {
+                    html += '<li><strong>Python依赖：</strong>';
+                    deps.pip.forEach(dep => html += `<span class="dependency-tag">${dep} </span>`);
+                    html += '</li>';
+                }
+                
+                return html || '<li>无依赖项</li>';
+            }
+            
+            // 显示文档模态框
+            function showDocsModal(moduleName) {
+                const module = allModules.find(m => m.name === moduleName);
+                if (!module || !module.homepage) return;
+                
+                // 设置模态框内容
+                moduleModalTitle.textContent = `${module.name} 文档`;
+                installCommand.textContent = `epsdk install ${module.name}`;
+                currentModule = module;
+                
+                // 显示加载状态
                 docsContainer.innerHTML = `
                     <div class="loading-content">
                         <div class="loading-spinner"></div>
@@ -1508,26 +1423,34 @@
                     </div>
                 `;
                 
+                // 显示模态框
                 modalOverlay.classList.add('active');
                 
-                fetchReadmeContent(repoUrl);
+                // 获取文档内容
+                fetchReadmeContent(module.homepage);
             }
             
-            async function fetchReadmeContent(repoUrl) {
+            // 获取README内容
+            async function fetchReadmeContent(homepageUrl) {
                 try {
-                    const repoPath = repoUrl.replace('https://github.com/', '');
-                    const [owner, repo] = repoPath.split('/');
+                    // 假设Github仓库URL
+                    const repoUrl = homepageUrl.replace('https://github.com/', '');
+                    const [owner, repo] = repoUrl.split('/');
                     
+                    // 获取默认分支
                     const repoInfo = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
                     const repoData = await repoInfo.json();
                     const defaultBranch = repoData.default_branch;
                     
+                    // 获取README内容
                     const readmeUrl = `https://gh.xmly.dev/https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/README.md`;
                     const response = await fetch(readmeUrl);
                     const markdown = await response.text();
                     
+                    // 转换为HTML
                     const htmlContent = marked.parse(markdown);
                     
+                    // 渲染内容
                     docsContainer.innerHTML = `
                         <div class="docs-content">
                             ${htmlContent}
@@ -1540,13 +1463,14 @@
                             <div class="error-message">
                                 <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
                                 <h3>无法加载文档</h3>
-                                <p>请访问 <a href="${currentModule.repository}" target="_blank">模块主页</a> 查看文档</p>
+                                <p>请访问 <a href="${currentModule.homepage}" target="_blank">模块主页</a> 查看文档</p>
                             </div>
                         </div>
                     `;
                 }
             }
             
+            // 复制命令到剪贴板
             function copyToClipboard(text) {
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
@@ -1555,6 +1479,7 @@
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
                 
+                // 显示复制成功反馈
                 const originalText = copyCommandBtn.innerHTML;
                 copyCommandBtn.innerHTML = '<i class="fas fa-check"></i> 已复制!';
                 
@@ -1563,8 +1488,10 @@
                 }, 2000);
             }
             
+            // 事件监听器
             searchInput.addEventListener('input', () => {
-                filterPackages();
+                const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+                filterModules(activeCategory);
             });
             
             closeModalBtn.addEventListener('click', () => {
@@ -1581,7 +1508,7 @@
                 copyToClipboard(installCommand.textContent);
             });
             
-            processPackages();
+            processModules();
         });
     </script>
 </body>
