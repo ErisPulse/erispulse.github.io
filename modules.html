@@ -1306,17 +1306,59 @@
                     btn.dataset.category = category;
                     btn.textContent = label;
                     btn.addEventListener('click', () => {
+                        // 移除所有按钮的active类
+                        document.querySelectorAll('.category-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                        // 给当前按钮添加active类
+                        btn.classList.add('active');
                         activeCategory = category;
+                        generateTags(category);
                         filterPackages();
                     });
                     categoriesContainer.appendChild(btn);
                 });
             }
             
-            function generateTags() {
+            function generateTagsFromPackages(packages) {
                 tags = {};
                 
-                [...allModules, ...allAdapters].forEach(pkg => {
+                packages.forEach(pkg => {
+                    pkg.tags.forEach(tag => {
+                        if (!tags[tag]) tags[tag] = 0;
+                        tags[tag]++;
+                    });
+                });
+                
+                tagsContainer.innerHTML = '';
+                
+                Object.entries(tags).forEach(([tag, count]) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'tag-btn';
+                    btn.dataset.tag = tag;
+                    btn.innerHTML = `${tag} <span class="tag-count">${count}</span>`;
+                    btn.addEventListener('click', () => {
+                        btn.classList.toggle('active');
+                        updateActiveTags();
+                    });
+                    tagsContainer.appendChild(btn);
+                });
+            }
+
+            function generateTags(category = 'all') {
+                tags = {};
+                
+                let packagesToProcess = [];
+                
+                if (category === 'all') {
+                    packagesToProcess = [...allModules, ...allAdapters];
+                } else if (category === 'modules') {
+                    packagesToProcess = allModules;
+                } else if (category === 'adapters') {
+                    packagesToProcess = allAdapters;
+                }
+                
+                packagesToProcess.forEach(pkg => {
                     pkg.tags.forEach(tag => {
                         if (!tags[tag]) tags[tag] = 0;
                         tags[tag]++;
@@ -1357,6 +1399,29 @@
                     filteredPackages = allModules;
                 } else if (activeCategory === 'adapters') {
                     filteredPackages = allAdapters;
+                }
+
+                // 如果有搜索词，先应用搜索过滤
+                if (searchInput.value) {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    filteredPackages = filteredPackages.filter(pkg => 
+                        pkg.name.toLowerCase().includes(searchTerm) || 
+                        pkg.description.toLowerCase().includes(searchTerm) ||
+                        (pkg.author && pkg.author.toLowerCase().includes(searchTerm))
+                    );
+                    
+                    // 搜索后更新标签为搜索结果中的标签
+                    generateTagsFromPackages(filteredPackages);
+                } else {
+                    // 没有搜索词时，根据当前分类显示标签
+                    generateTags(activeCategory);
+                }
+
+                // 最后应用标签过滤
+                if (activeTags.length > 0) {
+                    filteredPackages = filteredPackages.filter(pkg => 
+                        activeTags.some(tag => pkg.tags.includes(tag))
+                    );
                 }
                 
                 if (activeTags.length > 0) {

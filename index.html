@@ -168,32 +168,6 @@
             animation: pulse 3s infinite;
         }
         
-        .platforms-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .platform-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            text-align: center;
-            min-width: 200px;
-            transition: var(--transition);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            will-change: transform;
-        }
-        
-        .platform-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-            background: rgba(255, 255, 255, 0.3);
-        }
         .platform-icon img {
             width: 40px;
             height: 40px;
@@ -1111,12 +1085,6 @@
                 </p>
             </div>
             
-            <div class="platforms-grid" id="platforms-container">
-                <div class="loading">
-                    <div></div><div></div><div></div><div></div>
-                </div>
-            </div>
-            
             <div class="nav-container animate-in delay-2">
                 <a href="#features" class="nav-btn">
                     <i class="fas fa-rocket"></i>
@@ -1130,18 +1098,16 @@
                     <i class="fab fa-github"></i>
                     GitHub
                 </a>
-                <a href="#quick-start" class="nav-btn">
+                <a href="docs.html" class="nav-btn">
                     <i class="fas fa-play-circle"></i>
                     快速开始
                 </a>
             </div>
-        <br>
+            <br>
         </div>
     </header>
-
     <main>
         <div class="container">
-            <!-- 特性部分 -->
             <section id="features" class="section">
                 <div class="section-card animate-in">
                     <h2 class="section-title">核心特性</h2>
@@ -1345,55 +1311,19 @@
             
             async function loadPlatforms() {
                 try {
-                    const response = await fetch('https://erisdev.com/map.json');
+                    const response = await fetch('https://erisdev.com/packages.json');
                     const data = await response.json();
-                    const modules = data.modules;
                     
-                    // 筛选适配器模块（以"Adapter"结尾）
-                    const adapters = Object.keys(modules).filter(
-                        key => key.endsWith('Adapter')
-                    );
+                    // 更新模块和适配器数量
+                    const modules = data.modules || {};
+                    const adapters = data.adapters || {};
                     
-                    // 更新适配器数量
-                    document.getElementById('total-modules').textContent = Object.keys(modules).length;
+                    document.getElementById('total-modules').textContent = 
+                        Object.keys(modules).length + Object.keys(adapters).length;
                     
-                    // 更新平台列表区域
-                    const platformsContainer = document.getElementById('platforms-container');
-                    platformsContainer.innerHTML = '';
-                    
-                    adapters.forEach(adapter => {
-                        const platformName = adapter.replace('Adapter', '');
-                        const platformCard = document.createElement('div');
-                        platformCard.className = 'platform-card animate-in';
-                        platformCard.style.animationDelay = `${0.1 * adapters.indexOf(adapter)}s`;
-                        
-                        // 从平台名称获取图标类
-                        const iconClass = getIconClass(platformName);
-                        
-                        platformCard.innerHTML = `
-                            <div class="platform-icon">
-                                ${iconClass.endsWith('.svg') ? 
-                                    `<img src="${iconClass}" alt="${platformName}">` : 
-                                    `<i class="${iconClass}"></i>`}
-                            </div>
-                            <div class="platform-name">${platformName}</div>
-                        `;
-                        
-                        platformsContainer.appendChild(platformCard);
-                    });
                 } catch (error) {
-                    console.error('加载平台数据失败:', error);
-                    
-                    // 显示错误状态
-                    const platformsContainer = document.getElementById('platforms-container');
-                    platformsContainer.innerHTML = `
-                        <div class="platform-card" style="grid-column: 1 / -1;">
-                            <div class="platform-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="platform-name">无法加载平台信息</div>
-                        </div>
-                    `;
+                    console.error('加载模块数据失败:', error);
+                    document.getElementById('total-modules').textContent = '--';
                 }
             }
             
@@ -1438,23 +1368,6 @@
                 }
             }
             
-            function getIconClass(platform) {
-                const iconMap = {
-                    'QQ': 'fab fa-qq',
-                    'Discord': 'fab fa-discord',
-                    'Telegram': 'assets/telegram.svg',
-                    'WeChat': 'fab fa-weixin',
-                    'Slack': 'fab fa-slack',
-                    'Teams': 'fab fa-microsoft',
-                    'Web': 'fas fa-globe',
-                    'Twitter': 'fab fa-twitter',
-                    'Matrix': 'fas fa-comments',
-                    'Yunhu': 'assets/yunhu.svg',
-                    'OneBot': 'assets/onebot.svg'
-                };
-                
-                return iconMap[platform] || 'fas fa-plug';
-            }
         });
     </script>
 </body>
