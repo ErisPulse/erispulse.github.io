@@ -4,1358 +4,726 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ErisPulse - 异步机器人开发框架</title>
+    <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            outline: none;
-        }
-        
-        :root {
-            --primary: #4a6bdf;
-            --primary-dark: #3a56b8;
-            --secondary: #718096;
-            --accent: #63b3ed;
-            --light: #f7fafc;
-            --dark: #2d3748;
-            --success: #48bb78;
-            --warning: #ed8936;
-            --danger: #f56565;
-            --gray: #e2e8f0;
-            --text: #2d3748;
-            --text-light: #f8f9fa;
-            --card-bg: #ffffff;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.12);
-            --radius: 16px;
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --gradient-primary: linear-gradient(135deg, var(--primary), var(--accent));
-            --gradient-card: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
-        }
-        
-        body {
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-            line-height: 1.6;
-            background-color: var(--light);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f8fafc"/><path d="M0 50 Q25 30, 50 50 T100 50" stroke="%23e2e8f0" stroke-width="2" fill="none"/></svg>');
-            background-size: 400px;
-        }
-        
-        /* 动画效果 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        /* 标题和内容样式 */
-        h1, h2, h3 {
-            font-weight: 700;
-            line-height: 1.3;
-            letter-spacing: -0.02em;
-            margin-bottom: 1.2rem;
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-        }
-        
-        h2 {
-            font-size: 2.2rem;
-        }
-        
-        h3 {
-            font-size: 1.8rem;
-        }
-        
-        p {
-            margin-bottom: 1.5rem;
-            line-height: 1.7;
-            font-size: 1.1rem;
-            color: var(--secondary);
-        }
-        
-        .section {
-            margin-bottom: 4rem;
-            padding-top: 1rem;
-        }
-        
-        .section-title {
-            margin-bottom: 2.5rem;
-        }
-        
-        .section-title::after {
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            border-radius: 2px;
-            bottom: -0.5rem;
-        }
-        
-        a {
-            color: var(--primary);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-        
-        a:hover {
-            color: var(--primary-dark);
-        }
-        
-        /* 头部样式 */
-        header {
-            background: var(--gradient-primary);
-            color: var(--text-light);
-            padding: 4rem 1rem 6rem;
-            text-align: center;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header-content {
-            position: relative;
-            z-index: 10;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        
-        .header-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 15%), 
-                        radial-gradient(circle at 80% 30%, rgba(255,255,255,0.1) 0%, transparent 15%);
-            pointer-events: none;
-        }
-        
-        .header-wave {
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 100px;
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg"><path fill="%23f8fafc" d="M0,128L80,138.7C160,149,320,171,480,186.7C640,203,800,213,960,208C1120,203,1280,181,1360,170.7L1440,160L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path></svg>') no-repeat bottom;
-            background-size: cover;
-        }
-        
-        .logo-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .logo-icon {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 1.5rem;
-            fill: var(--text-light);
-            animation: pulse 3s infinite;
-        }
-        
-        .platform-icon img {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-        }
-        .platform-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: white;
-        }
-        
-        .platform-name {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: white;
-        }
-        
-        .nav-container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .nav-btn {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 0.8rem 1.8rem;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: var(--transition);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(5px);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .nav-btn:active {
-            transform: translateY(0) scale(0.98);
-        }
-        
-        .nav-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-        
-        .nav-btn:hover::after {
-            transform: translateX(100%);
-        }
-        
-        .nav-btn svg {
-            margin-right: 8px;
-            width: 18px;
-            height: 18px;
-        }
-        
-        /* 主要内容区域 */
-        main {
-            flex: 1;
-            padding: 0 1rem 4rem;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-        }
-        
-        .section {
-            margin-bottom: 3rem;
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 2.2rem;
-            margin-bottom: 2rem;
-            position: relative;
-            padding-bottom: 1rem;
-            color: var(--dark);
-        }
-        
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(90deg, transparent, var(--primary), transparent);
-            border-radius: 2px;
-        }
-        
-        .section-text {
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto 2rem;
-            font-size: 1.1rem;
-            color: var(--secondary);
-            line-height: 1.7;
-        }
-        
-        .section-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-        }
-        
-        .section-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .module-market-btn {
-            display: block;
-            width: max-content;
-            margin: 2rem auto 0;
-            background: var(--primary);
-            color: white;
-            padding: 0.9rem 2rem;
-            border-radius: 50px;
-            font-weight: 600;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-        }
-        
-        .module-market-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-md);
-            background: var(--primary-dark);
-        }
-        
-        /* 统计数据网格 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-            will-change: transform;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-        
-        .stat-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--primary);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover::after {
-            transform: scaleX(1);
-        }
-        
-        .stat-icon {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
-        }
-        
-        .stat-label {
-            font-size: 0.95rem;
-            color: var(--secondary);
-        }
-        
-        /* 特性网格 */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .feature-card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-            will-change: transform;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-        
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(74,107,223,0.1) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-        
-        .feature-icon {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(37, 99, 235, 0.1);
-            border-radius: 14px;
-        }
-        
-        .feature-title {
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-            color: var(--dark);
-        }
-        
-        .feature-description {
-            color: var(--secondary);
-            line-height: 1.6;
-        }
-        
-        /* CTA部分 */
-        .cta-section {
-            background: var(--gradient-primary);
-            border-radius: var(--radius);
-            padding: 3rem 2rem;
-            text-align: center;
-            color: var(--text-light);
-            box-shadow: var(--shadow-md);
-            position: relative;
-            overflow: hidden;
-            margin-top: 1rem;
-        }
-        
-        .cta-content {
-            position: relative;
-            z-index: 2;
-        }
-        
-        .cta-title {
-            font-size: 2rem;
-            margin-bottom: 1.2rem;
-        }
-        
-        .cta-text {
-            max-width: 600px;
-            margin: 0 auto 1.5rem;
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .cta-btn {
-            display: inline-flex;
-            align-items: center;
-            background: white;
-            color: var(--primary);
-            font-weight: 600;
-            padding: 0.9rem 2rem;
-            border-radius: 50px;
-            font-size: 1rem;
-            transition: var(--transition);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .cta-btn:hover {
-            transform: translateY(-3px);
-            background: #f1f5f9;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* 页脚 */
-        footer {
-            background: var(--dark);
-            color: var(--text-light);
-            padding: 4rem 1rem 2rem;
-            margin-top: 4rem;
-            position: relative;
-        }
-        
-        footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 10px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-        }
-        
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        
-        .footer-column h3 {
-            font-size: 1.4rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 0.8rem;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .footer-column h3::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 50px;
-            height: 3px;
-            background: var(--primary);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-        
-        .footer-column:hover h3 {
-            color: var(--accent);
-        }
-        
-        .footer-column:hover h3::after {
-            width: 80px;
-            background: var(--accent);
-        }
-        
-        .footer-links {
-            list-style: none;
-        }
-        
-        .footer-links li {
-            margin-bottom: 0.8rem;
-        }
-        
-        .footer-links a {
-            color: var(--text-light);
-            opacity: 0.9;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1rem;
-            padding: 0.4rem 0;
-            position: relative;
-        }
-        
-        .footer-links a:hover {
-            opacity: 1;
-            color: white;
-            transform: translateX(5px);
-        }
-        
-        .footer-links a i {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            color: var(--primary);
-            transition: var(--transition);
-        }
-        
-        .footer-links a:hover i {
-            transform: scale(1.2);
-            color: var(--accent);
-        }
-        
-        .footer-links a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-        
-        .footer-links a:hover::after {
-            width: 100%;
-        }
-        
-        .footer-social {
-            display: flex;
-            gap: 0.8rem;
-            margin-top: 1.2rem;
-        }
-        
-        .social-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 42px;
-            height: 42px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            font-size: 1.2rem;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .social-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--primary);
-            border-radius: 50%;
-            transform: scale(0);
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            z-index: -1;
-        }
-        
-        .social-link:hover {
-            transform: translateY(-3px) scale(1.1);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .social-link:hover::before {
-            transform: scale(1);
-        }
-        
-        .social-link:active {
-            transform: translateY(-1px) scale(0.95);
-        }
-        
-        .copyright {
-            text-align: center;
-            padding-top: 3rem;
-            margin-top: 3rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-        
-        .copyright a {
-            color: white;
-            text-decoration: underline;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-        
-        .copyright a:hover {
-            color: var(--accent);
-            text-decoration: none;
-        }
-        
-        .copyright br {
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            .copyright {
-                padding-top: 2rem;
-                margin-top: 2rem;
-                font-size: 0.85rem;
-            }
-            
-            .copyright br {
-                display: block;
-            }
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: var(--radius);
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow: hidden;
-            transform: translateY(30px);
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .modal-header {
-            padding: 1.5rem;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: var(--transition);
-        }
-        
-        .close-modal:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .modal-body {
-            padding: 1.5rem;
-            flex: 1;
-            overflow-y: auto;
-        }
-        
-        .module-info-box {
-            background: var(--light);
-            border-radius: var(--radius);
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .module-info-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        
-        .module-name {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .module-version {
-            background: var(--primary);
-            color: white;
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        
-        .module-author {
-            font-size: 0.95rem;
-            color: var(--secondary);
-            margin-bottom: 1rem;
-        }
-        
-        .module-homepage {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--primary);
-            text-decoration: none;
-            margin-bottom: 1rem;
-        }
-        
-        .module-homepage:hover {
-            text-decoration: underline;
-        }
-        
-        .install-command {
-            background: var(--dark);
-            color: white;
-            border-radius: var(--radius);
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            font-family: monospace;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .install-btn {
-            position: absolute;
-            right: 0.5rem;
-            top: 0.5rem;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 0.3rem 0.8rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-        
-        .install-btn:hover {
-            background: #0d9cd8;
-        }
-        
-        .module-desc {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-        
-        .markdown-content {
-            padding: 1rem;
-            background: var(--light);
-            border-radius: var(--radius);
-        }
-        
-        .markdown-content h1, 
-        .markdown-content h2, 
-        .markdown-content h3, 
-        .markdown-content h4, 
-        .markdown-content h5, 
-        .markdown-content h6 {
-            margin-top: 1.5rem;
-            margin-bottom: 0.8rem;
-        }
-        
-        .markdown-content p {
-            margin-bottom: 1rem;
-        }
-        
-        .markdown-content pre {
-            background: var(--dark);
-            color: white;
-            padding: 1rem;
-            border-radius: var(--radius);
-            overflow: auto;
-            margin-bottom: 1rem;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            header {
-                padding: 2rem 1rem 3.5rem;
-            }
-            
-            .logo-icon {
-                width: 56px;
-                height: 56px;
-                margin-bottom: 0.8rem;
-            }
-            
-            .platform-card {
-                flex: 1 0 calc(50% - 0.8rem);
-                min-width: auto;
-                padding: 1.2rem;
-                margin-bottom: 0.8rem;
-            }
-            
-            .nav-btn {
-                padding: 0.8rem 1.5rem;
-                font-size: 0.95rem;
-                margin: 0.3rem;
-                min-width: 120px;
-            }
-            
-            .section-card {
-                padding: 1.2rem;
-            }
-            
-            .section-title {
-                font-size: 1.6rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            .section-text {
-                font-size: 1rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            .cta-section {
-                padding: 1.8rem 1rem;
-            }
-            
-            .feature-card {
-                padding: 1.2rem;
-                margin-bottom: 1rem;
-            }
-            
-            .stat-card {
-                padding: 1.2rem;
-            }
-            
-            /* 增大触摸目标 */
-            a, button {
-                min-height: 44px;
-                min-width: 44px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .platform-card {
-                flex: 1 0 100%;
-                margin-bottom: 0.8rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 0.8rem;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 0.8rem;
-            }
-            
-            .nav-container {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .nav-btn {
-                width: calc(50% - 0.6rem);
-                margin: 0.3rem;
-            }
-            
-            .contributors-grid {
-                gap: 0.8rem;
-            }
-            
-            .contributor-avatar {
-                width: 48px;
-                height: 48px;
-            }
-        }
-        
-        /* 动画类 */
-        .animate-in {
-            animation: fadeIn 0.8s ease-out forwards;
-            opacity: 0;
-        }
-        
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-        
-        /* 贡献者列表样式 */
-        .contributors-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        
-        .contributor {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100px;
-        }
-        
-        .contributor-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 0.5rem;
-            border: 3px solid var(--gray);
-            transition: var(--transition);
-        }
-        
-        .contributor:hover .contributor-avatar {
-            transform: scale(1.1);
-            border-color: var(--primary);
-        }
-        
-        .contributor-name {
-            font-size: 0.8rem;
-            text-align: center;
-            word-break: break-all;
-        }
-        
-        /* 加载状态 */
-        .loading {
-            display: inline-block;
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-        
-        .loading div {
-            box-sizing: border-box;
-            display: block;
-            position: absolute;
-            width: 64px;
-            height: 64px;
-            margin: 8px;
-            border: 6px solid var(--primary);
-            border-radius: 50%;
-            animation: loading 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            border-color: var(--primary) transparent transparent transparent;
-            will-change: transform;
-        }
-        
-        .loading div:nth-child(1) {
-            animation-delay: -0.45s;
-            border-width: 6px;
-            border-top-color: rgba(74, 107, 223, 0.4);
-        }
-        
-        .loading div:nth-child(2) {
-            animation-delay: -0.3s;
-            border-width: 5px;
-            border-top-color: rgba(74, 107, 223, 0.6);
-        }
-        
-        .loading div:nth-child(3) {
-            animation-delay: -0.15s;
-            border-width: 4px;
-            border-top-color: rgba(74, 107, 223, 0.8);
-        }
-        
-        @keyframes loading {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        
-        /* 加载完成动画 */
-        .loaded {
-            animation: fadeInScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        
-        @keyframes fadeInScale {
-            0% {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 </head>
 <body>
-    <header>
-        <div class="header-pattern"></div>
-        <div class="header-wave"></div>
-        
-        <div class="header-content">
-            <div class="logo-container animate-in">
-                <!-- <svg class="logo-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                </svg> -->
-                <h1>ErisPulse</h1>
-                <p class="tagline" style="font-size: 1.5rem; font-weight: 600; color: rgba(255,255,255,0.9); margin-top: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                    异步机器人开发框架
-                </p>
-            </div>
-            
-            <div class="nav-container animate-in delay-2">
-                <a href="#features" class="nav-btn">
-                    <i class="fas fa-rocket"></i>
-                    核心特性
-                </a>
-                <a href="modules.html" class="nav-btn">
-                    <i class="fas fa-store"></i>
-                    模块市场
-                </a>
-                <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" class="nav-btn">
-                    <i class="fab fa-github"></i>
-                    GitHub
-                </a>
-                <a href="docs.html" class="nav-btn">
-                    <i class="fas fa-play-circle"></i>
-                    快速开始
-                </a>
-            </div>
+    <!-- 加载动画 -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">ErisPulse</div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <a href="assets/img/logo.png" class="logo" data-view="home">
+            <img src="assets/img/logo.png" class="logo-icon" alt="ErisPulse">
+            <span>ErisPulse</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="#" class="nav-link active" data-view="home">
+                <i class="fas fa-home"></i> 首页
+            </a>
+            <a href="#" class="nav-link" data-view="market">
+                <i class="fas fa-store"></i> 模块市场
+            </a>
+            <a href="#" class="nav-link" data-view="about">
+                <i class="fas fa-heart"></i> 我们
+            </a>
         </div>
-    </header>
-    <main>
-        <div class="container">
-            <section id="features" class="section">
+
+        <button class="theme-toggle" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+        <!-- 首页视图 -->
+        <div id="home-view" class="view-container active">
+            <!-- 英雄区域 -->
+            <section class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">ErisPulse</h1>
+                    <p class="hero-subtitle">高性能异步机器人开发框架</p>
+                    <div class="hero-actions">
+                        <a href="docs.html" class="btn btn-primary">
+                            <i class="fas fa-book"></i> 开始使用
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 特性介绍 -->
+            <section class="features">
                 <div class="container">
-                    <h2 class="section-title">框架优势</h2>
-                    <p class="section-text">ErisPulse 提供强大的开发工具和功能，让机器人开发更加高效和便捷</p>
-                    
+                    <h2 class="section-title">核心特性</h2>
+                    <p class="section-subtitle">ErisPulse 提供强大的开发工具和功能，让机器人开发更加高效和便捷</p>
+
                     <div class="features-grid">
-                        <!-- 模块化架构 -->
-                        <div class="feature-card">
+                        <div class="feature-card animate-in">
                             <div class="feature-icon">
                                 <i class="fas fa-cubes"></i>
                             </div>
                             <h3 class="feature-title">模块化架构</h3>
-                            <p>通过模块系统实现功能解耦，支持动态加载和热更新，开发者可以轻松扩展功能而不影响核心系统。</p>
+                            <p class="feature-description">
+                                通过模块系统实现功能解耦，支持动态加载和热更新，开发者可以轻松扩展功能而不影响核心系统。
+                            </p>
                         </div>
-                        
-                        <!-- 异步高性能 -->
-                        <div class="feature-card">
+
+                        <div class="feature-card animate-in">
                             <div class="feature-icon">
                                 <i class="fas fa-bolt"></i>
                             </div>
                             <h3 class="feature-title">异步高性能</h3>
-                            <p>充分利用 Python 的异步特性，提供高效的事件驱动机制，确保高性能和低延迟的运行表现。</p>
+                            <p class="feature-description">
+                                充分利用 Python 的异步特性，提供高效的事件驱动机制，确保高性能和低延迟的运行表现。
+                            </p>
                         </div>
-                        
-                        <!-- OneBot12高兼容 -->
-                        <div class="feature-card">
+
+                        <div class="feature-card animate-in">
                             <div class="feature-icon">
                                 <i class="fas fa-plug"></i>
                             </div>
                             <h3 class="feature-title">OneBot12高兼容</h3>
-                            <p>核心系统兼容 OneBot 12 标准，快速接入各种机器人平台。</p>
+                            <p class="feature-description">
+                                核心系统兼容 OneBot 12 标准，快速接入各种机器人平台。
+                            </p>
                         </div>
 
-                        <!-- 安全性保障 -->
-                        <div class="feature-card">
+                        <div class="feature-card animate-in">
                             <div class="feature-icon">
                                 <i class="fas fa-shield-alt"></i>
                             </div>
                             <h3 class="feature-title">安全性保障</h3>
-                            <p>事务支持、配置快照、模块化日志和错误追踪，满足生产环境需求。</p>
+                            <p class="feature-description">
+                                事务支持、配置快照、模块化日志和错误追踪，满足生产环境需求。
+                            </p>
                         </div>
-                        
-                        <!-- 优雅的API -->
-                        <div class="feature-card">
+
+                        <div class="feature-card animate-in">
                             <div class="feature-icon">
                                 <i class="fas fa-code"></i>
                             </div>
                             <h3 class="feature-title">优雅的API</h3>
-                            <p>链式调用DSL、类型提示和完整的文档，让代码更简洁易维护。</p>
+                            <p class="feature-description">
+                                链式调用DSL、类型提示和完整的文档，让代码更简洁易维护。
+                            </p>
                         </div>
 
-                        <!-- 开发者工具 -->
-                        <div class="feature-card">
+                        <div class="feature-card animate-in">
                             <div class="feature-icon">
                                 <i class="fas fa-tools"></i>
                             </div>
                             <h3 class="feature-title">开发者工具</h3>
-                            <p>内置 CLI 工具、模块热重载，提升开发效率。</p>
+                            <p class="feature-description">
+                                内置 CLI 工具、模块热重载，提升开发效率。
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
-            
-            <!-- 模块统计和平台展示 -->
-            <section id="modules" class="section">
-                <div class="section-card animate-in">
+
+            <!-- 统计数据 -->
+            <section class="stats">
+                <div class="container">
                     <h2 class="section-title">项目状态</h2>
-                    <p class="section-text">
-                        实时项目数据统计和社区贡献信息
-                    </p>
-                    
+                    <p class="section-subtitle">实时项目数据统计和社区贡献信息</p>
+
                     <div class="stats-grid">
-                        <div class="stat-card animate-in delay-1">
-                            <div class="stat-icon">
-                                <i class="fas fa-box-open"></i>
-                            </div>
+                        <div class="stat-card">
                             <div class="stat-number" id="total-modules">--</div>
                             <div class="stat-label">可用模块</div>
                         </div>
-                        
-                        <div class="stat-card animate-in delay-2">
-                            <div class="stat-icon">
-                                <i class="fas fa-star"></i>
-                            </div>
-                            <div class="stat-number" id="star-count">--</div>
-                            <div class="stat-label">GitHub 星标</div>
+
+                        <div class="stat-card">
+                            <div class="stat-number" id="adapter-count">--</div>
+                            <div class="stat-label">平台适配器</div>
                         </div>
-                        
-                        <div class="stat-card animate-in delay-3">
-                            <div class="stat-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-number" id="contributors-count">--</div>
-                            <div class="stat-label">社区贡献者</div>
+
+                        <div class="stat-card">
+                            <div class="stat-number" id="cli-count">--</div>
+                            <div class="stat-label">CLI扩展</div>
                         </div>
                     </div>
-                    
-                    <div id="contributors-container" class="contributors-grid"></div>
-                    
-                    <a href="modules.html" class="module-market-btn">
-                        <i class="fas fa-store"></i>
-                        浏览模块市场
+                </div>
+            </section>
+        </div>
+        <!-- 模块市场视图 -->
+        <div id="market-view" class="view-container">
+            <div class="container market-container">
+                <div class="market-header">
+                    <h2 class="section-title">模块市场</h2>
+                    <a href="legacy_mods.html" class="legacy-market-link">
+                        <i class="fas fa-history"></i> 查看 1.x 模块源 [已废弃]
                     </a>
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="搜索模块..." id="module-search">
+                    </div>
                 </div>
-            </section>
-            
-            <!-- 快速开始 -->
-            <section id="quick-start" class="section">
-                <div class="section-card animate-in">
-                    <h2 class="section-title">快速开始</h2>
-                    <p class="section-text">
-                        立即开始使用 ErisPulse 开发您的第一个机器人应用
-                    </p>
-                    
-                    <div class="cta-section animate-in delay-1">
-                        <div class="cta-content">
-                            <h2 class="cta-title">准备好开始了吗？</h2>
-                            <p class="cta-text" style="font-size: 1.2rem; line-height: 1.6; color: rgba(255,255,255,0.95); max-width: 700px; margin: 0 auto 2rem;">
-                                阅读我们的文档，加入开发者社区，开始构建下一代聊天机器人应用
-                            </p>
-                            <a href="docs.html" target="_blank" class="cta-btn">
-                                查看文档
-                                <i class="fas fa-arrow-right"></i>
-                            </a>
+
+                <div class="module-categories">
+                    <button class="category-btn active" data-category="all">全部模块</button>
+                    <button class="category-btn" data-category="modules">功能模块</button>
+                    <button class="category-btn" data-category="adapters">平台适配器</button>
+                    <button class="category-btn" data-category="cli">CLI扩展</button>
+                </div>
+
+                <div class="module-grid" id="modules-grid">
+                    <!-- 模块卡片将通过JavaScript动态生成 -->
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="fas fa-puzzle-piece"></i>
+                            </div>
+                            <div>
+                                <h3 class="module-name">示例模块</h3>
+                                <div class="module-version">v1.0.0</div>
+                            </div>
+                        </div>
+                        <p class="module-desc">这是一个示例模块的描述信息，用于展示模块卡片的外观和布局。</p>
+                        <div class="module-tags">
+                            <span class="module-tag">示例</span>
+                            <span class="module-tag">测试</span>
+                        </div>
+                        <div class="module-footer">
+                            <div class="module-author">ErisPulse Team</div>
+                            <div class="module-actions">
+                                <button class="module-btn">
+                                    <i class="fas fa-download"></i> 安装
+                                </button>
+                                <button class="module-btn">
+                                    <i class="fas fa-book"></i> 文档
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </div>
+
+        <!-- 关于视图 -->
+        <div id="about-view" class="view-container">
+            <div class="container">
+                <section class="contributors">
+                    <div class="container">
+                        <div class="stat-card">
+                            <div class="stat-number" id="contributors-count">--</div>
+                            <div class="stat-label">贡献者</div>
+                        </div>
+                        <p class="section-subtitle">感谢以下开发者为 ErisPulse 做出的贡献</p>
+
+                        <div class="contributors-grid" id="contributors-container">
+                            <!-- 贡献者头像将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                    <br><hr><br>
+                    <p class="section-subtitle">ErisPulse 使用 MIT 开源协议，允许自由分发和修改。</p>
+                    <div class="container" style="text-align: center">
+                        <p>
+                            关于ErisPulse的头像 | 一切版权归属原作者所有
+                            <br><span>作者：げのげ</span>
+                            <br><span>PID：96369911</span>
+                            <br><span>UID：63887595</span>
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- 模块详情模态框 -->
+        <div class="modal-overlay" id="module-modal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">模块详情</h3>
+                    <button class="close-btn" id="close-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="module-modal-content">
+                        <!-- 模块详情内容将通过JavaScript动态加载 -->
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
+    <!-- 页脚 -->
     <footer>
-        <div class="footer-content">
-            <div class="footer-column">
-                <h3>关于 ErisPulse</h3>
-                <p>ErisPulse 是一个高性能的异步机器人开发框架，基于 Python 构建，支持模块化扩展和动态加载。</p>
-                <div class="footer-social">
-                    <a href="https://github.com/ErisPulse" target="_blank" class="social-link" title="GitHub">
-                        <i class="fab fa-github"></i>
-                    </a>
-                    <a href="https://yhfx.jwznb.com/share?key=TVyKVWdPZyoT&ts=1749797178" 
-                    target="_blank" 
-                    class="social-link" 
-                    title="云湖"
-                    style="background-color: #7052d2; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
-                        <img src="assets/yunhu.svg" alt="云湖" style="width: 20px; height: 20px; object-fit: contain;">
-                    </a>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>ErisPulse</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-home"></i> 项目主页</a></li>
+                        <li><a href="#"><i class="fas fa-book"></i> 使用文档</a></li>
+                        <li><a href="#"><i class="fas fa-download"></i> 版本发布</a></li>
+                    </ul>
                 </div>
+
+                <div class="footer-column">
+                    <h3>贡献与开发</h3>
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/ErisPulse/ErisPulse/issues"><i class="fas fa-code"></i> 报告Issue</a></li>
+                        <li><a href="https://github.com/ErisPulse/ErisPulse/pulls"><i class="fas fa-code-branch"></i> 提交PR</a></li>
+                        <li><a href="https://github.com/ErisPulse/ErisPulse/discussions"><i class="fas fa-comments"></i> 讨论区</a></li>
+                        <li><a href="https://github.com/ErisPulse/ErisPulse-Scaffold"><i class="fas fa-terminal"></i> CLI 脚手架</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h3>社交平台</h3>
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/ErisPulse"><i class="fab fa-github"></i> GitHub</a></li>
+                    </ul>
+                </div>
+
             </div>
-            
-            <div class="footer-column">
-                <h3>相关链接</h3>
-                <ul class="footer-links">
-                    <li><a href="modules.html"><i class="fas fa-store"></i> 模块市场</a></li>
-                    <li><a href="docs.html" target="_blank"><i class="fas fa-book"></i> 文档中心</a></li>
-                    <li><a href="https://github.com/ErisPulse/ErisPulse" target="_blank"><i class="fab fa-github"></i> GitHub 仓库</a></li>
-                    <li><a href="https://github.com/orgs/ErisPulse/discussions" target="_blank"><i class="fas fa-users"></i> 社区论坛</a></li>
-                </ul>
+
+            <div class="copyright">
+                &copy; 2025 ErisPulse Project | 开源许可证：MIT 
             </div>
-            
-            <div class="footer-column">
-                <h3>项目资源</h3>
-                <ul class="footer-links">
-                    <li><a href="https://github.com/ErisPulse/ErisPulse/issues" target="_blank"><i class="fas fa-bug"></i> 报告问题</a></li>
-                    <li><a href="https://github.com/ErisPulse/ErisPulse/releases" target="_blank"><i class="fas fa-code-pull-request"></i> 提交PR</a></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="copyright">
-            &copy; 2025 ErisPulse Project. MIT 许可证
         </div>
     </footer>
 
     <script>
-
-        // 模块商店页面
-        function openModuleStore() {
-            window.location.href = "modules.html";
-        }
-
-        // 主脚本逻辑
+        // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
-            const moduleModal = document.getElementById('module-modal');
-            const closeModal = document.getElementById('close-modal');
-            const modalBody = document.getElementById('module-modal-body');
+            // 隐藏加载动画
+            setTimeout(() => {
+                const loader = document.getElementById('page-loader');
+                loader.classList.add('hidden');
+                
+                // 动画完成后移除元素
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }, 200);
+
+            // 主题切换
+            const themeToggle = document.getElementById('theme-toggle');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
             
-            // 加载平台数据
-            loadPlatforms();
+            // 应用初始主题
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
             
-            // 加载GitHub数据
-            loadGitHubData();
+            // 主题切换按钮事件
+            themeToggle.addEventListener('click', () => {
+                if (currentTheme === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    currentTheme = 'dark';
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                    currentTheme = 'light';
+                }
+                localStorage.setItem('theme', currentTheme);
+            });
+
+            // 视图切换逻辑
+            const viewLinks = document.querySelectorAll('[data-view]');
+            const viewContainers = document.querySelectorAll('.view-container');
             
-            async function loadPlatforms() {
+            viewLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const view = this.getAttribute('data-view');
+                    
+                    // 更新导航栏活动状态
+                    viewLinks.forEach(link => link.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 切换视图
+                    viewContainers.forEach(container => {
+                        container.classList.remove('active');
+                    });
+                    document.getElementById(`${view}-view`).classList.add('active');
+                    
+                    // 滚动到顶部
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            // 模块市场功能
+            let allModules = [];
+            let allAdapters = [];
+            let allCliExtensions = [];
+            let activeCategory = 'all';
+            let searchQuery = '';
+            loadModuleData();
+            
+            // 加载模块数据
+            async function loadModuleData() {
                 try {
                     const response = await fetch('https://erisdev.com/packages.json');
+                    if (!response.ok) throw new Error('模块API请求失败');
                     const data = await response.json();
                     
-                    // 更新模块和适配器数量
-                    const modules = data.modules || {};
-                    const adapters = data.adapters || {};
+                    // 处理模块数据
+                    allModules = Object.entries(data.modules || {}).map(([name, info]) => ({
+                        name,
+                        package: info.package,
+                        version: info.version,
+                        author: info.author,
+                        description: info.description,
+                        repository: info.repository,
+                        official: info.official || false,
+                        tags: info.tags || [],
+                        type: 'module'
+                    }));
                     
-                    document.getElementById('total-modules').textContent = 
-                        Object.keys(modules).length + Object.keys(adapters).length;
+                    // 处理适配器
+                    allAdapters = Object.entries(data.adapters || {}).map(([name, info]) => ({
+                        name,
+                        package: info.package,
+                        version: info.version,
+                        author: 'ErisPulse Team',
+                        description: info.description,
+                        repository: info.repository,
+                        official: info.official || false,
+                        tags: info.tags || [],
+                        type: 'adapter'
+                    }));
+                    
+                    // 处理CLI扩展
+                    allCliExtensions = Object.entries(data.cli_extensions || {}).map(([name, info]) => ({
+                        name,
+                        package: info.package,
+                        version: info.version,
+                        author: info.author || 'ErisPulse Team',
+                        description: info.description,
+                        repository: info.repository,
+                        official: info.official || false,
+                        tags: info.tags || [],
+                        type: 'cli',
+                        command: info.command || []
+                    }));
+                    
+                    // 更新统计数据
+                    updateStats();
+                    
+                    // 渲染模块
+                    renderModules();
+                    
+                    // 加载贡献者数据
+                    loadContributors();
                     
                 } catch (error) {
                     console.error('加载模块数据失败:', error);
-                    document.getElementById('total-modules').textContent = '--';
+                    showError('加载模块失败，请稍后再试');
                 }
             }
             
-            async function loadGitHubData() {
+            // 加载贡献者数据
+            async function loadContributors() {
                 try {
-                    // 获取仓库信息
-                    const repoResponse = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse');
-                    if (!repoResponse.ok) throw new Error('API request failed');
-                    const repoData = await repoResponse.json();
-                    
-                    // 更新星标数
-                    document.getElementById('star-count').textContent = repoData.stargazers_count;
-                    
-                    // 获取贡献者信息
-                    const contributorsResponse = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse/contributors');
-                    if (!contributorsResponse.ok) throw new Error('Contributors API request failed');
-                    const contributorsData = await contributorsResponse.json();
+                    const response = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse/contributors');
+                    if (!response.ok) throw new Error('贡献者API请求失败');
+                    const contributors = await response.json();
                     
                     // 更新贡献者数量
-                    document.getElementById('contributors-count').textContent = contributorsData.length;
+                    document.getElementById('contributors-count').textContent = contributors.length;
                     
                     // 渲染贡献者头像
-                    const contributorsContainer = document.getElementById('contributors-container');
-                    contributorsContainer.innerHTML = '';
+                    const container = document.getElementById('contributors-container');
+                    container.innerHTML = '';
                     
-                    const maxContributors = Math.min(contributorsData.length, 20);
-                    for (let i = 0; i < maxContributors; i++) {
-                        const contributor = contributorsData[i];
+                    contributors.slice(0, 12).forEach(contributor => {
                         const contributorElement = document.createElement('div');
-                        contributorElement.className = 'contributor animate-in';
-                        contributorElement.style.animationDelay = `${0.1 * i}s`;
+                        contributorElement.className = 'contributor';
                         contributorElement.innerHTML = `
                             <img src="${contributor.avatar_url}&s=80" alt="${contributor.login}" class="contributor-avatar">
                             <span class="contributor-name">${contributor.login}</span>
                         `;
                         contributorElement.onclick = () => window.open(contributor.html_url, '_blank');
-                        contributorsContainer.appendChild(contributorElement);
-                    }
+                        container.appendChild(contributorElement);
+                    });
                 } catch (error) {
-                    console.error('加载GitHub数据失败:', error);
+                    console.error('加载贡献者数据失败:', error);
                 }
             }
             
+            // 更新统计数据
+            function updateStats() {
+                document.getElementById('total-modules').textContent = allModules.length;
+                document.getElementById('adapter-count').textContent = allAdapters.length;
+                document.getElementById('cli-count').textContent = allCliExtensions.length;
+                document.getElementById('contributors-count').textContent = '--';
+            }
+            
+            // 渲染模块
+            function renderModules() {
+                const modulesGrid = document.getElementById('modules-grid');
+                modulesGrid.innerHTML = '';
+                
+                let packagesToShow = [];
+                
+                // 根据分类筛选
+                if (activeCategory === 'all') {
+                    packagesToShow = [...allModules, ...allAdapters, ...allCliExtensions];
+                } else if (activeCategory === 'modules') {
+                    packagesToShow = allModules;
+                } else if (activeCategory === 'adapters') {
+                    packagesToShow = allAdapters;
+                } else if (activeCategory === 'cli') {
+                    packagesToShow = allCliExtensions;
+                }
+                
+                // 应用搜索过滤
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    packagesToShow = packagesToShow.filter(pkg => 
+                        pkg.name.toLowerCase().includes(query) || 
+                        pkg.description.toLowerCase().includes(query)
+                    );
+                }
+                
+                // 如果没有模块显示空状态
+                if (packagesToShow.length === 0) {
+                    modulesGrid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                            <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                            <h3>未找到匹配的模块</h3>
+                            <p>尝试不同的搜索关键词或查看所有模块</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 渲染模块卡片
+                packagesToShow.forEach((pkg, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'module-card';
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    
+                    // 处理CLI扩展的特殊显示
+                    const cliBadge = pkg.type === 'cli' ? '<span class="module-tag">CLI</span>' : '';
+                    const commandInfo = pkg.command && pkg.command.length > 0 ? 
+                        `<p style="font-size: 0.85rem; margin-top: 0.5rem;"><i class="fas fa-terminal"></i> 命令: ${pkg.command.join(', ')}</p>` : '';
+                    
+                    card.innerHTML = `
+                        <div class="module-header">
+                            <div class="module-icon">
+                                ${getIconByType(pkg.type)}
+                            </div>
+                            <div>
+                                <h3 class="module-name">${pkg.name}</h3>
+                                <div class="module-version">v${pkg.version}</div>
+                            </div>
+                        </div>
+                        <p class="module-desc">${pkg.description}</p>
+                        ${commandInfo}
+                        ${pkg.tags.length > 0 ? `
+                        <div class="module-tags">
+                            ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
+                            ${cliBadge}
+                        </div>
+                        ` : ''}
+                        <div class="module-footer">
+                            <div class="module-author">${pkg.author}</div>
+                            <div class="module-actions">
+                                <button class="module-btn" data-action="install" data-package="${pkg.package}">
+                                    <i class="fas fa-download"></i> 安装
+                                </button>
+                                ${pkg.repository ? `<button class="module-btn" data-action="docs" data-package="${pkg.package}" data-repo="${pkg.repository}">
+                                    <i class="fas fa-book"></i> 文档
+                                </button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    modulesGrid.appendChild(card);
+                });
+                
+                // 添加事件监听器
+                document.querySelectorAll('[data-action="install"]').forEach(btn => {
+                    btn.addEventListener('click', () => showInstallModal(btn.dataset.package));
+                });
+                
+                document.querySelectorAll('[data-action="docs"]').forEach(btn => {
+                    btn.addEventListener('click', () => showDocsModal(btn.dataset.package, btn.dataset.repo));
+                });
+            }
+            
+            // 根据类型获取图标
+            function getIconByType(type) {
+                const icons = {
+                    'module': '<i class="fas fa-puzzle-piece"></i>',
+                    'adapter': '<i class="fas fa-plug"></i>',
+                    'cli': '<i class="fas fa-terminal"></i>'
+                };
+                return icons[type] || '<i class="fas fa-box"></i>';
+            }
+            
+            // 显示安装模态框
+            function showInstallModal(packageName) {
+                const pkg = [...allModules, ...allAdapters, ...allCliExtensions].find(m => m.package === packageName);
+                if (!pkg) return;
+                
+                const modal = document.getElementById('module-modal');
+                const modalContent = document.getElementById('module-modal-content');
+                
+                modalContent.innerHTML = `
+                    <h3>${pkg.name} v${pkg.version}</h3>
+                    <p>${pkg.description}</p>
+                    
+                    <h4 style="margin-top: 1.5rem;">安装命令</h4>
+                    <pre style="background: var(--bg); padding: 1rem; border-radius: var(--radius);"><code>epsdk install ${pkg.package}</code></pre>
+                    
+                    ${pkg.type === 'cli' && pkg.command && pkg.command.length > 0 ? `
+                    <h4 style="margin-top: 1.5rem;">可用命令</h4>
+                    <ul>
+                        ${pkg.command.map(cmd => `<li><code>epsdk ${cmd}</code></li>`).join('')}
+                    </ul>
+                    ` : ''}
+                    
+                    ${pkg.tags.length > 0 ? `
+                    <h4 style="margin-top: 1.5rem;">标签</h4>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    ${pkg.repository ? `
+                    <h4 style="margin-top: 1.5rem;">仓库信息</h4>
+                    <p><a href="${pkg.repository}" target="_blank">查看源代码</a></p>
+                    ` : ''}
+                `;
+                
+                modal.classList.add('active');
+            }
+            
+            function showDocsModal(packageName, repoUrl) {
+                const pkg = [...allModules, ...allAdapters, ...allCliExtensions].find(m => m.package === packageName);
+                if (!pkg || !repoUrl) return;
+                
+                const modal = document.getElementById('module-modal');
+                const modalContent = document.getElementById('module-modal-content');
+                
+                modalContent.innerHTML = `
+                    <div style="text-align: center; padding: 2rem;">
+                        <div class="loader-spinner"></div>
+                        <p>正在加载文档...</p>
+                    </div>
+                `;
+                
+                modal.classList.add('active');
+                
+                // 从GitHub获取README内容
+                fetchReadmeContent(repoUrl).then(markdown => {
+                    // 使用marked.js将Markdown转换为HTML
+                    const htmlContent = marked.parse(markdown);
+                    
+                    modalContent.innerHTML = `
+                        <div class="markdown-content">
+                            <h3>${pkg.name} v${pkg.version}</h3>
+                            ${htmlContent}
+                        </div>
+                    `;
+                }).catch(error => {
+                    console.error('获取文档失败:', error);
+                    modalContent.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
+                            <h3>无法加载文档</h3>
+                            <p>请访问 <a href="${pkg.repository}" target="_blank">模块仓库</a> 查看文档</p>
+                        </div>
+                    `;
+                });
+            }
+
+            async function fetchReadmeContent(repoUrl) {
+                try {
+                    // 解析GitHub仓库URL
+                    const repoPath = repoUrl.replace('https://github.com/', '');
+                    const [owner, repo] = repoPath.split('/');
+                    
+                    // 首先获取仓库信息以确定默认分支
+                    const repoInfo = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+                    const repoData = await repoInfo.json();
+                    const defaultBranch = repoData.default_branch;
+                    
+                    // 使用GitHub Raw内容API获取README.md
+                    const readmeUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/README.md`;
+                    const response = await fetch(readmeUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error('README文件不存在或无法访问');
+                    }
+                    
+                    return await response.text();
+                } catch (error) {
+                    console.error('获取README失败:', error);
+                    throw error;
+                }
+            }
+            
+            // 显示错误信息
+            function showError(message) {
+                const modulesGrid = document.getElementById('modules-grid');
+                modulesGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                        <h3>${message}</h3>
+                        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
+                            重新加载
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // 分类按钮事件
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    activeCategory = this.dataset.category;
+                    renderModules();
+                });
+            });
+            
+            // 搜索功能
+            const searchInput = document.getElementById('module-search');
+            searchInput.addEventListener('input', function() {
+                searchQuery = this.value.trim();
+                renderModules();
+            });
+            
+            // 关闭模态框
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('module-modal').classList.remove('active');
+            });
+            
+            // 点击模态框外部关闭
+            document.getElementById('module-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+            
+            // 如果当前是模块市场视图，加载模块数据
+            if (document.getElementById('market-view').classList.contains('active')) {
+                loadModuleData();
+            }
         });
     </script>
 </body>
