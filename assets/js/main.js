@@ -518,6 +518,17 @@ initDocsView();
 
 // 初始化文档视图
 function initDocsView() {
+    // 获取文档导航栏元素
+    const docsSubnav = document.querySelector('.docs-subnav');
+    
+    // 创建切换按钮
+    if (docsSubnav) {
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'docs-subnav-toggle';
+        toggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        docsSubnav.querySelector('.container').prepend(toggleButton);
+    }
+    
     // 设置文档分类点击事件
     document.querySelectorAll('.docs-nav-category').forEach(category => {
         category.addEventListener('click', function(e) {
@@ -585,6 +596,133 @@ function initDocsView() {
         if (firstDocLink) {
             firstDocLink.click();
         }
+    }
+    
+    // 文档页面导航栏自动隐藏/显示功能
+    if (docsSubnav) {
+        let lastScrollTop = 0;
+        let isScrollingDown = false;
+        let ticking = false;
+        let isManuallyHidden = false; // 标记是否手动隐藏
+        let isManuallyShown = false;  // 标记是否手动显示
+        
+        // 显示导航栏
+        function showNav() {
+            docsSubnav.classList.remove('hidden');
+            docsSubnav.classList.add('visible');
+            // 更新切换按钮图标
+            const toggleIcon = docsSubnav.querySelector('.docs-subnav-toggle i');
+            if (toggleIcon) {
+                toggleIcon.className = 'fas fa-chevron-up';
+            }
+        }
+        
+        // 隐藏导航栏
+        function hideNav() {
+            docsSubnav.classList.remove('visible');
+            docsSubnav.classList.add('hidden');
+            // 更新切换按钮图标
+            const toggleIcon = docsSubnav.querySelector('.docs-subnav-toggle i');
+            if (toggleIcon) {
+                toggleIcon.className = 'fas fa-chevron-down';
+            }
+        }
+        
+        // 手动切换导航栏显示状态
+        function toggleNav() {
+            const isVisible = docsSubnav.classList.contains('visible');
+            
+            if (isVisible) {
+                // 当前是显示状态，需要隐藏
+                hideNav();
+                isManuallyHidden = true;
+                isManuallyShown = false;
+            } else {
+                // 当前是隐藏状态，需要显示
+                showNav();
+                isManuallyShown = true;
+                isManuallyHidden = false;
+            }
+        }
+        
+        // 滚动事件处理函数
+        function handleScroll() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // 如果是手动隐藏状态，不响应滚动事件
+            if (isManuallyHidden) {
+                return;
+            }
+            
+            // 如果滚动到顶部，始终显示导航栏
+            if (scrollTop === 0) {
+                showNav();
+                isScrollingDown = false;
+                lastScrollTop = scrollTop;
+                return;
+            }
+            
+            // 如果是手动显示状态，仍然可以使用滚动逻辑
+            if (isManuallyShown) {
+                // 判断滚动方向
+                if (scrollTop > lastScrollTop) {
+                    // 向下滚动
+                    if (!isScrollingDown) {
+                        isScrollingDown = true;
+                        hideNav();
+                    }
+                } else {
+                    // 向上滚动
+                    if (isScrollingDown) {
+                        isScrollingDown = false;
+                        showNav();
+                    }
+                }
+                lastScrollTop = scrollTop;
+                return;
+            }
+            
+            // 默认的滚动逻辑
+            // 判断滚动方向
+            if (scrollTop > lastScrollTop) {
+                // 向下滚动
+                if (!isScrollingDown) {
+                    isScrollingDown = true;
+                    hideNav();
+                }
+            } else {
+                // 向上滚动
+                if (isScrollingDown) {
+                    isScrollingDown = false;
+                    showNav();
+                }
+            }
+            
+            lastScrollTop = scrollTop;
+        }
+        
+        // 使用 requestAnimationFrame 优化滚动性能
+        function updateScroll() {
+            if (!ticking) {
+                requestAnimationFrame(function() {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+        
+        // 监听滚动事件
+        window.addEventListener('scroll', updateScroll, { passive: true });
+        
+        // 监听切换按钮点击事件
+        const toggleButton = docsSubnav.querySelector('.docs-subnav-toggle');
+        if (toggleButton) {
+            toggleButton.addEventListener('click', toggleNav);
+        }
+        
+        // 初始状态：隐藏导航栏
+        hideNav();
     }
 }
 
