@@ -519,14 +519,30 @@ initDocsView();
  
 function initDocsView() {
      
-    const categories = ['getting-started', 'development', 'adapter-standards', 'references', 'api-docs'];
-    categories.forEach(category => {
-        const container = document.getElementById(`${category}-container`);
-        const caret = document.getElementById(`${category}-caret`);
-        if (container && caret) {
-            container.style.display = 'none';
-            caret.classList.remove('fa-chevron-up');
-            caret.classList.add('fa-chevron-down');
+    document.querySelectorAll('.docs-nav-category').forEach(category => {
+        category.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const parentItem = this.closest('.docs-nav-item');
+            const isActive = parentItem.classList.contains('active');
+            
+             
+            document.querySelectorAll('.docs-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+             
+            if (!isActive) {
+                parentItem.classList.add('active');
+            }
+        });
+    });
+    
+     
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.docs-nav-item')) {
+            document.querySelectorAll('.docs-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
         }
     });
     
@@ -543,6 +559,11 @@ function initDocsView() {
             this.classList.add('active');
             
              
+            document.querySelectorAll('.docs-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+             
             history.pushState(null, null, `#docs/${docName}`);
             
              
@@ -556,30 +577,14 @@ function initDocsView() {
         });
     });
     
- 
-const hash = window.location.hash.substring(1);
-if (hash === 'docs') {
      
-    const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
-    if (firstDocLink) {
-        firstDocLink.click();
-    }
-}
-}
-
- 
-function toggleDocsCategory(categoryId) {
-    const container = document.getElementById(`${categoryId}-container`);
-    const caret = document.getElementById(`${categoryId}-caret`);
-    
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-        caret.classList.remove('fa-chevron-down');
-        caret.classList.add('fa-chevron-up');
-    } else {
-        container.style.display = 'none';
-        caret.classList.remove('fa-chevron-up');
-        caret.classList.add('fa-chevron-down');
+    const hash = window.location.hash.substring(1);
+    if (hash === 'docs') {
+         
+        const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
+        if (firstDocLink) {
+            firstDocLink.click();
+        }
     }
 }
 
