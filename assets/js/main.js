@@ -52,6 +52,34 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('theme', currentTheme);
     });
 
+// 汉堡菜单功能
+const hamburger = document.getElementById('hamburger');
+const navContainer = document.getElementById('nav-container');
+
+hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hamburger.classList.toggle('active');
+    navContainer.classList.toggle('active');
+});
+
+// 点击其他地方关闭菜单
+document.addEventListener('click', (e) => {
+    if (!navContainer.contains(e.target) && e.target !== hamburger) {
+        hamburger.classList.remove('active');
+        navContainer.classList.remove('active');
+    }
+});
+
+// 点击导航链接后关闭菜单
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            hamburger.classList.remove('active');
+            navContainer.classList.remove('active');
+        }
+    });
+});
+
 // 视图切换逻辑
 const viewLinks = document.querySelectorAll('[data-view]');
 const viewContainers = document.querySelectorAll('.view-container');
