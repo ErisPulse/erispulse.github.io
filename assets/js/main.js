@@ -1,4 +1,17 @@
  
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            })
+            .catch(function(err) {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+    });
+}
+
+ 
 document.addEventListener('DOMContentLoaded', function() {
      
     setTimeout(() => {
@@ -9,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             loader.style.display = 'none';
         }, 500);
-    }, 200);
+    }, 500);
 
      
     const themeToggle = document.getElementById('theme-toggle');
