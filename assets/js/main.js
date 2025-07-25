@@ -522,14 +522,6 @@ function initDocsView() {
     const docsSubnav = document.querySelector('.docs-subnav');
     
      
-    if (docsSubnav) {
-        const toggleButton = document.createElement('button');
-        toggleButton.className = 'docs-subnav-toggle';
-        toggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
-        docsSubnav.querySelector('.container').prepend(toggleButton);
-    }
-    
-     
     document.querySelectorAll('.docs-nav-category').forEach(category => {
         category.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -598,58 +590,27 @@ function initDocsView() {
         }
     }
     
- 
+     
     if (docsSubnav) {
         let lastScrollTop = 0;
         let isScrollingDown = false;
         let ticking = false;
-        let isManuallyHidden = false;  
         
          
         function showNav() {
             docsSubnav.classList.remove('hidden');
             docsSubnav.classList.add('visible');
-             
-            const toggleIcon = docsSubnav.querySelector('.docs-subnav-toggle i');
-            if (toggleIcon) {
-                toggleIcon.className = 'fas fa-chevron-up';
-            }
         }
         
          
         function hideNav() {
             docsSubnav.classList.remove('visible');
             docsSubnav.classList.add('hidden');
-             
-            const toggleIcon = docsSubnav.querySelector('.docs-subnav-toggle i');
-            if (toggleIcon) {
-                toggleIcon.className = 'fas fa-chevron-down';
-            }
-        }
-        
-         
-        function toggleNav() {
-            const isVisible = docsSubnav.classList.contains('visible');
-            
-            if (isVisible) {
-                 
-                hideNav();
-                isManuallyHidden = true;
-            } else {
-                 
-                showNav();
-                isManuallyHidden = false;
-            }
         }
         
          
         function handleScroll() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            
-             
-            if (isManuallyHidden) {
-                return;
-            }
             
              
             if (scrollTop === 0) {
@@ -659,7 +620,6 @@ function initDocsView() {
                 return;
             }
             
-             
              
             if (scrollTop > lastScrollTop) {
                  
@@ -691,12 +651,6 @@ function initDocsView() {
         
          
         window.addEventListener('scroll', updateScroll, { passive: true });
-        
-         
-        const toggleButton = docsSubnav.querySelector('.docs-subnav-toggle');
-        if (toggleButton) {
-            toggleButton.addEventListener('click', toggleNav);
-        }
         
          
         showNav();
