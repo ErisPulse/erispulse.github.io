@@ -59,6 +59,20 @@ function switchViewByHash() {
                     docLink.click();
                 }
             }, 500);
+        } else {
+             
+            setTimeout(() => {
+                const defaultDocLink = document.querySelector('.docs-nav-link[data-doc="quick-start"]');
+                if (defaultDocLink) {
+                    defaultDocLink.click();
+                } else {
+                     
+                    const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
+                    if (firstDocLink) {
+                        firstDocLink.click();
+                    }
+                }
+            }, 500);
         }
     } else if (hash.startsWith('market')) {
         view = 'market';
