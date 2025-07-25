@@ -53,6 +53,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
  
+const hamburger = document.getElementById('hamburger');
+const navContainer = document.getElementById('nav-container');
+
+hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    hamburger.classList.toggle('active');
+    navContainer.classList.toggle('active');
+});
+
+ 
+document.addEventListener('click', (e) => {
+    if (!navContainer.contains(e.target) && e.target !== hamburger) {
+        hamburger.classList.remove('active');
+        navContainer.classList.remove('active');
+    }
+});
+
+ 
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            hamburger.classList.remove('active');
+            navContainer.classList.remove('active');
+        }
+    });
+});
+
+ 
 const viewLinks = document.querySelectorAll('[data-view]');
 const viewContainers = document.querySelectorAll('.view-container');
 
