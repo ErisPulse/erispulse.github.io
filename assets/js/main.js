@@ -59,6 +59,20 @@ function switchViewByHash() {
                     docLink.click();
                 }
             }, 500);
+        } else {
+            // 如果没有指定具体文档，加载默认文档
+            setTimeout(() => {
+                const defaultDocLink = document.querySelector('.docs-nav-link[data-doc="quick-start"]');
+                if (defaultDocLink) {
+                    defaultDocLink.click();
+                } else {
+                    // 如果没有找到 quick-start 文档链接，加载第一个文档链接
+                    const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
+                    if (firstDocLink) {
+                        firstDocLink.click();
+                    }
+                }
+            }, 500);
         }
     } else if (hash.startsWith('market')) {
         view = 'market';
