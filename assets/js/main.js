@@ -518,15 +518,31 @@ initDocsView();
 
 // 初始化文档视图
 function initDocsView() {
-    // 初始化分类容器状态为收起
-    const categories = ['getting-started', 'development', 'adapter-standards', 'references', 'api-docs'];
-    categories.forEach(category => {
-        const container = document.getElementById(`${category}-container`);
-        const caret = document.getElementById(`${category}-caret`);
-        if (container && caret) {
-            container.style.display = 'none';
-            caret.classList.remove('fa-chevron-up');
-            caret.classList.add('fa-chevron-down');
+    // 设置文档分类点击事件
+    document.querySelectorAll('.docs-nav-category').forEach(category => {
+        category.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const parentItem = this.closest('.docs-nav-item');
+            const isActive = parentItem.classList.contains('active');
+            
+            // 关闭所有其他分类
+            document.querySelectorAll('.docs-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 切换当前分类
+            if (!isActive) {
+                parentItem.classList.add('active');
+            }
+        });
+    });
+    
+    // 点击外部关闭下拉菜单
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.docs-nav-item')) {
+            document.querySelectorAll('.docs-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
         }
     });
     
@@ -542,6 +558,11 @@ function initDocsView() {
             });
             this.classList.add('active');
             
+            // 关闭下拉菜单
+            document.querySelectorAll('.docs-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
             // 更新URL哈希
             history.pushState(null, null, `#docs/${docName}`);
             
@@ -556,30 +577,14 @@ function initDocsView() {
         });
     });
     
-// 只有在文档视图且没有指定具体文档时才加载默认文档
-const hash = window.location.hash.substring(1);
-if (hash === 'docs') {
-    // 用户访问了文档页面但没有指定具体文档，加载默认文档
-    const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
-    if (firstDocLink) {
-        firstDocLink.click();
-    }
-}
-}
-
-// 切换文档分类显示
-function toggleDocsCategory(categoryId) {
-    const container = document.getElementById(`${categoryId}-container`);
-    const caret = document.getElementById(`${categoryId}-caret`);
-    
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-        caret.classList.remove('fa-chevron-down');
-        caret.classList.add('fa-chevron-up');
-    } else {
-        container.style.display = 'none';
-        caret.classList.remove('fa-chevron-up');
-        caret.classList.add('fa-chevron-down');
+    // 只有在文档视图且没有指定具体文档时才加载默认文档
+    const hash = window.location.hash.substring(1);
+    if (hash === 'docs') {
+        // 用户访问了文档页面但没有指定具体文档，加载默认文档
+        const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
+        if (firstDocLink) {
+            firstDocLink.click();
+        }
     }
 }
 
