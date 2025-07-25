@@ -519,6 +519,17 @@ initDocsView();
  
 function initDocsView() {
      
+    const docsSubnav = document.querySelector('.docs-subnav');
+    
+     
+    if (docsSubnav) {
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'docs-subnav-toggle';
+        toggleButton.innerHTML = '<i class="fas fa-chevron-down"></i>';
+        docsSubnav.querySelector('.container').prepend(toggleButton);
+    }
+    
+     
     document.querySelectorAll('.docs-nav-category').forEach(category => {
         category.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -585,6 +596,133 @@ function initDocsView() {
         if (firstDocLink) {
             firstDocLink.click();
         }
+    }
+    
+     
+    if (docsSubnav) {
+        let lastScrollTop = 0;
+        let isScrollingDown = false;
+        let ticking = false;
+        let isManuallyHidden = false;  
+        let isManuallyShown = false;   
+        
+         
+        function showNav() {
+            docsSubnav.classList.remove('hidden');
+            docsSubnav.classList.add('visible');
+             
+            const toggleIcon = docsSubnav.querySelector('.docs-subnav-toggle i');
+            if (toggleIcon) {
+                toggleIcon.className = 'fas fa-chevron-up';
+            }
+        }
+        
+         
+        function hideNav() {
+            docsSubnav.classList.remove('visible');
+            docsSubnav.classList.add('hidden');
+             
+            const toggleIcon = docsSubnav.querySelector('.docs-subnav-toggle i');
+            if (toggleIcon) {
+                toggleIcon.className = 'fas fa-chevron-down';
+            }
+        }
+        
+         
+        function toggleNav() {
+            const isVisible = docsSubnav.classList.contains('visible');
+            
+            if (isVisible) {
+                 
+                hideNav();
+                isManuallyHidden = true;
+                isManuallyShown = false;
+            } else {
+                 
+                showNav();
+                isManuallyShown = true;
+                isManuallyHidden = false;
+            }
+        }
+        
+         
+        function handleScroll() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+             
+            if (isManuallyHidden) {
+                return;
+            }
+            
+             
+            if (scrollTop === 0) {
+                showNav();
+                isScrollingDown = false;
+                lastScrollTop = scrollTop;
+                return;
+            }
+            
+             
+            if (isManuallyShown) {
+                 
+                if (scrollTop > lastScrollTop) {
+                     
+                    if (!isScrollingDown) {
+                        isScrollingDown = true;
+                        hideNav();
+                    }
+                } else {
+                     
+                    if (isScrollingDown) {
+                        isScrollingDown = false;
+                        showNav();
+                    }
+                }
+                lastScrollTop = scrollTop;
+                return;
+            }
+            
+             
+             
+            if (scrollTop > lastScrollTop) {
+                 
+                if (!isScrollingDown) {
+                    isScrollingDown = true;
+                    hideNav();
+                }
+            } else {
+                 
+                if (isScrollingDown) {
+                    isScrollingDown = false;
+                    showNav();
+                }
+            }
+            
+            lastScrollTop = scrollTop;
+        }
+        
+         
+        function updateScroll() {
+            if (!ticking) {
+                requestAnimationFrame(function() {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+        
+         
+        window.addEventListener('scroll', updateScroll, { passive: true });
+        
+         
+        const toggleButton = docsSubnav.querySelector('.docs-subnav-toggle');
+        if (toggleButton) {
+            toggleButton.addEventListener('click', toggleNav);
+        }
+        
+         
+        hideNav();
     }
 }
 
