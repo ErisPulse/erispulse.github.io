@@ -598,13 +598,12 @@ function initDocsView() {
         }
     }
     
-     
+ 
     if (docsSubnav) {
         let lastScrollTop = 0;
         let isScrollingDown = false;
         let ticking = false;
         let isManuallyHidden = false;  
-        let isManuallyShown = false;   
         
          
         function showNav() {
@@ -636,11 +635,9 @@ function initDocsView() {
                  
                 hideNav();
                 isManuallyHidden = true;
-                isManuallyShown = false;
             } else {
                  
                 showNav();
-                isManuallyShown = true;
                 isManuallyHidden = false;
             }
         }
@@ -658,26 +655,6 @@ function initDocsView() {
             if (scrollTop === 0) {
                 showNav();
                 isScrollingDown = false;
-                lastScrollTop = scrollTop;
-                return;
-            }
-            
-             
-            if (isManuallyShown) {
-                 
-                if (scrollTop > lastScrollTop) {
-                     
-                    if (!isScrollingDown) {
-                        isScrollingDown = true;
-                        hideNav();
-                    }
-                } else {
-                     
-                    if (isScrollingDown) {
-                        isScrollingDown = false;
-                        showNav();
-                    }
-                }
                 lastScrollTop = scrollTop;
                 return;
             }
@@ -722,7 +699,7 @@ function initDocsView() {
         }
         
          
-        hideNav();
+        showNav();
     }
 }
 
