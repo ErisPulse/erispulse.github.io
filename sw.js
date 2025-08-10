@@ -1,5 +1,5 @@
  
-const CACHE_NAME = 'erispulse-v1.0.0';
+const CACHE_NAME = 'erispulse-v1.0.1';
 const urlsToCache = [
   '/',
   '/index.html',
