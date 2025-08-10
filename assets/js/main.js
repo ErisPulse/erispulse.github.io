@@ -233,6 +233,9 @@ switchViewByHash();
             
             // 加载贡献者数据
             loadContributors();
+
+            // 加载依赖库信息
+            loadDependencies();
             
         } catch (error) {
             console.error('加载模块数据失败:', error);
@@ -268,7 +271,78 @@ switchViewByHash();
             console.error('加载贡献者数据失败:', error);
         }
     }
-    
+    // 依赖信息数据
+    const dependencies = [
+        {
+            name: "aiohttp",
+            url: "https://github.com/aio-libs/aiohttp",
+            description: "异步HTTP客户端/服务器框架，用于处理网络请求"
+        },
+        {
+            name: "fastapi",
+            url: "https://github.com/tiangolo/fastapi",
+            description: "现代、快速（高性能）的Web框架，用于构建API"
+        },
+        {
+            name: "pydantic",
+            url: "https://github.com/pydantic/pydantic",
+            description: "数据验证和设置管理，基于Python类型提示"
+        },
+        {
+            name: "rich",
+            url: "https://github.com/Textualize/rich",
+            description: "在终端中提供丰富的文本和美观的格式化输出"
+        },
+        {
+            name: "colorama",
+            url: "https://github.com/tartley/colorama",
+            description: "简化在Windows上的彩色终端文本输出"
+        },
+        {
+            name: "keyboard",
+            url: "https://github.com/boppreh/keyboard",
+            description: "处理键盘事件的跨平台库"
+        },
+        {
+            name: "watchdog",
+            url: "https://github.com/gorakhargosh/watchdog",
+            description: "监控文件系统事件的库，用于热重载功能"
+        },
+        {
+            name: "toml",
+            url: "https://github.com/uiri/toml",
+            description: "解析和生成TOML格式配置文件"
+        },
+        {
+            name: "hypercorn",
+            url: "https://github.com/pgjones/hypercorn",
+            description: "基于ASGI的HTTP服务器，用于运行FastAPI应用"
+        },
+        {
+            name: "python-multipart",
+            url: "https://github.com/andrew-d/python-multipart",
+            description: "解析multipart/form-data格式数据"
+        }
+    ];
+
+    // 加载依赖信息
+    function loadDependencies() {
+        const container = document.getElementById('dependencies-container');
+        container.innerHTML = '';
+        
+        dependencies.forEach(dep => {
+            const depElement = document.createElement('div');
+            depElement.className = 'dependency-card';
+            depElement.innerHTML = `
+                <h3 class="dependency-name">
+                    <a href="${dep.url}" target="_blank">${dep.name}</a>
+                </h3>
+                <p class="dependency-description">${dep.description}</p>
+            `;
+            container.appendChild(depElement);
+        });
+    }
+
     // 更新统计数据
     function updateStats() {
         document.getElementById('total-modules').textContent = allModules.length;
