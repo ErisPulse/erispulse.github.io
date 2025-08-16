@@ -996,7 +996,7 @@ async function loadDocument(docName) {
         } else {
             docsContent.innerHTML = marked.parse(docContent);
         }
-        
+
         // 添加文档元信息
         const metaContainer = document.createElement('div');
         metaContainer.style.marginTop = '2rem';
@@ -1234,4 +1234,16 @@ async function loadDocument(docName) {
         errorHTML += `</div>`;
         docsContent.innerHTML = errorHTML;
     }
+
+    setTimeout(() => {
+        docsContent.querySelectorAll('pre code').forEach((block) => {
+            // 如果代码块没有语言类，添加默认的 language-python 类
+            if (!block.className || !block.className.startsWith('language-')) {
+                block.classList.add('language-python');
+            }
+            Prism.highlightElement(block);
+        });
+    }, 0)
+
+    Prism.highlightAll();
 }
