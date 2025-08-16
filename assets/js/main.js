@@ -996,7 +996,7 @@ async function loadDocument(docName) {
         } else {
             docsContent.innerHTML = marked.parse(docContent);
         }
-        
+
          
         const metaContainer = document.createElement('div');
         metaContainer.style.marginTop = '2rem';
@@ -1234,4 +1234,16 @@ async function loadDocument(docName) {
         errorHTML += `</div>`;
         docsContent.innerHTML = errorHTML;
     }
+
+    setTimeout(() => {
+        docsContent.querySelectorAll('pre code').forEach((block) => {
+             
+            if (!block.className || !block.className.startsWith('language-')) {
+                block.classList.add('language-python');
+            }
+            Prism.highlightElement(block);
+        });
+    }, 0)
+
+    Prism.highlightAll();
 }
