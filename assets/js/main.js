@@ -1,23 +1,23 @@
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         navigator.serviceWorker.register('/sw.js')
-            .then(function(registration) {
+            .then(function (registration) {
                 console.log('ServiceWorker registration successful with scope: ', registration.scope);
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 console.log('ServiceWorker registration failed: ', err);
             });
     });
 }
 
 // 页面加载完成后执行
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 隐藏加载动画
     setTimeout(() => {
         const loader = document.getElementById('page-loader');
         loader.classList.add('hidden');
-        
+
         // 动画完成后移除元素
         setTimeout(() => {
             loader.style.display = 'none';
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeToggle = document.getElementById('theme-toggle');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-    
+
     // 应用初始主题
     if (currentTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.documentElement.removeAttribute('data-theme');
         themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
     }
-    
+
     // 主题切换按钮事件
     themeToggle.addEventListener('click', () => {
         if (currentTheme === 'light') {
@@ -52,138 +52,138 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('theme', currentTheme);
     });
 
-// 汉堡菜单功能
-const hamburger = document.getElementById('hamburger');
-const navContainer = document.getElementById('nav-container');
+    // 汉堡菜单功能
+    const hamburger = document.getElementById('hamburger');
+    const navContainer = document.getElementById('nav-container');
 
-hamburger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    hamburger.classList.toggle('active');
-    navContainer.classList.toggle('active');
-});
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hamburger.classList.toggle('active');
+        navContainer.classList.toggle('active');
+    });
 
-// 点击其他地方关闭菜单
-document.addEventListener('click', (e) => {
-    if (!navContainer.contains(e.target) && e.target !== hamburger) {
-        hamburger.classList.remove('active');
-        navContainer.classList.remove('active');
-    }
-});
-
-// 点击导航链接后关闭菜单
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
+    // 点击其他地方关闭菜单
+    document.addEventListener('click', (e) => {
+        if (!navContainer.contains(e.target) && e.target !== hamburger) {
             hamburger.classList.remove('active');
             navContainer.classList.remove('active');
         }
     });
-});
 
-// 视图切换逻辑
-const viewLinks = document.querySelectorAll('[data-view]');
-const viewContainers = document.querySelectorAll('.view-container');
+    // 点击导航链接后关闭菜单
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                hamburger.classList.remove('active');
+                navContainer.classList.remove('active');
+            }
+        });
+    });
 
-// 根据哈希值切换视图
-function switchViewByHash() {
-    const hash = window.location.hash.substring(1);
-    let view = 'home';
-    
-    if (hash.startsWith('docs')) {
-        view = 'docs';
-        // 如果有指定文档，加载对应文档
-        const docMatch = hash.match(/docs\/(.+)/);
-        if (docMatch && docMatch[1]) {
+    // 视图切换逻辑
+    const viewLinks = document.querySelectorAll('[data-view]');
+    const viewContainers = document.querySelectorAll('.view-container');
+
+    // 根据哈希值切换视图
+    function switchViewByHash() {
+        const hash = window.location.hash.substring(1);
+        let view = 'home';
+
+        if (hash.startsWith('docs')) {
+            view = 'docs';
+            // 如果有指定文档，加载对应文档
+            const docMatch = hash.match(/docs\/(.+)/);
+            if (docMatch && docMatch[1]) {
+                setTimeout(() => {
+                    const docLink = document.querySelector(`.docs-nav-link[data-doc="${docMatch[1]}"]`);
+                    if (docLink) {
+                        docLink.click();
+                    }
+                }, 500);
+            }
+        } else if (hash.startsWith('market')) {
+            view = 'market';
+            // 如果有指定模块分类，筛选对应模块
+            const categoryMatch = hash.match(/market\/(.+)/);
+            if (categoryMatch && categoryMatch[1]) {
+                setTimeout(() => {
+                    const categoryBtn = document.querySelector(`.category-btn[data-category="${categoryMatch[1]}"]`);
+                    if (categoryBtn) {
+                        categoryBtn.click();
+                    }
+                }, 500);
+            }
+        } else if (hash === 'about') {
+            view = 'about';
+        } else if (hash.startsWith('api-') || hash.startsWith('dev-') ||
+            hash.startsWith('cli') || hash.startsWith('quick-start') ||
+            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
+            hash.startsWith('platform-features') || hash.startsWith('changelog') ||
+            hash.startsWith('ai-module')) {
+            // 直接访问文档哈希的情况
+            view = 'docs';
             setTimeout(() => {
-                const docLink = document.querySelector(`.docs-nav-link[data-doc="${docMatch[1]}"]`);
+                const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
                 if (docLink) {
                     docLink.click();
                 }
             }, 500);
         }
-    } else if (hash.startsWith('market')) {
-        view = 'market';
-        // 如果有指定模块分类，筛选对应模块
-        const categoryMatch = hash.match(/market\/(.+)/);
-        if (categoryMatch && categoryMatch[1]) {
-            setTimeout(() => {
-                const categoryBtn = document.querySelector(`.category-btn[data-category="${categoryMatch[1]}"]`);
-                if (categoryBtn) {
-                    categoryBtn.click();
-                }
-            }, 500);
-        }
-    } else if (hash === 'about') {
-        view = 'about';
-    } else if (hash.startsWith('api-') || hash.startsWith('dev-') || 
-               hash.startsWith('cli') || hash.startsWith('quick-start') ||
-               hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
-               hash.startsWith('platform-features') || hash.startsWith('changelog') ||
-               hash.startsWith('ai-module')) {
-        // 直接访问文档哈希的情况
-        view = 'docs';
-        setTimeout(() => {
-            const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
-            if (docLink) {
-                docLink.click();
-            }
-        }, 500);
-    }
-    
-    // 更新导航栏活动状态
-    viewLinks.forEach(link => link.classList.remove('active'));
-    if (document.querySelector(`[data-view="${view}"]`)) {
-        document.querySelector(`[data-view="${view}"]`).classList.add('active');
-    }
-    
-    // 切换视图
-    viewContainers.forEach(container => {
-        container.classList.remove('active');
-    });
-    document.getElementById(`${view}-view`).classList.add('active');
-    
-    // 滚动到顶部
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-}
 
-// 监听哈希变化
-window.addEventListener('hashchange', switchViewByHash);
-
-viewLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-        e.preventDefault();
-        const view = this.getAttribute('data-view');
-        
-        // 更新URL哈希
-        if (view === 'home') {
-            window.location.hash = '';
-        } else {
-            window.location.hash = view;
-        }
-        
         // 更新导航栏活动状态
         viewLinks.forEach(link => link.classList.remove('active'));
-        this.classList.add('active');
-        
+        if (document.querySelector(`[data-view="${view}"]`)) {
+            document.querySelector(`[data-view="${view}"]`).classList.add('active');
+        }
+
         // 切换视图
         viewContainers.forEach(container => {
             container.classList.remove('active');
         });
         document.getElementById(`${view}-view`).classList.add('active');
-        
+
         // 滚动到顶部
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
-    });
-});
+    }
 
-// 页面加载时根据哈希值切换视图
-switchViewByHash();
+    // 监听哈希变化
+    window.addEventListener('hashchange', switchViewByHash);
+
+    viewLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const view = this.getAttribute('data-view');
+
+            // 更新URL哈希
+            if (view === 'home') {
+                window.location.hash = '';
+            } else {
+                window.location.hash = view;
+            }
+
+            // 更新导航栏活动状态
+            viewLinks.forEach(link => link.classList.remove('active'));
+            this.classList.add('active');
+
+            // 切换视图
+            viewContainers.forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(`${view}-view`).classList.add('active');
+
+            // 滚动到顶部
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // 页面加载时根据哈希值切换视图
+    switchViewByHash();
 
     // 模块市场功能
     let allModules = [];
@@ -192,14 +192,14 @@ switchViewByHash();
     let activeCategory = 'all';
     let searchQuery = '';
     loadModuleData();
-    
+
     // 加载模块数据
     async function loadModuleData() {
         try {
             const response = await fetch('https://erisdev.com/packages.json');
             if (!response.ok) throw new Error('模块API请求失败');
             const data = await response.json();
-            
+
             // 处理模块数据
             allModules = Object.entries(data.modules || {}).map(([name, info]) => ({
                 name,
@@ -212,7 +212,7 @@ switchViewByHash();
                 tags: info.tags || [],
                 type: 'module'
             }));
-            
+
             // 处理适配器
             allAdapters = Object.entries(data.adapters || {}).map(([name, info]) => ({
                 name,
@@ -225,7 +225,7 @@ switchViewByHash();
                 tags: info.tags || [],
                 type: 'adapter'
             }));
-            
+
             // 处理CLI扩展
             allCliExtensions = Object.entries(data.cli_extensions || {}).map(([name, info]) => ({
                 name,
@@ -239,39 +239,39 @@ switchViewByHash();
                 type: 'cli',
                 command: info.command || []
             }));
-            
+
             // 更新统计数据
             updateStats();
-            
+
             // 渲染模块
             renderModules();
-            
+
             // 加载贡献者数据
             loadContributors();
 
             // 加载依赖库信息
             loadDependencies();
-            
+
         } catch (error) {
             console.error('加载模块数据失败:', error);
             showError('加载模块失败，请稍后再试');
         }
     }
-    
+
     // 加载贡献者数据
     async function loadContributors() {
         try {
             const response = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse/contributors');
             if (!response.ok) throw new Error('贡献者API请求失败');
             const contributors = await response.json();
-            
+
             // 更新贡献者数量
             document.getElementById('contributors-count').textContent = contributors.length;
-            
+
             // 渲染贡献者头像
             const container = document.getElementById('contributors-container');
             container.innerHTML = '';
-            
+
             contributors.slice(0, 12).forEach(contributor => {
                 const contributorElement = document.createElement('div');
                 contributorElement.className = 'contributor';
@@ -344,7 +344,7 @@ switchViewByHash();
     function loadDependencies() {
         const container = document.getElementById('dependencies-container');
         container.innerHTML = '';
-        
+
         dependencies.forEach(dep => {
             const depElement = document.createElement('div');
             depElement.className = 'dependency-card';
@@ -365,14 +365,14 @@ switchViewByHash();
         document.getElementById('cli-count').textContent = allCliExtensions.length;
         document.getElementById('contributors-count').textContent = '--';
     }
-    
+
     // 渲染模块
     function renderModules() {
         const modulesGrid = document.getElementById('modules-grid');
         modulesGrid.innerHTML = '';
-        
+
         let packagesToShow = [];
-        
+
         // 根据分类筛选
         if (activeCategory === 'all') {
             packagesToShow = [...allModules, ...allAdapters, ...allCliExtensions];
@@ -383,16 +383,16 @@ switchViewByHash();
         } else if (activeCategory === 'cli') {
             packagesToShow = allCliExtensions;
         }
-        
+
         // 应用搜索过滤
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            packagesToShow = packagesToShow.filter(pkg => 
-                pkg.name.toLowerCase().includes(query) || 
+            packagesToShow = packagesToShow.filter(pkg =>
+                pkg.name.toLowerCase().includes(query) ||
                 pkg.description.toLowerCase().includes(query)
             );
         }
-        
+
         // 如果没有模块显示空状态
         if (packagesToShow.length === 0) {
             modulesGrid.innerHTML = `
@@ -404,18 +404,18 @@ switchViewByHash();
             `;
             return;
         }
-        
+
         // 渲染模块卡片
         packagesToShow.forEach((pkg, index) => {
             const card = document.createElement('div');
             card.className = 'module-card';
             card.style.animationDelay = `${index * 0.1}s`;
-            
+
             // 处理CLI扩展的特殊显示
             const cliBadge = pkg.type === 'cli' ? '<span class="module-tag">CLI</span>' : '';
-            const commandInfo = pkg.command && pkg.command.length > 0 ? 
+            const commandInfo = pkg.command && pkg.command.length > 0 ?
                 `<p style="font-size: 0.85rem; margin-top: 0.5rem;"><i class="fas fa-terminal"></i> 命令: ${pkg.command.join(', ')}</p>` : '';
-            
+
             card.innerHTML = `
                 <div class="module-header">
                     <div class="module-icon">
@@ -446,20 +446,20 @@ switchViewByHash();
                     </div>
                 </div>
             `;
-            
+
             modulesGrid.appendChild(card);
         });
-        
+
         // 添加事件监听器
         document.querySelectorAll('[data-action="install"]').forEach(btn => {
             btn.addEventListener('click', () => showInstallModal(btn.dataset.package));
         });
-        
+
         document.querySelectorAll('[data-action="docs"]').forEach(btn => {
             btn.addEventListener('click', () => showDocsModal(btn.dataset.package, btn.dataset.repo));
         });
     }
-    
+
     // 根据类型获取图标
     function getIconByType(type) {
         const icons = {
@@ -469,15 +469,15 @@ switchViewByHash();
         };
         return icons[type] || '<i class="fas fa-box"></i>';
     }
-    
+
     // 显示安装模态框
     function showInstallModal(packageName) {
         const pkg = [...allModules, ...allAdapters, ...allCliExtensions].find(m => m.package === packageName);
         if (!pkg) return;
-        
+
         const modal = document.getElementById('module-modal');
         const modalContent = document.getElementById('module-modal-content');
-        
+
         modalContent.innerHTML = `
             <h3>${pkg.name} v${pkg.version}</h3>
             <p>${pkg.description}</p>
@@ -504,31 +504,31 @@ switchViewByHash();
             <p><a href="${pkg.repository}" target="_blank">查看源代码</a></p>
             ` : ''}
         `;
-        
+
         modal.classList.add('active');
     }
-    
+
     function showDocsModal(packageName, repoUrl) {
         const pkg = [...allModules, ...allAdapters, ...allCliExtensions].find(m => m.package === packageName);
         if (!pkg || !repoUrl) return;
-        
+
         const modal = document.getElementById('module-modal');
         const modalContent = document.getElementById('module-modal-content');
-        
+
         modalContent.innerHTML = `
             <div style="text-align: center; padding: 2rem;">
                 <div class="loader-spinner"></div>
                 <p>正在加载文档...</p>
             </div>
         `;
-        
+
         modal.classList.add('active');
-        
+
         // 从GitHub获取README内容
         fetchReadmeContent(repoUrl).then(markdown => {
             // 使用marked.js将Markdown转换为HTML
             const htmlContent = marked.parse(markdown);
-            
+
             modalContent.innerHTML = `
                 <div class="markdown-content">
                     <h3>${pkg.name} v${pkg.version}</h3>
@@ -552,27 +552,27 @@ switchViewByHash();
             // 解析GitHub仓库URL
             const repoPath = repoUrl.replace('https://github.com/', '');
             const [owner, repo] = repoPath.split('/');
-            
+
             // 首先获取仓库信息以确定默认分支
             const repoInfo = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
             const repoData = await repoInfo.json();
             const defaultBranch = repoData.default_branch;
-            
+
             // 使用GitHub Raw内容API获取README.md
             const readmeUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/README.md`;
             const response = await fetch(readmeUrl);
-            
+
             if (!response.ok) {
                 throw new Error('README文件不存在或无法访问');
             }
-            
+
             return await response.text();
         } catch (error) {
             console.error('获取README失败:', error);
             throw error;
         }
     }
-    
+
     // 显示错误信息
     function showError(message) {
         const modulesGrid = document.getElementById('modules-grid');
@@ -586,79 +586,79 @@ switchViewByHash();
             </div>
         `;
     }
-    
+
     // 分类按钮事件
     document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             activeCategory = this.dataset.category;
-            
+
             // 更新URL哈希
             if (activeCategory === 'all') {
                 history.pushState(null, null, '#market');
             } else {
                 history.pushState(null, null, `#market/${activeCategory}`);
             }
-            
+
             renderModules();
         });
     });
-    
+
     // 搜索功能
     const searchInput = document.getElementById('module-search');
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         searchQuery = this.value.trim();
         renderModules();
     });
-    
+
     // 关闭模态框
-    document.getElementById('close-modal').addEventListener('click', function() {
+    document.getElementById('close-modal').addEventListener('click', function () {
         document.getElementById('module-modal').classList.remove('active');
     });
-    
+
     // 点击模态框外部关闭
-    document.getElementById('module-modal').addEventListener('click', function(e) {
+    document.getElementById('module-modal').addEventListener('click', function (e) {
         if (e.target === this) {
             this.classList.remove('active');
         }
     });
-    
+
     // 如果当前是模块市场视图，加载模块数据
     if (document.getElementById('market-view').classList.contains('active')) {
         loadModuleData();
     }
-    
-// 文档视图功能
-initDocsView();
+
+    // 文档视图功能
+    initDocsView();
 });
 
 // 创建一个更灵活的文档映射系统
 const docConfig = {
     baseUrl: 'https://gh.xmly.dev/https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
     githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/main/',
-    
+
     // 文档映射配置
     docs: {
         // 入门指南
         'quick-start': 'docs/quick-start.md',
         'cli': 'docs/core/cli.md',
-        
+
         // 开发文档
         'dev-readme': 'docs/development/README.md',
         'dev-adapter': 'docs/development/adapter.md',
         'dev-module': 'docs/development/module.md',
         'dev-cli': 'docs/development/cli.md',
-        
+
         // 适配器标准
         'adapter-standards': 'docs/standards/README.md',
         'api-response': 'docs/standards/api-response.md',
         'event-conversion': 'docs/standards/event-conversion.md',
-        
+
         // API文档 - 核心模块
         'api-init': 'docs/api/ErisPulse/__init__.md',
         'api-main': 'docs/api/ErisPulse/__main__.md',
-        
+
         // API文档 - Core子模块
         'api-adapter': 'docs/api/ErisPulse/Core/adapter.md',
         'api-config': 'docs/api/ErisPulse/Core/config.md',
@@ -670,7 +670,7 @@ const docConfig = {
         'api-module_registry': 'docs/api/ErisPulse/Core/module_registry.md',
         'api-router': 'docs/api/ErisPulse/Core/router.md',
         'api-storage': 'docs/api/ErisPulse/Core/storage.md',
-        
+
         // API文档 - Event子模块
         'api-event-base': 'docs/api/ErisPulse/Core/Event/base.md',
         'api-event-command': 'docs/api/ErisPulse/Core/Event/command.md',
@@ -680,18 +680,18 @@ const docConfig = {
         'api-event-notice': 'docs/api/ErisPulse/Core/Event/notice.md',
         'api-event-request': 'docs/api/ErisPulse/Core/Event/request.md',
         'api-event-init': 'docs/api/ErisPulse/Core/Event/__init__.md',
-        
+
         // 核心概念
         'use-core': 'docs/core/concepts.md',
         'core-adapters': 'docs/core/adapters.md',
         'core-best-practices': 'docs/core/best-practices.md',
         'core-modules': 'docs/core/modules.md',
         'core-event-system': 'docs/core/event-system.md',
-        
+
         // 参考资料
         'platform-features': 'docs/core/adapters.md',
         'changelog': 'docs/CHANGELOG.md',
-        
+
         // AI相关
         'ai-module': 'docs/ai/module-generation.md',
         'ai-readme': 'docs/ai/README.md',
@@ -699,14 +699,14 @@ const docConfig = {
         'ai-full': 'docs/ai/AIDocs/ErisPulse-Full.md',
         'ai-module-dev': 'docs/ai/AIDocs/ErisPulse-ModuleDev.md'
     },
-    
+
     // 文档分组
     groups: {
         'api-init': [
             'api-init', 'api-main'
         ],
         'api-adapter': [
-            'api-adapter', 'api-config', 'api-env', 'api-erispulse_config', 
+            'api-adapter', 'api-config', 'api-env', 'api-erispulse_config',
             'api-exceptions', 'api-logger', 'api-module', 'api-module_registry',
             'api-router', 'api-storage'
         ],
@@ -716,7 +716,7 @@ const docConfig = {
             'api-event-request', 'api-event-init'
         ]
     },
-    
+
     // 文档标题映射
     titles: {
         'api-init': 'ErisPulse 核心模块',
@@ -740,7 +740,7 @@ const docConfig = {
         'api-event-request': '请求事件',
         'api-event-init': '事件初始化'
     },
-    
+
     // 文档分类顺序
     categories: {
         'getting-started': ['quick-start', 'cli'],
@@ -778,7 +778,7 @@ function getNextDocument(currentDoc) {
     Object.values(docConfig.categories).forEach(category => {
         docOrder.push(...category);
     });
-    
+
     const currentIndex = docOrder.indexOf(currentDoc);
     if (currentIndex >= 0 && currentIndex < docOrder.length - 1) {
         return docOrder[currentIndex + 1];
@@ -792,7 +792,7 @@ function getPrevDocument(currentDoc) {
     Object.values(docConfig.categories).forEach(category => {
         docOrder.push(...category);
     });
-    
+
     const currentIndex = docOrder.indexOf(currentDoc);
     if (currentIndex > 0) {
         return docOrder[currentIndex - 1];
@@ -804,58 +804,58 @@ function getPrevDocument(currentDoc) {
 function initDocsView() {
     // 获取文档导航栏元素
     const docsSubnav = document.querySelector('.docs-subnav');
-    
+
     // 设置文档分类点击事件
     document.querySelectorAll('.docs-nav-category').forEach(category => {
-        category.addEventListener('click', function(e) {
+        category.addEventListener('click', function (e) {
             e.stopPropagation();
             const parentItem = this.closest('.docs-nav-item');
             const isActive = parentItem.classList.contains('active');
-            
+
             // 关闭所有其他分类
             document.querySelectorAll('.docs-nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             // 切换当前分类
             if (!isActive) {
                 parentItem.classList.add('active');
             }
         });
     });
-    
+
     // 点击外部关闭下拉菜单
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!e.target.closest('.docs-nav-item')) {
             document.querySelectorAll('.docs-nav-item').forEach(item => {
                 item.classList.remove('active');
             });
         }
     });
-    
+
     // 设置文档链接点击事件
     document.querySelectorAll('.docs-nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
             const docName = this.getAttribute('data-doc');
-            
+
             // 更新活动状态
             document.querySelectorAll('.docs-nav-link').forEach(item => {
                 item.classList.remove('active');
             });
             this.classList.add('active');
-            
+
             // 关闭下拉菜单
             document.querySelectorAll('.docs-nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             // 更新URL哈希
             history.pushState(null, null, `#docs/${docName}`);
-            
+
             // 加载文档
             loadDocument(docName);
-            
+
             // 滚动到页面顶部
             window.scrollTo({
                 top: 0,
@@ -863,7 +863,7 @@ function initDocsView() {
             });
         });
     });
-    
+
     // 只有在文档视图且没有指定具体文档时才加载默认文档
     const hash = window.location.hash.substring(1);
     if (hash === 'docs') {
@@ -873,29 +873,29 @@ function initDocsView() {
             firstDocLink.click();
         }
     }
-    
+
     // 文档页面导航栏自动隐藏/显示功能
     if (docsSubnav) {
         let lastScrollTop = 0;
         let isScrollingDown = false;
         let ticking = false;
-        
+
         // 显示导航栏
         function showNav() {
             docsSubnav.classList.remove('hidden');
             docsSubnav.classList.add('visible');
         }
-        
+
         // 隐藏导航栏
         function hideNav() {
             docsSubnav.classList.remove('visible');
             docsSubnav.classList.add('hidden');
         }
-        
+
         // 滚动事件处理函数
         function handleScroll() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            
+
             // 如果滚动到顶部，始终显示导航栏
             if (scrollTop === 0) {
                 showNav();
@@ -903,7 +903,7 @@ function initDocsView() {
                 lastScrollTop = scrollTop;
                 return;
             }
-            
+
             // 判断滚动方向
             if (scrollTop > lastScrollTop) {
                 // 向下滚动
@@ -918,24 +918,24 @@ function initDocsView() {
                     showNav();
                 }
             }
-            
+
             lastScrollTop = scrollTop;
         }
-        
+
         // 使用 requestAnimationFrame 优化滚动性能
         function updateScroll() {
             if (!ticking) {
-                requestAnimationFrame(function() {
+                requestAnimationFrame(function () {
                     handleScroll();
                     ticking = false;
                 });
                 ticking = true;
             }
         }
-        
+
         // 监听滚动事件
         window.addEventListener('scroll', updateScroll, { passive: true });
-        
+
         // 初始状态：显示导航栏
         showNav();
     }
@@ -989,7 +989,7 @@ async function loadDocument(docName) {
     let docUrl = docConfig.baseUrl + docPath;
     let docContent = '';
     let commitInfo = null;
-    
+
     try {
         // 获取文档内容
         const docResponse = await fetch(docUrl);
@@ -997,7 +997,7 @@ async function loadDocument(docName) {
             throw new Error(`文档加载失败: HTTP ${docResponse.status}`);
         }
         docContent = await docResponse.text();
-        
+
         // 获取文档的提交信息
         try {
             const apiBaseUrl = 'https://api.github.com/repos/ErisPulse/ErisPulse/commits?path=' + docPath;
@@ -1006,7 +1006,7 @@ async function loadDocument(docName) {
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
-            
+
             if (commitResponse.ok) {
                 const commitData = await commitResponse.json();
                 if (commitData && commitData.length > 0 && commitData[0].commit) {
@@ -1016,7 +1016,7 @@ async function loadDocument(docName) {
         } catch (commitError) {
             console.warn('获取提交信息失败:', commitError);
         }
-        
+
         // 如果是AI模块文档，添加下载参考物料的链接
         if (docName === 'ai-module') {
             const aiReferenceLinks = `
@@ -1073,7 +1073,7 @@ async function loadDocument(docName) {
 
         // 添加文档元信息
         addDocumentMetaInfo(docsContent, docName, commitInfo);
-        
+
     } catch (error) {
         console.error('加载文档失败:', error);
         showDocumentError(docsContent, error);
@@ -1096,7 +1096,7 @@ async function loadDocument(docName) {
 async function loadGroupDocument(groupName) {
     const docsContent = document.getElementById('docs-content');
     const groupDocs = docConfig.groups[groupName];
-    
+
     if (!groupDocs) {
         docsContent.innerHTML = `
             <div class="error-message" style="text-align: center; padding: 3rem 0;">
@@ -1109,12 +1109,12 @@ async function loadGroupDocument(groupName) {
     }
 
     let groupContent = `<h1>${docConfig.titles[groupName] || groupName}</h1>`;
-    
+
     // 为每个文档添加锚点导航
     groupContent += `<div style="background: var(--card-bg); border-radius: var(--radius); padding: 1rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border);">
         <h3 style="margin-top: 0; color: var(--text);">文档目录</h3>
         <ul style="list-style: none; padding: 0;">`;
-    
+
     for (const docId of groupDocs) {
         const title = docConfig.titles[docId] || docId;
         groupContent += `<li style="margin: 0.5rem 0; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
@@ -1123,22 +1123,22 @@ async function loadGroupDocument(groupName) {
             </a>
         </li>`;
     }
-    
+
     groupContent += `</ul></div>`;
 
     // 加载每个文档的内容
     for (const docId of groupDocs) {
         const docPath = docConfig.docs[docId];
         if (!docPath) continue;
-        
+
         try {
             const docUrl = docConfig.baseUrl + docPath;
             const response = await fetch(docUrl);
             if (!response.ok) continue;
-            
+
             const content = await response.text();
             const title = docConfig.titles[docId] || docId;
-            
+
             groupContent += `
                 <div id="${docId}" style="padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border);">
                     <h2 style="color: var(--text); margin-top: 2rem;">${title}</h2>
@@ -1157,9 +1157,9 @@ async function loadGroupDocument(groupName) {
             `;
         }
     }
-    
+
     docsContent.innerHTML = groupContent;
-    
+
     // 添加分组文档的元信息（只显示第一个文档的信息）
     if (groupDocs.length > 0) {
         const firstDoc = groupDocs[0];
@@ -1172,7 +1172,7 @@ async function loadGroupDocument(groupName) {
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
-                
+
                 if (commitResponse.ok) {
                     const commitData = await commitResponse.json();
                     if (commitData && commitData.length > 0 && commitData[0].commit) {
@@ -1184,7 +1184,7 @@ async function loadGroupDocument(groupName) {
             }
         }
     }
-    
+
     // 代码高亮
     setTimeout(() => {
         docsContent.querySelectorAll('pre code').forEach((block) => {
@@ -1204,7 +1204,7 @@ function addDocumentMetaInfo(docsContent, docName, commitInfo) {
     metaContainer.style.marginTop = '2rem';
     metaContainer.style.paddingTop = '1.5rem';
     metaContainer.style.borderTop = '1px solid var(--border)';
-    
+
     // 添加贡献者信息
     if (commitInfo) {
         const commitDate = new Date(commitInfo.commit.author.date);
@@ -1216,19 +1216,19 @@ function addDocumentMetaInfo(docsContent, docName, commitInfo) {
             minute: '2-digit'
         });
         const relativeTime = timeAgo(commitDate);
-        
+
         let commitMessage = commitInfo.commit.message;
         if (commitMessage.includes('\n')) {
             commitMessage = commitMessage.split('\n')[0];
         }
-        
+
         const commitCard = document.createElement('div');
         commitCard.style.background = 'var(--card-bg)';
         commitCard.style.padding = '1rem';
         commitCard.style.borderRadius = 'var(--radius)';
         commitCard.style.boxShadow = 'var(--shadow-sm)';
         commitCard.style.marginBottom = '1rem';
-        
+
         commitCard.innerHTML = `
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <img src="${commitInfo.author.avatar_url}&s=40" 
@@ -1250,10 +1250,10 @@ function addDocumentMetaInfo(docsContent, docName, commitInfo) {
                 </div>
             </div>
         `;
-        
+
         metaContainer.appendChild(commitCard);
     }
-    
+
     // 添加编辑和导航链接
     const navContainer = document.createElement('div');
     navContainer.style.display = 'flex';
@@ -1261,12 +1261,12 @@ function addDocumentMetaInfo(docsContent, docName, commitInfo) {
     navContainer.style.flexWrap = 'wrap';
     navContainer.style.gap = '1rem';
     navContainer.style.marginTop = '1rem';
-    
+
     // 获取编辑URL
     const editUrl = getEditUrl(docName);
     const prevDoc = getPrevDocument(docName);
     const nextDoc = getNextDocument(docName);
-    
+
     // 编辑链接
     if (editUrl) {
         const editLink = document.createElement('a');
@@ -1283,25 +1283,25 @@ function addDocumentMetaInfo(docsContent, docName, commitInfo) {
         editLink.style.transition = 'var(--transition)';
         editLink.innerHTML = '<i class="fas fa-edit"></i> 编辑此页';
         editLink.style.fontSize = '0.9rem';
-        
-        editLink.addEventListener('mouseenter', function() {
+
+        editLink.addEventListener('mouseenter', function () {
             this.style.opacity = '0.9';
             this.style.transform = 'translateY(-2px)';
         });
-        
-        editLink.addEventListener('mouseleave', function() {
+
+        editLink.addEventListener('mouseleave', function () {
             this.style.opacity = '1';
             this.style.transform = 'translateY(0)';
         });
-        
+
         navContainer.appendChild(editLink);
     }
-    
+
     // 上下章导航
     const navLinksContainer = document.createElement('div');
     navLinksContainer.style.display = 'flex';
     navLinksContainer.style.gap = '0.5rem';
-    
+
     if (prevDoc) {
         const prevLink = document.createElement('a');
         prevLink.href = '#docs/' + prevDoc;
@@ -1317,29 +1317,29 @@ function addDocumentMetaInfo(docsContent, docName, commitInfo) {
         prevLink.style.border = '1px solid var(--border)';
         prevLink.innerHTML = '<i class="fas fa-arrow-left"></i> 上一章';
         prevLink.style.fontSize = '0.9rem';
-        
-        prevLink.addEventListener('mouseenter', function() {
+
+        prevLink.addEventListener('mouseenter', function () {
             this.style.borderColor = 'var(--primary)';
             this.style.transform = 'translateY(-2px)';
         });
-        
-        prevLink.addEventListener('mouseleave', function() {
+
+        prevLink.addEventListener('mouseleave', function () {
             this.style.borderColor = 'var(--border)';
             this.style.transform = 'translateY(0)';
         });
-        
+
         // 添加点击事件
-        prevLink.addEventListener('click', function(e) {
+        prevLink.addEventListener('click', function (e) {
             e.preventDefault();
             const prevDocLink = document.querySelector(`.docs-nav-link[data-doc="${prevDoc}"]`);
             if (prevDocLink) {
                 prevDocLink.click();
             }
         });
-        
+
         navLinksContainer.appendChild(prevLink);
     }
-    
+
     if (nextDoc) {
         const nextLink = document.createElement('a');
         nextLink.href = '#docs/' + nextDoc;
@@ -1355,29 +1355,29 @@ function addDocumentMetaInfo(docsContent, docName, commitInfo) {
         nextLink.style.border = '1px solid var(--border)';
         nextLink.innerHTML = '下一章 <i class="fas fa-arrow-right"></i>';
         nextLink.style.fontSize = '0.9rem';
-        
-        nextLink.addEventListener('mouseenter', function() {
+
+        nextLink.addEventListener('mouseenter', function () {
             this.style.borderColor = 'var(--primary)';
             this.style.transform = 'translateY(-2px)';
         });
-        
-        nextLink.addEventListener('mouseleave', function() {
+
+        nextLink.addEventListener('mouseleave', function () {
             this.style.borderColor = 'var(--border)';
             this.style.transform = 'translateY(0)';
         });
-        
+
         // 添加点击事件
-        nextLink.addEventListener('click', function(e) {
+        nextLink.addEventListener('click', function (e) {
             e.preventDefault();
             const nextDocLink = document.querySelector(`.docs-nav-link[data-doc="${nextDoc}"]`);
             if (nextDocLink) {
                 nextDocLink.click();
             }
         });
-        
+
         navLinksContainer.appendChild(nextLink);
     }
-    
+
     navContainer.appendChild(navLinksContainer);
     metaContainer.appendChild(navContainer);
     docsContent.appendChild(metaContainer);
@@ -1388,12 +1388,12 @@ function showDocumentError(docsContent, error) {
     let errorMessage = error.message;
     let suggestion = '请检查网络连接或稍后再试';
     let showRetryButton = false;
-    
+
     if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
         errorMessage = '网络连接失败';
         suggestion = '请检查您的网络连接后重试';
         showRetryButton = true;
-    } 
+    }
     else if (errorMessage.includes('API rate limit exceeded')) {
         errorMessage = 'GitHub API请求次数已达上限';
         suggestion = '请等待1小时后重试，或使用GitHub个人访问令牌提高限制';
@@ -1403,7 +1403,7 @@ function showDocumentError(docsContent, error) {
         if (statusMatch) {
             const statusCode = statusMatch[1];
             errorMessage = `服务器返回错误: HTTP ${statusCode}`;
-            
+
             if (statusCode === '404') {
                 suggestion = '请求的文档不存在，可能是URL错误';
             } else if (statusCode === '403') {
@@ -1413,7 +1413,7 @@ function showDocumentError(docsContent, error) {
             }
         }
     }
-    
+
     let errorHTML = `
         <div class="error-message" style="text-align: center; padding: 3rem 0;">
             <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
@@ -1421,7 +1421,7 @@ function showDocumentError(docsContent, error) {
             <p>${errorMessage}</p>
             <p style="color: var(--secondary); margin-bottom: 1.5rem;">${suggestion}</p>
     `;
-    
+
     if (showRetryButton) {
         errorHTML += `
             <button onclick="location.reload()" 
@@ -1432,7 +1432,7 @@ function showDocumentError(docsContent, error) {
             </button>
         `;
     }
-    
+
     errorHTML += `</div>`;
     docsContent.innerHTML = errorHTML;
 }
