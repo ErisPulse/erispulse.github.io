@@ -82,41 +82,274 @@ const ErisPulseApp = (function () {
         // 应用动画设置
         if (!userSettings.animations) {
             document.body.classList.add('no-animations');
+        } else {
+            document.body.classList.remove('no-animations');
         }
 
         // 应用紧凑布局
         if (userSettings.compactLayout) {
             document.body.classList.add('compact-layout');
+        } else {
+            document.body.classList.remove('compact-layout');
         }
 
         // 应用代码行号
         if (userSettings.showLineNumbers) {
             document.body.classList.add('show-line-numbers');
+        } else {
+            document.body.classList.remove('show-line-numbers');
         }
 
         // 应用自定义颜色
         if (userSettings.customColors.primary) {
             document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
-            // 确保颜色选择器显示正确的值
-            document.getElementById('primary-color').value = userSettings.customColors.primary;
         }
         if (userSettings.customColors.accent) {
             document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
-            // 确保颜色选择器显示正确的值
-            document.getElementById('accent-color').value = userSettings.customColors.accent;
         }
         if (userSettings.customColors.background) {
             document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
-            // 确保颜色选择器显示正确的值
-            document.getElementById('background-color').value = userSettings.customColors.background;
+        }
+
+        // 应用扩展颜色
+        if (userSettings.customColors.text) {
+            document.documentElement.style.setProperty('--text', userSettings.customColors.text);
+        }
+        if (userSettings.customColors.border) {
+            document.documentElement.style.setProperty('--border', userSettings.customColors.border);
+        }
+        if (userSettings.customColors.cardBg) {
+            document.documentElement.style.setProperty('--card-bg', userSettings.customColors.cardBg);
         }
 
         // 应用导航栏设置
         if (!userSettings.stickyNav) {
             document.body.classList.add('no-sticky-nav');
+        } else {
+            document.body.classList.remove('no-sticky-nav');
         }
     }
 
+    // 应用预设主题
+    function applyPresetTheme(preset) {
+        const presets = {
+            default: {
+                primary: '#5a63df',
+                accent: '#5ED1B3',
+                background: '#FAFAFA',
+                text: '#2D3748',
+                border: '#E2E8F0',
+                cardBg: '#FFFFFF'
+            },
+            ocean: {
+                primary: '#1e88e5',
+                accent: '#26c6da',
+                background: '#f5f9ff',
+                text: '#1e3a8a',
+                border: '#c7d2fe',
+                cardBg: '#ffffff'
+            },
+            sunset: {
+                primary: '#ff7043',
+                accent: '#ffca28',
+                background: '#fff8f5',
+                text: '#5a2d0c',
+                border: '#fed7aa',
+                cardBg: '#ffffff'
+            },
+            forest: {
+                primary: '#43a047',
+                accent: '#9ccc65',
+                background: '#f0fdf4',
+                text: '#14532d',
+                border: '#bbf7d0',
+                cardBg: '#ffffff'
+            },
+            lavender: {
+                primary: '#8e24aa',
+                accent: '#ab47bc',
+                background: '#faf5ff',
+                text: '#4c1d95',
+                border: '#d8b4fe',
+                cardBg: '#ffffff'
+            }
+        };
+
+        const theme = presets[preset];
+        if (theme) {
+            // 更新用户设置
+            userSettings.customColors = {
+                primary: theme.primary,
+                accent: theme.accent,
+                background: theme.background,
+                text: theme.text,
+                border: theme.border,
+                cardBg: theme.cardBg
+            };
+
+            // 保存并应用设置
+            saveUserSettings();
+            applyUserSettings();
+
+            // 显示成功消息
+            showMessage(`已应用 ${preset === 'default' ? '默认' : preset} 预设样式`, 'success');
+        }
+    }
+
+    // 打开高级颜色设置模态框
+    function openAdvancedColorsModal() {
+        // 填充当前颜色值
+        document.getElementById('advanced-primary').value = userSettings.customColors.primary || '#5a63df';
+        document.getElementById('advanced-primary-dark').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-dark').trim() || '#555AB8';
+        document.getElementById('advanced-accent').value = userSettings.customColors.accent || '#5ED1B3';
+        document.getElementById('advanced-bg').value = userSettings.customColors.background || '#FAFAFA';
+        document.getElementById('advanced-text').value = userSettings.customColors.text || '#2D3748';
+        document.getElementById('advanced-border').value = userSettings.customColors.border || '#E2E8F0';
+        document.getElementById('advanced-card-bg').value = userSettings.customColors.cardBg || '#FFFFFF';
+
+        // 填充RGB值
+        document.getElementById('advanced-primary-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim() || '90, 99, 223';
+        document.getElementById('advanced-accent-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '94, 209, 179';
+        document.getElementById('advanced-bg-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--bg-rgb').trim() || '250, 250, 250';
+        document.getElementById('advanced-text-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--text-rgb').trim() || '45, 55, 72';
+        document.getElementById('advanced-shadow').value = getComputedStyle(document.documentElement).getPropertyValue('--shadow-sm').trim() || '0 2px 10px rgba(0, 0, 0, 0.05)';
+
+        // 显示模态框
+        document.getElementById('advanced-colors-modal').classList.add('active');
+    }
+
+    // 应用高级颜色设置
+    function applyAdvancedColors() {
+        // 获取高级设置中的颜色值
+        const primary = document.getElementById('advanced-primary').value;
+        const primaryDark = document.getElementById('advanced-primary-dark').value;
+        const accent = document.getElementById('advanced-accent').value;
+        const bg = document.getElementById('advanced-bg').value;
+        const text = document.getElementById('advanced-text').value;
+        const border = document.getElementById('advanced-border').value;
+        const cardBg = document.getElementById('advanced-card-bg').value;
+
+        // 获取RGB值
+        const primaryRgb = document.getElementById('advanced-primary-rgb').value;
+        const accentRgb = document.getElementById('advanced-accent-rgb').value;
+        const bgRgb = document.getElementById('advanced-bg-rgb').value;
+        const textRgb = document.getElementById('advanced-text-rgb').value;
+        const shadow = document.getElementById('advanced-shadow').value;
+
+        // 更新用户设置
+        userSettings.customColors.primary = primary;
+        userSettings.customColors.accent = accent;
+        userSettings.customColors.background = bg;
+        userSettings.customColors.text = text;
+        userSettings.customColors.border = border;
+        userSettings.customColors.cardBg = cardBg;
+
+        // 应用颜色到CSS变量
+        document.documentElement.style.setProperty('--primary', primary);
+        document.documentElement.style.setProperty('--primary-dark', primaryDark);
+        document.documentElement.style.setProperty('--accent', accent);
+        document.documentElement.style.setProperty('--bg', bg);
+        document.documentElement.style.setProperty('--text', text);
+        document.documentElement.style.setProperty('--border', border);
+        document.documentElement.style.setProperty('--card-bg', cardBg);
+
+        // 应用RGB值
+        document.documentElement.style.setProperty('--primary-rgb', primaryRgb);
+        document.documentElement.style.setProperty('--accent-rgb', accentRgb);
+        document.documentElement.style.setProperty('--bg-rgb', bgRgb);
+        document.documentElement.style.setProperty('--text-rgb', textRgb);
+        document.documentElement.style.setProperty('--shadow-sm', shadow);
+
+        // 保存设置
+        saveUserSettings();
+
+        // 显示成功消息
+        showMessage('颜色设置已应用', 'success');
+    }
+
+    // 初始化预设样式选择器
+    function initPresetSelector() {
+        // 根据当前颜色自动选择匹配的预设
+        const currentColors = {
+            primary: userSettings.customColors.primary || '#5a63df',
+            accent: userSettings.customColors.accent || '#5ED1B3'
+        };
+
+        // 检查当前颜色是否匹配任何预设
+        const presets = {
+            ocean: { primary: '#1e88e5', accent: '#26c6da' },
+            sunset: { primary: '#ff7043', accent: '#ffca28' },
+            forest: { primary: '#43a047', accent: '#9ccc65' },
+            lavender: { primary: '#8e24aa', accent: '#ab47bc' }
+        };
+
+        // 默认为"default"
+        let matchedPreset = 'default';
+
+        // 检查是否有匹配的预设
+        for (const [name, colors] of Object.entries(presets)) {
+            if (currentColors.primary === colors.primary && currentColors.accent === colors.accent) {
+                matchedPreset = name;
+                break;
+            }
+        }
+
+        // 设置选择器的值
+        if (document.getElementById('preset-themes')) {
+            document.getElementById('preset-themes').value = matchedPreset;
+        }
+    }
+
+    // 显示消息函数
+    function showMessage(message, type) {
+        // 移除已存在的消息
+        const existingMessage = document.querySelector('.message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        // 创建消息元素
+        const messageEl = document.createElement('div');
+        messageEl.className = `message message-${type}`;
+        messageEl.textContent = message;
+
+        // 添加样式
+        Object.assign(messageEl.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: 'var(--radius)',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '1000',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(20px)',
+            opacity: '0',
+            transition: 'all 0.3s ease',
+            background: type === 'success' ? 'var(--primary)' : type === 'error' ? '#ef4444' : '#64748b'
+        });
+
+        // 添加到页面
+        document.body.appendChild(messageEl);
+
+        // 动画显示
+        setTimeout(() => {
+            messageEl.style.transform = 'translateY(0)';
+            messageEl.style.opacity = '1';
+        }, 10);
+
+        // 3秒后自动移除
+        setTimeout(() => {
+            messageEl.style.transform = 'translateY(20px)';
+            messageEl.style.opacity = '0';
+            setTimeout(() => {
+                if (messageEl.parentNode) {
+                    messageEl.parentNode.removeChild(messageEl);
+                }
+            }, 3000);
+        }, 3000);
+    }
     // 应用主题设置
     function applyThemeSetting() {
         if (userSettings.theme === 'auto') {
@@ -286,102 +519,125 @@ const ErisPulseApp = (function () {
             });
         });
 
-        // 自定义颜色选择器
-        document.getElementById('primary-color').addEventListener('change', function () {
-            userSettings.customColors.primary = this.value;
-            saveUserSettings();
-            document.documentElement.style.setProperty('--primary', this.value);
-        });
+        // 预设样式选择器
+        if (document.getElementById('apply-preset')) {
+            document.getElementById('apply-preset').addEventListener('click', function () {
+                const preset = document.getElementById('preset-themes').value;
+                applyPresetTheme(preset);
+            });
+        }
 
-        document.getElementById('accent-color').addEventListener('change', function () {
-            userSettings.customColors.accent = this.value;
-            saveUserSettings();
-            document.documentElement.style.setProperty('--accent', this.value);
-        });
+        // 高级颜色设置按钮
+        if (document.getElementById('advanced-colors-btn')) {
+            document.getElementById('advanced-colors-btn').addEventListener('click', function () {
+                openAdvancedColorsModal();
+            });
+        }
 
-        document.getElementById('background-color').addEventListener('change', function () {
-            userSettings.customColors.background = this.value;
-            saveUserSettings();
-            document.documentElement.style.setProperty('--bg', this.value);
-        });
+        // 高级颜色设置模态框关闭按钮
+        if (document.getElementById('close-advanced-modal')) {
+            document.getElementById('close-advanced-modal').addEventListener('click', function () {
+                document.getElementById('advanced-colors-modal').classList.remove('active');
+            });
+        }
 
-        // 重置颜色按钮
-        document.getElementById('reset-colors').addEventListener('click', function () {
-            userSettings.customColors = { primary: '', accent: '', background: '' };
-            saveUserSettings();
-            document.documentElement.style.removeProperty('--primary');
-            document.documentElement.style.removeProperty('--accent');
-            document.documentElement.style.removeProperty('--bg');
+        // 高级颜色设置取消按钮
+        if (document.getElementById('cancel-advanced-colors')) {
+            document.getElementById('cancel-advanced-colors').addEventListener('click', function () {
+                document.getElementById('advanced-colors-modal').classList.remove('active');
+            });
+        }
 
-            // 重置颜色选择器显示值
-            document.getElementById('primary-color').value = '#5a63df';
-            document.getElementById('accent-color').value = '#5ED1B3';
-            document.getElementById('background-color').value = '#FAFAFA';
-        });
+        // 高级颜色设置应用按钮
+        if (document.getElementById('apply-advanced-colors')) {
+            document.getElementById('apply-advanced-colors').addEventListener('click', function () {
+                applyAdvancedColors();
+                document.getElementById('advanced-colors-modal').classList.remove('active');
+            });
+        }
 
-        // 动画开关
-        document.getElementById('animations-toggle').addEventListener('change', function () {
-            userSettings.animations = this.checked;
-            saveUserSettings();
-            if (this.checked) {
-                document.body.classList.remove('no-animations');
-            } else {
-                document.body.classList.add('no-animations');
-            }
-        });
-
-        // 紧凑布局开关
-        document.getElementById('compact-layout').addEventListener('change', function () {
-            userSettings.compactLayout = this.checked;
-            saveUserSettings();
-            if (this.checked) {
-                document.body.classList.add('compact-layout');
-            } else {
-                document.body.classList.remove('compact-layout');
-            }
-        });
-
-        // 代码行号开关
-        document.getElementById('show-line-numbers').addEventListener('change', function () {
-            userSettings.showLineNumbers = this.checked;
-            saveUserSettings();
-
-            if (this.checked) {
-                document.body.classList.add('show-line-numbers');
-                // 为现有的代码块添加行号类
-                document.querySelectorAll('pre code').forEach(block => {
-                    block.classList.add('line-numbers');
-                });
-            } else {
-                document.body.classList.remove('show-line-numbers');
-                // 移除现有的行号类
-                document.querySelectorAll('pre code').forEach(block => {
-                    block.classList.remove('line-numbers');
-                });
-            }
-
-            // 重新高亮代码以应用行号
-            Prism.highlightAll();
-        });
-
-        // 固定导航栏开关
-        document.getElementById('sticky-nav').addEventListener('change', function () {
-            userSettings.stickyNav = this.checked;
-            saveUserSettings();
-            if (this.checked) {
-                document.body.classList.remove('no-sticky-nav');
-            } else {
-                document.body.classList.add('no-sticky-nav');
-            }
-        });
+        // 点击模态框外部关闭
+        if (document.getElementById('advanced-colors-modal')) {
+            document.getElementById('advanced-colors-modal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        }
 
         // 重置所有设置按钮
-        document.getElementById('reset-settings').addEventListener('click', function () {
-            if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
-                localStorage.removeItem('erispulse-settings');
-                location.reload();
-            }
-        });
+        if (document.getElementById('reset-settings')) {
+            document.getElementById('reset-settings').addEventListener('click', function () {
+                if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
+                    localStorage.removeItem('erispulse-settings');
+                    location.reload();
+                }
+            });
+        }
+
+        // 动画开关
+        if (document.getElementById('animations-toggle')) {
+            document.getElementById('animations-toggle').addEventListener('change', function () {
+                userSettings.animations = this.checked;
+                saveUserSettings();
+                if (this.checked) {
+                    document.body.classList.remove('no-animations');
+                } else {
+                    document.body.classList.add('no-animations');
+                }
+            });
+        }
+
+        // 紧凑布局开关
+        if (document.getElementById('compact-layout')) {
+            document.getElementById('compact-layout').addEventListener('change', function () {
+                userSettings.compactLayout = this.checked;
+                saveUserSettings();
+                if (this.checked) {
+                    document.body.classList.add('compact-layout');
+                } else {
+                    document.body.classList.remove('compact-layout');
+                }
+            });
+        }
+
+        // 代码行号开关
+        if (document.getElementById('show-line-numbers')) {
+            document.getElementById('show-line-numbers').addEventListener('change', function () {
+                userSettings.showLineNumbers = this.checked;
+                saveUserSettings();
+
+                if (this.checked) {
+                    document.body.classList.add('show-line-numbers');
+                    // 为现有的代码块添加行号类
+                    document.querySelectorAll('pre code').forEach(block => {
+                        block.classList.add('line-numbers');
+                    });
+                } else {
+                    document.body.classList.remove('show-line-numbers');
+                    // 移除现有的行号类
+                    document.querySelectorAll('pre code').forEach(block => {
+                        block.classList.remove('line-numbers');
+                    });
+                }
+
+                // 重新高亮代码以应用行号
+                Prism.highlightAll();
+            });
+        }
+
+        // 固定导航栏开关
+        if (document.getElementById('sticky-nav')) {
+            document.getElementById('sticky-nav').addEventListener('change', function () {
+                userSettings.stickyNav = this.checked;
+                saveUserSettings();
+                if (this.checked) {
+                    document.body.classList.remove('no-sticky-nav');
+                } else {
+                    document.body.classList.add('no-sticky-nav');
+                }
+            });
+        }
 
         // 初始化表单值
         setTimeout(initSettingsForm, 100);
@@ -390,31 +646,28 @@ const ErisPulseApp = (function () {
     // 初始化设置表单值
     function initSettingsForm() {
         // 主题选择
-        document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`).checked = true;
+        if (document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`)) {
+            document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`).checked = true;
+        }
 
-        // 自定义颜色
-        if (userSettings.customColors.primary) {
-            document.getElementById('primary-color').value = userSettings.customColors.primary;
-            // 同时应用到页面上
-            document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
-        }
-        if (userSettings.customColors.accent) {
-            document.getElementById('accent-color').value = userSettings.customColors.accent;
-            // 同时应用到页面上
-            document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
-        }
-        if (userSettings.customColors.background) {
-            document.getElementById('background-color').value = userSettings.customColors.background;
-            // 同时应用到页面上
-            document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
-        }
+        // 初始化预设选择器
+        initPresetSelector();
 
         // 开关设置
-        document.getElementById('animations-toggle').checked = userSettings.animations;
-        document.getElementById('compact-layout').checked = userSettings.compactLayout;
-        document.getElementById('show-line-numbers').checked = userSettings.showLineNumbers;
-        document.getElementById('sticky-nav').checked = userSettings.stickyNav;
+        if (document.getElementById('animations-toggle')) {
+            document.getElementById('animations-toggle').checked = userSettings.animations;
+        }
+        if (document.getElementById('compact-layout')) {
+            document.getElementById('compact-layout').checked = userSettings.compactLayout;
+        }
+        if (document.getElementById('show-line-numbers')) {
+            document.getElementById('show-line-numbers').checked = userSettings.showLineNumbers;
+        }
+        if (document.getElementById('sticky-nav')) {
+            document.getElementById('sticky-nav').checked = userSettings.stickyNav;
+        }
     }
+
 
     // 模块市场功能
     function setupMarketplace() {
@@ -696,7 +949,7 @@ const ErisPulseApp = (function () {
             modulesGrid.appendChild(card);
         });
 
-        // 添加事件监听器
+        //事件监听器
         document.querySelectorAll('[data-action="install"]').forEach(btn => {
             btn.addEventListener('click', () => showInstallModal(btn.dataset.package));
         });
@@ -1029,7 +1282,7 @@ const ErisPulseApp = (function () {
             docContent = await docResponse.text();
             let htmlContent = marked.parse(docContent);
 
-            // 添加章节导航
+            // 章节导航
             htmlContent = addTableOfContents(htmlContent);
 
             // 获取文档的提交信息
@@ -1184,7 +1437,7 @@ const ErisPulseApp = (function () {
         }
     }
 
-    // 添加文档目录
+    // 文档目录
     function addTableOfContents(htmlContent) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
