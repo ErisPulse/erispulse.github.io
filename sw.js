@@ -1,4 +1,12 @@
-const CACHE_NAME = 'erispulse-v2.0.0';
+const CACHE_NAME = 'erispulse-v2.1.0';
+const EXTERNAL_LIBS = [
+  'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/',
+  'https://cdn.jsdelivr.net/npm/chart.js',
+  'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/'
+];
+
 const urlsToCache = [
   '/',
   '/index.html',
@@ -39,10 +47,70 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request)
-      .catch(() => {
-        return caches.match(event.request);
-      })
-  );
+  const requestUrl = event.request.url;
+  
+   
+  const isExternalLib = EXTERNAL_LIBS.some(lib => requestUrl.startsWith(lib));
+  
+   
+  const isLocalResource = !requestUrl.startsWith('http') || 
+    requestUrl.includes(self.location.hostname) ||
+    requestUrl.startsWith('/') && !requestUrl.startsWith('//');
+  
+  if (isExternalLib) {
+     
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+           
+          if (response) {
+            return response;
+          }
+           
+          return fetch(event.request)
+            .then(response => {
+              if (!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+              }
+              
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  cache.put(event.request, responseToCache);
+                });
+              
+              return response;
+            });
+        })
+    );
+  } else if (isLocalResource) {
+     
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+           
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+          }
+          return response;
+        })
+        .catch(() => {
+           
+          return caches.match(event.request);
+        })
+    );
+  }
+   
+  else {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+  }
 });
