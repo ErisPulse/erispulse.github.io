@@ -21,8 +21,7 @@ const ErisPulseApp = (function () {
         animations: true,
         compactLayout: false,
         showLineNumbers: false,
-        stickyNav: true,
-        autoHideDocsNav: true
+        stickyNav: true
     };
 
     // 初始化函数
@@ -98,12 +97,18 @@ const ErisPulseApp = (function () {
         // 应用自定义颜色
         if (userSettings.customColors.primary) {
             document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
+            // 确保颜色选择器显示正确的值
+            document.getElementById('primary-color').value = userSettings.customColors.primary;
         }
         if (userSettings.customColors.accent) {
             document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
+            // 确保颜色选择器显示正确的值
+            document.getElementById('accent-color').value = userSettings.customColors.accent;
         }
         if (userSettings.customColors.background) {
             document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
+            // 确保颜色选择器显示正确的值
+            document.getElementById('background-color').value = userSettings.customColors.background;
         }
 
         // 应用导航栏设置
@@ -370,12 +375,6 @@ const ErisPulseApp = (function () {
             }
         });
 
-        // 自动隐藏文档导航开关
-        document.getElementById('auto-hide-docs-nav').addEventListener('change', function () {
-            userSettings.autoHideDocsNav = this.checked;
-            saveUserSettings();
-        });
-
         // 重置所有设置按钮
         document.getElementById('reset-settings').addEventListener('click', function () {
             if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
@@ -396,12 +395,18 @@ const ErisPulseApp = (function () {
         // 自定义颜色
         if (userSettings.customColors.primary) {
             document.getElementById('primary-color').value = userSettings.customColors.primary;
+            // 同时应用到页面上
+            document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
         }
         if (userSettings.customColors.accent) {
             document.getElementById('accent-color').value = userSettings.customColors.accent;
+            // 同时应用到页面上
+            document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
         }
         if (userSettings.customColors.background) {
             document.getElementById('background-color').value = userSettings.customColors.background;
+            // 同时应用到页面上
+            document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
         }
 
         // 开关设置
@@ -409,7 +414,6 @@ const ErisPulseApp = (function () {
         document.getElementById('compact-layout').checked = userSettings.compactLayout;
         document.getElementById('show-line-numbers').checked = userSettings.showLineNumbers;
         document.getElementById('sticky-nav').checked = userSettings.stickyNav;
-        document.getElementById('auto-hide-docs-nav').checked = userSettings.autoHideDocsNav;
     }
 
     // 模块市场功能
@@ -726,9 +730,6 @@ const ErisPulseApp = (function () {
 
     // 文档功能
     function setupDocumentation() {
-        // 获取文档导航栏元素
-        const docsSubnav = document.querySelector('.docs-subnav');
-
         // 设置文档分类点击事件
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
@@ -796,94 +797,6 @@ const ErisPulseApp = (function () {
             if (firstDocLink) {
                 firstDocLink.click();
             }
-        }
-
-        // 文档页面导航栏自动隐藏/显示功能
-        if (docsSubnav) {
-            let lastScrollTop = 0;
-            let isScrollingDown = false;
-            let ticking = false;
-            let isNavbarHidden = false;
-
-            // 显示导航栏
-            function showNav() {
-                docsSubnav.classList.remove('hidden');
-                docsSubnav.classList.add('visible');
-                isNavbarHidden = false;
-            }
-
-            // 隐藏导航栏
-            function hideNav() {
-                docsSubnav.classList.remove('visible');
-                docsSubnav.classList.add('hidden');
-                isNavbarHidden = true;
-            }
-
-            // 手动切换导航栏显示/隐藏
-            function toggleNav() {
-                if (isNavbarHidden) {
-                    showNav();
-                } else {
-                    hideNav();
-                }
-            }
-
-            // 滚动事件处理函数
-            function handleScroll() {
-                // 只有当启用自动隐藏功能时才执行
-                if (!userSettings.autoHideDocsNav) return;
-
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-                // 如果滚动到顶部，始终显示导航栏
-                if (scrollTop === 0) {
-                    showNav();
-                    isScrollingDown = false;
-                    lastScrollTop = scrollTop;
-                    return;
-                }
-
-                // 判断滚动方向
-                if (scrollTop > lastScrollTop) {
-                    // 向下滚动
-                    if (!isScrollingDown) {
-                        isScrollingDown = true;
-                        hideNav();
-                    }
-                } else {
-                    // 向上滚动
-                    if (isScrollingDown) {
-                        isScrollingDown = false;
-                        showNav();
-                    }
-                }
-
-                lastScrollTop = scrollTop;
-            }
-
-            // 使用 requestAnimationFrame 优化滚动性能
-            function updateScroll() {
-                if (!ticking) {
-                    requestAnimationFrame(function () {
-                        handleScroll();
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            }
-
-            // 监听滚动事件
-            window.addEventListener('scroll', updateScroll, { passive: true });
-
-            // 添加键盘快捷键支持 (按 'n' 键切换导航栏)
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'n' || e.key === 'N') {
-                    toggleNav();
-                }
-            });
-
-            // 初始状态：显示导航栏
-            showNav();
         }
     }
 
@@ -1076,7 +989,7 @@ const ErisPulseApp = (function () {
         const docsContent = document.getElementById('docs-content');
         docsContent.innerHTML = `
             <div class="loading-spinner" style="text-align: center; padding: 3rem 0;">
-                <div style="width: 50px; height: 50px; border: 5px solid rgba(74, 107, 223, 0.2); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
+                <div style="width: 50px; height: 50px; border: 5px solid rgba(var(--primary-rgb), 0.2); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
                 <p>正在加载文档...</p>
             </div>
         `;
@@ -1340,6 +1253,12 @@ const ErisPulseApp = (function () {
                 // 将目录添加到布局容器中作为侧边栏
                 toc.style.width = '250px';
                 docsLayout.appendChild(toc);
+            } else {
+                // 在小屏幕设备上移除侧边栏目录
+                if (toc.parentNode !== document.querySelector('.docs-content')) {
+                    toc.remove();
+                    document.querySelector('.docs-content').insertAdjacentElement('afterbegin', toc);
+                }
             }
         }
     }
@@ -1457,7 +1376,7 @@ const ErisPulseApp = (function () {
                 groupContent += `
                     <div id="${docId}" style="padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border);">
                         <h2 style="color: var(--text); margin-top: 2rem;">${docConfig.titles[docId] || docId}</h2>
-                        <div class="error-message" style="padding: 1rem; background: rgba(255, 0, 0, 0.1); border-radius: var(--radius);">
+                        <div class="error-message" style="padding: 1rem; background: rgba(var(--primary-rgb), 0.1); border-radius: var(--radius);">
                             <p>无法加载此文档内容</p>
                         </div>
                     </div>
