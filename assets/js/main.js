@@ -21,8 +21,7 @@ const ErisPulseApp = (function () {
         animations: true,
         compactLayout: false,
         showLineNumbers: false,
-        stickyNav: true,
-        autoHideDocsNav: true
+        stickyNav: true
     };
 
      
@@ -98,12 +97,18 @@ const ErisPulseApp = (function () {
          
         if (userSettings.customColors.primary) {
             document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
+             
+            document.getElementById('primary-color').value = userSettings.customColors.primary;
         }
         if (userSettings.customColors.accent) {
             document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
+             
+            document.getElementById('accent-color').value = userSettings.customColors.accent;
         }
         if (userSettings.customColors.background) {
             document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
+             
+            document.getElementById('background-color').value = userSettings.customColors.background;
         }
 
          
@@ -371,12 +376,6 @@ const ErisPulseApp = (function () {
         });
 
          
-        document.getElementById('auto-hide-docs-nav').addEventListener('change', function () {
-            userSettings.autoHideDocsNav = this.checked;
-            saveUserSettings();
-        });
-
-         
         document.getElementById('reset-settings').addEventListener('click', function () {
             if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
                 localStorage.removeItem('erispulse-settings');
@@ -396,12 +395,18 @@ const ErisPulseApp = (function () {
          
         if (userSettings.customColors.primary) {
             document.getElementById('primary-color').value = userSettings.customColors.primary;
+             
+            document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
         }
         if (userSettings.customColors.accent) {
             document.getElementById('accent-color').value = userSettings.customColors.accent;
+             
+            document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
         }
         if (userSettings.customColors.background) {
             document.getElementById('background-color').value = userSettings.customColors.background;
+             
+            document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
         }
 
          
@@ -409,7 +414,6 @@ const ErisPulseApp = (function () {
         document.getElementById('compact-layout').checked = userSettings.compactLayout;
         document.getElementById('show-line-numbers').checked = userSettings.showLineNumbers;
         document.getElementById('sticky-nav').checked = userSettings.stickyNav;
-        document.getElementById('auto-hide-docs-nav').checked = userSettings.autoHideDocsNav;
     }
 
      
@@ -727,9 +731,6 @@ const ErisPulseApp = (function () {
      
     function setupDocumentation() {
          
-        const docsSubnav = document.querySelector('.docs-subnav');
-
-         
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -796,94 +797,6 @@ const ErisPulseApp = (function () {
             if (firstDocLink) {
                 firstDocLink.click();
             }
-        }
-
-         
-        if (docsSubnav) {
-            let lastScrollTop = 0;
-            let isScrollingDown = false;
-            let ticking = false;
-            let isNavbarHidden = false;
-
-             
-            function showNav() {
-                docsSubnav.classList.remove('hidden');
-                docsSubnav.classList.add('visible');
-                isNavbarHidden = false;
-            }
-
-             
-            function hideNav() {
-                docsSubnav.classList.remove('visible');
-                docsSubnav.classList.add('hidden');
-                isNavbarHidden = true;
-            }
-
-             
-            function toggleNav() {
-                if (isNavbarHidden) {
-                    showNav();
-                } else {
-                    hideNav();
-                }
-            }
-
-             
-            function handleScroll() {
-                 
-                if (!userSettings.autoHideDocsNav) return;
-
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-                 
-                if (scrollTop === 0) {
-                    showNav();
-                    isScrollingDown = false;
-                    lastScrollTop = scrollTop;
-                    return;
-                }
-
-                 
-                if (scrollTop > lastScrollTop) {
-                     
-                    if (!isScrollingDown) {
-                        isScrollingDown = true;
-                        hideNav();
-                    }
-                } else {
-                     
-                    if (isScrollingDown) {
-                        isScrollingDown = false;
-                        showNav();
-                    }
-                }
-
-                lastScrollTop = scrollTop;
-            }
-
-             
-            function updateScroll() {
-                if (!ticking) {
-                    requestAnimationFrame(function () {
-                        handleScroll();
-                        ticking = false;
-                    });
-                    ticking = true;
-                }
-            }
-
-             
-            window.addEventListener('scroll', updateScroll, { passive: true });
-
-             
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'n' || e.key === 'N') {
-                    toggleNav();
-                }
-            });
-
-             
-            showNav();
         }
     }
 
@@ -1076,7 +989,7 @@ const ErisPulseApp = (function () {
         const docsContent = document.getElementById('docs-content');
         docsContent.innerHTML = `
             <div class="loading-spinner" style="text-align: center; padding: 3rem 0;">
-                <div style="width: 50px; height: 50px; border: 5px solid rgba(74, 107, 223, 0.2); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
+                <div style="width: 50px; height: 50px; border: 5px solid rgba(var(--primary-rgb), 0.2); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
                 <p>正在加载文档...</p>
             </div>
         `;
@@ -1340,6 +1253,12 @@ const ErisPulseApp = (function () {
                  
                 toc.style.width = '250px';
                 docsLayout.appendChild(toc);
+            } else {
+                 
+                if (toc.parentNode !== document.querySelector('.docs-content')) {
+                    toc.remove();
+                    document.querySelector('.docs-content').insertAdjacentElement('afterbegin', toc);
+                }
             }
         }
     }
@@ -1457,7 +1376,7 @@ const ErisPulseApp = (function () {
                 groupContent += `
                     <div id="${docId}" style="padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border);">
                         <h2 style="color: var(--text); margin-top: 2rem;">${docConfig.titles[docId] || docId}</h2>
-                        <div class="error-message" style="padding: 1rem; background: rgba(255, 0, 0, 0.1); border-radius: var(--radius);">
+                        <div class="error-message" style="padding: 1rem; background: rgba(var(--primary-rgb), 0.1); border-radius: var(--radius);">
                             <p>无法加载此文档内容</p>
                         </div>
                     </div>
