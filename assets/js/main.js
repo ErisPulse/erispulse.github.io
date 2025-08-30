@@ -82,41 +82,274 @@ const ErisPulseApp = (function () {
          
         if (!userSettings.animations) {
             document.body.classList.add('no-animations');
+        } else {
+            document.body.classList.remove('no-animations');
         }
 
          
         if (userSettings.compactLayout) {
             document.body.classList.add('compact-layout');
+        } else {
+            document.body.classList.remove('compact-layout');
         }
 
          
         if (userSettings.showLineNumbers) {
             document.body.classList.add('show-line-numbers');
+        } else {
+            document.body.classList.remove('show-line-numbers');
         }
 
          
         if (userSettings.customColors.primary) {
             document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
-             
-            document.getElementById('primary-color').value = userSettings.customColors.primary;
         }
         if (userSettings.customColors.accent) {
             document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
-             
-            document.getElementById('accent-color').value = userSettings.customColors.accent;
         }
         if (userSettings.customColors.background) {
             document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
-             
-            document.getElementById('background-color').value = userSettings.customColors.background;
+        }
+
+         
+        if (userSettings.customColors.text) {
+            document.documentElement.style.setProperty('--text', userSettings.customColors.text);
+        }
+        if (userSettings.customColors.border) {
+            document.documentElement.style.setProperty('--border', userSettings.customColors.border);
+        }
+        if (userSettings.customColors.cardBg) {
+            document.documentElement.style.setProperty('--card-bg', userSettings.customColors.cardBg);
         }
 
          
         if (!userSettings.stickyNav) {
             document.body.classList.add('no-sticky-nav');
+        } else {
+            document.body.classList.remove('no-sticky-nav');
         }
     }
 
+     
+    function applyPresetTheme(preset) {
+        const presets = {
+            default: {
+                primary: '#5a63df',
+                accent: '#5ED1B3',
+                background: '#FAFAFA',
+                text: '#2D3748',
+                border: '#E2E8F0',
+                cardBg: '#FFFFFF'
+            },
+            ocean: {
+                primary: '#1e88e5',
+                accent: '#26c6da',
+                background: '#f5f9ff',
+                text: '#1e3a8a',
+                border: '#c7d2fe',
+                cardBg: '#ffffff'
+            },
+            sunset: {
+                primary: '#ff7043',
+                accent: '#ffca28',
+                background: '#fff8f5',
+                text: '#5a2d0c',
+                border: '#fed7aa',
+                cardBg: '#ffffff'
+            },
+            forest: {
+                primary: '#43a047',
+                accent: '#9ccc65',
+                background: '#f0fdf4',
+                text: '#14532d',
+                border: '#bbf7d0',
+                cardBg: '#ffffff'
+            },
+            lavender: {
+                primary: '#8e24aa',
+                accent: '#ab47bc',
+                background: '#faf5ff',
+                text: '#4c1d95',
+                border: '#d8b4fe',
+                cardBg: '#ffffff'
+            }
+        };
+
+        const theme = presets[preset];
+        if (theme) {
+             
+            userSettings.customColors = {
+                primary: theme.primary,
+                accent: theme.accent,
+                background: theme.background,
+                text: theme.text,
+                border: theme.border,
+                cardBg: theme.cardBg
+            };
+
+             
+            saveUserSettings();
+            applyUserSettings();
+
+             
+            showMessage(`已应用 ${preset === 'default' ? '默认' : preset} 预设样式`, 'success');
+        }
+    }
+
+     
+    function openAdvancedColorsModal() {
+         
+        document.getElementById('advanced-primary').value = userSettings.customColors.primary || '#5a63df';
+        document.getElementById('advanced-primary-dark').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-dark').trim() || '#555AB8';
+        document.getElementById('advanced-accent').value = userSettings.customColors.accent || '#5ED1B3';
+        document.getElementById('advanced-bg').value = userSettings.customColors.background || '#FAFAFA';
+        document.getElementById('advanced-text').value = userSettings.customColors.text || '#2D3748';
+        document.getElementById('advanced-border').value = userSettings.customColors.border || '#E2E8F0';
+        document.getElementById('advanced-card-bg').value = userSettings.customColors.cardBg || '#FFFFFF';
+
+         
+        document.getElementById('advanced-primary-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim() || '90, 99, 223';
+        document.getElementById('advanced-accent-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '94, 209, 179';
+        document.getElementById('advanced-bg-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--bg-rgb').trim() || '250, 250, 250';
+        document.getElementById('advanced-text-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--text-rgb').trim() || '45, 55, 72';
+        document.getElementById('advanced-shadow').value = getComputedStyle(document.documentElement).getPropertyValue('--shadow-sm').trim() || '0 2px 10px rgba(0, 0, 0, 0.05)';
+
+         
+        document.getElementById('advanced-colors-modal').classList.add('active');
+    }
+
+     
+    function applyAdvancedColors() {
+         
+        const primary = document.getElementById('advanced-primary').value;
+        const primaryDark = document.getElementById('advanced-primary-dark').value;
+        const accent = document.getElementById('advanced-accent').value;
+        const bg = document.getElementById('advanced-bg').value;
+        const text = document.getElementById('advanced-text').value;
+        const border = document.getElementById('advanced-border').value;
+        const cardBg = document.getElementById('advanced-card-bg').value;
+
+         
+        const primaryRgb = document.getElementById('advanced-primary-rgb').value;
+        const accentRgb = document.getElementById('advanced-accent-rgb').value;
+        const bgRgb = document.getElementById('advanced-bg-rgb').value;
+        const textRgb = document.getElementById('advanced-text-rgb').value;
+        const shadow = document.getElementById('advanced-shadow').value;
+
+         
+        userSettings.customColors.primary = primary;
+        userSettings.customColors.accent = accent;
+        userSettings.customColors.background = bg;
+        userSettings.customColors.text = text;
+        userSettings.customColors.border = border;
+        userSettings.customColors.cardBg = cardBg;
+
+         
+        document.documentElement.style.setProperty('--primary', primary);
+        document.documentElement.style.setProperty('--primary-dark', primaryDark);
+        document.documentElement.style.setProperty('--accent', accent);
+        document.documentElement.style.setProperty('--bg', bg);
+        document.documentElement.style.setProperty('--text', text);
+        document.documentElement.style.setProperty('--border', border);
+        document.documentElement.style.setProperty('--card-bg', cardBg);
+
+         
+        document.documentElement.style.setProperty('--primary-rgb', primaryRgb);
+        document.documentElement.style.setProperty('--accent-rgb', accentRgb);
+        document.documentElement.style.setProperty('--bg-rgb', bgRgb);
+        document.documentElement.style.setProperty('--text-rgb', textRgb);
+        document.documentElement.style.setProperty('--shadow-sm', shadow);
+
+         
+        saveUserSettings();
+
+         
+        showMessage('颜色设置已应用', 'success');
+    }
+
+     
+    function initPresetSelector() {
+         
+        const currentColors = {
+            primary: userSettings.customColors.primary || '#5a63df',
+            accent: userSettings.customColors.accent || '#5ED1B3'
+        };
+
+         
+        const presets = {
+            ocean: { primary: '#1e88e5', accent: '#26c6da' },
+            sunset: { primary: '#ff7043', accent: '#ffca28' },
+            forest: { primary: '#43a047', accent: '#9ccc65' },
+            lavender: { primary: '#8e24aa', accent: '#ab47bc' }
+        };
+
+         
+        let matchedPreset = 'default';
+
+         
+        for (const [name, colors] of Object.entries(presets)) {
+            if (currentColors.primary === colors.primary && currentColors.accent === colors.accent) {
+                matchedPreset = name;
+                break;
+            }
+        }
+
+         
+        if (document.getElementById('preset-themes')) {
+            document.getElementById('preset-themes').value = matchedPreset;
+        }
+    }
+
+     
+    function showMessage(message, type) {
+         
+        const existingMessage = document.querySelector('.message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+         
+        const messageEl = document.createElement('div');
+        messageEl.className = `message message-${type}`;
+        messageEl.textContent = message;
+
+         
+        Object.assign(messageEl.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: 'var(--radius)',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '1000',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(20px)',
+            opacity: '0',
+            transition: 'all 0.3s ease',
+            background: type === 'success' ? 'var(--primary)' : type === 'error' ? '#ef4444' : '#64748b'
+        });
+
+         
+        document.body.appendChild(messageEl);
+
+         
+        setTimeout(() => {
+            messageEl.style.transform = 'translateY(0)';
+            messageEl.style.opacity = '1';
+        }, 10);
+
+         
+        setTimeout(() => {
+            messageEl.style.transform = 'translateY(20px)';
+            messageEl.style.opacity = '0';
+            setTimeout(() => {
+                if (messageEl.parentNode) {
+                    messageEl.parentNode.removeChild(messageEl);
+                }
+            }, 3000);
+        }, 3000);
+    }
      
     function applyThemeSetting() {
         if (userSettings.theme === 'auto') {
@@ -287,101 +520,124 @@ const ErisPulseApp = (function () {
         });
 
          
-        document.getElementById('primary-color').addEventListener('change', function () {
-            userSettings.customColors.primary = this.value;
-            saveUserSettings();
-            document.documentElement.style.setProperty('--primary', this.value);
-        });
-
-        document.getElementById('accent-color').addEventListener('change', function () {
-            userSettings.customColors.accent = this.value;
-            saveUserSettings();
-            document.documentElement.style.setProperty('--accent', this.value);
-        });
-
-        document.getElementById('background-color').addEventListener('change', function () {
-            userSettings.customColors.background = this.value;
-            saveUserSettings();
-            document.documentElement.style.setProperty('--bg', this.value);
-        });
+        if (document.getElementById('apply-preset')) {
+            document.getElementById('apply-preset').addEventListener('click', function () {
+                const preset = document.getElementById('preset-themes').value;
+                applyPresetTheme(preset);
+            });
+        }
 
          
-        document.getElementById('reset-colors').addEventListener('click', function () {
-            userSettings.customColors = { primary: '', accent: '', background: '' };
-            saveUserSettings();
-            document.documentElement.style.removeProperty('--primary');
-            document.documentElement.style.removeProperty('--accent');
-            document.documentElement.style.removeProperty('--bg');
-
-             
-            document.getElementById('primary-color').value = '#5a63df';
-            document.getElementById('accent-color').value = '#5ED1B3';
-            document.getElementById('background-color').value = '#FAFAFA';
-        });
+        if (document.getElementById('advanced-colors-btn')) {
+            document.getElementById('advanced-colors-btn').addEventListener('click', function () {
+                openAdvancedColorsModal();
+            });
+        }
 
          
-        document.getElementById('animations-toggle').addEventListener('change', function () {
-            userSettings.animations = this.checked;
-            saveUserSettings();
-            if (this.checked) {
-                document.body.classList.remove('no-animations');
-            } else {
-                document.body.classList.add('no-animations');
-            }
-        });
+        if (document.getElementById('close-advanced-modal')) {
+            document.getElementById('close-advanced-modal').addEventListener('click', function () {
+                document.getElementById('advanced-colors-modal').classList.remove('active');
+            });
+        }
 
          
-        document.getElementById('compact-layout').addEventListener('change', function () {
-            userSettings.compactLayout = this.checked;
-            saveUserSettings();
-            if (this.checked) {
-                document.body.classList.add('compact-layout');
-            } else {
-                document.body.classList.remove('compact-layout');
-            }
-        });
+        if (document.getElementById('cancel-advanced-colors')) {
+            document.getElementById('cancel-advanced-colors').addEventListener('click', function () {
+                document.getElementById('advanced-colors-modal').classList.remove('active');
+            });
+        }
 
          
-        document.getElementById('show-line-numbers').addEventListener('change', function () {
-            userSettings.showLineNumbers = this.checked;
-            saveUserSettings();
+        if (document.getElementById('apply-advanced-colors')) {
+            document.getElementById('apply-advanced-colors').addEventListener('click', function () {
+                applyAdvancedColors();
+                document.getElementById('advanced-colors-modal').classList.remove('active');
+            });
+        }
 
-            if (this.checked) {
-                document.body.classList.add('show-line-numbers');
+         
+        if (document.getElementById('advanced-colors-modal')) {
+            document.getElementById('advanced-colors-modal').addEventListener('click', function (e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        }
+
+         
+        if (document.getElementById('reset-settings')) {
+            document.getElementById('reset-settings').addEventListener('click', function () {
+                if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
+                    localStorage.removeItem('erispulse-settings');
+                    location.reload();
+                }
+            });
+        }
+
+         
+        if (document.getElementById('animations-toggle')) {
+            document.getElementById('animations-toggle').addEventListener('change', function () {
+                userSettings.animations = this.checked;
+                saveUserSettings();
+                if (this.checked) {
+                    document.body.classList.remove('no-animations');
+                } else {
+                    document.body.classList.add('no-animations');
+                }
+            });
+        }
+
+         
+        if (document.getElementById('compact-layout')) {
+            document.getElementById('compact-layout').addEventListener('change', function () {
+                userSettings.compactLayout = this.checked;
+                saveUserSettings();
+                if (this.checked) {
+                    document.body.classList.add('compact-layout');
+                } else {
+                    document.body.classList.remove('compact-layout');
+                }
+            });
+        }
+
+         
+        if (document.getElementById('show-line-numbers')) {
+            document.getElementById('show-line-numbers').addEventListener('change', function () {
+                userSettings.showLineNumbers = this.checked;
+                saveUserSettings();
+
+                if (this.checked) {
+                    document.body.classList.add('show-line-numbers');
+                     
+                    document.querySelectorAll('pre code').forEach(block => {
+                        block.classList.add('line-numbers');
+                    });
+                } else {
+                    document.body.classList.remove('show-line-numbers');
+                     
+                    document.querySelectorAll('pre code').forEach(block => {
+                        block.classList.remove('line-numbers');
+                    });
+                }
+
                  
-                document.querySelectorAll('pre code').forEach(block => {
-                    block.classList.add('line-numbers');
-                });
-            } else {
-                document.body.classList.remove('show-line-numbers');
-                 
-                document.querySelectorAll('pre code').forEach(block => {
-                    block.classList.remove('line-numbers');
-                });
-            }
-
-             
-            Prism.highlightAll();
-        });
+                Prism.highlightAll();
+            });
+        }
 
          
-        document.getElementById('sticky-nav').addEventListener('change', function () {
-            userSettings.stickyNav = this.checked;
-            saveUserSettings();
-            if (this.checked) {
-                document.body.classList.remove('no-sticky-nav');
-            } else {
-                document.body.classList.add('no-sticky-nav');
-            }
-        });
-
-         
-        document.getElementById('reset-settings').addEventListener('click', function () {
-            if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
-                localStorage.removeItem('erispulse-settings');
-                location.reload();
-            }
-        });
+        if (document.getElementById('sticky-nav')) {
+            document.getElementById('sticky-nav').addEventListener('change', function () {
+                userSettings.stickyNav = this.checked;
+                saveUserSettings();
+                if (this.checked) {
+                    document.body.classList.remove('no-sticky-nav');
+                } else {
+                    document.body.classList.add('no-sticky-nav');
+                }
+            });
+        }
 
          
         setTimeout(initSettingsForm, 100);
@@ -390,31 +646,28 @@ const ErisPulseApp = (function () {
      
     function initSettingsForm() {
          
-        document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`).checked = true;
-
-         
-        if (userSettings.customColors.primary) {
-            document.getElementById('primary-color').value = userSettings.customColors.primary;
-             
-            document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
-        }
-        if (userSettings.customColors.accent) {
-            document.getElementById('accent-color').value = userSettings.customColors.accent;
-             
-            document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
-        }
-        if (userSettings.customColors.background) {
-            document.getElementById('background-color').value = userSettings.customColors.background;
-             
-            document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
+        if (document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`)) {
+            document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`).checked = true;
         }
 
          
-        document.getElementById('animations-toggle').checked = userSettings.animations;
-        document.getElementById('compact-layout').checked = userSettings.compactLayout;
-        document.getElementById('show-line-numbers').checked = userSettings.showLineNumbers;
-        document.getElementById('sticky-nav').checked = userSettings.stickyNav;
+        initPresetSelector();
+
+         
+        if (document.getElementById('animations-toggle')) {
+            document.getElementById('animations-toggle').checked = userSettings.animations;
+        }
+        if (document.getElementById('compact-layout')) {
+            document.getElementById('compact-layout').checked = userSettings.compactLayout;
+        }
+        if (document.getElementById('show-line-numbers')) {
+            document.getElementById('show-line-numbers').checked = userSettings.showLineNumbers;
+        }
+        if (document.getElementById('sticky-nav')) {
+            document.getElementById('sticky-nav').checked = userSettings.stickyNav;
+        }
     }
+
 
      
     function setupMarketplace() {
