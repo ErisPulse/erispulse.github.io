@@ -2079,36 +2079,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 初始化应用
     ErisPulseApp.init();
-
-    // 添加窗口大小变化监听
-    window.addEventListener('resize', function () {
-        // 重新移动目录到侧边栏
-        setTimeout(() => {
-            if (typeof ErisPulseApp.moveTocToSidebar === 'function') {
-                ErisPulseApp.moveTocToSidebar();
-            }
-        }, 100);
-    });
-
-    // 监听滚动事件以更新浮动目录位置
-    window.addEventListener('scroll', function () {
-        const toc = document.querySelector('.table-of-contents');
-        const docsSubnav = document.querySelector('.docs-subnav');
-
-        if (toc && docsSubnav) {
-            const isHidden = docsSubnav.classList.contains('hidden');
-            const subnavHeight = docsSubnav.offsetHeight || 80;
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-            // 如果您希望目录始终保持在视口中央，不需要根据滚动调整top值
-            // 但如果需要根据导航栏状态调整，可以使用以下逻辑：
-            if (isHidden) {
-                // 当导航栏隐藏时的处理
-                // 目录位置可以保持不变或者根据需要调整
-            } else {
-                // 当导航栏显示时的处理
-                // 目录位置可以保持不变或者根据需要调整
-            }
-        }
-    });
 });
