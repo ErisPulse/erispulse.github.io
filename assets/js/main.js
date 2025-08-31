@@ -14,59 +14,45 @@ const ErisPulseApp = (function () {
         DEFAULT_USER_SETTINGS: {
             version: '1.0',
             theme: 'auto',
-            customColors: {
-                primary: '',
-                accent: '',
-                background: '',
-                text: '',
-                border: '',
-                cardBg: ''
-            },
+            presetTheme: '', // 预设主题
+            customColors: {},
             animations: true,
             compactLayout: false,
             showLineNumbers: false,
             stickyNav: true
         },
         THEME_PRESETS: {
-            default: {
-                primary: '#5a63df',
-                accent: '#5ED1B3',
-                background: '#FAFAFA',
-                text: '#2D3748',
-                border: '#E2E8F0',
-                cardBg: '#FFFFFF'
-            },
             ocean: {
-                primary: '#1e88e5',
-                accent: '#26c6da',
-                background: '#f5f9ff',
-                text: '#1e3a8a',
-                border: '#c7d2fe',
-                cardBg: '#ffffff'
+                '--primary': '#1e88e5',
+                '--primary-rgb': '30, 136, 229',
+                '--primary-dark': '#1565c0',
+                '--primary-dark-rgb': '21, 101, 192',
+                '--accent': '#26c6da',
+                '--accent-rgb': '38, 198, 218'
             },
             sunset: {
-                primary: '#ff7043',
-                accent: '#ffca28',
-                background: '#fff8f5',
-                text: '#5a2d0c',
-                border: '#fed7aa',
-                cardBg: '#ffffff'
+                '--primary': '#ff7043',
+                '--primary-rgb': '255, 112, 67',
+                '--primary-dark': '#f4511e',
+                '--primary-dark-rgb': '244, 81, 30',
+                '--accent': '#ffca28',
+                '--accent-rgb': '255, 202, 40'
             },
             forest: {
-                primary: '#43a047',
-                accent: '#9ccc65',
-                background: '#f0fdf4',
-                text: '#14532d',
-                border: '#bbf7d0',
-                cardBg: '#ffffff'
+                '--primary': '#43a047',
+                '--primary-rgb': '67, 160, 71',
+                '--primary-dark': '#2e7d32',
+                '--primary-dark-rgb': '46, 125, 50',
+                '--accent': '#9ccc65',
+                '--accent-rgb': '156, 204, 101'
             },
             lavender: {
-                primary: '#8e24aa',
-                accent: '#ab47bc',
-                background: '#faf5ff',
-                text: '#4c1d95',
-                border: '#d8b4fe',
-                cardBg: '#ffffff'
+                '--primary': '#8e24aa',
+                '--primary-rgb': '142, 36, 170',
+                '--primary-dark': '#6a1b9a',
+                '--primary-dark-rgb': '106, 27, 154',
+                '--accent': '#ab47bc',
+                '--accent-rgb': '171, 71, 188'
             }
         }
     };
@@ -192,53 +178,105 @@ const ErisPulseApp = (function () {
     }
 
     function applyThemeSetting() {
+        // 清除所有自定义变量
+        clearAllCustomVariables();
+        
         if (userSettings.theme === 'auto') {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
         } else {
             document.documentElement.setAttribute('data-theme', userSettings.theme);
         }
+        
+        // 应用预设主题或自定义颜色
+        if (userSettings.presetTheme && userSettings.presetTheme !== 'default') {
+            applyPresetTheme(userSettings.presetTheme, false);
+        } else if (userSettings.customColors && hasCustomColors()) {
+            applyCustomColors();
+        }
+    }
+
+    // 检查是否有自定义颜色
+    function hasCustomColors() {
+        const colors = userSettings.customColors;
+        return colors && Object.values(colors).some(color => color && color !== '');
+    }
+
+    // 清除所有自定义CSS变量
+    function clearAllCustomVariables() {
+        const root = document.documentElement;
+        const customProperties = [
+            '--primary', '--primary-dark', '--accent', '--secondary',
+            '--text', '--text-secondary', '--text-light',
+            '--bg', '--card-bg', '--border',
+            '--primary-rgb', '--primary-dark-rgb', '--accent-rgb', '--secondary-rgb',
+            '--text-rgb', '--text-secondary-rgb', '--text-light-rgb',
+            '--bg-rgb', '--card-bg-rgb', '--border-rgb'
+        ];
+        
+        customProperties.forEach(prop => {
+            root.style.removeProperty(prop);
+        });
     }
 
     function applyCustomColors() {
+        // 清除预设主题标记
+        const root = document.documentElement;
         const colors = userSettings.customColors;
         
-        if (colors.primary) {
-            document.documentElement.style.setProperty('--primary', colors.primary);
-        }
-        if (colors.accent) {
-            document.documentElement.style.setProperty('--accent', colors.accent);
-        }
-        if (colors.background) {
-            document.documentElement.style.setProperty('--bg', colors.background);
-        }
-        if (colors.text) {
-            document.documentElement.style.setProperty('--text', colors.text);
-        }
-        if (colors.border) {
-            document.documentElement.style.setProperty('--border', colors.border);
-        }
-        if (colors.cardBg) {
-            document.documentElement.style.setProperty('--card-bg', colors.cardBg);
+        if (!colors) return;
+        
+        // 应用自定义颜色
+        Object.keys(colors).forEach(key => {
+            if (colors[key]) {
+                root.style.setProperty(key, colors[key]);
+            }
+        });
+    }
+
+    function applyPresetTheme(preset, save = true) {
+        // 清除之前的自定义样式
+        clearAllCustomVariables();
+        
+        if (preset !== 'default') {
+            const theme = CONFIG.THEME_PRESETS[preset];
+            if (theme) {
+                // 应用预设主题的所有变量
+                const root = document.documentElement;
+                Object.keys(theme).forEach(key => {
+                    root.style.setProperty(key, theme[key]);
+                });
+                
+                // 如果需要保存设置
+                if (save) {
+                    userSettings.presetTheme = preset;
+                    // 清除自定义颜色
+                    userSettings.customColors = {};
+                    saveUserSettings();
+                    showMessage(`已应用 ${getPresetThemeName(preset)} 预设样式`, 'success');
+                }
+            }
+        } else {
+            // 应用默认主题时，清除所有自定义变量
+            if (save) {
+                userSettings.presetTheme = 'default';
+                userSettings.customColors = {};
+                saveUserSettings();
+                showMessage('已恢复默认主题', 'success');
+            }
         }
     }
 
-    function applyPresetTheme(preset) {
-        const theme = CONFIG.THEME_PRESETS[preset];
-        if (theme) {
-            userSettings.customColors = {
-                primary: theme.primary,
-                accent: theme.accent,
-                background: theme.background,
-                text: theme.text,
-                border: theme.border,
-                cardBg: theme.cardBg
-            };
-
-            saveUserSettings();
-            applyUserSettings();
-            showMessage(`已应用 ${preset === 'default' ? '默认' : preset} 预设样式`, 'success');
-        }
+    // 获取预设主题显示名称
+    function getPresetThemeName(preset) {
+        const names = {
+            'default': '默认',
+            'ocean': '海洋风格',
+            'sunset': '日落风格',
+            'forest': '森林风格',
+            'lavender': '薰衣草风格'
+        };
+        return names[preset] || preset;
     }
 
     function setupThemeToggle() {
@@ -557,84 +595,68 @@ const ErisPulseApp = (function () {
     }
 
     function initPresetSelector() {
-        const currentColors = {
-            primary: userSettings.customColors.primary || '#5a63df',
-            accent: userSettings.customColors.accent || '#5ED1B3'
-        };
-
-        const presets = CONFIG.THEME_PRESETS;
-        let matchedPreset = 'default';
-
-        for (const [name, colors] of Object.entries(presets)) {
-            if (name !== 'default' && 
-                currentColors.primary === colors.primary && 
-                currentColors.accent === colors.accent) {
-                matchedPreset = name;
-                break;
-            }
-        }
-
-        if (document.getElementById('preset-themes')) {
-            document.getElementById('preset-themes').value = matchedPreset;
+        if (!document.getElementById('preset-themes')) return;
+        
+        // 根据当前设置选择预设
+        if (userSettings.presetTheme) {
+            document.getElementById('preset-themes').value = userSettings.presetTheme;
+        } else if (hasCustomColors()) {
+            document.getElementById('preset-themes').value = 'default'; // 有自定义颜色时显示默认
+        } else {
+            document.getElementById('preset-themes').value = 'default';
         }
     }
 
     function openAdvancedColorsModal() {
-        document.getElementById('advanced-primary').value = userSettings.customColors.primary || '#5a63df';
-        document.getElementById('advanced-primary-dark').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-dark').trim() || '#555AB8';
-        document.getElementById('advanced-accent').value = userSettings.customColors.accent || '#5ED1B3';
-        document.getElementById('advanced-bg').value = userSettings.customColors.background || '#FAFAFA';
-        document.getElementById('advanced-text').value = userSettings.customColors.text || '#2D3748';
-        document.getElementById('advanced-border').value = userSettings.customColors.border || '#E2E8F0';
-        document.getElementById('advanced-card-bg').value = userSettings.customColors.cardBg || '#FFFFFF';
+        document.getElementById('advanced-primary').value = userSettings.customColors['--primary'] || '#5a63df';
+        document.getElementById('advanced-primary-dark').value = userSettings.customColors['--primary-dark'] || '#555AB8';
+        document.getElementById('advanced-accent').value = userSettings.customColors['--accent'] || '#5ED1B3';
+        document.getElementById('advanced-bg').value = userSettings.customColors['--bg'] || '#FAFAFA';
+        document.getElementById('advanced-text').value = userSettings.customColors['--text'] || '#2D3748';
+        document.getElementById('advanced-border').value = userSettings.customColors['--border'] || '#E2E8F0';
+        document.getElementById('advanced-card-bg').value = userSettings.customColors['--card-bg'] || '#FFFFFF';
 
-        document.getElementById('advanced-primary-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim() || '90, 99, 223';
-        document.getElementById('advanced-accent-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '94, 209, 179';
-        document.getElementById('advanced-bg-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--bg-rgb').trim() || '250, 250, 250';
-        document.getElementById('advanced-text-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--text-rgb').trim() || '45, 55, 72';
-        document.getElementById('advanced-shadow').value = getComputedStyle(document.documentElement).getPropertyValue('--shadow-sm').trim() || '0 2px 10px rgba(0, 0, 0, 0.05)';
+        document.getElementById('advanced-primary-rgb').value = userSettings.customColors['--primary-rgb'] || '90, 99, 223';
+        document.getElementById('advanced-accent-rgb').value = userSettings.customColors['--accent-rgb'] || '94, 209, 179';
+        document.getElementById('advanced-bg-rgb').value = userSettings.customColors['--bg-rgb'] || '250, 250, 250';
+        document.getElementById('advanced-text-rgb').value = userSettings.customColors['--text-rgb'] || '45, 55, 72';
+        document.getElementById('advanced-shadow').value = userSettings.customColors['--shadow-sm'] || '0 2px 10px rgba(0, 0, 0, 0.05)';
 
         document.getElementById('advanced-colors-modal').classList.add('active');
     }
 
     function applyAdvancedColors() {
-        const primary = document.getElementById('advanced-primary').value;
-        const primaryDark = document.getElementById('advanced-primary-dark').value;
-        const accent = document.getElementById('advanced-accent').value;
-        const bg = document.getElementById('advanced-bg').value;
-        const text = document.getElementById('advanced-text').value;
-        const border = document.getElementById('advanced-border').value;
-        const cardBg = document.getElementById('advanced-card-bg').value;
-
-        const primaryRgb = document.getElementById('advanced-primary-rgb').value;
-        const accentRgb = document.getElementById('advanced-accent-rgb').value;
-        const bgRgb = document.getElementById('advanced-bg-rgb').value;
-        const textRgb = document.getElementById('advanced-text-rgb').value;
-        const shadow = document.getElementById('advanced-shadow').value;
-
-        userSettings.customColors.primary = primary;
-        userSettings.customColors.accent = accent;
-        userSettings.customColors.background = bg;
-        userSettings.customColors.text = text;
-        userSettings.customColors.border = border;
-        userSettings.customColors.cardBg = cardBg;
-
-        document.documentElement.style.setProperty('--primary', primary);
-        document.documentElement.style.setProperty('--primary-dark', primaryDark);
-        document.documentElement.style.setProperty('--accent', accent);
-        document.documentElement.style.setProperty('--bg', bg);
-        document.documentElement.style.setProperty('--text', text);
-        document.documentElement.style.setProperty('--border', border);
-        document.documentElement.style.setProperty('--card-bg', cardBg);
-
-        document.documentElement.style.setProperty('--primary-rgb', primaryRgb);
-        document.documentElement.style.setProperty('--accent-rgb', accentRgb);
-        document.documentElement.style.setProperty('--bg-rgb', bgRgb);
-        document.documentElement.style.setProperty('--text-rgb', textRgb);
-        document.documentElement.style.setProperty('--shadow-sm', shadow);
-
+        // 清除预设主题
+        userSettings.presetTheme = '';
+        
+        // 收集颜色值
+        const colorSettings = {
+            '--primary': document.getElementById('advanced-primary').value,
+            '--primary-dark': document.getElementById('advanced-primary-dark').value,
+            '--accent': document.getElementById('advanced-accent').value,
+            '--bg': document.getElementById('advanced-bg').value,
+            '--text': document.getElementById('advanced-text').value,
+            '--border': document.getElementById('advanced-border').value,
+            '--card-bg': document.getElementById('advanced-card-bg').value,
+            '--primary-rgb': document.getElementById('advanced-primary-rgb').value,
+            '--accent-rgb': document.getElementById('advanced-accent-rgb').value,
+            '--bg-rgb': document.getElementById('advanced-bg-rgb').value,
+            '--text-rgb': document.getElementById('advanced-text-rgb').value,
+            '--shadow-sm': document.getElementById('advanced-shadow').value
+        };
+        
+        // 保存到用户设置
+        userSettings.customColors = colorSettings;
+        
+        // 应用颜色
+        applyCustomColors();
+        
+        // 保存设置
         saveUserSettings();
         showMessage('颜色设置已应用', 'success');
+        
+        // 更新预设选择器
+        initPresetSelector();
     }
 
     // ==================== 模块市场模块 ====================
