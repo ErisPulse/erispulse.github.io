@@ -2079,36 +2079,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
      
     ErisPulseApp.init();
-
-     
-    window.addEventListener('resize', function () {
-         
-        setTimeout(() => {
-            if (typeof ErisPulseApp.moveTocToSidebar === 'function') {
-                ErisPulseApp.moveTocToSidebar();
-            }
-        }, 100);
-    });
-
-     
-    window.addEventListener('scroll', function () {
-        const toc = document.querySelector('.table-of-contents');
-        const docsSubnav = document.querySelector('.docs-subnav');
-
-        if (toc && docsSubnav) {
-            const isHidden = docsSubnav.classList.contains('hidden');
-            const subnavHeight = docsSubnav.offsetHeight || 80;
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-             
-             
-            if (isHidden) {
-                 
-                 
-            } else {
-                 
-                 
-            }
-        }
-    });
 });
