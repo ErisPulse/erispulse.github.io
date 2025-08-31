@@ -5,134 +5,29 @@
  
 const ErisPulseApp = (function () {
      
-    let currentTheme = 'light';
-    let allModules = [];
-    let allAdapters = [];
-    let allCliExtensions = [];
-    let activeCategory = 'all';
-    let searchQuery = '';
-    let userSettings = {
-        theme: 'auto',
-        customColors: {
-            primary: '',
-            accent: '',
-            background: ''
+    const CONFIG = {
+        SETTINGS_VERSION: '1.0',
+        STORAGE_KEYS: {
+            SETTINGS: 'erispulse-settings',
+            THEME: 'theme'
         },
-        animations: true,
-        compactLayout: false,
-        showLineNumbers: false,
-        stickyNav: true
-    };
-
-     
-    function init() {
-        loadUserSettings();
-        applyUserSettings();
-        registerServiceWorker();
-        setupThemeToggle();
-        setupHamburgerMenu();
-        setupViewSwitching();
-        setupMarketplace();
-        setupDocumentation();
-        setupModals();
-        setupSettings();
-    }
-
-     
-    function registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(function (registration) {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(function (err) {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-    }
-
-     
-    function loadUserSettings() {
-        try {
-            const savedSettings = localStorage.getItem('erispulse-settings');
-            if (savedSettings) {
-                userSettings = { ...userSettings, ...JSON.parse(savedSettings) };
-            }
-        } catch (e) {
-            console.warn('Failed to load user settings:', e);
-        }
-    }
-
-     
-    function saveUserSettings() {
-        try {
-            localStorage.setItem('erispulse-settings', JSON.stringify(userSettings));
-        } catch (e) {
-            console.warn('Failed to save user settings:', e);
-        }
-    }
-
-     
-    function applyUserSettings() {
-         
-        applyThemeSetting();
-
-         
-        if (!userSettings.animations) {
-            document.body.classList.add('no-animations');
-        } else {
-            document.body.classList.remove('no-animations');
-        }
-
-         
-        if (userSettings.compactLayout) {
-            document.body.classList.add('compact-layout');
-        } else {
-            document.body.classList.remove('compact-layout');
-        }
-
-         
-        if (userSettings.showLineNumbers) {
-            document.body.classList.add('show-line-numbers');
-        } else {
-            document.body.classList.remove('show-line-numbers');
-        }
-
-         
-        if (userSettings.customColors.primary) {
-            document.documentElement.style.setProperty('--primary', userSettings.customColors.primary);
-        }
-        if (userSettings.customColors.accent) {
-            document.documentElement.style.setProperty('--accent', userSettings.customColors.accent);
-        }
-        if (userSettings.customColors.background) {
-            document.documentElement.style.setProperty('--bg', userSettings.customColors.background);
-        }
-
-         
-        if (userSettings.customColors.text) {
-            document.documentElement.style.setProperty('--text', userSettings.customColors.text);
-        }
-        if (userSettings.customColors.border) {
-            document.documentElement.style.setProperty('--border', userSettings.customColors.border);
-        }
-        if (userSettings.customColors.cardBg) {
-            document.documentElement.style.setProperty('--card-bg', userSettings.customColors.cardBg);
-        }
-
-         
-        if (!userSettings.stickyNav) {
-            document.body.classList.add('no-sticky-nav');
-        } else {
-            document.body.classList.remove('no-sticky-nav');
-        }
-    }
-
-     
-    function applyPresetTheme(preset) {
-        const presets = {
+        DEFAULT_USER_SETTINGS: {
+            version: '1.0',
+            theme: 'auto',
+            customColors: {
+                primary: '',
+                accent: '',
+                background: '',
+                text: '',
+                border: '',
+                cardBg: ''
+            },
+            animations: true,
+            compactLayout: false,
+            showLineNumbers: false,
+            stickyNav: true
+        },
+        THEME_PRESETS: {
             default: {
                 primary: '#5a63df',
                 accent: '#5ED1B3',
@@ -173,184 +68,129 @@ const ErisPulseApp = (function () {
                 border: '#d8b4fe',
                 cardBg: '#ffffff'
             }
-        };
-
-        const theme = presets[preset];
-        if (theme) {
-             
-            userSettings.customColors = {
-                primary: theme.primary,
-                accent: theme.accent,
-                background: theme.background,
-                text: theme.text,
-                border: theme.border,
-                cardBg: theme.cardBg
-            };
-
-             
-            saveUserSettings();
-            applyUserSettings();
-
-             
-            showMessage(`已应用 ${preset === 'default' ? '默认' : preset} 预设样式`, 'success');
         }
-    }
+    };
 
      
-    function openAdvancedColorsModal() {
-         
-        document.getElementById('advanced-primary').value = userSettings.customColors.primary || '#5a63df';
-        document.getElementById('advanced-primary-dark').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-dark').trim() || '#555AB8';
-        document.getElementById('advanced-accent').value = userSettings.customColors.accent || '#5ED1B3';
-        document.getElementById('advanced-bg').value = userSettings.customColors.background || '#FAFAFA';
-        document.getElementById('advanced-text').value = userSettings.customColors.text || '#2D3748';
-        document.getElementById('advanced-border').value = userSettings.customColors.border || '#E2E8F0';
-        document.getElementById('advanced-card-bg').value = userSettings.customColors.cardBg || '#FFFFFF';
-
-         
-        document.getElementById('advanced-primary-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim() || '90, 99, 223';
-        document.getElementById('advanced-accent-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '94, 209, 179';
-        document.getElementById('advanced-bg-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--bg-rgb').trim() || '250, 250, 250';
-        document.getElementById('advanced-text-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--text-rgb').trim() || '45, 55, 72';
-        document.getElementById('advanced-shadow').value = getComputedStyle(document.documentElement).getPropertyValue('--shadow-sm').trim() || '0 2px 10px rgba(0, 0, 0, 0.05)';
-
-         
-        document.getElementById('advanced-colors-modal').classList.add('active');
-    }
+    let currentTheme = 'light';
+    let allModules = [];
+    let allAdapters = [];
+    let allCliExtensions = [];
+    let activeCategory = 'all';
+    let searchQuery = '';
+    let userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
 
      
-    function applyAdvancedColors() {
-         
-        const primary = document.getElementById('advanced-primary').value;
-        const primaryDark = document.getElementById('advanced-primary-dark').value;
-        const accent = document.getElementById('advanced-accent').value;
-        const bg = document.getElementById('advanced-bg').value;
-        const text = document.getElementById('advanced-text').value;
-        const border = document.getElementById('advanced-border').value;
-        const cardBg = document.getElementById('advanced-card-bg').value;
-
-         
-        const primaryRgb = document.getElementById('advanced-primary-rgb').value;
-        const accentRgb = document.getElementById('advanced-accent-rgb').value;
-        const bgRgb = document.getElementById('advanced-bg-rgb').value;
-        const textRgb = document.getElementById('advanced-text-rgb').value;
-        const shadow = document.getElementById('advanced-shadow').value;
-
-         
-        userSettings.customColors.primary = primary;
-        userSettings.customColors.accent = accent;
-        userSettings.customColors.background = bg;
-        userSettings.customColors.text = text;
-        userSettings.customColors.border = border;
-        userSettings.customColors.cardBg = cardBg;
-
-         
-        document.documentElement.style.setProperty('--primary', primary);
-        document.documentElement.style.setProperty('--primary-dark', primaryDark);
-        document.documentElement.style.setProperty('--accent', accent);
-        document.documentElement.style.setProperty('--bg', bg);
-        document.documentElement.style.setProperty('--text', text);
-        document.documentElement.style.setProperty('--border', border);
-        document.documentElement.style.setProperty('--card-bg', cardBg);
-
-         
-        document.documentElement.style.setProperty('--primary-rgb', primaryRgb);
-        document.documentElement.style.setProperty('--accent-rgb', accentRgb);
-        document.documentElement.style.setProperty('--bg-rgb', bgRgb);
-        document.documentElement.style.setProperty('--text-rgb', textRgb);
-        document.documentElement.style.setProperty('--shadow-sm', shadow);
-
-         
-        saveUserSettings();
-
-         
-        showMessage('颜色设置已应用', 'success');
+    function init() {
+        setupStorage();
+        loadUserSettings();
+        applyUserSettings();
+        registerServiceWorker();
+        setupThemeToggle();
+        setupHamburgerMenu();
+        setupViewSwitching();
+        setupMarketplace();
+        setupDocumentation();
+        setupModals();
+        setupSettings();
     }
 
-     
-    function initPresetSelector() {
-         
-        const currentColors = {
-            primary: userSettings.customColors.primary || '#5a63df',
-            accent: userSettings.customColors.accent || '#5ED1B3'
-        };
-
-         
-        const presets = {
-            ocean: { primary: '#1e88e5', accent: '#26c6da' },
-            sunset: { primary: '#ff7043', accent: '#ffca28' },
-            forest: { primary: '#43a047', accent: '#9ccc65' },
-            lavender: { primary: '#8e24aa', accent: '#ab47bc' }
-        };
-
-         
-        let matchedPreset = 'default';
-
-         
-        for (const [name, colors] of Object.entries(presets)) {
-            if (currentColors.primary === colors.primary && currentColors.accent === colors.accent) {
-                matchedPreset = name;
-                break;
-            }
-        }
-
-         
-        if (document.getElementById('preset-themes')) {
-            document.getElementById('preset-themes').value = matchedPreset;
-        }
-    }
-
-     
-    function showMessage(message, type) {
-         
-        const existingMessage = document.querySelector('.message');
-        if (existingMessage) {
-            existingMessage.remove();
-        }
-
-         
-        const messageEl = document.createElement('div');
-        messageEl.className = `message message-${type}`;
-        messageEl.textContent = message;
-
-         
-        Object.assign(messageEl.style, {
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            padding: '12px 20px',
-            borderRadius: 'var(--radius)',
-            color: 'white',
-            fontWeight: '500',
-            zIndex: '1000',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            transform: 'translateY(20px)',
-            opacity: '0',
-            transition: 'all 0.3s ease',
-            background: type === 'success' ? 'var(--primary)' : type === 'error' ? '#ef4444' : '#64748b'
-        });
-
-         
-        document.body.appendChild(messageEl);
-
-         
-        setTimeout(() => {
-            messageEl.style.transform = 'translateY(0)';
-            messageEl.style.opacity = '1';
-        }, 10);
-
-         
-        setTimeout(() => {
-            messageEl.style.transform = 'translateY(20px)';
-            messageEl.style.opacity = '0';
-            setTimeout(() => {
-                if (messageEl.parentNode) {
-                    messageEl.parentNode.removeChild(messageEl);
+    function setupStorage() {
+        try {
+            const savedSettings = localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS);
+            if (savedSettings) {
+                const parsedSettings = JSON.parse(savedSettings);
+                
+                 
+                if (!parsedSettings.version || parsedSettings.version !== CONFIG.SETTINGS_VERSION) {
+                    localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
+                    userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+                    return;
                 }
-            }, 3000);
-        }, 3000);
+                
+                userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS, ...parsedSettings };
+            }
+        } catch (e) {
+            console.warn('Failed to load user settings:', e);
+            userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+        }
     }
+
+    function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function (registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function (err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    }
+
      
+    function loadUserSettings() {
+        try {
+            const savedSettings = localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS);
+            if (savedSettings) {
+                const parsedSettings = JSON.parse(savedSettings);
+                
+                 
+                if (!parsedSettings.version || parsedSettings.version !== CONFIG.SETTINGS_VERSION) {
+                    localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
+                    userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+                    return;
+                }
+                
+                userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS, ...parsedSettings };
+            }
+        } catch (e) {
+            console.warn('Failed to load user settings:', e);
+            userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+        }
+    }
+
+    function saveUserSettings() {
+        try {
+            userSettings.version = CONFIG.SETTINGS_VERSION;
+            localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(userSettings));
+        } catch (e) {
+            console.warn('Failed to save user settings:', e);
+        }
+    }
+
+    function applyUserSettings() {
+        applyThemeSetting();
+        
+        if (!userSettings.animations) {
+            document.body.classList.add('no-animations');
+        } else {
+            document.body.classList.remove('no-animations');
+        }
+
+        if (userSettings.compactLayout) {
+            document.body.classList.add('compact-layout');
+        } else {
+            document.body.classList.remove('compact-layout');
+        }
+
+        if (userSettings.showLineNumbers) {
+            document.body.classList.add('show-line-numbers');
+        } else {
+            document.body.classList.remove('show-line-numbers');
+        }
+
+        applyCustomColors();
+
+        if (!userSettings.stickyNav) {
+            document.body.classList.add('no-sticky-nav');
+        } else {
+            document.body.classList.remove('no-sticky-nav');
+        }
+    }
+
     function applyThemeSetting() {
         if (userSettings.theme === 'auto') {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -360,26 +200,62 @@ const ErisPulseApp = (function () {
         }
     }
 
-     
+    function applyCustomColors() {
+        const colors = userSettings.customColors;
+        
+        if (colors.primary) {
+            document.documentElement.style.setProperty('--primary', colors.primary);
+        }
+        if (colors.accent) {
+            document.documentElement.style.setProperty('--accent', colors.accent);
+        }
+        if (colors.background) {
+            document.documentElement.style.setProperty('--bg', colors.background);
+        }
+        if (colors.text) {
+            document.documentElement.style.setProperty('--text', colors.text);
+        }
+        if (colors.border) {
+            document.documentElement.style.setProperty('--border', colors.border);
+        }
+        if (colors.cardBg) {
+            document.documentElement.style.setProperty('--card-bg', colors.cardBg);
+        }
+    }
+
+    function applyPresetTheme(preset) {
+        const theme = CONFIG.THEME_PRESETS[preset];
+        if (theme) {
+            userSettings.customColors = {
+                primary: theme.primary,
+                accent: theme.accent,
+                background: theme.background,
+                text: theme.text,
+                border: theme.border,
+                cardBg: theme.cardBg
+            };
+
+            saveUserSettings();
+            applyUserSettings();
+            showMessage(`已应用 ${preset === 'default' ? '默认' : preset} 预设样式`, 'success');
+        }
+    }
+
     function setupThemeToggle() {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-
-         
+        currentTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME) || (prefersDark ? 'dark' : 'light');
         applyTheme();
     }
 
     function applyTheme() {
         applyThemeSetting();
-
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-
         console.log(isDark);
     }
 
     function toggleTheme() {
         currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-        localStorage.setItem('theme', currentTheme);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, currentTheme);
         applyTheme();
     }
 
@@ -394,7 +270,6 @@ const ErisPulseApp = (function () {
             navContainer.classList.toggle('active');
         });
 
-         
         document.addEventListener('click', (e) => {
             if (!navContainer.contains(e.target) && e.target !== hamburger) {
                 hamburger.classList.remove('active');
@@ -402,7 +277,6 @@ const ErisPulseApp = (function () {
             }
         });
 
-         
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
@@ -413,12 +287,10 @@ const ErisPulseApp = (function () {
         });
     }
 
-     
     function setupViewSwitching() {
         const viewLinks = document.querySelectorAll('[data-view]');
         const viewContainers = document.querySelectorAll('.view-container');
 
-         
         window.addEventListener('hashchange', switchViewByHash);
 
         viewLinks.forEach(link => {
@@ -429,7 +301,6 @@ const ErisPulseApp = (function () {
             });
         });
 
-         
         switchViewByHash();
     }
 
@@ -439,7 +310,6 @@ const ErisPulseApp = (function () {
 
         if (hash.startsWith('docs')) {
             view = 'docs';
-             
             const docMatch = hash.match(/docs\/(.+)/);
             if (docMatch && docMatch[1]) {
                 setTimeout(() => {
@@ -451,7 +321,6 @@ const ErisPulseApp = (function () {
             }
         } else if (hash.startsWith('market')) {
             view = 'market';
-             
             const categoryMatch = hash.match(/market\/(.+)/);
             if (categoryMatch && categoryMatch[1]) {
                 setTimeout(() => {
@@ -470,7 +339,6 @@ const ErisPulseApp = (function () {
             hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
             hash.startsWith('platform-features') || hash.startsWith('changelog') ||
             hash.startsWith('ai-module')) {
-             
             view = 'docs';
             setTimeout(() => {
                 const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
@@ -484,33 +352,72 @@ const ErisPulseApp = (function () {
     }
 
     function updateView(view) {
-         
         document.querySelectorAll('[data-view]').forEach(link => link.classList.remove('active'));
         if (document.querySelector(`[data-view="${view}"]`)) {
             document.querySelector(`[data-view="${view}"]`).classList.add('active');
         }
 
-         
         document.querySelectorAll('.view-container').forEach(container => {
             container.classList.remove('active');
         });
         document.getElementById(`${view}-view`).classList.add('active');
 
-         
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
 
-         
         if (view === 'market') {
             loadModuleData();
         }
     }
 
+    function showMessage(message, type) {
+        const existingMessage = document.querySelector('.message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        const messageEl = document.createElement('div');
+        messageEl.className = `message message-${type}`;
+        messageEl.textContent = message;
+
+        Object.assign(messageEl.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: 'var(--radius)',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '1000',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(20px)',
+            opacity: '0',
+            transition: 'all 0.3s ease',
+            background: type === 'success' ? 'var(--primary)' : type === 'error' ? '#ef4444' : '#64748b'
+        });
+
+        document.body.appendChild(messageEl);
+
+        setTimeout(() => {
+            messageEl.style.transform = 'translateY(0)';
+            messageEl.style.opacity = '1';
+        }, 10);
+
+        setTimeout(() => {
+            messageEl.style.transform = 'translateY(20px)';
+            messageEl.style.opacity = '0';
+            setTimeout(() => {
+                if (messageEl.parentNode) {
+                    messageEl.parentNode.removeChild(messageEl);
+                }
+            }, 3000);
+        }, 3000);
+    }
+
      
     function setupSettings() {
-         
         document.querySelectorAll('input[name="theme"]').forEach(radio => {
             radio.addEventListener('change', function () {
                 userSettings.theme = this.value;
@@ -519,7 +426,6 @@ const ErisPulseApp = (function () {
             });
         });
 
-         
         if (document.getElementById('apply-preset')) {
             document.getElementById('apply-preset').addEventListener('click', function () {
                 const preset = document.getElementById('preset-themes').value;
@@ -527,28 +433,24 @@ const ErisPulseApp = (function () {
             });
         }
 
-         
         if (document.getElementById('advanced-colors-btn')) {
             document.getElementById('advanced-colors-btn').addEventListener('click', function () {
                 openAdvancedColorsModal();
             });
         }
 
-         
         if (document.getElementById('close-advanced-modal')) {
             document.getElementById('close-advanced-modal').addEventListener('click', function () {
                 document.getElementById('advanced-colors-modal').classList.remove('active');
             });
         }
 
-         
         if (document.getElementById('cancel-advanced-colors')) {
             document.getElementById('cancel-advanced-colors').addEventListener('click', function () {
                 document.getElementById('advanced-colors-modal').classList.remove('active');
             });
         }
 
-         
         if (document.getElementById('apply-advanced-colors')) {
             document.getElementById('apply-advanced-colors').addEventListener('click', function () {
                 applyAdvancedColors();
@@ -556,7 +458,6 @@ const ErisPulseApp = (function () {
             });
         }
 
-         
         if (document.getElementById('advanced-colors-modal')) {
             document.getElementById('advanced-colors-modal').addEventListener('click', function (e) {
                 if (e.target === this) {
@@ -565,17 +466,15 @@ const ErisPulseApp = (function () {
             });
         }
 
-         
         if (document.getElementById('reset-settings')) {
             document.getElementById('reset-settings').addEventListener('click', function () {
                 if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
-                    localStorage.removeItem('erispulse-settings');
+                    localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
                     location.reload();
                 }
             });
         }
 
-         
         if (document.getElementById('animations-toggle')) {
             document.getElementById('animations-toggle').addEventListener('change', function () {
                 userSettings.animations = this.checked;
@@ -588,7 +487,6 @@ const ErisPulseApp = (function () {
             });
         }
 
-         
         if (document.getElementById('compact-layout')) {
             document.getElementById('compact-layout').addEventListener('change', function () {
                 userSettings.compactLayout = this.checked;
@@ -601,7 +499,6 @@ const ErisPulseApp = (function () {
             });
         }
 
-         
         if (document.getElementById('show-line-numbers')) {
             document.getElementById('show-line-numbers').addEventListener('change', function () {
                 userSettings.showLineNumbers = this.checked;
@@ -609,24 +506,20 @@ const ErisPulseApp = (function () {
 
                 if (this.checked) {
                     document.body.classList.add('show-line-numbers');
-                     
                     document.querySelectorAll('pre code').forEach(block => {
                         block.classList.add('line-numbers');
                     });
                 } else {
                     document.body.classList.remove('show-line-numbers');
-                     
                     document.querySelectorAll('pre code').forEach(block => {
                         block.classList.remove('line-numbers');
                     });
                 }
 
-                 
                 Prism.highlightAll();
             });
         }
 
-         
         if (document.getElementById('sticky-nav')) {
             document.getElementById('sticky-nav').addEventListener('change', function () {
                 userSettings.stickyNav = this.checked;
@@ -639,21 +532,16 @@ const ErisPulseApp = (function () {
             });
         }
 
-         
         setTimeout(initSettingsForm, 100);
     }
 
-     
     function initSettingsForm() {
-         
         if (document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`)) {
             document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`).checked = true;
         }
 
-         
         initPresetSelector();
 
-         
         if (document.getElementById('animations-toggle')) {
             document.getElementById('animations-toggle').checked = userSettings.animations;
         }
@@ -668,17 +556,95 @@ const ErisPulseApp = (function () {
         }
     }
 
+    function initPresetSelector() {
+        const currentColors = {
+            primary: userSettings.customColors.primary || '#5a63df',
+            accent: userSettings.customColors.accent || '#5ED1B3'
+        };
+
+        const presets = CONFIG.THEME_PRESETS;
+        let matchedPreset = 'default';
+
+        for (const [name, colors] of Object.entries(presets)) {
+            if (name !== 'default' && 
+                currentColors.primary === colors.primary && 
+                currentColors.accent === colors.accent) {
+                matchedPreset = name;
+                break;
+            }
+        }
+
+        if (document.getElementById('preset-themes')) {
+            document.getElementById('preset-themes').value = matchedPreset;
+        }
+    }
+
+    function openAdvancedColorsModal() {
+        document.getElementById('advanced-primary').value = userSettings.customColors.primary || '#5a63df';
+        document.getElementById('advanced-primary-dark').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-dark').trim() || '#555AB8';
+        document.getElementById('advanced-accent').value = userSettings.customColors.accent || '#5ED1B3';
+        document.getElementById('advanced-bg').value = userSettings.customColors.background || '#FAFAFA';
+        document.getElementById('advanced-text').value = userSettings.customColors.text || '#2D3748';
+        document.getElementById('advanced-border').value = userSettings.customColors.border || '#E2E8F0';
+        document.getElementById('advanced-card-bg').value = userSettings.customColors.cardBg || '#FFFFFF';
+
+        document.getElementById('advanced-primary-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--primary-rgb').trim() || '90, 99, 223';
+        document.getElementById('advanced-accent-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '94, 209, 179';
+        document.getElementById('advanced-bg-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--bg-rgb').trim() || '250, 250, 250';
+        document.getElementById('advanced-text-rgb').value = getComputedStyle(document.documentElement).getPropertyValue('--text-rgb').trim() || '45, 55, 72';
+        document.getElementById('advanced-shadow').value = getComputedStyle(document.documentElement).getPropertyValue('--shadow-sm').trim() || '0 2px 10px rgba(0, 0, 0, 0.05)';
+
+        document.getElementById('advanced-colors-modal').classList.add('active');
+    }
+
+    function applyAdvancedColors() {
+        const primary = document.getElementById('advanced-primary').value;
+        const primaryDark = document.getElementById('advanced-primary-dark').value;
+        const accent = document.getElementById('advanced-accent').value;
+        const bg = document.getElementById('advanced-bg').value;
+        const text = document.getElementById('advanced-text').value;
+        const border = document.getElementById('advanced-border').value;
+        const cardBg = document.getElementById('advanced-card-bg').value;
+
+        const primaryRgb = document.getElementById('advanced-primary-rgb').value;
+        const accentRgb = document.getElementById('advanced-accent-rgb').value;
+        const bgRgb = document.getElementById('advanced-bg-rgb').value;
+        const textRgb = document.getElementById('advanced-text-rgb').value;
+        const shadow = document.getElementById('advanced-shadow').value;
+
+        userSettings.customColors.primary = primary;
+        userSettings.customColors.accent = accent;
+        userSettings.customColors.background = bg;
+        userSettings.customColors.text = text;
+        userSettings.customColors.border = border;
+        userSettings.customColors.cardBg = cardBg;
+
+        document.documentElement.style.setProperty('--primary', primary);
+        document.documentElement.style.setProperty('--primary-dark', primaryDark);
+        document.documentElement.style.setProperty('--accent', accent);
+        document.documentElement.style.setProperty('--bg', bg);
+        document.documentElement.style.setProperty('--text', text);
+        document.documentElement.style.setProperty('--border', border);
+        document.documentElement.style.setProperty('--card-bg', cardBg);
+
+        document.documentElement.style.setProperty('--primary-rgb', primaryRgb);
+        document.documentElement.style.setProperty('--accent-rgb', accentRgb);
+        document.documentElement.style.setProperty('--bg-rgb', bgRgb);
+        document.documentElement.style.setProperty('--text-rgb', textRgb);
+        document.documentElement.style.setProperty('--shadow-sm', shadow);
+
+        saveUserSettings();
+        showMessage('颜色设置已应用', 'success');
+    }
 
      
     function setupMarketplace() {
-         
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 activeCategory = this.dataset.category;
 
-                 
                 if (activeCategory === 'all') {
                     history.pushState(null, null, '#market');
                 } else {
@@ -689,7 +655,6 @@ const ErisPulseApp = (function () {
             });
         });
 
-         
         const searchInput = document.getElementById('module-search');
         searchInput.addEventListener('input', function () {
             searchQuery = this.value.trim();
@@ -703,7 +668,6 @@ const ErisPulseApp = (function () {
             if (!response.ok) throw new Error('模块API请求失败');
             const data = await response.json();
 
-             
             allModules = Object.entries(data.modules || {}).map(([name, info]) => ({
                 name,
                 package: info.package,
@@ -716,7 +680,6 @@ const ErisPulseApp = (function () {
                 type: 'module'
             }));
 
-             
             allAdapters = Object.entries(data.adapters || {}).map(([name, info]) => ({
                 name,
                 package: info.package,
@@ -729,7 +692,6 @@ const ErisPulseApp = (function () {
                 type: 'adapter'
             }));
 
-             
             allCliExtensions = Object.entries(data.cli_extensions || {}).map(([name, info]) => ({
                 name,
                 package: info.package,
@@ -743,16 +705,9 @@ const ErisPulseApp = (function () {
                 command: info.command || []
             }));
 
-             
             updateStats();
-
-             
             renderModules();
-
-             
             loadContributors();
-
-             
             loadDependencies();
 
         } catch (error) {
@@ -761,16 +716,130 @@ const ErisPulseApp = (function () {
         }
     }
 
+    function updateStats() {
+        document.getElementById('total-modules').textContent = allModules.length;
+        document.getElementById('adapter-count').textContent = allAdapters.length;
+        document.getElementById('cli-count').textContent = allCliExtensions.length;
+        document.getElementById('contributors-count').textContent = '--';
+    }
+
+    function renderModules() {
+        const modulesGrid = document.getElementById('modules-grid');
+        modulesGrid.innerHTML = '';
+
+        let packagesToShow = [];
+
+        if (activeCategory === 'all') {
+            packagesToShow = [...allModules, ...allAdapters, ...allCliExtensions];
+        } else if (activeCategory === 'modules') {
+            packagesToShow = allModules;
+        } else if (activeCategory === 'adapters') {
+            packagesToShow = allAdapters;
+        } else if (activeCategory === 'cli') {
+            packagesToShow = allCliExtensions;
+        }
+
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            packagesToShow = packagesToShow.filter(pkg =>
+                pkg.name.toLowerCase().includes(query) ||
+                pkg.description.toLowerCase().includes(query)
+            );
+        }
+
+        if (packagesToShow.length === 0) {
+            modulesGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                    <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                    <h3>未找到匹配的模块</h3>
+                    <p>尝试不同的搜索关键词或查看所有模块</p>
+                </div>
+            `;
+            return;
+        }
+
+        packagesToShow.forEach((pkg, index) => {
+            const card = document.createElement('div');
+            card.className = 'module-card';
+            card.style.animationDelay = `${index * 0.1}s`;
+
+            const cliBadge = pkg.type === 'cli' ? '<span class="module-tag">CLI</span>' : '';
+            const commandInfo = pkg.command && pkg.command.length > 0 ?
+                `<p style="font-size: 0.85rem; margin-top: 0.5rem;"><i class="fas fa-terminal"></i> 命令: ${pkg.command.join(', ')}</p>` : '';
+
+            card.innerHTML = `
+                <div class="module-header">
+                    <div class="module-icon">
+                        ${getIconByType(pkg.type)}
+                    </div>
+                    <div>
+                        <h3 class="module-name">${pkg.name}</h3>
+                        <div class="module-version">v${pkg.version}</div>
+                    </div>
+                </div>
+                <p class="module-desc">${pkg.description}</p>
+                ${commandInfo}
+                ${pkg.tags.length > 0 ? `
+                <div class="module-tags">
+                    ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
+                    ${cliBadge}
+                </div>
+                ` : ''}
+                <div class="module-footer">
+                    <div class="module-author">${pkg.author}</div>
+                    <div class="module-actions">
+                        <button class="module-btn" data-action="install" data-package="${pkg.package}">
+                            <i class="fas fa-download"></i> 安装
+                        </button>
+                        ${pkg.repository ? `<button class="module-btn" data-action="docs" data-package="${pkg.package}" data-repo="${pkg.repository}">
+                            <i class="fas fa-book"></i> 文档
+                        </button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            modulesGrid.appendChild(card);
+        });
+
+        document.querySelectorAll('[data-action="install"]').forEach(btn => {
+            btn.addEventListener('click', () => showInstallModal(btn.dataset.package));
+        });
+
+        document.querySelectorAll('[data-action="docs"]').forEach(btn => {
+            btn.addEventListener('click', () => showDocsModal(btn.dataset.package, btn.dataset.repo));
+        });
+    }
+
+    function getIconByType(type) {
+        const icons = {
+            'module': '<i class="fas fa-puzzle-piece"></i>',
+            'adapter': '<i class="fas fa-plug"></i>',
+            'cli': '<i class="fas fa-terminal"></i>'
+        };
+        return icons[type] || '<i class="fas fa-box"></i>';
+    }
+
+    function showError(message) {
+        const modulesGrid = document.getElementById('modules-grid');
+        modulesGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                <h3>${message}</h3>
+                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
+                    重新加载
+                </button>
+            </div>
+        `;
+    }
+
     async function loadContributors() {
         try {
             const response = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse/contributors');
             if (!response.ok) throw new Error('贡献者API请求失败');
             const contributors = await response.json();
 
-             
             document.getElementById('contributors-count').textContent = contributors.length;
 
-             
             const container = document.getElementById('contributors-container');
             container.innerHTML = '';
 
@@ -859,150 +928,24 @@ const ErisPulseApp = (function () {
         });
     }
 
-    function updateStats() {
-        document.getElementById('total-modules').textContent = allModules.length;
-        document.getElementById('adapter-count').textContent = allAdapters.length;
-        document.getElementById('cli-count').textContent = allCliExtensions.length;
-        document.getElementById('contributors-count').textContent = '--';
-    }
-
-    function renderModules() {
-        const modulesGrid = document.getElementById('modules-grid');
-        modulesGrid.innerHTML = '';
-
-        let packagesToShow = [];
-
-         
-        if (activeCategory === 'all') {
-            packagesToShow = [...allModules, ...allAdapters, ...allCliExtensions];
-        } else if (activeCategory === 'modules') {
-            packagesToShow = allModules;
-        } else if (activeCategory === 'adapters') {
-            packagesToShow = allAdapters;
-        } else if (activeCategory === 'cli') {
-            packagesToShow = allCliExtensions;
-        }
-
-         
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            packagesToShow = packagesToShow.filter(pkg =>
-                pkg.name.toLowerCase().includes(query) ||
-                pkg.description.toLowerCase().includes(query)
-            );
-        }
-
-         
-        if (packagesToShow.length === 0) {
-            modulesGrid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                    <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
-                    <h3>未找到匹配的模块</h3>
-                    <p>尝试不同的搜索关键词或查看所有模块</p>
-                </div>
-            `;
-            return;
-        }
-
-         
-        packagesToShow.forEach((pkg, index) => {
-            const card = document.createElement('div');
-            card.className = 'module-card';
-            card.style.animationDelay = `${index * 0.1}s`;
-
-             
-            const cliBadge = pkg.type === 'cli' ? '<span class="module-tag">CLI</span>' : '';
-            const commandInfo = pkg.command && pkg.command.length > 0 ?
-                `<p style="font-size: 0.85rem; margin-top: 0.5rem;"><i class="fas fa-terminal"></i> 命令: ${pkg.command.join(', ')}</p>` : '';
-
-            card.innerHTML = `
-                <div class="module-header">
-                    <div class="module-icon">
-                        ${getIconByType(pkg.type)}
-                    </div>
-                    <div>
-                        <h3 class="module-name">${pkg.name}</h3>
-                        <div class="module-version">v${pkg.version}</div>
-                    </div>
-                </div>
-                <p class="module-desc">${pkg.description}</p>
-                ${commandInfo}
-                ${pkg.tags.length > 0 ? `
-                <div class="module-tags">
-                    ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
-                    ${cliBadge}
-                </div>
-                ` : ''}
-                <div class="module-footer">
-                    <div class="module-author">${pkg.author}</div>
-                    <div class="module-actions">
-                        <button class="module-btn" data-action="install" data-package="${pkg.package}">
-                            <i class="fas fa-download"></i> 安装
-                        </button>
-                        ${pkg.repository ? `<button class="module-btn" data-action="docs" data-package="${pkg.package}" data-repo="${pkg.repository}">
-                            <i class="fas fa-book"></i> 文档
-                        </button>` : ''}
-                    </div>
-                </div>
-            `;
-
-            modulesGrid.appendChild(card);
-        });
-
-         
-        document.querySelectorAll('[data-action="install"]').forEach(btn => {
-            btn.addEventListener('click', () => showInstallModal(btn.dataset.package));
-        });
-
-        document.querySelectorAll('[data-action="docs"]').forEach(btn => {
-            btn.addEventListener('click', () => showDocsModal(btn.dataset.package, btn.dataset.repo));
-        });
-    }
-
-    function getIconByType(type) {
-        const icons = {
-            'module': '<i class="fas fa-puzzle-piece"></i>',
-            'adapter': '<i class="fas fa-plug"></i>',
-            'cli': '<i class="fas fa-terminal"></i>'
-        };
-        return icons[type] || '<i class="fas fa-box"></i>';
-    }
-
-    function showError(message) {
-        const modulesGrid = document.getElementById('modules-grid');
-        modulesGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
-                <h3>${message}</h3>
-                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
-                    重新加载
-                </button>
-            </div>
-        `;
-    }
-
      
     function setupDocumentation() {
-         
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
                 e.stopPropagation();
                 const parentItem = this.closest('.docs-nav-item');
                 const isActive = parentItem.classList.contains('active');
 
-                 
                 document.querySelectorAll('.docs-nav-item').forEach(item => {
                     item.classList.remove('active');
                 });
 
-                 
                 if (!isActive) {
                     parentItem.classList.add('active');
                 }
             });
         });
 
-         
         document.addEventListener('click', function (e) {
             if (!e.target.closest('.docs-nav-item')) {
                 document.querySelectorAll('.docs-nav-item').forEach(item => {
@@ -1011,30 +954,24 @@ const ErisPulseApp = (function () {
             }
         });
 
-         
         document.querySelectorAll('.docs-nav-link').forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 const docName = this.getAttribute('data-doc');
 
-                 
                 document.querySelectorAll('.docs-nav-link').forEach(item => {
                     item.classList.remove('active');
                 });
                 this.classList.add('active');
 
-                 
                 document.querySelectorAll('.docs-nav-item').forEach(item => {
                     item.classList.remove('active');
                 });
 
-                 
                 history.pushState(null, null, `#docs/${docName}`);
 
-                 
                 loadDocument(docName);
 
-                 
                 window.scrollTo({
                     top: 0,
                     behavior: 'smooth'
@@ -1042,10 +979,8 @@ const ErisPulseApp = (function () {
             });
         });
 
-         
         const hash = window.location.hash.substring(1);
         if (hash === 'docs') {
-             
             const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
             if (firstDocLink) {
                 firstDocLink.click();
@@ -1058,46 +993,30 @@ const ErisPulseApp = (function () {
         baseUrl: 'https://gh.xmly.dev/https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
         githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/main/',
 
-         
         docs: {
-             
             'quick-start': 'docs/quick-start.md',
-
-             
             'ai-module': 'docs/ai/module-generation.md',
             'ai-readme': 'docs/ai/README.md',
-
-             
             'cli': 'docs/core/cli.md',
             'core-concepts': 'docs/core/concepts.md',
             'core-modules': 'docs/core/modules.md',
             'core-adapters': 'docs/core/adapters.md',
             'core-event-system': 'docs/core/event-system.md',
             'core-best-practices': 'docs/core/best-practices.md',
-
-             
             'dev-readme': 'docs/development/README.md',
             'dev-module': 'docs/development/module.md',
             'dev-adapter': 'docs/development/adapter.md',
             'dev-cli': 'docs/development/cli.md',
-
-             
             'adapter-standards': 'docs/standards/README.md',
             'event-conversion': 'docs/standards/event-conversion.md',
             'api-response': 'docs/standards/api-response.md',
-
-             
             'platform-features': 'docs/platform-features/README.md',
             'platform-yunhu': 'docs/platform-features/yunhu.md',
             'platform-telegram': 'docs/platform-features/telegram.md',
             'platform-onebot11': 'docs/platform-features/onebot11.md',
             'platform-email': 'docs/platform-features/email.md',
-
-             
             'api-init': 'docs/api/ErisPulse/__init__.md',
             'api-main': 'docs/api/ErisPulse/__main__.md',
-
-             
             'api-adapter': 'docs/api/ErisPulse/Core/adapter.md',
             'api-config': 'docs/api/ErisPulse/Core/config.md',
             'api-env': 'docs/api/ErisPulse/Core/env.md',
@@ -1108,8 +1027,6 @@ const ErisPulseApp = (function () {
             'api-module_registry': 'docs/api/ErisPulse/Core/module_registry.md',
             'api-router': 'docs/api/ErisPulse/Core/router.md',
             'api-storage': 'docs/api/ErisPulse/Core/storage.md',
-
-             
             'api-event-base': 'docs/api/ErisPulse/Core/Event/base.md',
             'api-event-command': 'docs/api/ErisPulse/Core/Event/command.md',
             'api-event-exceptions': 'docs/api/ErisPulse/Core/Event/exceptions.md',
@@ -1120,7 +1037,6 @@ const ErisPulseApp = (function () {
             'api-event-init': 'docs/api/ErisPulse/Core/Event/__init__.md'
         },
 
-         
         groups: {
             'api-init': [
                 'api-init', 'api-main'
@@ -1137,7 +1053,6 @@ const ErisPulseApp = (function () {
             ]
         },
 
-         
         titles: {
             'quick-start': '快速开始指南',
             'ai-module': 'AI模块生成',
@@ -1182,7 +1097,6 @@ const ErisPulseApp = (function () {
             'api-event-init': '事件初始化'
         },
 
-         
         categories: {
             'getting-started': ['quick-start'],
             'ai': ['ai-module', 'ai-readme'],
@@ -1194,13 +1108,11 @@ const ErisPulseApp = (function () {
         }
     };
 
-     
     const docUrls = {};
     Object.keys(docConfig.docs).forEach(key => {
         docUrls[key] = docConfig.baseUrl + docConfig.docs[key];
     });
 
-     
     function getEditUrl(docName) {
         if (docConfig.docs[docName]) {
             return docConfig.githubBaseUrl + docConfig.docs[docName];
@@ -1208,9 +1120,7 @@ const ErisPulseApp = (function () {
         return null;
     }
 
-     
     function getNextDocument(currentDoc) {
-         
         const docOrder = [];
         Object.values(docConfig.categories).forEach(category => {
             docOrder.push(...category);
@@ -1224,7 +1134,6 @@ const ErisPulseApp = (function () {
     }
 
     function getPrevDocument(currentDoc) {
-         
         const docOrder = [];
         Object.values(docConfig.categories).forEach(category => {
             docOrder.push(...category);
@@ -1237,7 +1146,6 @@ const ErisPulseApp = (function () {
         return null;
     }
 
-     
     async function loadDocument(docName) {
         const docsContent = document.getElementById('docs-content');
         docsContent.innerHTML = `
@@ -1247,16 +1155,13 @@ const ErisPulseApp = (function () {
             </div>
         `;
 
-         
         clearToc();
 
-         
         if (docConfig.groups[docName]) {
             await loadGroupDocument(docName);
             return;
         }
 
-         
         const docPath = docConfig.docs[docName];
         if (!docPath) {
             docsContent.innerHTML = `
@@ -1274,7 +1179,6 @@ const ErisPulseApp = (function () {
         let commitInfo = null;
 
         try {
-             
             const docResponse = await fetch(docUrl);
             if (!docResponse.ok) {
                 throw new Error(`文档加载失败: HTTP ${docResponse.status}`);
@@ -1282,10 +1186,8 @@ const ErisPulseApp = (function () {
             docContent = await docResponse.text();
             let htmlContent = marked.parse(docContent);
 
-             
             htmlContent = addTableOfContents(htmlContent);
 
-             
             try {
                 const apiBaseUrl = 'https://api.github.com/repos/ErisPulse/ErisPulse/commits?path=' + docPath;
                 const commitResponse = await fetch(apiBaseUrl, {
@@ -1304,7 +1206,6 @@ const ErisPulseApp = (function () {
                 console.warn('获取提交信息失败:', commitError);
             }
 
-             
             if (docName === 'ai-module') {
                 const aiReferenceLinks = `
                 <div class="ai-reference-section">
@@ -1363,7 +1264,6 @@ const ErisPulseApp = (function () {
                 docsContent.innerHTML = htmlContent;
             }
 
-             
             addDocumentMetaInfo(docsContent, docName, commitInfo);
 
         } catch (error) {
@@ -1371,12 +1271,9 @@ const ErisPulseApp = (function () {
             showDocumentError(docsContent, error);
         }
 
-         
         setTimeout(() => {
-             
             moveTocToSidebar();
 
-             
             document.querySelectorAll('.toc-link').forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -1386,37 +1283,30 @@ const ErisPulseApp = (function () {
                     const targetElement = document.getElementById(targetId);
 
                     if (targetElement) {
-                         
                         targetElement.scrollIntoView({
                             behavior: 'smooth',
                             block: 'start'
                         });
 
-                         
                         document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
                         this.classList.add('active');
 
-                         
                         history.pushState(null, null, `#${targetId}`);
                     }
                 });
             });
 
-             
             if (typeof mermaid !== 'undefined') {
                 mermaid.init(undefined, document.querySelectorAll('.language-mermaid'));
             }
 
-             
             renderCharts();
 
-             
             document.querySelectorAll('#docs-content pre code:not(.language-mermaid)').forEach((block) => {
                 if (!block.className || !block.className.startsWith('language-')) {
                     block.classList.add('language-python');
                 }
 
-                 
                 if (userSettings.showLineNumbers) {
                     block.classList.add('line-numbers');
                 }
@@ -1424,12 +1314,10 @@ const ErisPulseApp = (function () {
                 Prism.highlightElement(block);
             });
 
-             
             addScrollSpy();
         }, 100);
     }
 
-     
     function clearToc() {
         const existingToc = document.querySelector('.table-of-contents');
         if (existingToc) {
@@ -1437,22 +1325,18 @@ const ErisPulseApp = (function () {
         }
     }
 
-     
     function addTableOfContents(htmlContent) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
 
-         
         const headers = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
         const tocItems = [];
 
-         
         headers.forEach((header, index) => {
             const headerText = header.textContent.trim();
             const id = `section-${index}-${headerText.toLowerCase().replace(/\s+/g, '-')}`;
             header.id = id;
 
-             
             tocItems.push({
                 level: parseInt(header.tagName.charAt(1)),
                 text: headerText,
@@ -1460,7 +1344,6 @@ const ErisPulseApp = (function () {
             });
         });
 
-         
         if (tocItems.length > 0) {
             let tocHtml = `
             <div class="table-of-contents">
@@ -1482,32 +1365,26 @@ const ErisPulseApp = (function () {
             </div>
             `;
 
-             
             tempDiv.insertAdjacentHTML('afterbegin', tocHtml);
         }
 
         return tempDiv.innerHTML;
     }
 
-     
     function moveTocToSidebar() {
         const toc = document.querySelector('.table-of-contents');
         const docsLayout = document.querySelector('.docs-layout');
 
         if (toc && docsLayout) {
-             
             if (window.innerWidth > 1200) {
-                 
                 const contentToc = document.querySelector('.docs-content .table-of-contents');
                 if (contentToc) {
                     contentToc.remove();
                 }
 
-                 
                 toc.style.width = '250px';
                 docsLayout.appendChild(toc);
             } else {
-                 
                 if (toc.parentNode !== document.querySelector('.docs-content')) {
                     toc.remove();
                     document.querySelector('.docs-content').insertAdjacentElement('afterbegin', toc);
@@ -1516,7 +1393,6 @@ const ErisPulseApp = (function () {
         }
     }
 
-     
     function addScrollSpy() {
         const headers = document.querySelectorAll('.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6');
         const tocLinks = document.querySelectorAll('.toc-link');
@@ -1542,24 +1418,18 @@ const ErisPulseApp = (function () {
         headers.forEach(header => observer.observe(header));
     }
 
-     
     function renderCharts() {
-         
         const chartContainers = document.querySelectorAll('.chart-container');
 
         chartContainers.forEach(container => {
-             
             if (container.querySelector('canvas')) return;
 
-             
             const chartType = container.dataset.chartType || 'line';
             const chartData = JSON.parse(container.dataset.chartData || '{}');
 
-             
             const canvas = document.createElement('canvas');
             container.appendChild(canvas);
 
-             
             new Chart(canvas, {
                 type: chartType,
                 data: chartData,
@@ -1571,7 +1441,6 @@ const ErisPulseApp = (function () {
         });
     }
 
-     
     async function loadGroupDocument(groupName) {
         const docsContent = document.getElementById('docs-content');
         const groupDocs = docConfig.groups[groupName];
@@ -1589,7 +1458,6 @@ const ErisPulseApp = (function () {
 
         let groupContent = `<h1>${docConfig.titles[groupName] || groupName}</h1>`;
 
-         
         groupContent += `<div style="background: var(--card-bg); border-radius: var(--radius); padding: 1rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border);">
             <h3 style="margin-top: 0; color: var(--text);">文档目录</h3>
             <ul style="list-style: none; padding: 0;">`;
@@ -1605,7 +1473,6 @@ const ErisPulseApp = (function () {
 
         groupContent += `</ul></div>`;
 
-         
         for (const docId of groupDocs) {
             const docPath = docConfig.docs[docId];
             if (!docPath) continue;
@@ -1639,7 +1506,6 @@ const ErisPulseApp = (function () {
 
         docsContent.innerHTML = groupContent;
 
-         
         if (groupDocs.length > 0) {
             const firstDoc = groupDocs[0];
             const firstDocPath = docConfig.docs[firstDoc];
@@ -1664,14 +1530,12 @@ const ErisPulseApp = (function () {
             }
         }
 
-         
         setTimeout(() => {
             docsContent.querySelectorAll('pre code').forEach((block) => {
                 if (!block.className || !block.className.startsWith('language-')) {
                     block.classList.add('language-python');
                 }
 
-                 
                 if (userSettings.showLineNumbers) {
                     block.classList.add('line-numbers');
                 }
@@ -1683,14 +1547,12 @@ const ErisPulseApp = (function () {
         Prism.highlightAll();
     }
 
-     
     function addDocumentMetaInfo(docsContent, docName, commitInfo) {
         const metaContainer = document.createElement('div');
         metaContainer.style.marginTop = '2rem';
         metaContainer.style.paddingTop = '1.5rem';
         metaContainer.style.borderTop = '1px solid var(--border)';
 
-         
         if (commitInfo) {
             const commitDate = new Date(commitInfo.commit.author.date);
             const formattedDate = commitDate.toLocaleString('zh-CN', {
@@ -1737,7 +1599,6 @@ const ErisPulseApp = (function () {
             metaContainer.appendChild(commitCard);
         }
 
-         
         const navContainer = document.createElement('div');
         navContainer.style.display = 'flex';
         navContainer.style.justifyContent = 'space-between';
@@ -1745,12 +1606,10 @@ const ErisPulseApp = (function () {
         navContainer.style.gap = '1rem';
         navContainer.style.marginTop = '1rem';
 
-         
         const editUrl = getEditUrl(docName);
         const prevDoc = getPrevDocument(docName);
         const nextDoc = getNextDocument(docName);
 
-         
         if (editUrl) {
             const editLink = document.createElement('a');
             editLink.href = editUrl;
@@ -1780,7 +1639,6 @@ const ErisPulseApp = (function () {
             navContainer.appendChild(editLink);
         }
 
-         
         const navLinksContainer = document.createElement('div');
         navLinksContainer.style.display = 'flex';
         navLinksContainer.style.gap = '0.5rem';
@@ -1811,7 +1669,6 @@ const ErisPulseApp = (function () {
                 this.style.transform = 'translateY(0)';
             });
 
-             
             prevLink.addEventListener('click', function (e) {
                 e.preventDefault();
                 const prevDocLink = document.querySelector(`.docs-nav-link[data-doc="${prevDoc}"]`);
@@ -1849,7 +1706,6 @@ const ErisPulseApp = (function () {
                 this.style.transform = 'translateY(0)';
             });
 
-             
             nextLink.addEventListener('click', function (e) {
                 e.preventDefault();
                 const nextDocLink = document.querySelector(`.docs-nav-link[data-doc="${nextDoc}"]`);
@@ -1866,7 +1722,6 @@ const ErisPulseApp = (function () {
         docsContent.appendChild(metaContainer);
     }
 
-     
     function showDocumentError(docsContent, error) {
         let errorMessage = error.message;
         let suggestion = '请检查网络连接或稍后再试';
@@ -1920,7 +1775,6 @@ const ErisPulseApp = (function () {
         docsContent.innerHTML = errorHTML;
     }
 
-     
     function timeAgo(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = Math.floor(seconds / 31536000);
@@ -1938,12 +1792,10 @@ const ErisPulseApp = (function () {
 
      
     function setupModals() {
-         
         document.getElementById('close-modal').addEventListener('click', function () {
             document.getElementById('module-modal').classList.remove('active');
         });
 
-         
         document.getElementById('module-modal').addEventListener('click', function (e) {
             if (e.target === this) {
                 this.classList.remove('active');
@@ -2004,9 +1856,7 @@ const ErisPulseApp = (function () {
 
         modal.classList.add('active');
 
-         
         fetchReadmeContent(repoUrl).then(markdown => {
-             
             const htmlContent = marked.parse(markdown);
 
             modalContent.innerHTML = `
@@ -2029,16 +1879,13 @@ const ErisPulseApp = (function () {
 
     async function fetchReadmeContent(repoUrl) {
         try {
-             
             const repoPath = repoUrl.replace('https://github.com/', '');
             const [owner, repo] = repoPath.split('/');
 
-             
             const repoInfo = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
             const repoData = await repoInfo.json();
             const defaultBranch = repoData.default_branch;
 
-             
             const readmeUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/README.md`;
             const response = await fetch(readmeUrl);
 
@@ -2064,19 +1911,15 @@ const ErisPulseApp = (function () {
     };
 })();
 
- 
 document.addEventListener('DOMContentLoaded', function () {
-     
     setTimeout(() => {
         const loader = document.getElementById('page-loader');
         loader.classList.add('hidden');
 
-         
         setTimeout(() => {
             loader.style.display = 'none';
         }, 500);
     }, 500);
 
-     
     ErisPulseApp.init();
 });
