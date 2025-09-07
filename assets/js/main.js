@@ -64,7 +64,7 @@ const ErisPulseApp = (function () {
     let allCliExtensions = [];
     let activeCategory = 'all';
     let searchQuery = '';
-    let userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+    let userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
 
     // ==================== 初始化模块 ====================
     function init() {
@@ -86,19 +86,19 @@ const ErisPulseApp = (function () {
             const savedSettings = localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS);
             if (savedSettings) {
                 const parsedSettings = JSON.parse(savedSettings);
-                
+
                 // 检查版本兼容性
                 if (!parsedSettings.version || parsedSettings.version !== CONFIG.SETTINGS_VERSION) {
                     localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
-                    userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+                    userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
                     return;
                 }
-                
+
                 userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS, ...parsedSettings };
             }
         } catch (e) {
             console.warn('Failed to load user settings:', e);
-            userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+            userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
         }
     }
 
@@ -122,19 +122,19 @@ const ErisPulseApp = (function () {
             const savedSettings = localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS);
             if (savedSettings) {
                 const parsedSettings = JSON.parse(savedSettings);
-                
+
                 // 检查版本兼容性
                 if (!parsedSettings.version || parsedSettings.version !== CONFIG.SETTINGS_VERSION) {
                     localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
-                    userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+                    userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
                     return;
                 }
-                
+
                 userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS, ...parsedSettings };
             }
         } catch (e) {
             console.warn('Failed to load user settings:', e);
-            userSettings = {...CONFIG.DEFAULT_USER_SETTINGS};
+            userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
         }
     }
 
@@ -149,7 +149,7 @@ const ErisPulseApp = (function () {
 
     function applyUserSettings() {
         applyThemeSetting();
-        
+
         if (!userSettings.animations) {
             document.body.classList.add('no-animations');
         } else {
@@ -180,14 +180,14 @@ const ErisPulseApp = (function () {
     function applyThemeSetting() {
         // 清除所有自定义变量
         clearAllCustomVariables();
-        
+
         if (userSettings.theme === 'auto') {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
         } else {
             document.documentElement.setAttribute('data-theme', userSettings.theme);
         }
-        
+
         // 应用预设主题或自定义颜色
         if (userSettings.presetTheme && userSettings.presetTheme !== 'default') {
             applyPresetTheme(userSettings.presetTheme, false);
@@ -213,7 +213,7 @@ const ErisPulseApp = (function () {
             '--text-rgb', '--text-secondary-rgb', '--text-light-rgb',
             '--bg-rgb', '--card-bg-rgb', '--border-rgb'
         ];
-        
+
         customProperties.forEach(prop => {
             root.style.removeProperty(prop);
         });
@@ -223,9 +223,9 @@ const ErisPulseApp = (function () {
         // 清除预设主题标记
         const root = document.documentElement;
         const colors = userSettings.customColors;
-        
+
         if (!colors) return;
-        
+
         // 应用自定义颜色
         Object.keys(colors).forEach(key => {
             if (colors[key]) {
@@ -237,7 +237,7 @@ const ErisPulseApp = (function () {
     function applyPresetTheme(preset, save = true) {
         // 清除之前的自定义样式
         clearAllCustomVariables();
-        
+
         if (preset !== 'default') {
             const theme = CONFIG.THEME_PRESETS[preset];
             if (theme) {
@@ -246,7 +246,7 @@ const ErisPulseApp = (function () {
                 Object.keys(theme).forEach(key => {
                     root.style.setProperty(key, theme[key]);
                 });
-                
+
                 // 如果需要保存设置
                 if (save) {
                     userSettings.presetTheme = preset;
@@ -596,7 +596,7 @@ const ErisPulseApp = (function () {
 
     function initPresetSelector() {
         if (!document.getElementById('preset-themes')) return;
-        
+
         // 根据当前设置选择预设
         if (userSettings.presetTheme) {
             document.getElementById('preset-themes').value = userSettings.presetTheme;
@@ -628,7 +628,7 @@ const ErisPulseApp = (function () {
     function applyAdvancedColors() {
         // 清除预设主题
         userSettings.presetTheme = '';
-        
+
         // 收集颜色值
         const colorSettings = {
             '--primary': document.getElementById('advanced-primary').value,
@@ -644,17 +644,17 @@ const ErisPulseApp = (function () {
             '--text-rgb': document.getElementById('advanced-text-rgb').value,
             '--shadow-sm': document.getElementById('advanced-shadow').value
         };
-        
+
         // 保存到用户设置
         userSettings.customColors = colorSettings;
-        
+
         // 应用颜色
         applyCustomColors();
-        
+
         // 保存设置
         saveUserSettings();
         showMessage('颜色设置已应用', 'success');
-        
+
         // 更新预设选择器
         initPresetSelector();
     }
