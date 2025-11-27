@@ -952,6 +952,23 @@ const ErisPulseApp = (function () {
 
     // ==================== 文档模块 ====================
     function setupDocumentation() {
+        // 侧边栏切换
+        const sidebarToggle = document.querySelector('.docs-sidebar-toggle');
+        const docsSidebar = document.querySelector('.docs-sidebar');
+        
+        if (sidebarToggle && docsSidebar) {
+            sidebarToggle.addEventListener('click', function () {
+                docsSidebar.classList.toggle('collapsed');
+                this.classList.toggle('active');
+                
+                // 更新目录位置
+                setTimeout(() => {
+                    moveTocToSidebar();
+                }, 300);
+            });
+        }
+
+        // 文档分类展开/收起
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -976,31 +993,28 @@ const ErisPulseApp = (function () {
             }
         });
 
+        // 文档链接点击事件
         document.querySelectorAll('.docs-nav-link').forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 const docName = this.getAttribute('data-doc');
-
-                document.querySelectorAll('.docs-nav-link').forEach(item => {
-                    item.classList.remove('active');
-                });
-                this.classList.add('active');
-
-                document.querySelectorAll('.docs-nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-
-                history.pushState(null, null, `#docs/${docName}`);
-
-                loadDocument(docName);
-
-                window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
+                navigateToDocument(docName);
             });
         });
 
+        // 文档搜索功能
+        setupDocumentationSearch();
+
+        // 面包屑导航
+        setupBreadcrumbNavigation();
+
+        // 文档操作按钮
+        setupDocumentActions();
+
+        // 响应式处理
+        setupDocumentationResponsive();
+
+        // 初始加载
         const hash = window.location.hash.substring(1);
         if (hash === 'docs') {
             const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
@@ -1010,9 +1024,312 @@ const ErisPulseApp = (function () {
         }
     }
 
+    function navigateToDocument(docName) {
+        // 更新导航状态
+        document.querySelectorAll('.docs-nav-link').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const activeLink = document.querySelector(`.docs-nav-link[data-doc="${docName}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+            
+            // 展开对应的分类
+            const parentItem = activeLink.closest('.docs-nav-item');
+            if (parentItem) {
+                document.querySelectorAll('.docs-nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                parentItem.classList.add('active');
+            }
+        }
+
+        // 更新URL
+        history.pushState(null, null, `#docs/${docName}`);
+
+        // 加载文档
+        loadDocument(docName);
+
+        // 更新面包屑
+        updateBreadcrumb(docName);
+
+        // 滚动到顶部
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function setupDocumentationSearch() {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = '搜索文档...';
+        searchInput.className = 'docs-search-input';
+        
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'docs-search-container';
+        searchContainer.innerHTML = '<i class="fas fa-search"></i>';
+        searchContainer.appendChild(searchInput);
+        
+        const sidebarHeader = document.querySelector('.docs-sidebar-header');
+        if (sidebarHeader) {
+            sidebarHeader.appendChild(searchContainer);
+        }
+
+        let searchTimeout;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = this.value.trim().toLowerCase();
+                if (query.length > 0) {
+                    searchDocuments(query);
+                } else {
+                    clearSearchResults();
+                }
+            }, 300);
+        });
+    }
+
+    function searchDocuments(query) {
+        const results = [];
+        
+        // 搜索文档标题和描述
+        Object.keys(docConfig.titles).forEach(docName => {
+            const title = docConfig.titles[docName].toLowerCase();
+            if (title.includes(query)) {
+                results.push({
+                    name: docName,
+                    title: docConfig.titles[docName],
+                    category: getDocumentCategory(docName)
+                });
+            }
+        });
+
+        displaySearchResults(results);
+    }
+
+    function getDocumentCategory(docName) {
+        for (const [category, docs] of Object.entries(docConfig.categories)) {
+            if (docs.includes(docName)) {
+                return category;
+            }
+        }
+        return 'other';
+    }
+
+    function displaySearchResults(results) {
+        const resultsContainer = document.createElement('div');
+        resultsContainer.className = 'docs-search-results';
+        
+        if (results.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="search-no-results">
+                    <i class="fas fa-search"></i>
+                    <p>未找到相关文档</p>
+                </div>
+            `;
+        } else {
+            resultsContainer.innerHTML = `
+                <div class="search-results-header">
+                    <h4>搜索结果 (${results.length})</h4>
+                </div>
+                <div class="search-results-list">
+                    ${results.map(result => `
+                        <div class="search-result-item" data-doc="${result.name}">
+                            <div class="result-title">${result.title}</div>
+                            <div class="result-category">${getCategoryName(result.category)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 移除现有结果
+        const existingResults = document.querySelector('.docs-search-results');
+        if (existingResults) {
+            existingResults.remove();
+        }
+
+        // 添加到侧边栏
+        const sidebar = document.querySelector('.docs-sidebar');
+        if (sidebar) {
+            sidebar.appendChild(resultsContainer);
+        }
+
+        // 添加点击事件
+        resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', function () {
+                const docName = this.getAttribute('data-doc');
+                navigateToDocument(docName);
+                clearSearchResults();
+            });
+        });
+    }
+
+    function getCategoryName(category) {
+        const names = {
+            'getting-started': '快速开始',
+            'ai': 'AI相关',
+            'core': '核心功能',
+            'development': '开发指南',
+            'standards': '标准规范',
+            'platform-features': '平台特性',
+            'api': 'API参考',
+            'other': '其他'
+        };
+        return names[category] || category;
+    }
+
+    function clearSearchResults() {
+        const existingResults = document.querySelector('.docs-search-results');
+        if (existingResults) {
+            existingResults.remove();
+        }
+    }
+
+    function setupBreadcrumbNavigation() {
+        const breadcrumb = document.querySelector('.docs-breadcrumb');
+        if (breadcrumb) {
+            breadcrumb.addEventListener('click', function (e) {
+                if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#docs') {
+                    e.preventDefault();
+                    // 返回文档首页
+                    document.querySelector('.docs-content').innerHTML = `
+                        <div class="docs-guidance">
+                            <div class="guidance-content">
+                                <h3>探索 ErisPulse 文档</h3>
+                                <p>从以下分类开始您的探索，或使用左侧导航栏查找特定内容</p>
+                                <div class="guidance-categories">
+                                    <div class="category">
+                                        <h4><i class="fas fa-rocket"></i> 入门指南</h4>
+                                        <a href="#docs/quick-start">快速开始指南</a>
+                                        <a href="#docs/cli">命令行接口</a>
+                                        <a href="#docs/ai-module">AI模块生成</a>
+                                    </div>
+                                    <div class="category">
+                                        <h4><i class="fas fa-code"></i> 开发指南</h4>
+                                        <a href="#docs/dev-module">模块开发</a>
+                                        <a href="#docs/dev-adapter">适配器开发</a>
+                                        <a href="#docs/dev-cli">CLI扩展</a>
+                                    </div>
+                                    <div class="category">
+                                        <h4><i class="fas fa-book"></i> API参考</h4>
+                                        <a href="#docs/api-init">核心API</a>
+                                        <a href="#docs/api-adapter">适配器接口</a>
+                                        <a href="#docs/api-router">路由系统</a>
+                                        <a href="#docs/api-module">模块管理</a>
+                                    </div>
+                                    <div class="category">
+                                        <h4><i class="fas fa-calendar"></i> 事件系统</h4>
+                                        <a href="#docs/api-event-base">事件基类</a>
+                                        <a href="#docs/api-event-message">消息事件</a>
+                                        <a href="#docs/api-event-command">命令事件</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 更新面包屑
+                    updateBreadcrumb('home');
+                }
+            });
+        }
+    }
+
+    function updateBreadcrumb(docName) {
+        const breadcrumb = document.querySelector('.docs-breadcrumb');
+        if (!breadcrumb) return;
+
+        const title = docConfig.titles[docName] || '欢迎使用';
+        breadcrumb.innerHTML = `
+            <a href="#docs">文档中心</a>
+            <span class="separator">/</span>
+            <span class="current">${title}</span>
+        `;
+    }
+
+    function setupDocumentActions() {
+        // 编辑按钮
+        const editBtn = document.querySelector('.docs-action-btn:nth-child(1)');
+        if (editBtn) {
+            editBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const currentDoc = window.location.hash.split('/')[1];
+                const editUrl = getEditUrl(currentDoc);
+                if (editUrl) {
+                    window.open(editUrl, '_blank');
+                }
+            });
+        }
+
+        // 下载PDF按钮
+        const downloadBtn = document.querySelector('.docs-action-btn:nth-child(2)');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showMessage('PDF下载功能正在开发中', 'info');
+            });
+        }
+
+        // 分享按钮
+        const shareBtn = document.querySelector('.docs-action-btn:nth-child(3)');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                shareDocument();
+            });
+        }
+    }
+
+    function shareDocument() {
+        const currentUrl = window.location.href;
+        const currentDoc = window.location.hash.split('/')[1];
+        const title = docConfig.titles[currentDoc] || 'ErisPulse 文档';
+
+        if (navigator.share) {
+            navigator.share({
+                title: title,
+                text: '查看 ErisPulse 文档',
+                url: currentUrl
+            });
+        } else {
+            // 复制到剪贴板
+            navigator.clipboard.writeText(currentUrl).then(() => {
+                showMessage('链接已复制到剪贴板', 'success');
+            }).catch(() => {
+                // 降级方案
+                const tempInput = document.createElement('input');
+                tempInput.value = currentUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                showMessage('链接已复制到剪贴板', 'success');
+            });
+        }
+    }
+
+    function setupDocumentationResponsive() {
+        function handleResize() {
+            moveTocToSidebar();
+            
+            // 在小屏幕上自动收起侧边栏
+            if (window.innerWidth < 1024) {
+                const sidebar = document.querySelector('.docs-sidebar');
+                if (sidebar && !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                }
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // 初始调用
+    }
+
     // 文档配置
     const docConfig = {
-        baseUrl: 'https://gh.xmly.dev/https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
+        baseUrl: ' https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
         githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/main/',
 
         docs: {
@@ -1398,18 +1715,45 @@ const ErisPulseApp = (function () {
         const docsLayout = document.querySelector('.docs-layout');
 
         if (toc && docsLayout) {
-            if (window.innerWidth > 1200) {
+            // 检查侧边栏状态
+            const sidebar = document.querySelector('.docs-sidebar');
+            const isSidebarCollapsed = sidebar && sidebar.classList.contains('collapsed');
+            
+            if (window.innerWidth > 1200 && !isSidebarCollapsed) {
+                // 大屏幕且侧边栏展开时，将目录移动到右侧
                 const contentToc = document.querySelector('.docs-content .table-of-contents');
                 if (contentToc) {
                     contentToc.remove();
                 }
 
-                toc.style.width = '250px';
-                docsLayout.appendChild(toc);
+                // 确保目录在右侧位置
+                const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
+                if (!rightSidebar) {
+                    toc.style.width = '250px';
+                    toc.style.position = 'sticky';
+                    toc.style.top = '100px';
+                    toc.style.maxHeight = 'calc(100vh - 120px)';
+                    toc.style.overflowY = 'auto';
+                    docsLayout.appendChild(toc);
+                }
             } else {
+                // 小屏幕或侧边栏收起时，将目录移动到内容区域
+                const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
+                if (rightSidebar) {
+                    rightSidebar.remove();
+                }
+
                 if (toc.parentNode !== document.querySelector('.docs-content')) {
                     toc.remove();
-                    document.querySelector('.docs-content').insertAdjacentElement('afterbegin', toc);
+                    
+                    // 插入到内容区域，但不在面包屑和操作栏之前
+                    const docsContent = document.querySelector('.docs-content');
+                    const markdownContent = docsContent.querySelector('.markdown-content');
+                    if (markdownContent) {
+                        markdownContent.insertAdjacentElement('afterbegin', toc);
+                    } else {
+                        docsContent.insertAdjacentElement('afterbegin', toc);
+                    }
                 }
             }
         }
