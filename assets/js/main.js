@@ -1264,16 +1264,7 @@ const ErisPulseApp = (function () {
         }
 
          
-        const downloadBtn = document.querySelector('.docs-action-btn:nth-child(2)');
-        if (downloadBtn) {
-            downloadBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                showMessage('PDF下载功能正在开发中', 'info');
-            });
-        }
-
-         
-        const shareBtn = document.querySelector('.docs-action-btn:nth-child(3)');
+        const shareBtn = document.querySelector('.docs-action-btn:nth-child(2)');
         if (shareBtn) {
             shareBtn.addEventListener('click', function (e) {
                 e.preventDefault();
