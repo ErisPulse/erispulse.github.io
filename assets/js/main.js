@@ -1626,6 +1626,35 @@ const ErisPulseApp = (function () {
                 });
             });
 
+             
+            document.querySelectorAll('#docs-content a').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    
+                     
+                    if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('#'))) {
+                         
+                        if (href.startsWith('#')) {
+                             
+                            const targetElement = document.getElementById(href.substring(1));
+                            if (targetElement) {
+                                targetElement.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            }
+                        } else {
+                             
+                            window.open(href, '_blank');
+                        }
+                    } else {
+                         
+                        showDocumentLinkWarning(href);
+                    }
+                });
+            });
+
             if (typeof mermaid !== 'undefined') {
                 mermaid.init(undefined, document.querySelectorAll('.language-mermaid'));
             }
@@ -2077,6 +2106,16 @@ const ErisPulseApp = (function () {
         navContainer.appendChild(navLinksContainer);
         metaContainer.appendChild(navContainer);
         docsContent.appendChild(metaContainer);
+    }
+
+    function showDocumentLinkWarning(linkUrl) {
+        const message = `文档链接提示：点击的链接 "${linkUrl || '未知文档'}" 暂未适配站内跳转，请使用左侧导航栏手动查找相关文档内容。`;
+        showMessage(message, 'warning');
+    }
+
+    function showDocumentLinkWarning(linkUrl) {
+        const message = `文档链接提示：点击的链接 "${linkUrl || '未知文档'}" 暂未适配站内跳转，请使用左侧导航栏手动查找相关文档内容。`;
+        showMessage(message, 'warning');
     }
 
     function showDocumentError(docsContent, error) {
