@@ -1629,7 +1629,6 @@ const ErisPulseApp = (function () {
             // 拦截文档内链接点击，防止跳转到不存在的页面
             document.querySelectorAll('#docs-content a').forEach(link => {
                 link.addEventListener('click', function (e) {
-                    e.preventDefault();
                     const href = this.getAttribute('href');
                     
                     // 检查是否是外部链接或锚点链接
@@ -1637,6 +1636,7 @@ const ErisPulseApp = (function () {
                         // 外部链接或锚点链接，正常跳转
                         if (href.startsWith('#')) {
                             // 处理锚点链接
+                            e.preventDefault();
                             const targetElement = document.getElementById(href.substring(1));
                             if (targetElement) {
                                 targetElement.scrollIntoView({
@@ -1645,13 +1645,17 @@ const ErisPulseApp = (function () {
                                 });
                             }
                         } else {
-                            // 外部链接，新窗口打开
-                            window.open(href, '_blank');
+                            // 外部链接，允许正常跳转（不拦截）
+                            // 让浏览器处理外部链接
+                            return;
                         }
-                    } else {
-                        // 内部文档链接，显示提示信息
+                    } else if (href && !href.includes('://') && !href.startsWith('#') && href.includes('/')) {
+                        // 只拦截相对路径的文档内部链接（包含/但不包含协议）
+                        // 这些是真正需要跳转到其他文档的链接
+                        e.preventDefault();
                         showDocumentLinkWarning(href);
                     }
+                    // 其他类型的链接（如简单的相对路径）允许正常跳转
                 });
             });
 
