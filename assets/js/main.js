@@ -1629,7 +1629,6 @@ const ErisPulseApp = (function () {
              
             document.querySelectorAll('#docs-content a').forEach(link => {
                 link.addEventListener('click', function (e) {
-                    e.preventDefault();
                     const href = this.getAttribute('href');
                     
                      
@@ -1637,6 +1636,7 @@ const ErisPulseApp = (function () {
                          
                         if (href.startsWith('#')) {
                              
+                            e.preventDefault();
                             const targetElement = document.getElementById(href.substring(1));
                             if (targetElement) {
                                 targetElement.scrollIntoView({
@@ -1646,12 +1646,16 @@ const ErisPulseApp = (function () {
                             }
                         } else {
                              
-                            window.open(href, '_blank');
+                             
+                            return;
                         }
-                    } else {
+                    } else if (href && !href.includes('://') && !href.startsWith('#') && href.includes('/')) {
                          
+                         
+                        e.preventDefault();
                         showDocumentLinkWarning(href);
                     }
+                     
                 });
             });
 
