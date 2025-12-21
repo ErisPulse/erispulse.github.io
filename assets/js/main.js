@@ -1334,6 +1334,9 @@ const ErisPulseApp = (function () {
             'core-event-system': 'docs/core/event-system.md',
             'core-best-practices': 'docs/core/best-practices.md',
             'core-self-config': 'docs/core/self-config.md',
+            'core-lazy-loading': 'docs/core/lazy-loading.md',
+            'core-router': 'docs/core/router.md',
+            'ux-improvements': 'docs/ux-improvements.md',
             'dev-readme': 'docs/development/README.md',
             'dev-module': 'docs/development/module.md',
             'dev-adapter': 'docs/development/adapter.md',
@@ -1346,18 +1349,24 @@ const ErisPulseApp = (function () {
             'platform-telegram': 'docs/platform-features/telegram.md',
             'platform-onebot11': 'docs/platform-features/onebot11.md',
             'platform-email': 'docs/platform-features/email.md',
+            'platform-maintain-notes': 'docs/platform-features/maintain-notes.md',
+            'styleguide': 'docs/styleguide/README.md',
+            'docstring-spec': 'docs/styleguide/docstring_spec.md',
             'api-init': 'docs/api/ErisPulse/__init__.md',
             'api-main': 'docs/api/ErisPulse/__main__.md',
             'api-adapter': 'docs/api/ErisPulse/Core/adapter.md',
             'api-config': 'docs/api/ErisPulse/Core/config.md',
-            'api-env': 'docs/api/ErisPulse/Core/env.md',
-            'api-erispulse_config': 'docs/api/ErisPulse/Core/erispulse_config.md',
+            'api-env': 'docs/api/ErisPulse/Core/_self_config.md',
+            'api-erispulse_config': 'docs/api/ErisPulse/Core/_self_config.md',
             'api-exceptions': 'docs/api/ErisPulse/Core/exceptions.md',
             'api-logger': 'docs/api/ErisPulse/Core/logger.md',
             'api-module': 'docs/api/ErisPulse/Core/module.md',
-            'api-module_registry': 'docs/api/ErisPulse/Core/module_registry.md',
             'api-router': 'docs/api/ErisPulse/Core/router.md',
             'api-storage': 'docs/api/ErisPulse/Core/storage.md',
+            'api-ux': 'docs/api/ErisPulse/Core/ux.md',
+            'api-lifecycle': 'docs/api/ErisPulse/Core/lifecycle.md',
+            'api-base': 'docs/api/ErisPulse/Core/Bases/adapter.md',
+            'api-module-base': 'docs/api/ErisPulse/Core/Bases/module.md',
             'api-event-base': 'docs/api/ErisPulse/Core/Event/base.md',
             'api-event-command': 'docs/api/ErisPulse/Core/Event/command.md',
             'api-event-exceptions': 'docs/api/ErisPulse/Core/Event/exceptions.md',
@@ -1365,7 +1374,11 @@ const ErisPulseApp = (function () {
             'api-event-meta': 'docs/api/ErisPulse/Core/Event/meta.md',
             'api-event-notice': 'docs/api/ErisPulse/Core/Event/notice.md',
             'api-event-request': 'docs/api/ErisPulse/Core/Event/request.md',
-            'api-event-init': 'docs/api/ErisPulse/Core/Event/__init__.md'
+            'api-event-init': 'docs/api/ErisPulse/Core/Event/__init__.md',
+            'api-cli-utils': 'docs/api/ErisPulse/utils/cli.md',
+            'api-package-manager': 'docs/api/ErisPulse/utils/package_manager.md',
+            'api-reload-handler': 'docs/api/ErisPulse/utils/reload_handler.md',
+            'api-utils-init': 'docs/api/ErisPulse/utils/__init__.md'
         },
 
         groups: {
@@ -1374,13 +1387,19 @@ const ErisPulseApp = (function () {
             ],
             'api-adapter': [
                 'api-adapter', 'api-config', 'api-env', 'api-erispulse_config',
-                'api-exceptions', 'api-logger', 'api-module', 'api-module_registry',
-                'api-router', 'api-storage'
+                'api-exceptions', 'api-logger', 'api-module', 'api-router',
+                'api-storage', 'api-ux', 'api-lifecycle'
+            ],
+            'api-bases': [
+                'api-base', 'api-module-base'
             ],
             'api-event-base': [
                 'api-event-base', 'api-event-command', 'api-event-exceptions',
                 'api-event-message', 'api-event-meta', 'api-event-notice',
                 'api-event-request', 'api-event-init'
+            ],
+            'api-utils': [
+                'api-cli-utils', 'api-package-manager', 'api-reload-handler', 'api-utils-init'
             ]
         },
 
@@ -1395,6 +1414,9 @@ const ErisPulseApp = (function () {
             'core-event-system': '事件系统',
             'core-best-practices': '最佳实践',
             'core-self-config': '配置解析',
+            'core-lazy-loading': '懒加载机制',
+            'core-router': '路由系统',
+            'ux-improvements': '用户体验改进',
             'dev-readme': '开发入门',
             'dev-module': '模块开发',
             'dev-adapter': '适配器开发',
@@ -1407,6 +1429,9 @@ const ErisPulseApp = (function () {
             'platform-telegram': 'Telegram平台特性',
             'platform-onebot11': 'OneBot11平台特性',
             'platform-email': '邮件平台特性',
+            'platform-maintain-notes': '维护说明',
+            'styleguide': '代码风格指南',
+            'docstring-spec': '文档字符串规范',
             'api-init': 'ErisPulse 核心模块',
             'api-main': 'ErisPulse 主模块',
             'api-adapter': '适配器接口',
@@ -1416,9 +1441,12 @@ const ErisPulseApp = (function () {
             'api-exceptions': '错误处理',
             'api-logger': '日志系统',
             'api-module': '模块管理',
-            'api-module_registry': '模块注册表',
             'api-router': '路由系统',
             'api-storage': '存储系统',
+            'api-ux': '用户体验',
+            'api-lifecycle': '生命周期管理',
+            'api-base': '适配器基类',
+            'api-module-base': '模块基类',
             'api-event-base': '事件基类',
             'api-event-command': '命令事件',
             'api-event-exceptions': '事件异常',
@@ -1426,17 +1454,22 @@ const ErisPulseApp = (function () {
             'api-event-meta': '元事件',
             'api-event-notice': '通知事件',
             'api-event-request': '请求事件',
-            'api-event-init': '事件初始化'
+            'api-event-init': '事件初始化',
+            'api-cli-utils': 'CLI工具',
+            'api-package-manager': '包管理器',
+            'api-reload-handler': '重载处理器',
+            'api-utils-init': '工具模块初始化'
         },
 
         categories: {
             'getting-started': ['quick-start'],
             'ai': ['ai-module', 'ai-readme'],
-            'core': ['cli', 'core-concepts', 'core-modules', 'core-adapters', 'core-event-system', 'core-best-practices', 'core-self-config'],
+            'core': ['cli', 'core-concepts', 'core-modules', 'core-adapters', 'core-event-system', 'core-best-practices', 'core-self-config', 'core-lazy-loading', 'core-router', 'ux-improvements'],
             'development': ['dev-readme', 'dev-module', 'dev-adapter', 'dev-cli'],
             'standards': ['adapter-standards', 'event-conversion', 'api-response'],
-            'platform-features': ['platform-features', 'platform-yunhu', 'platform-telegram', 'platform-onebot11', 'platform-email'],
-            'api': ['api-init', 'api-adapter', 'api-event-base']
+            'platform-features': ['platform-features', 'platform-yunhu', 'platform-telegram', 'platform-onebot11', 'platform-email', 'platform-maintain-notes'],
+            'styleguide': ['styleguide', 'docstring-spec'],
+            'api': ['api-init', 'api-adapter', 'api-bases', 'api-event-base', 'api-utils']
         }
     };
 
