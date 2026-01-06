@@ -76,6 +76,7 @@ const ErisPulseApp = (function () {
         setupHamburgerMenu();
         setupViewSwitching();
         setupMarketplace();
+        setupChangelog();
         setupDocumentation();
         setupModals();
         setupSettings();
@@ -368,6 +369,8 @@ const ErisPulseApp = (function () {
                     }
                 }, 500);
             }
+        } else if (hash === 'changelog') {
+            view = 'changelog';
         } else if (hash === 'about') {
             view = 'about';
         } else if (hash === 'settings') {
@@ -375,8 +378,7 @@ const ErisPulseApp = (function () {
         } else if (hash.startsWith('api-') || hash.startsWith('dev-') ||
             hash.startsWith('cli') || hash.startsWith('quick-start') ||
             hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
-            hash.startsWith('platform-features') || hash.startsWith('changelog') ||
-            hash.startsWith('ai-module')) {
+            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
             view = 'docs';
             setTimeout(() => {
                 const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
@@ -407,6 +409,11 @@ const ErisPulseApp = (function () {
 
         if (view === 'market') {
             loadModuleData();
+        }
+        
+        if (view === 'changelog') {
+            loadChangelogData();
+            checkServiceStatus();
         }
     }
 
@@ -948,6 +955,534 @@ const ErisPulseApp = (function () {
             `;
             container.appendChild(depElement);
         });
+    }
+
+    // ==================== 更新日志模块 ====================
+    let changelogData = [];
+    let filters = {
+        version: 'all',
+        change: 'all'
+    };
+
+    function setupChangelog() {
+        // 筛选按钮事件处理
+        document.querySelectorAll('.version-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const filterType = this.dataset.type;
+                const filterValue = this.dataset.filter;
+
+                // 更新同组按钮状态
+                document.querySelectorAll(`.version-filter-btn[data-type="${filterType}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // 更新筛选状态
+                filters[filterType] = filterValue;
+                renderChangelog();
+            });
+        });
+
+        // 重置筛选按钮
+        document.getElementById('reset-filters')?.addEventListener('click', function() {
+            // 重置所有筛选状态
+            filters = {
+                version: 'all',
+                change: 'all'
+            };
+
+            // 重置所有按钮状态
+            document.querySelectorAll('.version-filter-btn').forEach(btn => {
+                if (btn.dataset.filter === 'all') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // 重新渲染
+            renderChangelog();
+        });
+
+        // 服务状态卡片点击展开/收起
+        document.querySelectorAll('.service-status-item').forEach(item => {
+            const header = item.querySelector('.service-status-header');
+            header.addEventListener('click', function() {
+                item.classList.toggle('expanded');
+            });
+        });
+
+        // 视图切换时加载
+        window.addEventListener('hashchange', checkChangelogView);
+        checkChangelogView();
+    }
+
+    function checkChangelogView() {
+        const hash = window.location.hash.substring(1);
+        if (hash.startsWith('changelog')) {
+            loadChangelogData();
+            checkServiceStatus();
+        }
+    }
+
+    async function checkServiceStatus() {
+        // 检查安装服务
+        checkService('https://get.erisdev.com/install.sh', 'install');
+        // 检查包源服务
+        checkService('https://erisdev.com/packages', 'packages');
+        // 检查CI状态
+        checkCIStatus();
+    }
+
+    async function checkService(url, serviceName) {
+        const indicator = document.getElementById(`status-${serviceName}`);
+        const statusText = document.getElementById(`status-text-${serviceName}`);
+        const detailResponse = document.getElementById(`detail-response-${serviceName}`);
+        const detailStatus = document.getElementById(`detail-status-${serviceName}`);
+
+        if (!indicator || !statusText) return;
+
+        try {
+            const startTime = Date.now();
+            const response = await fetch(url, {
+                method: 'HEAD',
+                mode: 'no-cors'
+            });
+            const endTime = Date.now();
+            const responseTime = endTime - startTime;
+
+            // 由于 no-cors 模式无法获取详细状态，我们假设成功
+            indicator.className = 'status-indicator online';
+            indicator.innerHTML = '<i class="fas fa-circle"></i>';
+
+            if (responseTime < 200) {
+                statusText.textContent = '正常';
+            } else if (responseTime < 500) {
+                statusText.textContent = '稍慢';
+            } else {
+                statusText.textContent = '较慢';
+            }
+
+            // 更新详情
+            if (detailResponse) {
+                detailResponse.textContent = `${responseTime}ms`;
+            }
+            if (detailStatus) {
+                detailStatus.textContent = '在线';
+                detailStatus.style.color = '#10b981';
+            }
+        } catch (error) {
+            indicator.className = 'status-indicator offline';
+            indicator.innerHTML = '<i class="fas fa-circle"></i>';
+
+            statusText.textContent = '离线';
+
+            // 更新详情
+            if (detailResponse) {
+                detailResponse.textContent = '--';
+            }
+            if (detailStatus) {
+                detailStatus.textContent = '离线';
+                detailStatus.style.color = '#ef4444';
+            }
+        }
+    }
+
+    async function checkCIStatus() {
+        const indicator = document.getElementById('status-ci');
+        const statusText = document.getElementById('status-text-ci');
+        const detailWorkflowCount = document.getElementById('detail-workflow-count');
+        const detailLastRun = document.getElementById('detail-last-run');
+        const detailStatus = document.getElementById('detail-status-ci');
+
+        if (!indicator || !statusText) return;
+
+        try {
+            // 获取最近的工作流运行记录
+            const response = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse/actions/runs?per_page=20');
+            if (response.ok) {
+                const data = await response.json();
+                const runs = data.workflow_runs || [];
+
+                if (runs.length > 0) {
+                    // 计算最近20次运行的状态
+                    const successCount = runs.filter(run => run.conclusion === 'success').length;
+                    const totalCount = runs.length;
+                    const successRate = (successCount / totalCount * 100).toFixed(1);
+
+                    // 获取最近一次运行
+                    const lastRun = runs[0];
+                    const lastRunTime = new Date(lastRun.created_at);
+                    const timeDiff = Date.now() - lastRunTime.getTime();
+                    const hoursAgo = Math.floor(timeDiff / (1000 * 60 * 60));
+                    const minutesAgo = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+
+                    let timeAgoText;
+                    if (hoursAgo > 24) {
+                        timeAgoText = `${Math.floor(hoursAgo / 24)} 天前`;
+                    } else if (hoursAgo > 0) {
+                        timeAgoText = `${hoursAgo} 小时前`;
+                    } else {
+                        timeAgoText = `${minutesAgo} 分钟前`;
+                    }
+
+                    // 判断整体状态
+                    if (successRate >= 90) {
+                        indicator.className = 'status-indicator online';
+                        indicator.innerHTML = '<i class="fas fa-circle"></i>';
+                        statusText.textContent = '正常';
+
+                        if (detailStatus) {
+                            detailStatus.textContent = '正常运行';
+                            detailStatus.style.color = '#10b981';
+                        }
+                    } else if (successRate >= 70) {
+                        indicator.className = 'status-indicator unknown';
+                        indicator.innerHTML = '<i class="fas fa-circle"></i>';
+                        statusText.textContent = '波动';
+
+                        if (detailStatus) {
+                            detailStatus.textContent = `成功率 ${successRate}%`;
+                            detailStatus.style.color = '#f59e0b';
+                        }
+                    } else {
+                        indicator.className = 'status-indicator offline';
+                        indicator.innerHTML = '<i class="fas fa-circle"></i>';
+                        statusText.textContent = '异常';
+
+                        if (detailStatus) {
+                            detailStatus.textContent = `成功率 ${successRate}%`;
+                            detailStatus.style.color = '#ef4444';
+                        }
+                    }
+
+                    // 更新详情
+                    if (detailWorkflowCount) {
+                        detailWorkflowCount.textContent = totalCount;
+                    }
+                    if (detailLastRun) {
+                        detailLastRun.textContent = timeAgoText;
+                    }
+                } else {
+                    indicator.className = 'status-indicator unknown';
+                    indicator.innerHTML = '<i class="fas fa-circle"></i>';
+                    statusText.textContent = '无数据';
+
+                    if (detailStatus) {
+                        detailStatus.textContent = '无运行记录';
+                        detailStatus.style.color = '#f59e0b';
+                    }
+                }
+            } else {
+                throw new Error('API 请求失败');
+            }
+        } catch (error) {
+            console.error('CI状态检查失败:', error);
+            indicator.className = 'status-indicator unknown';
+            indicator.innerHTML = '<i class="fas fa-circle"></i>';
+            statusText.textContent = '未知';
+
+            if (detailStatus) {
+                detailStatus.textContent = '状态未知';
+                detailStatus.style.color = '#f59e0b';
+            }
+        }
+    }
+
+    async function loadChangelogData() {
+        const changelogList = document.getElementById('changelog-list');
+        
+        try {
+            // 从 GitHub 获取 CHANGELOG.md
+            const response = await fetch('https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/CHANGELOG.md');
+            if (!response.ok) throw new Error('获取更新日志失败');
+            
+            const markdown = await response.text();
+            changelogData = parseChangelog(markdown);
+            renderChangelog();
+        } catch (error) {
+            console.error('加载更新日志失败:', error);
+            changelogList.innerHTML = `
+                <div class="changelog-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>加载失败</h3>
+                    <p>无法加载更新日志，请稍后再试</p>
+                    <button id="retry-load-changelog" style="margin-top: 1rem; padding: 0.6rem 1.2rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
+                        重新加载
+                    </button>
+                </div>
+            `;
+            
+            // 添加重试按钮事件
+            document.getElementById('retry-load-changelog')?.addEventListener('click', loadChangelogData);
+        }
+    }
+
+    function parseChangelog(markdown) {
+        const versions = [];
+        let currentVersion = null;
+        let shouldSkipSection = false;
+        let inCodeBlock = false;
+        
+        const lines = markdown.split('\n');
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            // 检测代码块开始/结束
+            if (line.trim().startsWith('```')) {
+                inCodeBlock = !inCodeBlock;
+                continue;
+            }
+            
+            // 如果在代码块内，跳过所有内容
+            if (inCodeBlock) {
+                continue;
+            }
+            
+            // 匹配版本标题: ## [version] - date
+            const versionMatch = line.match(/^##\s+\[([^\]]+)\]\s*-\s*(\d{4}\/\d{2}\/\d{2})/);
+            if (versionMatch) {
+                if (currentVersion) {
+                    versions.push(currentVersion);
+                }
+                
+                currentVersion = {
+                    version: versionMatch[1],
+                    date: versionMatch[2],
+                    sections: [],
+                    type: getVersionType(versionMatch[1])
+                };
+                shouldSkipSection = false;
+                
+                continue;
+            }
+            
+            // 跳过规则部分和其他非版本相关的二级标题
+            const ruleMatch = line.match(/^##\s+(规则|示例)/);
+            if (ruleMatch) {
+                shouldSkipSection = true;
+                continue;
+            }
+            
+            // 如果当前需要跳过，继续跳过直到遇到下一个版本
+            if (shouldSkipSection) {
+                continue;
+            }
+            
+            // 匹配开发版本说明
+            if (line.trim().startsWith('>')) {
+                if (currentVersion) {
+                    currentVersion.note = line.replace(/^>\s*/, '');
+                }
+                continue;
+            }
+            
+            // 匹配章节标题: ### 新增/变更/修复/移除/废弃/文档
+            const sectionMatch = line.match(/^###\s+(新增|变更|修复|移除|废弃|文档)/);
+            if (sectionMatch && currentVersion) {
+                currentVersion.sections.push({
+                    type: sectionMatch[1],
+                    items: []
+                });
+                continue;
+            }
+            
+            // 如果没有当前版本或章节，跳过
+            if (!currentVersion || currentVersion.sections.length === 0) {
+                continue;
+            }
+            
+            const currentSection = currentVersion.sections[currentVersion.sections.length - 1];
+            
+            // 匹配贡献者信息: - @username
+            const contributorMatch = line.match(/^\s*-\s*@(\w+)/);
+            if (contributorMatch) {
+                currentSection.items.push({
+                    type: 'contributor',
+                    username: contributorMatch[1]
+                });
+                continue;
+            }
+            
+            // 匹配条目: - 文本内容
+            const itemMatch = line.match(/^\s*-\s+(.+)$/);
+            if (itemMatch) {
+                currentSection.items.push({
+                    type: 'text',
+                    content: itemMatch[1]
+                });
+                continue;
+            }
+            
+            // 匹配嵌套条目（4个或更多空格缩进的 - ）
+            const nestedMatch = line.match(/^\s{4,}-\s+(.+)$/);
+            if (nestedMatch && currentSection.items.length > 0) {
+                const lastItem = currentSection.items[currentSection.items.length - 1];
+                if (!lastItem.subitems) {
+                    lastItem.subitems = [];
+                }
+                lastItem.subitems.push(nestedMatch[1]);
+            }
+        }
+        
+        if (currentVersion) {
+            versions.push(currentVersion);
+        }
+        
+        return versions;
+    }
+
+    function getVersionType(version) {
+        if (version.includes('dev') || version.includes('pre') || version.includes('alpha') || version.includes('beta')) {
+            return 'dev';
+        }
+        return 'stable';
+    }
+
+    function renderChangelog() {
+        const changelogList = document.getElementById('changelog-list');
+
+        let filteredVersions = changelogData.map(version => {
+            // 版本类型筛选
+            if (filters.version !== 'all' && version.type !== filters.version) {
+                return null;
+            }
+
+            // 变更类型筛选
+            let filteredSections = version.sections;
+            if (filters.change !== 'all') {
+                filteredSections = version.sections.filter(section => {
+                    const changeTypeMap = {
+                        'added': '新增',
+                        'changed': ['变更', '移除', '废弃'],
+                        'fixed': '修复'
+                    };
+
+                    const targetTypes = changeTypeMap[filters.change];
+                    if (Array.isArray(targetTypes)) {
+                        return targetTypes.includes(section.type);
+                    } else {
+                        return section.type === targetTypes;
+                    }
+                });
+
+                // 如果筛选后没有章节，则整个版本也不显示
+                if (filteredSections.length === 0) {
+                    return null;
+                }
+            }
+
+            return {
+                ...version,
+                sections: filteredSections
+            };
+        }).filter(Boolean); // 移除 null 值
+
+        if (filteredVersions.length === 0) {
+            changelogList.innerHTML = `
+                <div class="changelog-empty">
+                    <i class="fas fa-box-open"></i>
+                    <h3>暂无版本</h3>
+                    <p>没有找到符合条件的更新日志</p>
+                </div>
+            `;
+            return;
+        }
+
+        changelogList.innerHTML = filteredVersions.map((version, index) => {
+            const versionBadge = getVersionBadge(version.version);
+            const sectionsHtml = version.sections.map(section => renderSection(section)).join('');
+            const noteHtml = version.note ? `<div class="changelog-dev-note"><i class="fas fa-info-circle"></i> ${version.note}</div>` : '';
+
+            return `
+                <div class="changelog-card ${version.type === 'dev' ? 'version-dev' : ''}" style="animation-delay: ${index * 0.1}s">
+                    <div class="changelog-header-info">
+                        <div class="changelog-version">
+                            ${version.version}
+                            ${versionBadge}
+                        </div>
+                        <div class="changelog-date">${version.date}</div>
+                    </div>
+                    ${noteHtml}
+                    <div class="changelog-sections">
+                        ${sectionsHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function getVersionBadge(version) {
+        if (version.includes('dev')) {
+            return '<span class="version-badge dev">开发版本</span>';
+        } else if (version.includes('alpha')) {
+            return '<span class="version-badge alpha">Alpha</span>';
+        } else if (version.includes('beta')) {
+            return '<span class="version-badge beta">Beta</span>';
+        } else if (version.includes('pre')) {
+            return '<span class="version-badge alpha">预览版</span>';
+        } else {
+            return '<span class="version-badge stable">正式版</span>';
+        }
+    }
+
+    function renderSection(section) {
+        const sectionIcons = {
+            '新增': 'fa-plus-circle',
+            '变更': 'fa-sync-alt',
+            '修复': 'fa-wrench',
+            '移除': 'fa-trash-alt',
+            '废弃': 'fa-exclamation-triangle',
+            '文档': 'fa-book'
+        };
+        
+        const sectionClass = {
+            '新增': 'added',
+            '变更': 'changed',
+            '修复': 'fixed',
+            '移除': 'removed',
+            '废弃': 'deprecated',
+            '文档': 'added'
+        };
+        
+        const icon = sectionIcons[section.type] || 'fa-circle';
+        const className = sectionClass[section.type] || '';
+        
+        const itemsHtml = section.items.map(item => {
+            if (item.type === 'contributor') {
+                return `
+                    <li class="changelog-item">
+                        <div class="changelog-item-contributor">
+                            <i class="fas fa-user"></i>
+                            By <a href="https://github.com/${item.username}" target="_blank">@${item.username}</a>
+                        </div>
+                        ${item.subitems ? item.subitems.map(sub => `<div class="changelog-subitem">${sub}</div>`).join('') : ''}
+                    </li>
+                `;
+            } else {
+                return `
+                    <li class="changelog-item">
+                        <span class="changelog-item-text">${item.content}</span>
+                        ${item.subitems ? item.subitems.map(sub => `<div class="changelog-subitem">${sub}</div>`).join('') : ''}
+                    </li>
+                `;
+            }
+        }).join('');
+        
+        return `
+            <div class="changelog-section">
+                <div class="changelog-section-header">
+                    <h3 class="changelog-section-title ${className}">
+                        <i class="fas ${icon}"></i>
+                        ${section.type}
+                    </h3>
+                </div>
+                <ul class="changelog-content">
+                    ${itemsHtml}
+                </ul>
+            </div>
+        `;
     }
 
     // ==================== 文档模块 ====================
