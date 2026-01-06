@@ -1552,6 +1552,7 @@ const ErisPulseApp = (function () {
             let htmlContent = marked.parse(docContent);
 
             htmlContent = addTableOfContents(htmlContent);
+            htmlContent = wrapTables(htmlContent);
 
             try {
                 const apiBaseUrl = 'https://api.github.com/repos/ErisPulse/ErisPulse/commits?path=' + docPath;
@@ -1769,6 +1770,10 @@ const ErisPulseApp = (function () {
         return tempDiv.innerHTML;
     }
 
+    function wrapTables(htmlContent) {
+        return htmlContent.replace(/<table([^>]*)>/gi, '<div class="table-wrapper"><table$1>').replace(/<\/table>/gi, '</table></div>');
+    }
+
     function moveTocToSidebar() {
         const toc = document.querySelector('.table-of-contents');
         const docsLayout = document.querySelector('.docs-layout');
@@ -1910,10 +1915,13 @@ const ErisPulseApp = (function () {
                 const content = await response.text();
                 const title = docConfig.titles[docId] || docId;
 
+                let parsedContent = marked.parse(content);
+                parsedContent = wrapTables(parsedContent);
+                
                 groupContent += `
                     <div id="${docId}" style="padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border);">
                         <h2 style="color: var(--text); margin-top: 2rem;">${title}</h2>
-                        ${marked.parse(content)}
+                        ${parsedContent}
                     </div>
                 `;
             } catch (error) {
