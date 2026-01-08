@@ -961,10 +961,37 @@ const ErisPulseApp = (function () {
     let changelogData = [];
     let filters = {
         version: 'all',
-        change: 'all'
+        change: 'all',
+        time: 'all'
     };
 
     function setupChangelog() {
+         
+        const searchInput = document.getElementById('changelog-search');
+        const clearSearchBtn = document.getElementById('clear-search');
+
+        searchInput.addEventListener('input', function() {
+            searchQuery = this.value.trim();
+            clearSearchBtn.style.display = searchQuery ? 'flex' : 'none';
+            renderChangelog();
+        });
+
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            searchQuery = '';
+            clearSearchBtn.style.display = 'none';
+            renderChangelog();
+        });
+
+         
+        const toggleFiltersBtn = document.getElementById('toggle-filters');
+        const filtersContent = document.getElementById('filters-content');
+
+        toggleFiltersBtn.addEventListener('click', function() {
+            filtersContent.classList.toggle('expanded');
+            toggleFiltersBtn.classList.toggle('active');
+        });
+
          
         document.querySelectorAll('.version-filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -988,7 +1015,8 @@ const ErisPulseApp = (function () {
              
             filters = {
                 version: 'all',
-                change: 'all'
+                change: 'all',
+                time: 'all'
             };
 
              
@@ -1334,7 +1362,7 @@ const ErisPulseApp = (function () {
     }
 
     function getVersionType(version) {
-        if (version.includes('dev') || version.includes('pre') || version.includes('alpha') || version.includes('beta')) {
+        if (version.includes('dev') || version.includes('pre')) {
             return 'dev';
         }
         return 'stable';
@@ -1343,6 +1371,7 @@ const ErisPulseApp = (function () {
     function renderChangelog() {
         const changelogList = document.getElementById('changelog-list');
 
+         
         let filteredVersions = changelogData.map(version => {
              
             if (filters.version !== 'all' && version.type !== filters.version) {
@@ -1350,21 +1379,75 @@ const ErisPulseApp = (function () {
             }
 
              
-            let filteredSections = version.sections;
-            if (filters.change !== 'all') {
-                filteredSections = version.sections.filter(section => {
-                    const changeTypeMap = {
-                        'added': '新增',
-                        'changed': ['变更', '移除', '废弃'],
-                        'fixed': '修复'
-                    };
+            if (filters.time !== 'all') {
+                const versionDate = new Date(version.date.replace(/\//g, '-'));
+                const now = new Date();
+                const timeDiff = now - versionDate;
+                const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
 
-                    const targetTypes = changeTypeMap[filters.change];
-                    if (Array.isArray(targetTypes)) {
-                        return targetTypes.includes(section.type);
-                    } else {
-                        return section.type === targetTypes;
+                const timeFilters = {
+                    '7d': 7,
+                    '30d': 30,
+                    '90d': 90,
+                    '1y': 365
+                };
+
+                if (daysDiff > timeFilters[filters.time]) {
+                    return null;
+                }
+            }
+
+             
+            let filteredSections = version.sections;
+            let versionMatchesSearch = false;
+
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const versionText = `${version.version} ${version.date} ${version.note || ''}`.toLowerCase();
+                versionMatchesSearch = versionText.includes(query);
+
+                 
+                if (versionMatchesSearch) {
+                    return {
+                        ...version,
+                        sections: version.sections  
+                    };
+                }
+
+                 
+                filteredSections = version.sections.map(section => {
+                    const sectionMatches = section.type.toLowerCase().includes(query);
+                    const filteredItems = section.items.filter(item => {
+                        const itemText = (item.content || item.username || '').toLowerCase();
+                        const subitemText = item.subitems ? item.subitems.join(' ').toLowerCase() : '';
+                        return itemText.includes(query) || subitemText.includes(query);
+                    });
+
+                    if (sectionMatches || filteredItems.length > 0) {
+                        return {
+                            ...section,
+                            items: sectionMatches ? section.items : filteredItems
+                        };
                     }
+                    return null;
+                }).filter(Boolean);
+
+                 
+                if (filteredSections.length === 0 && !versionMatchesSearch) {
+                    return null;
+                }
+            }
+
+             
+            if (filters.change !== 'all') {
+                const changeTypeMap = {
+                    'added': '新增',
+                    'changed': '变更',
+                    'fixed': '修复'
+                };
+
+                filteredSections = filteredSections.filter(section => {
+                    return section.type === changeTypeMap[filters.change];
                 });
 
                  
@@ -1383,8 +1466,8 @@ const ErisPulseApp = (function () {
             changelogList.innerHTML = `
                 <div class="changelog-empty">
                     <i class="fas fa-box-open"></i>
-                    <h3>暂无版本</h3>
-                    <p>没有找到符合条件的更新日志</p>
+                    <h3>暂无结果</h3>
+                    <p>${searchQuery ? '没有找到匹配的更新日志' : '没有找到符合条件的更新日志'}</p>
                 </div>
             `;
             return;
@@ -1432,17 +1515,13 @@ const ErisPulseApp = (function () {
             '新增': 'fa-plus-circle',
             '变更': 'fa-sync-alt',
             '修复': 'fa-wrench',
-            '移除': 'fa-trash-alt',
-            '废弃': 'fa-exclamation-triangle',
             '文档': 'fa-book'
         };
-        
+
         const sectionClass = {
             '新增': 'added',
             '变更': 'changed',
             '修复': 'fixed',
-            '移除': 'removed',
-            '废弃': 'deprecated',
             '文档': 'added'
         };
         
