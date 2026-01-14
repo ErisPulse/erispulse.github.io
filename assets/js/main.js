@@ -375,18 +375,18 @@ const ErisPulseApp = (function () {
             view = 'about';
         } else if (hash === 'settings') {
             view = 'settings';
-        } else if (hash.startsWith('api-') || hash.startsWith('dev-') ||
-            hash.startsWith('cli') || hash.startsWith('quick-start') ||
-            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
-            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
-            view = 'docs';
-            setTimeout(() => {
-                const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
-                if (docLink) {
-                    docLink.click();
-                }
-            }, 500);
-        }
+    } else if (hash.startsWith('dev-') ||
+        hash.startsWith('cli') || hash.startsWith('quick-start') ||
+        hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
+        hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
+        view = 'docs';
+        setTimeout(() => {
+            const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
+            if (docLink) {
+                docLink.click();
+            }
+        }, 500);
+    }
 
         updateView(view);
     }
@@ -1610,9 +1610,13 @@ const ErisPulseApp = (function () {
          
         document.querySelectorAll('.docs-nav-link').forEach(link => {
             link.addEventListener('click', function (e) {
-                e.preventDefault();
                 const docName = this.getAttribute('data-doc');
-                navigateToDocument(docName);
+                 
+                if (docName) {
+                    e.preventDefault();
+                    navigateToDocument(docName);
+                }
+                 
             });
         });
 
@@ -1788,7 +1792,6 @@ const ErisPulseApp = (function () {
             'development': '开发指南',
             'standards': '标准规范',
             'platform-features': '平台特性',
-            'api': 'API参考',
             'other': '其他'
         };
         return names[category] || category;
@@ -1828,16 +1831,9 @@ const ErisPulseApp = (function () {
                                     </div>
                                     <div class="category">
                                         <h4><i class="fas fa-book"></i> API参考</h4>
-                                        <a href="#docs/api-init">核心API</a>
-                                        <a href="#docs/api-adapter">适配器接口</a>
-                                        <a href="#docs/api-router">路由系统</a>
-                                        <a href="#docs/api-module">模块管理</a>
-                                    </div>
-                                    <div class="category">
-                                        <h4><i class="fas fa-calendar"></i> 事件系统</h4>
-                                        <a href="#docs/api-event-base">事件基类</a>
-                                        <a href="#docs/api-event-message">消息事件</a>
-                                        <a href="#docs/api-event-command">命令事件</a>
+                                        <a href="https://github.com/ErisPulse/ErisPulse/tree/main/docs/api" target="_blank">
+                                            <i class="fab fa-github"></i> 在GitHub查看API文档
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -1965,57 +1961,10 @@ const ErisPulseApp = (function () {
             'platform-email': 'docs/platform-features/email.md',
             'platform-maintain-notes': 'docs/platform-features/maintain-notes.md',
             'styleguide': 'docs/styleguide/README.md',
-            'docstring-spec': 'docs/styleguide/docstring_spec.md',
-            'api-init': 'docs/api/ErisPulse/__init__.md',
-            'api-main': 'docs/api/ErisPulse/__main__.md',
-            'api-adapter': 'docs/api/ErisPulse/Core/adapter.md',
-            'api-config': 'docs/api/ErisPulse/Core/config.md',
-            'api-env': 'docs/api/ErisPulse/Core/_self_config.md',
-            'api-erispulse_config': 'docs/api/ErisPulse/Core/_self_config.md',
-            'api-exceptions': 'docs/api/ErisPulse/Core/exceptions.md',
-            'api-logger': 'docs/api/ErisPulse/Core/logger.md',
-            'api-module': 'docs/api/ErisPulse/Core/module.md',
-            'api-router': 'docs/api/ErisPulse/Core/router.md',
-            'api-storage': 'docs/api/ErisPulse/Core/storage.md',
-            'api-ux': 'docs/api/ErisPulse/Core/ux.md',
-            'api-lifecycle': 'docs/api/ErisPulse/Core/lifecycle.md',
-            'api-base': 'docs/api/ErisPulse/Core/Bases/adapter.md',
-            'api-module-base': 'docs/api/ErisPulse/Core/Bases/module.md',
-            'api-event-base': 'docs/api/ErisPulse/Core/Event/base.md',
-            'api-event-command': 'docs/api/ErisPulse/Core/Event/command.md',
-            'api-event-exceptions': 'docs/api/ErisPulse/Core/Event/exceptions.md',
-            'api-event-message': 'docs/api/ErisPulse/Core/Event/message.md',
-            'api-event-meta': 'docs/api/ErisPulse/Core/Event/meta.md',
-            'api-event-notice': 'docs/api/ErisPulse/Core/Event/notice.md',
-            'api-event-request': 'docs/api/ErisPulse/Core/Event/request.md',
-            'api-event-init': 'docs/api/ErisPulse/Core/Event/__init__.md',
-            'api-cli-utils': 'docs/api/ErisPulse/utils/cli.md',
-            'api-package-manager': 'docs/api/ErisPulse/utils/package_manager.md',
-            'api-reload-handler': 'docs/api/ErisPulse/utils/reload_handler.md',
-            'api-utils-init': 'docs/api/ErisPulse/utils/__init__.md'
+            'docstring-spec': 'docs/styleguide/docstring_spec.md'
         },
 
-        groups: {
-            'api-init': [
-                'api-init', 'api-main'
-            ],
-            'api-adapter': [
-                'api-adapter', 'api-config', 'api-env', 'api-erispulse_config',
-                'api-exceptions', 'api-logger', 'api-module', 'api-router',
-                'api-storage', 'api-ux', 'api-lifecycle'
-            ],
-            'api-bases': [
-                'api-base', 'api-module-base'
-            ],
-            'api-event-base': [
-                'api-event-base', 'api-event-command', 'api-event-exceptions',
-                'api-event-message', 'api-event-meta', 'api-event-notice',
-                'api-event-request', 'api-event-init'
-            ],
-            'api-utils': [
-                'api-cli-utils', 'api-package-manager', 'api-reload-handler', 'api-utils-init'
-            ]
-        },
+        groups: {},
 
         titles: {
             'quick-start': '快速开始指南',
@@ -2045,34 +1994,7 @@ const ErisPulseApp = (function () {
             'platform-email': '邮件平台特性',
             'platform-maintain-notes': '维护说明',
             'styleguide': '代码风格指南',
-            'docstring-spec': '文档字符串规范',
-            'api-init': 'ErisPulse 核心模块',
-            'api-main': 'ErisPulse 主模块',
-            'api-adapter': '适配器接口',
-            'api-config': '配置管理',
-            'api-env': '环境配置',
-            'api-erispulse_config': '框架配置',
-            'api-exceptions': '错误处理',
-            'api-logger': '日志系统',
-            'api-module': '模块管理',
-            'api-router': '路由系统',
-            'api-storage': '存储系统',
-            'api-ux': '用户体验',
-            'api-lifecycle': '生命周期管理',
-            'api-base': '适配器基类',
-            'api-module-base': '模块基类',
-            'api-event-base': '事件基类',
-            'api-event-command': '命令事件',
-            'api-event-exceptions': '事件异常',
-            'api-event-message': '消息事件',
-            'api-event-meta': '元事件',
-            'api-event-notice': '通知事件',
-            'api-event-request': '请求事件',
-            'api-event-init': '事件初始化',
-            'api-cli-utils': 'CLI工具',
-            'api-package-manager': '包管理器',
-            'api-reload-handler': '重载处理器',
-            'api-utils-init': '工具模块初始化'
+            'docstring-spec': '文档字符串规范'
         },
 
         categories: {
@@ -2082,8 +2004,7 @@ const ErisPulseApp = (function () {
             'development': ['dev-readme', 'dev-module', 'dev-adapter', 'dev-cli'],
             'standards': ['adapter-standards', 'event-conversion', 'api-response'],
             'platform-features': ['platform-features', 'platform-yunhu', 'platform-telegram', 'platform-onebot11', 'platform-email', 'platform-maintain-notes'],
-            'styleguide': ['styleguide', 'docstring-spec'],
-            'api': ['api-init', 'api-adapter', 'api-bases', 'api-event-base', 'api-utils']
+            'styleguide': ['styleguide', 'docstring-spec']
         }
     };
 
@@ -2282,30 +2203,42 @@ const ErisPulseApp = (function () {
                     const href = this.getAttribute('href');
                     
                      
-                    if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('#'))) {
+                    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                        return;
+                    }
+                    
+                     
+                    if (href && href.startsWith('#')) {
+                        e.preventDefault();
+                        const targetElement = document.getElementById(href.substring(1));
+                        if (targetElement) {
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                        return;
+                    }
+                    
+                     
+                    if (href && !href.includes('://')) {
+                        e.preventDefault();
+                        
                          
-                        if (href.startsWith('#')) {
+                        const currentDoc = window.location.hash.split('/')[1];
+                        const currentDocPath = docConfig.docs[currentDoc] || '';
+                        
+                         
+                        const targetDocId = getDocIdFromPath(href, currentDocPath);
+                        
+                        if (targetDocId) {
                              
-                            e.preventDefault();
-                            const targetElement = document.getElementById(href.substring(1));
-                            if (targetElement) {
-                                targetElement.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start'
-                                });
-                            }
+                            navigateToDocument(targetDocId);
                         } else {
                              
-                             
-                            return;
+                            showDocumentLinkWarning(href);
                         }
-                    } else if (href && !href.includes('://') && !href.startsWith('#') && href.includes('/')) {
-                         
-                         
-                        e.preventDefault();
-                        showDocumentLinkWarning(href);
                     }
-                     
                 });
             });
 
@@ -2460,6 +2393,74 @@ const ErisPulseApp = (function () {
         });
 
         headers.forEach(header => observer.observe(header));
+    }
+
+     
+    function resolvePath(relativePath, basePath) {
+         
+        let cleanPath = relativePath.replace(/^\.?\//, '');
+        
+         
+        if (relativePath.startsWith('/')) {
+            return cleanPath;
+        }
+        
+         
+        if (!basePath) {
+            return cleanPath;
+        }
+        
+         
+        const baseParts = basePath.split('/');
+        const relativeParts = cleanPath.split('/');
+        
+         
+        baseParts.pop();
+        
+         
+        relativeParts.forEach(part => {
+            if (part === '..') {
+                baseParts.pop();
+            } else if (part !== '.' && part !== '') {
+                baseParts.push(part);
+            }
+        });
+        
+        return baseParts.join('/');
+    }
+
+     
+    function getDocIdFromPath(filePath, currentDocPath) {
+         
+        let normalizedPath = filePath.replace(/\.md$/, '');
+        
+         
+        if (normalizedPath.startsWith('docs/')) {
+            normalizedPath = normalizedPath.substring(5);
+        }
+        
+         
+        for (const [docId, docPath] of Object.entries(docConfig.docs)) {
+            const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
+            if (normalizedDocPath === normalizedPath) {
+                return docId;
+            }
+        }
+        
+         
+        if (currentDocPath) {
+            const absolutePath = resolvePath(filePath, currentDocPath);
+            const normalizedAbsolutePath = absolutePath.replace(/\.md$/, '').replace(/^docs\//, '');
+            
+            for (const [docId, docPath] of Object.entries(docConfig.docs)) {
+                const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
+                if (normalizedDocPath === normalizedAbsolutePath) {
+                    return docId;
+                }
+            }
+        }
+        
+        return null;
     }
 
     function renderCharts() {
@@ -2767,11 +2768,6 @@ const ErisPulseApp = (function () {
         navContainer.appendChild(navLinksContainer);
         metaContainer.appendChild(navContainer);
         docsContent.appendChild(metaContainer);
-    }
-
-    function showDocumentLinkWarning(linkUrl) {
-        const message = `文档链接提示：点击的链接 "${linkUrl || '未知文档'}" 暂未适配站内跳转，请使用左侧导航栏手动查找相关文档内容。`;
-        showMessage(message, 'warning');
     }
 
     function showDocumentLinkWarning(linkUrl) {
