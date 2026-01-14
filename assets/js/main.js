@@ -1568,22 +1568,6 @@ const ErisPulseApp = (function () {
      
     function setupDocumentation() {
          
-        const sidebarToggle = document.querySelector('.docs-sidebar-toggle');
-        const docsSidebar = document.querySelector('.docs-sidebar');
-
-        if (sidebarToggle && docsSidebar) {
-            sidebarToggle.addEventListener('click', function () {
-                docsSidebar.classList.toggle('collapsed');
-                this.classList.toggle('active');
-
-                 
-                setTimeout(() => {
-                    moveTocToSidebar();
-                }, 300);
-            });
-        }
-
-         
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -1915,14 +1899,6 @@ const ErisPulseApp = (function () {
     function setupDocumentationResponsive() {
         function handleResize() {
             moveTocToSidebar();
-
-             
-            if (window.innerWidth < 1024) {
-                const sidebar = document.querySelector('.docs-sidebar');
-                if (sidebar && !sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-            }
         }
 
         window.addEventListener('resize', handleResize);
@@ -2327,11 +2303,7 @@ const ErisPulseApp = (function () {
         const docsLayout = document.querySelector('.docs-layout');
 
         if (toc && docsLayout) {
-             
-            const sidebar = document.querySelector('.docs-sidebar');
-            const isSidebarCollapsed = sidebar && sidebar.classList.contains('collapsed');
-
-            if (window.innerWidth > 1200 && !isSidebarCollapsed) {
+            if (window.innerWidth > 1200) {
                  
                 const contentToc = document.querySelector('.docs-content .table-of-contents');
                 if (contentToc) {
