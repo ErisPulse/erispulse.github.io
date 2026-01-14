@@ -1567,22 +1567,6 @@ const ErisPulseApp = (function () {
 
     // ==================== 文档模块 ====================
     function setupDocumentation() {
-        // 侧边栏切换
-        const sidebarToggle = document.querySelector('.docs-sidebar-toggle');
-        const docsSidebar = document.querySelector('.docs-sidebar');
-
-        if (sidebarToggle && docsSidebar) {
-            sidebarToggle.addEventListener('click', function () {
-                docsSidebar.classList.toggle('collapsed');
-                this.classList.toggle('active');
-
-                // 更新目录位置
-                setTimeout(() => {
-                    moveTocToSidebar();
-                }, 300);
-            });
-        }
-
         // 文档分类展开/收起
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
@@ -1915,14 +1899,6 @@ const ErisPulseApp = (function () {
     function setupDocumentationResponsive() {
         function handleResize() {
             moveTocToSidebar();
-
-            // 在小屏幕上自动收起侧边栏
-            if (window.innerWidth < 1024) {
-                const sidebar = document.querySelector('.docs-sidebar');
-                if (sidebar && !sidebar.classList.contains('collapsed')) {
-                    sidebar.classList.add('collapsed');
-                }
-            }
         }
 
         window.addEventListener('resize', handleResize);
@@ -2327,11 +2303,7 @@ const ErisPulseApp = (function () {
         const docsLayout = document.querySelector('.docs-layout');
 
         if (toc && docsLayout) {
-            // 检查侧边栏状态
-            const sidebar = document.querySelector('.docs-sidebar');
-            const isSidebarCollapsed = sidebar && sidebar.classList.contains('collapsed');
-
-            if (window.innerWidth > 1200 && !isSidebarCollapsed) {
+            if (window.innerWidth > 1200) {
                 // 大屏幕且侧边栏展开时，将目录移动到右侧
                 const contentToc = document.querySelector('.docs-content .table-of-contents');
                 if (contentToc) {
