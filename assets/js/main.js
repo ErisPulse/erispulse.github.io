@@ -19,7 +19,8 @@ const ErisPulseApp = (function () {
             animations: true,
             compactLayout: false,
             showLineNumbers: false,
-            stickyNav: true
+            stickyNav: true,
+            gh_proxy: 'https://cdn.gh-proxy.org/'
         },
         THEME_PRESETS: {
             ocean: {
@@ -375,18 +376,18 @@ const ErisPulseApp = (function () {
             view = 'about';
         } else if (hash === 'settings') {
             view = 'settings';
-    } else if (hash.startsWith('dev-') ||
-        hash.startsWith('cli') || hash.startsWith('quick-start') ||
-        hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
-        hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
-        view = 'docs';
-        setTimeout(() => {
-            const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
-            if (docLink) {
-                docLink.click();
-            }
-        }, 500);
-    }
+        } else if (hash.startsWith('dev-') ||
+            hash.startsWith('cli') || hash.startsWith('quick-start') ||
+            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
+            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
+            view = 'docs';
+            setTimeout(() => {
+                const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
+                if (docLink) {
+                    docLink.click();
+                }
+            }, 500);
+        }
 
         updateView(view);
     }
@@ -410,7 +411,7 @@ const ErisPulseApp = (function () {
         if (view === 'market') {
             loadModuleData();
         }
-        
+
         if (view === 'changelog') {
             loadChangelogData();
             checkServiceStatus();
@@ -970,13 +971,13 @@ const ErisPulseApp = (function () {
         const searchInput = document.getElementById('changelog-search');
         const clearSearchBtn = document.getElementById('clear-search');
 
-        searchInput.addEventListener('input', function() {
+        searchInput.addEventListener('input', function () {
             searchQuery = this.value.trim();
             clearSearchBtn.style.display = searchQuery ? 'flex' : 'none';
             renderChangelog();
         });
 
-        clearSearchBtn.addEventListener('click', function() {
+        clearSearchBtn.addEventListener('click', function () {
             searchInput.value = '';
             searchQuery = '';
             clearSearchBtn.style.display = 'none';
@@ -987,14 +988,14 @@ const ErisPulseApp = (function () {
         const toggleFiltersBtn = document.getElementById('toggle-filters');
         const filtersContent = document.getElementById('filters-content');
 
-        toggleFiltersBtn.addEventListener('click', function() {
+        toggleFiltersBtn.addEventListener('click', function () {
             filtersContent.classList.toggle('expanded');
             toggleFiltersBtn.classList.toggle('active');
         });
 
          
         document.querySelectorAll('.version-filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const filterType = this.dataset.type;
                 const filterValue = this.dataset.filter;
 
@@ -1011,7 +1012,7 @@ const ErisPulseApp = (function () {
         });
 
          
-        document.getElementById('reset-filters')?.addEventListener('click', function() {
+        document.getElementById('reset-filters')?.addEventListener('click', function () {
              
             filters = {
                 version: 'all',
@@ -1035,7 +1036,7 @@ const ErisPulseApp = (function () {
          
         document.querySelectorAll('.service-status-item').forEach(item => {
             const header = item.querySelector('.service-status-header');
-            header.addEventListener('click', function() {
+            header.addEventListener('click', function () {
                 item.classList.toggle('expanded');
             });
         });
@@ -1219,12 +1220,12 @@ const ErisPulseApp = (function () {
 
     async function loadChangelogData() {
         const changelogList = document.getElementById('changelog-list');
-        
+
         try {
              
-            const response = await fetch('https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/CHANGELOG.md');
+            const response = await fetch(CONFIG.DEFAULT_USER_SETTINGS.gh_proxy + 'https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/CHANGELOG.md');
             if (!response.ok) throw new Error('获取更新日志失败');
-            
+
             const markdown = await response.text();
             changelogData = parseChangelog(markdown);
             renderChangelog();
@@ -1240,7 +1241,7 @@ const ErisPulseApp = (function () {
                     </button>
                 </div>
             `;
-            
+
              
             document.getElementById('retry-load-changelog')?.addEventListener('click', loadChangelogData);
         }
@@ -1251,30 +1252,30 @@ const ErisPulseApp = (function () {
         let currentVersion = null;
         let shouldSkipSection = false;
         let inCodeBlock = false;
-        
+
         const lines = markdown.split('\n');
-        
+
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            
+
              
             if (line.trim().startsWith('```')) {
                 inCodeBlock = !inCodeBlock;
                 continue;
             }
-            
+
              
             if (inCodeBlock) {
                 continue;
             }
-            
+
              
             const versionMatch = line.match(/^##\s+\[([^\]]+)\]\s*-\s*(\d{4}\/\d{2}\/\d{2})/);
             if (versionMatch) {
                 if (currentVersion) {
                     versions.push(currentVersion);
                 }
-                
+
                 currentVersion = {
                     version: versionMatch[1],
                     date: versionMatch[2],
@@ -1282,22 +1283,22 @@ const ErisPulseApp = (function () {
                     type: getVersionType(versionMatch[1])
                 };
                 shouldSkipSection = false;
-                
+
                 continue;
             }
-            
+
              
             const ruleMatch = line.match(/^##\s+(规则|示例)/);
             if (ruleMatch) {
                 shouldSkipSection = true;
                 continue;
             }
-            
+
              
             if (shouldSkipSection) {
                 continue;
             }
-            
+
              
             if (line.trim().startsWith('>')) {
                 if (currentVersion) {
@@ -1305,7 +1306,7 @@ const ErisPulseApp = (function () {
                 }
                 continue;
             }
-            
+
              
             const sectionMatch = line.match(/^###\s+(新增|变更|修复|移除|废弃|文档)/);
             if (sectionMatch && currentVersion) {
@@ -1315,14 +1316,14 @@ const ErisPulseApp = (function () {
                 });
                 continue;
             }
-            
+
              
             if (!currentVersion || currentVersion.sections.length === 0) {
                 continue;
             }
-            
+
             const currentSection = currentVersion.sections[currentVersion.sections.length - 1];
-            
+
              
             const contributorMatch = line.match(/^\s*-\s*@(\w+)/);
             if (contributorMatch) {
@@ -1332,7 +1333,7 @@ const ErisPulseApp = (function () {
                 });
                 continue;
             }
-            
+
              
             const itemMatch = line.match(/^\s*-\s+(.+)$/);
             if (itemMatch) {
@@ -1342,7 +1343,7 @@ const ErisPulseApp = (function () {
                 });
                 continue;
             }
-            
+
              
             const nestedMatch = line.match(/^\s{4,}-\s+(.+)$/);
             if (nestedMatch && currentSection.items.length > 0) {
@@ -1353,11 +1354,11 @@ const ErisPulseApp = (function () {
                 lastItem.subitems.push(nestedMatch[1]);
             }
         }
-        
+
         if (currentVersion) {
             versions.push(currentVersion);
         }
-        
+
         return versions;
     }
 
@@ -1524,10 +1525,10 @@ const ErisPulseApp = (function () {
             '修复': 'fixed',
             '文档': 'added'
         };
-        
+
         const icon = sectionIcons[section.type] || 'fa-circle';
         const className = sectionClass[section.type] || '';
-        
+
         const itemsHtml = section.items.map(item => {
             if (item.type === 'contributor') {
                 return `
@@ -1548,7 +1549,7 @@ const ErisPulseApp = (function () {
                 `;
             }
         }).join('');
-        
+
         return `
             <div class="changelog-section">
                 <div class="changelog-section-header">
@@ -1569,12 +1570,12 @@ const ErisPulseApp = (function () {
          
         const sidebarToggle = document.querySelector('.docs-sidebar-toggle');
         const docsSidebar = document.querySelector('.docs-sidebar');
-        
+
         if (sidebarToggle && docsSidebar) {
             sidebarToggle.addEventListener('click', function () {
                 docsSidebar.classList.toggle('collapsed');
                 this.classList.toggle('active');
-                
+
                  
                 setTimeout(() => {
                     moveTocToSidebar();
@@ -1647,11 +1648,11 @@ const ErisPulseApp = (function () {
         document.querySelectorAll('.docs-nav-link').forEach(item => {
             item.classList.remove('active');
         });
-        
+
         const activeLink = document.querySelector(`.docs-nav-link[data-doc="${docName}"]`);
         if (activeLink) {
             activeLink.classList.add('active');
-            
+
              
             const parentItem = activeLink.closest('.docs-nav-item');
             if (parentItem) {
@@ -1683,12 +1684,12 @@ const ErisPulseApp = (function () {
         searchInput.type = 'text';
         searchInput.placeholder = '搜索文档...';
         searchInput.className = 'docs-search-input';
-        
+
         const searchContainer = document.createElement('div');
         searchContainer.className = 'docs-search-container';
         searchContainer.innerHTML = '<i class="fas fa-search"></i>';
         searchContainer.appendChild(searchInput);
-        
+
         const sidebarHeader = document.querySelector('.docs-sidebar-header');
         if (sidebarHeader) {
             sidebarHeader.appendChild(searchContainer);
@@ -1710,7 +1711,7 @@ const ErisPulseApp = (function () {
 
     function searchDocuments(query) {
         const results = [];
-        
+
          
         Object.keys(docConfig.titles).forEach(docName => {
             const title = docConfig.titles[docName].toLowerCase();
@@ -1738,7 +1739,7 @@ const ErisPulseApp = (function () {
     function displaySearchResults(results) {
         const resultsContainer = document.createElement('div');
         resultsContainer.className = 'docs-search-results';
-        
+
         if (results.length === 0) {
             resultsContainer.innerHTML = `
                 <div class="search-no-results">
@@ -1839,7 +1840,7 @@ const ErisPulseApp = (function () {
                             </div>
                         </div>
                     `;
-                    
+
                      
                     updateBreadcrumb('home');
                 }
@@ -1914,7 +1915,7 @@ const ErisPulseApp = (function () {
     function setupDocumentationResponsive() {
         function handleResize() {
             moveTocToSidebar();
-            
+
              
             if (window.innerWidth < 1024) {
                 const sidebar = document.querySelector('.docs-sidebar');
@@ -1930,7 +1931,7 @@ const ErisPulseApp = (function () {
 
      
     const docConfig = {
-        baseUrl: ' https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
+        baseUrl: CONFIG.DEFAULT_USER_SETTINGS.gh_proxy + 'https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
         githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/main/',
 
         docs: {
@@ -2201,12 +2202,12 @@ const ErisPulseApp = (function () {
             document.querySelectorAll('#docs-content a').forEach(link => {
                 link.addEventListener('click', function (e) {
                     const href = this.getAttribute('href');
-                    
+
                      
                     if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
                         return;
                     }
-                    
+
                      
                     if (href && href.startsWith('#')) {
                         e.preventDefault();
@@ -2219,18 +2220,18 @@ const ErisPulseApp = (function () {
                         }
                         return;
                     }
-                    
+
                      
                     if (href && !href.includes('://')) {
                         e.preventDefault();
-                        
+
                          
                         const currentDoc = window.location.hash.split('/')[1];
                         const currentDocPath = docConfig.docs[currentDoc] || '';
-                        
+
                          
                         const targetDocId = getDocIdFromPath(href, currentDocPath);
-                        
+
                         if (targetDocId) {
                              
                             navigateToDocument(targetDocId);
@@ -2329,7 +2330,7 @@ const ErisPulseApp = (function () {
              
             const sidebar = document.querySelector('.docs-sidebar');
             const isSidebarCollapsed = sidebar && sidebar.classList.contains('collapsed');
-            
+
             if (window.innerWidth > 1200 && !isSidebarCollapsed) {
                  
                 const contentToc = document.querySelector('.docs-content .table-of-contents');
@@ -2356,7 +2357,7 @@ const ErisPulseApp = (function () {
 
                 if (toc.parentNode !== document.querySelector('.docs-content')) {
                     toc.remove();
-                    
+
                      
                     const docsContent = document.querySelector('.docs-content');
                     const markdownContent = docsContent.querySelector('.markdown-content');
@@ -2399,24 +2400,24 @@ const ErisPulseApp = (function () {
     function resolvePath(relativePath, basePath) {
          
         let cleanPath = relativePath.replace(/^\.?\//, '');
-        
+
          
         if (relativePath.startsWith('/')) {
             return cleanPath;
         }
-        
+
          
         if (!basePath) {
             return cleanPath;
         }
-        
+
          
         const baseParts = basePath.split('/');
         const relativeParts = cleanPath.split('/');
-        
+
          
         baseParts.pop();
-        
+
          
         relativeParts.forEach(part => {
             if (part === '..') {
@@ -2425,7 +2426,7 @@ const ErisPulseApp = (function () {
                 baseParts.push(part);
             }
         });
-        
+
         return baseParts.join('/');
     }
 
@@ -2433,12 +2434,12 @@ const ErisPulseApp = (function () {
     function getDocIdFromPath(filePath, currentDocPath) {
          
         let normalizedPath = filePath.replace(/\.md$/, '');
-        
+
          
         if (normalizedPath.startsWith('docs/')) {
             normalizedPath = normalizedPath.substring(5);
         }
-        
+
          
         for (const [docId, docPath] of Object.entries(docConfig.docs)) {
             const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
@@ -2446,12 +2447,12 @@ const ErisPulseApp = (function () {
                 return docId;
             }
         }
-        
+
          
         if (currentDocPath) {
             const absolutePath = resolvePath(filePath, currentDocPath);
             const normalizedAbsolutePath = absolutePath.replace(/\.md$/, '').replace(/^docs\//, '');
-            
+
             for (const [docId, docPath] of Object.entries(docConfig.docs)) {
                 const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
                 if (normalizedDocPath === normalizedAbsolutePath) {
@@ -2459,7 +2460,7 @@ const ErisPulseApp = (function () {
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -2532,7 +2533,7 @@ const ErisPulseApp = (function () {
 
                 let parsedContent = marked.parse(content);
                 parsedContent = wrapTables(parsedContent);
-                
+
                 groupContent += `
                     <div id="${docId}" style="padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border);">
                         <h2 style="color: var(--text); margin-top: 2rem;">${title}</h2>
@@ -2939,7 +2940,7 @@ const ErisPulseApp = (function () {
             const repoData = await repoInfo.json();
             const defaultBranch = repoData.default_branch;
 
-            const readmeUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/README.md`;
+            const readmeUrl = CONFIG.DEFAULT_USER_SETTINGS.gh_proxy + `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/README.md`;
             const response = await fetch(readmeUrl);
 
             if (!response.ok) {
