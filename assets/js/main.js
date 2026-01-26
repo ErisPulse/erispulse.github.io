@@ -2,62 +2,331 @@
  * ErisPulse 网站主 JavaScript 文件
  */
 
-// 主应用对象
-const ErisPulseApp = (function () {
-    // ==================== 配置和常量 ====================
-    const CONFIG = {
-        SETTINGS_VERSION: '1.0',
-        STORAGE_KEYS: {
-            SETTINGS: 'erispulse-settings',
-            THEME: 'theme'
-        },
-        DEFAULT_USER_SETTINGS: {
-            version: '1.0',
-            theme: 'auto',
-            presetTheme: '', // 预设主题
-            customColors: {},
-            animations: true,
-            compactLayout: false,
-            showLineNumbers: false,
-            stickyNav: true,
-            gh_proxy: 'https://cdn.gh-proxy.org/'
-        },
-        THEME_PRESETS: {
-            ocean: {
-                '--primary': '#1e88e5',
-                '--primary-rgb': '30, 136, 229',
-                '--primary-dark': '#1565c0',
-                '--primary-dark-rgb': '21, 101, 192',
-                '--accent': '#26c6da',
-                '--accent-rgb': '38, 198, 218'
-            },
-            sunset: {
-                '--primary': '#ff7043',
-                '--primary-rgb': '255, 112, 67',
-                '--primary-dark': '#f4511e',
-                '--primary-dark-rgb': '244, 81, 30',
-                '--accent': '#ffca28',
-                '--accent-rgb': '255, 202, 40'
-            },
-            forest: {
-                '--primary': '#43a047',
-                '--primary-rgb': '67, 160, 71',
-                '--primary-dark': '#2e7d32',
-                '--primary-dark-rgb': '46, 125, 50',
-                '--accent': '#9ccc65',
-                '--accent-rgb': '156, 204, 101'
-            },
-            lavender: {
-                '--primary': '#8e24aa',
-                '--primary-rgb': '142, 36, 170',
-                '--primary-dark': '#6a1b9a',
-                '--primary-dark-rgb': '106, 27, 154',
-                '--accent': '#ab47bc',
-                '--accent-rgb': '171, 71, 188'
-            }
-        }
-    };
+// ==================== 全局配置 ====================
+const CONFIG = {
+    // 网站基础配置
+    SITE: {
+        name: 'ErisPulse',
+        description: '高性能异步机器人开发框架',
+        version: '2.0.0',
+        url: 'https://www.erisdev.com',
+        github: 'https://github.com/ErisPulse',
+        author: 'ErisPulse Team'
+    },
 
+    // 外部依赖配置
+    DEPENDENCIES: {
+        // Font Awesome
+        fontAwesome: {
+            css: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+            version: '6.4.0'
+        },
+        // Prism.js (代码高亮)
+        prism: {
+            core: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js',
+            autoloader: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js',
+            lineNumbers: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js',
+            python: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js',
+            theme: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css',
+            themeLineNumbers: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css',
+            version: '1.29.0'
+        },
+        // Marked (Markdown解析)
+        marked: {
+            js: 'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js',
+            version: '4.3.0'
+        },
+        // Chart.js (图表)
+        chart: {
+            js: 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js',
+            version: '3.9.1'
+        },
+        // Mermaid (图表)
+        mermaid: {
+            js: 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js',
+            version: '10.9.1'
+        }
+    },
+
+    // 项目依赖列表配置
+    PROJECT_DEPENDENCIES: [
+        {
+            name: "aiohttp",
+            url: "https://github.com/aio-libs/aiohttp",
+            description: "异步HTTP客户端/服务器框架，用于处理网络请求"
+        },
+        {
+            name: "fastapi",
+            url: "https://github.com/tiangolo/fastapi",
+            description: "现代、快速（高性能）的Web框架，用于构建API"
+        },
+        {
+            name: "pydantic",
+            url: "https://github.com/pydantic/pydantic",
+            description: "数据验证和设置管理，基于Python类型提示"
+        },
+        {
+            name: "rich",
+            url: "https://github.com/Textualize/rich",
+            description: "在终端中提供丰富的文本和美观的格式化输出"
+        },
+        {
+            name: "colorama",
+            url: "https://github.com/tartley/colorama",
+            description: "简化在Windows上的彩色终端文本输出"
+        },
+        {
+            name: "keyboard",
+            url: "https://github.com/boppreh/keyboard",
+            description: "处理键盘事件的跨平台库"
+        },
+        {
+            name: "watchdog",
+            url: "https://github.com/gorakhargosh/watchdog",
+            description: "监控文件系统事件的库，用于热重载功能"
+        },
+        {
+            name: "toml",
+            url: "https://github.com/uiri/toml",
+            description: "解析和生成TOML格式配置文件"
+        },
+        {
+            name: "hypercorn",
+            url: "https://github.com/pgjones/hypercorn",
+            description: "基于ASGI的HTTP服务器，用于运行FastAPI应用"
+        },
+        {
+            name: "python-multipart",
+            url: "https://github.com/andrew-d/python-multipart",
+            description: "解析multipart/form-data格式数据"
+        }
+    ],
+
+    // 友链配置
+    FRIEND_LINKS: [
+        {
+            name: 'Python',
+            url: 'https://www.python.org',
+            description: 'Python 官方网站',
+            icon: 'fab fa-python'
+        },
+        {
+            name: 'OneBot',
+            url: 'https://12.onebot.dev',
+            description: 'OneBot12 协议规范',
+            icon: 'fas fa-robot'
+        },
+        {
+            name: 'GitHub',
+            url: 'https://github.com',
+            description: '全球最大的代码托管平台',
+            icon: 'fab fa-github'
+        },
+        {
+            name: 'Codeberg',
+            url: 'https://codeberg.org',
+            description: '自由、开源的代码托管社区',
+            icon: 'fas fa-code-branch'
+        }
+    ],
+
+    // 文档配置
+    DOCS: {
+        baseUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
+        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/main/',
+
+        // 文档分类和导航结构
+        categories: {
+            'getting-started': {
+                title: '快速开始',
+                icon: 'fa-rocket',
+                docs: [
+                    { id: 'quick-start', title: '快速开始指南', icon: 'fa-rocket' }
+                ]
+            },
+            'ai': {
+                title: 'AI相关',
+                icon: 'fa-brain',
+                docs: [
+                    { id: 'ai-module', title: 'AI模块生成', icon: 'fa-brain' },
+                    { id: 'ai-readme', title: 'AI文档总览', icon: 'fa-book' }
+                ]
+            },
+            'core': {
+                title: '核心功能',
+                icon: 'fa-cogs',
+                docs: [
+                    { id: 'cli', title: '命令行接口', icon: 'fa-terminal' },
+                    { id: 'core-concepts', title: '核心概念', icon: 'fa-cogs' },
+                    { id: 'core-modules', title: '核心模块', icon: 'fa-th' },
+                    { id: 'core-adapters', title: '适配器系统', icon: 'fa-plug' },
+                    { id: 'core-event-system', title: '事件系统', icon: 'fa-calendar' },
+                    { id: 'core-self-config', title: '配置解析', icon: 'fa-cog' },
+                    { id: 'core-best-practices', title: '最佳实践', icon: 'fa-check-circle' },
+                    { id: 'core-lazy-loading', title: '懒加载机制', icon: 'fa-hourglass-half' },
+                    { id: 'core-router', title: '路由系统', icon: 'fa-route' },
+                    { id: 'ux-improvements', title: '用户体验改进', icon: 'fa-user-friends' }
+                ]
+            },
+            'development': {
+                title: '开发指南',
+                icon: 'fa-code',
+                docs: [
+                    { id: 'dev-readme', title: '开发入门', icon: 'fa-book' },
+                    { id: 'dev-module', title: '模块开发', icon: 'fa-cube' },
+                    { id: 'dev-adapter', title: '适配器开发', icon: 'fa-plug' },
+                    { id: 'dev-cli', title: 'CLI 开发', icon: 'fa-terminal' }
+                ]
+            },
+            'standards': {
+                title: '标准规范',
+                icon: 'fa-file-alt',
+                docs: [
+                    { id: 'adapter-standards', title: '标准规范总览', icon: 'fa-file-alt' },
+                    { id: 'event-conversion', title: '事件转换', icon: 'fa-random' },
+                    { id: 'api-response', title: 'API 响应', icon: 'fa-exchange-alt' }
+                ]
+            },
+            'styleguide': {
+                title: '风格指南',
+                icon: 'fa-code',
+                docs: [
+                    { id: 'styleguide', title: '代码风格指南', icon: 'fa-code' },
+                    { id: 'docstring-spec', title: '文档字符串规范', icon: 'fa-file-code' }
+                ]
+            },
+            'platform-features': {
+                title: '平台特性',
+                icon: 'fa-list',
+                docs: [
+                    { id: 'platform-features', title: '平台特性总览', icon: 'fa-list' },
+                    { id: 'platform-yunhu', title: '云湖平台特性', icon: 'fa-cloud' },
+                    { id: 'platform-telegram', title: 'Telegram平台特性', icon: 'fab fa-telegram' },
+                    { id: 'platform-onebot11', title: 'OneBot11平台特性', icon: 'fa-robot' },
+                    { id: 'platform-email', title: '邮件平台特性', icon: 'fa-envelope' },
+                    { id: 'platform-maintain-notes', title: '维护说明', icon: 'fa-tools' }
+                ]
+            }
+        },
+
+        // 文档路径映射
+        paths: {
+            'quick-start': 'docs/quick-start.md',
+            'ai-module': 'docs/ai/module-generation.md',
+            'ai-readme': 'docs/ai/README.md',
+            'cli': 'docs/core/cli.md',
+            'core-concepts': 'docs/core/concepts.md',
+            'core-modules': 'docs/core/modules.md',
+            'core-adapters': 'docs/core/adapters.md',
+            'core-event-system': 'docs/core/event-system.md',
+            'core-best-practices': 'docs/core/best-practices.md',
+            'core-self-config': 'docs/core/self-config.md',
+            'core-lazy-loading': 'docs/core/lazy-loading.md',
+            'core-router': 'docs/core/router.md',
+            'ux-improvements': 'docs/ux-improvements.md',
+            'dev-readme': 'docs/development/README.md',
+            'dev-module': 'docs/development/module.md',
+            'dev-adapter': 'docs/development/adapter.md',
+            'dev-cli': 'docs/development/cli.md',
+            'adapter-standards': 'docs/standards/README.md',
+            'event-conversion': 'docs/standards/event-conversion.md',
+            'api-response': 'docs/standards/api-response.md',
+            'platform-features': 'docs/platform-features/README.md',
+            'platform-yunhu': 'docs/platform-features/yunhu.md',
+            'platform-telegram': 'docs/platform-features/telegram.md',
+            'platform-onebot11': 'docs/platform-features/onebot11.md',
+            'platform-email': 'docs/platform-features/email.md',
+            'platform-maintain-notes': 'docs/platform-features/maintain-notes.md',
+            'styleguide': 'docs/styleguide/README.md',
+            'docstring-spec': 'docs/styleguide/docstring_spec.md'
+        }
+    },
+
+    // 应用设置
+    SETTINGS_VERSION: '1.0',
+    STORAGE_KEYS: {
+        SETTINGS: 'erispulse-settings',
+        THEME: 'theme'
+    },
+    DEFAULT_USER_SETTINGS: {
+        version: '1.0',
+        theme: 'auto',
+        presetTheme: '',
+        customColors: {},
+        animations: true,
+        compactLayout: false,
+        showLineNumbers: false,
+        stickyNav: true,
+        gh_proxy: 'https://cdn.gh-proxy.org/'
+    },
+    THEME_PRESETS: {
+        ocean: {
+            '--primary': '#1e88e5',
+            '--primary-rgb': '30, 136, 229',
+            '--primary-dark': '#1565c0',
+            '--primary-dark-rgb': '21, 101, 192',
+            '--accent': '#26c6da',
+            '--accent-rgb': '38, 198, 218'
+        },
+        sunset: {
+            '--primary': '#ff7043',
+            '--primary-rgb': '255, 112, 67',
+            '--primary-dark': '#f4511e',
+            '--primary-dark-rgb': '244, 81, 30',
+            '--accent': '#ffca28',
+            '--accent-rgb': '255, 202, 40'
+        },
+        forest: {
+            '--primary': '#43a047',
+            '--primary-rgb': '67, 160, 71',
+            '--primary-dark': '#2e7d32',
+            '--primary-dark-rgb': '46, 125, 50',
+            '--accent': '#9ccc65',
+            '--accent-rgb': '156, 204, 101'
+        },
+        lavender: {
+            '--primary': '#8e24aa',
+            '--primary-rgb': '142, 36, 170',
+            '--primary-dark': '#6a1b9a',
+            '--primary-dark-rgb': '106, 27, 154',
+            '--accent': '#ab47bc',
+            '--accent-rgb': '171, 71, 188'
+        }
+    },
+
+    // API 端点
+    API: {
+        contributors: 'https://api.github.com/repos/ErisPulse/ErisPulse/contributors',
+        packages: 'https://erisdev.com/packages.json',
+        changelog: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/CHANGELOG.md',
+        ciRuns: 'https://api.github.com/repos/ErisPulse/ErisPulse/actions/runs?per_page=20'
+    },
+
+    // 服务状态监控
+    SERVICES: {
+        install: {
+            name: '安装服务',
+            domain: 'get.erisdev.com',
+            url: 'https://get.erisdev.com/install.sh',
+            icon: 'fa-download'
+        },
+        packages: {
+            name: '包源服务',
+            domain: 'erisdev.com',
+            url: 'https://erisdev.com/packages',
+            icon: 'fa-box'
+        },
+        ci: {
+            name: 'CI/CD',
+            domain: 'GitHub Actions',
+            url: '',
+            icon: 'fab fa-github'
+        }
+    }
+};
+
+// ==================== 主应用对象 ====================
+const ErisPulseApp = (function () {
     // ==================== 私有变量 ====================
     let currentTheme = 'light';
     let allModules = [];
@@ -66,6 +335,12 @@ const ErisPulseApp = (function () {
     let activeCategory = 'all';
     let searchQuery = '';
     let userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
+    let filters = {
+        version: 'all',
+        change: 'all',
+        time: 'all'
+    };
+    let changelogData = [];
 
     // ==================== 初始化模块 ====================
     function init() {
@@ -81,6 +356,7 @@ const ErisPulseApp = (function () {
         setupDocumentation();
         setupModals();
         setupSettings();
+        renderFriendLinks();
     }
 
     function setupStorage() {
@@ -89,7 +365,6 @@ const ErisPulseApp = (function () {
             if (savedSettings) {
                 const parsedSettings = JSON.parse(savedSettings);
 
-                // 检查版本兼容性
                 if (!parsedSettings.version || parsedSettings.version !== CONFIG.SETTINGS_VERSION) {
                     localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
                     userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
@@ -125,7 +400,6 @@ const ErisPulseApp = (function () {
             if (savedSettings) {
                 const parsedSettings = JSON.parse(savedSettings);
 
-                // 检查版本兼容性
                 if (!parsedSettings.version || parsedSettings.version !== CONFIG.SETTINGS_VERSION) {
                     localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
                     userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
@@ -180,7 +454,6 @@ const ErisPulseApp = (function () {
     }
 
     function applyThemeSetting() {
-        // 清除所有自定义变量
         clearAllCustomVariables();
 
         if (userSettings.theme === 'auto') {
@@ -190,7 +463,6 @@ const ErisPulseApp = (function () {
             document.documentElement.setAttribute('data-theme', userSettings.theme);
         }
 
-        // 应用预设主题或自定义颜色
         if (userSettings.presetTheme && userSettings.presetTheme !== 'default') {
             applyPresetTheme(userSettings.presetTheme, false);
         } else if (userSettings.customColors && hasCustomColors()) {
@@ -198,13 +470,11 @@ const ErisPulseApp = (function () {
         }
     }
 
-    // 检查是否有自定义颜色
     function hasCustomColors() {
         const colors = userSettings.customColors;
         return colors && Object.values(colors).some(color => color && color !== '');
     }
 
-    // 清除所有自定义CSS变量
     function clearAllCustomVariables() {
         const root = document.documentElement;
         const customProperties = [
@@ -222,13 +492,11 @@ const ErisPulseApp = (function () {
     }
 
     function applyCustomColors() {
-        // 清除预设主题标记
         const root = document.documentElement;
         const colors = userSettings.customColors;
 
         if (!colors) return;
 
-        // 应用自定义颜色
         Object.keys(colors).forEach(key => {
             if (colors[key]) {
                 root.style.setProperty(key, colors[key]);
@@ -237,29 +505,24 @@ const ErisPulseApp = (function () {
     }
 
     function applyPresetTheme(preset, save = true) {
-        // 清除之前的自定义样式
         clearAllCustomVariables();
 
         if (preset !== 'default') {
             const theme = CONFIG.THEME_PRESETS[preset];
             if (theme) {
-                // 应用预设主题的所有变量
                 const root = document.documentElement;
                 Object.keys(theme).forEach(key => {
                     root.style.setProperty(key, theme[key]);
                 });
 
-                // 如果需要保存设置
                 if (save) {
                     userSettings.presetTheme = preset;
-                    // 清除自定义颜色
                     userSettings.customColors = {};
                     saveUserSettings();
                     showMessage(`已应用 ${getPresetThemeName(preset)} 预设样式`, 'success');
                 }
             }
         } else {
-            // 应用默认主题时，清除所有自定义变量
             if (save) {
                 userSettings.presetTheme = 'default';
                 userSettings.customColors = {};
@@ -269,7 +532,6 @@ const ErisPulseApp = (function () {
         }
     }
 
-    // 获取预设主题显示名称
     function getPresetThemeName(preset) {
         const names = {
             'default': '默认',
@@ -416,6 +678,11 @@ const ErisPulseApp = (function () {
             loadChangelogData();
             checkServiceStatus();
         }
+
+        if (view === 'about') {
+            loadContributors();
+            loadDependencies();
+        }
     }
 
     function showMessage(message, type) {
@@ -460,6 +727,29 @@ const ErisPulseApp = (function () {
                 }
             }, 3000);
         }, 3000);
+    }
+
+    // ==================== 友链功能 ====================
+    function renderFriendLinks() {
+        const container = document.getElementById('friend-links-container');
+        if (!container) return;
+
+        if (CONFIG.FRIEND_LINKS.length === 0) {
+            container.innerHTML = '<p class="no-friend-links">暂无友链</p>';
+            return;
+        }
+
+        const linksHtml = CONFIG.FRIEND_LINKS.map(link => `
+            <a href="${link.url}" target="_blank" class="friend-link" rel="noopener noreferrer">
+                <i class="${link.icon || 'fas fa-link'}"></i>
+                <div class="friend-link-info">
+                    <span class="friend-link-name">${link.name}</span>
+                    <span class="friend-link-desc">${link.description}</span>
+                </div>
+            </a>
+        `).join('');
+
+        container.innerHTML = linksHtml;
     }
 
     // ==================== 设置模块 ====================
@@ -605,11 +895,10 @@ const ErisPulseApp = (function () {
     function initPresetSelector() {
         if (!document.getElementById('preset-themes')) return;
 
-        // 根据当前设置选择预设
         if (userSettings.presetTheme) {
             document.getElementById('preset-themes').value = userSettings.presetTheme;
         } else if (hasCustomColors()) {
-            document.getElementById('preset-themes').value = 'default'; // 有自定义颜色时显示默认
+            document.getElementById('preset-themes').value = 'default';
         } else {
             document.getElementById('preset-themes').value = 'default';
         }
@@ -634,10 +923,8 @@ const ErisPulseApp = (function () {
     }
 
     function applyAdvancedColors() {
-        // 清除预设主题
         userSettings.presetTheme = '';
 
-        // 收集颜色值
         const colorSettings = {
             '--primary': document.getElementById('advanced-primary').value,
             '--primary-dark': document.getElementById('advanced-primary-dark').value,
@@ -653,17 +940,10 @@ const ErisPulseApp = (function () {
             '--shadow-sm': document.getElementById('advanced-shadow').value
         };
 
-        // 保存到用户设置
         userSettings.customColors = colorSettings;
-
-        // 应用颜色
         applyCustomColors();
-
-        // 保存设置
         saveUserSettings();
         showMessage('颜色设置已应用', 'success');
-
-        // 更新预设选择器
         initPresetSelector();
     }
 
@@ -694,7 +974,7 @@ const ErisPulseApp = (function () {
 
     async function loadModuleData() {
         try {
-            const response = await fetch('https://erisdev.com/packages.json');
+            const response = await fetch(CONFIG.API.packages);
             if (!response.ok) throw new Error('模块API请求失败');
             const data = await response.json();
 
@@ -737,8 +1017,6 @@ const ErisPulseApp = (function () {
 
             updateStats();
             renderModules();
-            loadContributors();
-            loadDependencies();
 
         } catch (error) {
             console.error('加载模块数据失败:', error);
@@ -864,7 +1142,7 @@ const ErisPulseApp = (function () {
 
     async function loadContributors() {
         try {
-            const response = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse/contributors');
+            const response = await fetch(CONFIG.API.contributors);
             if (!response.ok) throw new Error('贡献者API请求失败');
             const contributors = await response.json();
 
@@ -889,63 +1167,10 @@ const ErisPulseApp = (function () {
     }
 
     function loadDependencies() {
-        const dependencies = [
-            {
-                name: "aiohttp",
-                url: "https://github.com/aio-libs/aiohttp",
-                description: "异步HTTP客户端/服务器框架，用于处理网络请求"
-            },
-            {
-                name: "fastapi",
-                url: "https://github.com/tiangolo/fastapi",
-                description: "现代、快速（高性能）的Web框架，用于构建API"
-            },
-            {
-                name: "pydantic",
-                url: "https://github.com/pydantic/pydantic",
-                description: "数据验证和设置管理，基于Python类型提示"
-            },
-            {
-                name: "rich",
-                url: "https://github.com/Textualize/rich",
-                description: "在终端中提供丰富的文本和美观的格式化输出"
-            },
-            {
-                name: "colorama",
-                url: "https://github.com/tartley/colorama",
-                description: "简化在Windows上的彩色终端文本输出"
-            },
-            {
-                name: "keyboard",
-                url: "https://github.com/boppreh/keyboard",
-                description: "处理键盘事件的跨平台库"
-            },
-            {
-                name: "watchdog",
-                url: "https://github.com/gorakhargosh/watchdog",
-                description: "监控文件系统事件的库，用于热重载功能"
-            },
-            {
-                name: "toml",
-                url: "https://github.com/uiri/toml",
-                description: "解析和生成TOML格式配置文件"
-            },
-            {
-                name: "hypercorn",
-                url: "https://github.com/pgjones/hypercorn",
-                description: "基于ASGI的HTTP服务器，用于运行FastAPI应用"
-            },
-            {
-                name: "python-multipart",
-                url: "https://github.com/andrew-d/python-multipart",
-                description: "解析multipart/form-data格式数据"
-            }
-        ];
-
         const container = document.getElementById('dependencies-container');
         container.innerHTML = '';
 
-        dependencies.forEach(dep => {
+        CONFIG.PROJECT_DEPENDENCIES.forEach(dep => {
             const depElement = document.createElement('div');
             depElement.className = 'dependency-card';
             depElement.innerHTML = `
@@ -959,15 +1184,7 @@ const ErisPulseApp = (function () {
     }
 
     // ==================== 更新日志模块 ====================
-    let changelogData = [];
-    let filters = {
-        version: 'all',
-        change: 'all',
-        time: 'all'
-    };
-
     function setupChangelog() {
-        // 搜索功能
         const searchInput = document.getElementById('changelog-search');
         const clearSearchBtn = document.getElementById('clear-search');
 
@@ -984,7 +1201,6 @@ const ErisPulseApp = (function () {
             renderChangelog();
         });
 
-        // 筛选切换按钮
         const toggleFiltersBtn = document.getElementById('toggle-filters');
         const filtersContent = document.getElementById('filters-content');
 
@@ -993,34 +1209,28 @@ const ErisPulseApp = (function () {
             toggleFiltersBtn.classList.toggle('active');
         });
 
-        // 筛选按钮事件处理
         document.querySelectorAll('.version-filter-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const filterType = this.dataset.type;
                 const filterValue = this.dataset.filter;
 
-                // 更新同组按钮状态
                 document.querySelectorAll(`.version-filter-btn[data-type="${filterType}"]`).forEach(b => {
                     b.classList.remove('active');
                 });
                 this.classList.add('active');
 
-                // 更新筛选状态
                 filters[filterType] = filterValue;
                 renderChangelog();
             });
         });
 
-        // 重置筛选按钮
         document.getElementById('reset-filters')?.addEventListener('click', function () {
-            // 重置所有筛选状态
             filters = {
                 version: 'all',
                 change: 'all',
                 time: 'all'
             };
 
-            // 重置所有按钮状态
             document.querySelectorAll('.version-filter-btn').forEach(btn => {
                 if (btn.dataset.filter === 'all') {
                     btn.classList.add('active');
@@ -1029,11 +1239,9 @@ const ErisPulseApp = (function () {
                 }
             });
 
-            // 重新渲染
             renderChangelog();
         });
 
-        // 服务状态卡片点击展开/收起
         document.querySelectorAll('.service-status-item').forEach(item => {
             const header = item.querySelector('.service-status-header');
             header.addEventListener('click', function () {
@@ -1041,7 +1249,6 @@ const ErisPulseApp = (function () {
             });
         });
 
-        // 视图切换时加载
         window.addEventListener('hashchange', checkChangelogView);
         checkChangelogView();
     }
@@ -1055,11 +1262,8 @@ const ErisPulseApp = (function () {
     }
 
     async function checkServiceStatus() {
-        // 检查安装服务
-        checkService('https://get.erisdev.com/install.sh', 'install');
-        // 检查包源服务
-        checkService('https://erisdev.com/packages', 'packages');
-        // 检查CI状态
+        checkService(CONFIG.SERVICES.install.url, 'install');
+        checkService(CONFIG.SERVICES.packages.url, 'packages');
         checkCIStatus();
     }
 
@@ -1080,7 +1284,6 @@ const ErisPulseApp = (function () {
             const endTime = Date.now();
             const responseTime = endTime - startTime;
 
-            // 由于 no-cors 模式无法获取详细状态，我们假设成功
             indicator.className = 'status-indicator online';
             indicator.innerHTML = '<i class="fas fa-circle"></i>';
 
@@ -1092,7 +1295,6 @@ const ErisPulseApp = (function () {
                 statusText.textContent = '较慢';
             }
 
-            // 更新详情
             if (detailResponse) {
                 detailResponse.textContent = `${responseTime}ms`;
             }
@@ -1106,7 +1308,6 @@ const ErisPulseApp = (function () {
 
             statusText.textContent = '离线';
 
-            // 更新详情
             if (detailResponse) {
                 detailResponse.textContent = '--';
             }
@@ -1127,19 +1328,16 @@ const ErisPulseApp = (function () {
         if (!indicator || !statusText) return;
 
         try {
-            // 获取最近的工作流运行记录
-            const response = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse/actions/runs?per_page=20');
+            const response = await fetch(CONFIG.API.ciRuns);
             if (response.ok) {
                 const data = await response.json();
                 const runs = data.workflow_runs || [];
 
                 if (runs.length > 0) {
-                    // 计算最近20次运行的状态
                     const successCount = runs.filter(run => run.conclusion === 'success').length;
                     const totalCount = runs.length;
                     const successRate = (successCount / totalCount * 100).toFixed(1);
 
-                    // 获取最近一次运行
                     const lastRun = runs[0];
                     const lastRunTime = new Date(lastRun.created_at);
                     const timeDiff = Date.now() - lastRunTime.getTime();
@@ -1155,7 +1353,6 @@ const ErisPulseApp = (function () {
                         timeAgoText = `${minutesAgo} 分钟前`;
                     }
 
-                    // 判断整体状态
                     if (successRate >= 90) {
                         indicator.className = 'status-indicator online';
                         indicator.innerHTML = '<i class="fas fa-circle"></i>';
@@ -1185,7 +1382,6 @@ const ErisPulseApp = (function () {
                         }
                     }
 
-                    // 更新详情
                     if (detailWorkflowCount) {
                         detailWorkflowCount.textContent = totalCount;
                     }
@@ -1222,8 +1418,7 @@ const ErisPulseApp = (function () {
         const changelogList = document.getElementById('changelog-list');
 
         try {
-            // 从 GitHub 获取 CHANGELOG.md
-            const response = await fetch(CONFIG.DEFAULT_USER_SETTINGS.gh_proxy + 'https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/CHANGELOG.md');
+            const response = await fetch(CONFIG.API.changelog);
             if (!response.ok) throw new Error('获取更新日志失败');
 
             const markdown = await response.text();
@@ -1242,7 +1437,6 @@ const ErisPulseApp = (function () {
                 </div>
             `;
 
-            // 添加重试按钮事件
             document.getElementById('retry-load-changelog')?.addEventListener('click', loadChangelogData);
         }
     }
@@ -1258,18 +1452,15 @@ const ErisPulseApp = (function () {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
 
-            // 检测代码块开始/结束
             if (line.trim().startsWith('```')) {
                 inCodeBlock = !inCodeBlock;
                 continue;
             }
 
-            // 如果在代码块内，跳过所有内容
             if (inCodeBlock) {
                 continue;
             }
 
-            // 匹配版本标题: ## [version] - date
             const versionMatch = line.match(/^##\s+\[([^\]]+)\]\s*-\s*(\d{4}\/\d{2}\/\d{2})/);
             if (versionMatch) {
                 if (currentVersion) {
@@ -1287,19 +1478,16 @@ const ErisPulseApp = (function () {
                 continue;
             }
 
-            // 跳过规则部分和其他非版本相关的二级标题
             const ruleMatch = line.match(/^##\s+(规则|示例)/);
             if (ruleMatch) {
                 shouldSkipSection = true;
                 continue;
             }
 
-            // 如果当前需要跳过，继续跳过直到遇到下一个版本
             if (shouldSkipSection) {
                 continue;
             }
 
-            // 匹配开发版本说明
             if (line.trim().startsWith('>')) {
                 if (currentVersion) {
                     currentVersion.note = line.replace(/^>\s*/, '');
@@ -1307,7 +1495,6 @@ const ErisPulseApp = (function () {
                 continue;
             }
 
-            // 匹配章节标题: ### 新增/变更/修复/移除/废弃/文档
             const sectionMatch = line.match(/^###\s+(新增|变更|修复|移除|废弃|文档)/);
             if (sectionMatch && currentVersion) {
                 currentVersion.sections.push({
@@ -1317,14 +1504,12 @@ const ErisPulseApp = (function () {
                 continue;
             }
 
-            // 如果没有当前版本或章节，跳过
             if (!currentVersion || currentVersion.sections.length === 0) {
                 continue;
             }
 
             const currentSection = currentVersion.sections[currentVersion.sections.length - 1];
 
-            // 匹配贡献者信息: - @username
             const contributorMatch = line.match(/^\s*-\s*@(\w+)/);
             if (contributorMatch) {
                 currentSection.items.push({
@@ -1334,7 +1519,6 @@ const ErisPulseApp = (function () {
                 continue;
             }
 
-            // 匹配条目: - 文本内容
             const itemMatch = line.match(/^\s*-\s+(.+)$/);
             if (itemMatch) {
                 currentSection.items.push({
@@ -1344,7 +1528,6 @@ const ErisPulseApp = (function () {
                 continue;
             }
 
-            // 匹配嵌套条目（4个或更多空格缩进的 - ）
             const nestedMatch = line.match(/^\s{4,}-\s+(.+)$/);
             if (nestedMatch && currentSection.items.length > 0) {
                 const lastItem = currentSection.items[currentSection.items.length - 1];
@@ -1372,14 +1555,11 @@ const ErisPulseApp = (function () {
     function renderChangelog() {
         const changelogList = document.getElementById('changelog-list');
 
-        // 搜索和筛选逻辑
         let filteredVersions = changelogData.map(version => {
-            // 版本类型筛选
             if (filters.version !== 'all' && version.type !== filters.version) {
                 return null;
             }
 
-            // 时间筛选
             if (filters.time !== 'all') {
                 const versionDate = new Date(version.date.replace(/\//g, '-'));
                 const now = new Date();
@@ -1398,7 +1578,6 @@ const ErisPulseApp = (function () {
                 }
             }
 
-            // 搜索匹配
             let filteredSections = version.sections;
             let versionMatchesSearch = false;
 
@@ -1407,15 +1586,13 @@ const ErisPulseApp = (function () {
                 const versionText = `${version.version} ${version.date} ${version.note || ''}`.toLowerCase();
                 versionMatchesSearch = versionText.includes(query);
 
-                // 如果匹配版本号,显示完整版本
                 if (versionMatchesSearch) {
                     return {
                         ...version,
-                        sections: version.sections // 保留所有章节
+                        sections: version.sections
                     };
                 }
 
-                // 在章节中搜索
                 filteredSections = version.sections.map(section => {
                     const sectionMatches = section.type.toLowerCase().includes(query);
                     const filteredItems = section.items.filter(item => {
@@ -1433,13 +1610,11 @@ const ErisPulseApp = (function () {
                     return null;
                 }).filter(Boolean);
 
-                // 如果没有匹配的章节且版本本身也不匹配,则跳过
                 if (filteredSections.length === 0 && !versionMatchesSearch) {
                     return null;
                 }
             }
 
-            // 变更类型筛选
             if (filters.change !== 'all') {
                 const changeTypeMap = {
                     'added': '新增',
@@ -1451,7 +1626,6 @@ const ErisPulseApp = (function () {
                     return section.type === changeTypeMap[filters.change];
                 });
 
-                // 如果筛选后没有章节,则整个版本也不显示
                 if (filteredSections.length === 0) {
                     return null;
                 }
@@ -1461,7 +1635,7 @@ const ErisPulseApp = (function () {
                 ...version,
                 sections: filteredSections
             };
-        }).filter(Boolean); // 移除 null 值
+        }).filter(Boolean);
 
         if (filteredVersions.length === 0) {
             changelogList.innerHTML = `
@@ -1567,7 +1741,8 @@ const ErisPulseApp = (function () {
 
     // ==================== 文档模块 ====================
     function setupDocumentation() {
-        // 文档分类展开/收起
+        renderDocsNavigation();
+        
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -1592,32 +1767,21 @@ const ErisPulseApp = (function () {
             }
         });
 
-        // 文档链接点击事件
         document.querySelectorAll('.docs-nav-link').forEach(link => {
             link.addEventListener('click', function (e) {
                 const docName = this.getAttribute('data-doc');
-                // 只有有 data-doc 属性的链接才拦截点击并加载文档
                 if (docName) {
                     e.preventDefault();
                     navigateToDocument(docName);
                 }
-                // 没有则保持默认行为（如外部链接跳转）
             });
         });
 
-        // 文档搜索功能
         setupDocumentationSearch();
-
-        // 面包屑导航
         setupBreadcrumbNavigation();
-
-        // 文档操作按钮
         setupDocumentActions();
-
-        // 响应式处理
         setupDocumentationResponsive();
 
-        // 初始加载
         const hash = window.location.hash.substring(1);
         if (hash === 'docs') {
             const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
@@ -1627,8 +1791,44 @@ const ErisPulseApp = (function () {
         }
     }
 
+    function renderDocsNavigation() {
+        const navContainer = document.querySelector('.docs-nav-container');
+        if (!navContainer) return;
+
+        let navHtml = '';
+
+        for (const [categoryId, category] of Object.entries(CONFIG.DOCS.categories)) {
+            navHtml += `
+                <div class="docs-nav-item">
+                    <div class="docs-nav-category" data-category="${categoryId}">
+                        <span>${category.title}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="docs-dropdown">
+                        ${category.docs.map(doc => `
+                            <a href="#docs/${doc.id}" class="docs-nav-link" data-doc="${doc.id}">
+                                <i class="fas ${doc.icon}"></i>
+                                ${doc.title}
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        navHtml += `
+            <div class="docs-nav-item">
+                <a href="https://github.com/ErisPulse/ErisPulse/tree/main/docs/api" target="_blank" class="docs-nav-link" style="justify-content: flex-start;">
+                    <i class="fab fa-github"></i>
+                    <span>API 文档</span>
+                </a>
+            </div>
+        `;
+
+        navContainer.innerHTML = navHtml;
+    }
+
     function navigateToDocument(docName) {
-        // 更新导航状态
         document.querySelectorAll('.docs-nav-link').forEach(item => {
             item.classList.remove('active');
         });
@@ -1637,7 +1837,6 @@ const ErisPulseApp = (function () {
         if (activeLink) {
             activeLink.classList.add('active');
 
-            // 展开对应的分类
             const parentItem = activeLink.closest('.docs-nav-item');
             if (parentItem) {
                 document.querySelectorAll('.docs-nav-item').forEach(item => {
@@ -1647,16 +1846,10 @@ const ErisPulseApp = (function () {
             }
         }
 
-        // 更新URL
         history.pushState(null, null, `#docs/${docName}`);
-
-        // 加载文档
         loadDocument(docName);
-
-        // 更新面包屑
         updateBreadcrumb(docName);
 
-        // 滚动到顶部
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
@@ -1696,28 +1889,21 @@ const ErisPulseApp = (function () {
     function searchDocuments(query) {
         const results = [];
 
-        // 搜索文档标题和描述
-        Object.keys(docConfig.titles).forEach(docName => {
-            const title = docConfig.titles[docName].toLowerCase();
-            if (title.includes(query)) {
-                results.push({
-                    name: docName,
-                    title: docConfig.titles[docName],
-                    category: getDocumentCategory(docName)
-                });
-            }
-        });
+        for (const [categoryId, category] of Object.entries(CONFIG.DOCS.categories)) {
+            category.docs.forEach(doc => {
+                const title = doc.title.toLowerCase();
+                if (title.includes(query)) {
+                    results.push({
+                        name: doc.id,
+                        title: doc.title,
+                        category: category.title,
+                        categoryId: categoryId
+                    });
+                }
+            });
+        }
 
         displaySearchResults(results);
-    }
-
-    function getDocumentCategory(docName) {
-        for (const [category, docs] of Object.entries(docConfig.categories)) {
-            if (docs.includes(docName)) {
-                return category;
-            }
-        }
-        return 'other';
     }
 
     function displaySearchResults(results) {
@@ -1740,26 +1926,23 @@ const ErisPulseApp = (function () {
                     ${results.map(result => `
                         <div class="search-result-item" data-doc="${result.name}">
                             <div class="result-title">${result.title}</div>
-                            <div class="result-category">${getCategoryName(result.category)}</div>
+                            <div class="result-category">${result.category}</div>
                         </div>
                     `).join('')}
                 </div>
             `;
         }
 
-        // 移除现有结果
         const existingResults = document.querySelector('.docs-search-results');
         if (existingResults) {
             existingResults.remove();
         }
 
-        // 添加到侧边栏
         const sidebar = document.querySelector('.docs-sidebar');
         if (sidebar) {
             sidebar.appendChild(resultsContainer);
         }
 
-        // 添加点击事件
         resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
             item.addEventListener('click', function () {
                 const docName = this.getAttribute('data-doc');
@@ -1767,19 +1950,6 @@ const ErisPulseApp = (function () {
                 clearSearchResults();
             });
         });
-    }
-
-    function getCategoryName(category) {
-        const names = {
-            'getting-started': '快速开始',
-            'ai': 'AI相关',
-            'core': '核心功能',
-            'development': '开发指南',
-            'standards': '标准规范',
-            'platform-features': '平台特性',
-            'other': '其他'
-        };
-        return names[category] || category;
     }
 
     function clearSearchResults() {
@@ -1795,7 +1965,6 @@ const ErisPulseApp = (function () {
             breadcrumb.addEventListener('click', function (e) {
                 if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#docs') {
                     e.preventDefault();
-                    // 返回文档首页
                     document.querySelector('.docs-content').innerHTML = `
                         <div class="docs-guidance">
                             <div class="guidance-content">
@@ -1824,8 +1993,6 @@ const ErisPulseApp = (function () {
                             </div>
                         </div>
                     `;
-
-                    // 更新面包屑
                     updateBreadcrumb('home');
                 }
             });
@@ -1836,16 +2003,49 @@ const ErisPulseApp = (function () {
         const breadcrumb = document.querySelector('.docs-breadcrumb');
         if (!breadcrumb) return;
 
-        const title = docConfig.titles[docName] || '欢迎使用';
+        let category = 'other';
+        let categoryName = '其他';
+
+        for (const [catId, cat] of Object.entries(CONFIG.DOCS.categories)) {
+            if (cat.docs.some(doc => doc.id === docName)) {
+                category = catId;
+                categoryName = cat.title;
+                break;
+            }
+        }
+
+        const docTitle = getDocTitle(docName);
+
+        if (docName === 'home' || !docName) {
+            breadcrumb.innerHTML = `<span class="current">文档中心</span>`;
+            return;
+        }
+
         breadcrumb.innerHTML = `
-            <a href="#docs">文档中心</a>
+            <a href="#docs" class="breadcrumb-link">
+                <i class="fas fa-home breadcrumb-icon"></i>
+                <span>文档中心</span>
+            </a>
             <span class="separator">/</span>
-            <span class="current">${title}</span>
+            <a href="#docs" class="breadcrumb-link breadcrumb-category">
+                <span>${categoryName}</span>
+            </a>
+            <span class="separator">/</span>
+            <span class="current">${docTitle}</span>
         `;
     }
 
+    function getDocTitle(docName) {
+        for (const category of Object.values(CONFIG.DOCS.categories)) {
+            const doc = category.docs.find(d => d.id === docName);
+            if (doc) {
+                return doc.title;
+            }
+        }
+        return docName;
+    }
+
     function setupDocumentActions() {
-        // 编辑按钮
         const editBtn = document.querySelector('.docs-action-btn:nth-child(1)');
         if (editBtn) {
             editBtn.addEventListener('click', function (e) {
@@ -1858,7 +2058,6 @@ const ErisPulseApp = (function () {
             });
         }
 
-        // 分享按钮
         const shareBtn = document.querySelector('.docs-action-btn:nth-child(2)');
         if (shareBtn) {
             shareBtn.addEventListener('click', function (e) {
@@ -1871,7 +2070,7 @@ const ErisPulseApp = (function () {
     function shareDocument() {
         const currentUrl = window.location.href;
         const currentDoc = window.location.hash.split('/')[1];
-        const title = docConfig.titles[currentDoc] || 'ErisPulse 文档';
+        const title = getDocTitle(currentDoc);
 
         if (navigator.share) {
             navigator.share({
@@ -1880,11 +2079,9 @@ const ErisPulseApp = (function () {
                 url: currentUrl
             });
         } else {
-            // 复制到剪贴板
             navigator.clipboard.writeText(currentUrl).then(() => {
                 showMessage('链接已复制到剪贴板', 'success');
             }).catch(() => {
-                // 降级方案
                 const tempInput = document.createElement('input');
                 tempInput.value = currentUrl;
                 document.body.appendChild(tempInput);
@@ -1902,105 +2099,22 @@ const ErisPulseApp = (function () {
         }
 
         window.addEventListener('resize', handleResize);
-        handleResize(); // 初始调用
+        handleResize();
     }
 
-    // 文档配置
-    const docConfig = {
-        baseUrl: CONFIG.DEFAULT_USER_SETTINGS.gh_proxy + 'https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/',
-        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/main/',
-
-        docs: {
-            'quick-start': 'docs/quick-start.md',
-            'ai-module': 'docs/ai/module-generation.md',
-            'ai-readme': 'docs/ai/README.md',
-            'cli': 'docs/core/cli.md',
-            'core-concepts': 'docs/core/concepts.md',
-            'core-modules': 'docs/core/modules.md',
-            'core-adapters': 'docs/core/adapters.md',
-            'core-event-system': 'docs/core/event-system.md',
-            'core-best-practices': 'docs/core/best-practices.md',
-            'core-self-config': 'docs/core/self-config.md',
-            'core-lazy-loading': 'docs/core/lazy-loading.md',
-            'core-router': 'docs/core/router.md',
-            'ux-improvements': 'docs/ux-improvements.md',
-            'dev-readme': 'docs/development/README.md',
-            'dev-module': 'docs/development/module.md',
-            'dev-adapter': 'docs/development/adapter.md',
-            'dev-cli': 'docs/development/cli.md',
-            'adapter-standards': 'docs/standards/README.md',
-            'event-conversion': 'docs/standards/event-conversion.md',
-            'api-response': 'docs/standards/api-response.md',
-            'platform-features': 'docs/platform-features/README.md',
-            'platform-yunhu': 'docs/platform-features/yunhu.md',
-            'platform-telegram': 'docs/platform-features/telegram.md',
-            'platform-onebot11': 'docs/platform-features/onebot11.md',
-            'platform-email': 'docs/platform-features/email.md',
-            'platform-maintain-notes': 'docs/platform-features/maintain-notes.md',
-            'styleguide': 'docs/styleguide/README.md',
-            'docstring-spec': 'docs/styleguide/docstring_spec.md'
-        },
-
-        groups: {},
-
-        titles: {
-            'quick-start': '快速开始指南',
-            'ai-module': 'AI模块生成',
-            'ai-readme': 'AI文档总览',
-            'cli': '命令行接口',
-            'core-concepts': '核心概念',
-            'core-modules': '核心模块',
-            'core-adapters': '适配器系统',
-            'core-event-system': '事件系统',
-            'core-best-practices': '最佳实践',
-            'core-self-config': '配置解析',
-            'core-lazy-loading': '懒加载机制',
-            'core-router': '路由系统',
-            'ux-improvements': '用户体验改进',
-            'dev-readme': '开发入门',
-            'dev-module': '模块开发',
-            'dev-adapter': '适配器开发',
-            'dev-cli': 'CLI 开发',
-            'adapter-standards': '标准规范总览',
-            'event-conversion': '事件转换',
-            'api-response': 'API 响应',
-            'platform-features': '平台特性总览',
-            'platform-yunhu': '云湖平台特性',
-            'platform-telegram': 'Telegram平台特性',
-            'platform-onebot11': 'OneBot11平台特性',
-            'platform-email': '邮件平台特性',
-            'platform-maintain-notes': '维护说明',
-            'styleguide': '代码风格指南',
-            'docstring-spec': '文档字符串规范'
-        },
-
-        categories: {
-            'getting-started': ['quick-start'],
-            'ai': ['ai-module', 'ai-readme'],
-            'core': ['cli', 'core-concepts', 'core-modules', 'core-adapters', 'core-event-system', 'core-best-practices', 'core-self-config', 'core-lazy-loading', 'core-router', 'ux-improvements'],
-            'development': ['dev-readme', 'dev-module', 'dev-adapter', 'dev-cli'],
-            'standards': ['adapter-standards', 'event-conversion', 'api-response'],
-            'platform-features': ['platform-features', 'platform-yunhu', 'platform-telegram', 'platform-onebot11', 'platform-email', 'platform-maintain-notes'],
-            'styleguide': ['styleguide', 'docstring-spec']
-        }
-    };
-
-    const docUrls = {};
-    Object.keys(docConfig.docs).forEach(key => {
-        docUrls[key] = docConfig.baseUrl + docConfig.docs[key];
-    });
-
     function getEditUrl(docName) {
-        if (docConfig.docs[docName]) {
-            return docConfig.githubBaseUrl + docConfig.docs[docName];
+        if (CONFIG.DOCS.paths[docName]) {
+            return CONFIG.DOCS.githubBaseUrl + CONFIG.DOCS.paths[docName];
         }
         return null;
     }
 
     function getNextDocument(currentDoc) {
         const docOrder = [];
-        Object.values(docConfig.categories).forEach(category => {
-            docOrder.push(...category);
+        Object.values(CONFIG.DOCS.categories).forEach(category => {
+            category.docs.forEach(doc => {
+                docOrder.push(doc.id);
+            });
         });
 
         const currentIndex = docOrder.indexOf(currentDoc);
@@ -2012,8 +2126,10 @@ const ErisPulseApp = (function () {
 
     function getPrevDocument(currentDoc) {
         const docOrder = [];
-        Object.values(docConfig.categories).forEach(category => {
-            docOrder.push(...category);
+        Object.values(CONFIG.DOCS.categories).forEach(category => {
+            category.docs.forEach(doc => {
+                docOrder.push(doc.id);
+            });
         });
 
         const currentIndex = docOrder.indexOf(currentDoc);
@@ -2034,12 +2150,7 @@ const ErisPulseApp = (function () {
 
         clearToc();
 
-        if (docConfig.groups[docName]) {
-            await loadGroupDocument(docName);
-            return;
-        }
-
-        const docPath = docConfig.docs[docName];
+        const docPath = CONFIG.DOCS.paths[docName];
         if (!docPath) {
             docsContent.innerHTML = `
                 <div class="error-message" style="text-align: center; padding: 3rem 0;">
@@ -2051,7 +2162,7 @@ const ErisPulseApp = (function () {
             return;
         }
 
-        let docUrl = docConfig.baseUrl + docPath;
+        let docUrl = CONFIG.DOCS.baseUrl + docPath;
         let docContent = '';
         let commitInfo = null;
 
@@ -2099,7 +2210,7 @@ const ErisPulseApp = (function () {
                             </div>
                             <div class="ai-card-body">
                                 <p>用于指导AI生成自定义功能模块的参考文档</p>
-                                <a href="${docConfig.baseUrl}docs/ai/AIDocs/ErisPulse-ModuleDev.md" 
+                                <a href="${CONFIG.DOCS.baseUrl}docs/ai/AIDocs/ErisPulse-ModuleDev.md" 
                                     download="ErisPulse-ModuleDev.md"
                                     class="ai-download-btn">
                                     <i class="fas fa-download"></i> 下载
@@ -2113,7 +2224,7 @@ const ErisPulseApp = (function () {
                             </div>
                             <div class="ai-card-body">
                                 <p>用于指导AI开发平台适配器的参考文档</p>
-                                <a href="${docConfig.baseUrl}docs/ai/AIDocs/ErisPulse-AdapterDev.md" 
+                                <a href="${CONFIG.DOCS.baseUrl}docs/ai/AIDocs/ErisPulse-AdapterDev.md" 
                                     download="ErisPulse-AdapterDev.md"
                                     class="ai-download-btn">
                                     <i class="fas fa-download"></i> 下载
@@ -2127,7 +2238,7 @@ const ErisPulseApp = (function () {
                             </div>
                             <div class="ai-card-body">
                                 <p>完整的ErisPulse开发参考文档集合</p>
-                                <a href="${docConfig.baseUrl}docs/ai/AIDocs/ErisPulse-Full.md" 
+                                <a href="${CONFIG.DOCS.baseUrl}docs/ai/AIDocs/ErisPulse-Full.md" 
                                     download="ErisPulse-Full.md"
                                     class="ai-download-btn">
                                     <i class="fas fa-download"></i> 下载
@@ -2174,17 +2285,14 @@ const ErisPulseApp = (function () {
                 });
             });
 
-            // 拦截文档内链接点击，处理相对路径跳转
             document.querySelectorAll('#docs-content a').forEach(link => {
                 link.addEventListener('click', function (e) {
                     const href = this.getAttribute('href');
 
-                    // 外部链接，允许正常跳转
                     if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
                         return;
                     }
 
-                    // 锚点链接
                     if (href && href.startsWith('#')) {
                         e.preventDefault();
                         const targetElement = document.getElementById(href.substring(1));
@@ -2197,22 +2305,16 @@ const ErisPulseApp = (function () {
                         return;
                     }
 
-                    // 相对路径的文档链接
                     if (href && !href.includes('://')) {
                         e.preventDefault();
 
-                        // 获取当前文档路径
                         const currentDoc = window.location.hash.split('/')[1];
-                        const currentDocPath = docConfig.docs[currentDoc] || '';
-
-                        // 尝试转换为文档标识符
+                        const currentDocPath = CONFIG.DOCS.paths[currentDoc] || '';
                         const targetDocId = getDocIdFromPath(href, currentDocPath);
 
                         if (targetDocId) {
-                            // 找到映射，执行跳转
                             navigateToDocument(targetDocId);
                         } else {
-                            // 未找到映射，显示警告
                             showDocumentLinkWarning(href);
                         }
                     }
@@ -2304,13 +2406,11 @@ const ErisPulseApp = (function () {
 
         if (toc && docsLayout) {
             if (window.innerWidth > 1200) {
-                // 大屏幕且侧边栏展开时，将目录移动到右侧
                 const contentToc = document.querySelector('.docs-content .table-of-contents');
                 if (contentToc) {
                     contentToc.remove();
                 }
 
-                // 确保目录在右侧位置
                 const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
                 if (!rightSidebar) {
                     toc.style.width = '250px';
@@ -2321,7 +2421,6 @@ const ErisPulseApp = (function () {
                     docsLayout.appendChild(toc);
                 }
             } else {
-                // 小屏幕或侧边栏收起时，将目录移动到内容区域
                 const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
                 if (rightSidebar) {
                     rightSidebar.remove();
@@ -2330,7 +2429,6 @@ const ErisPulseApp = (function () {
                 if (toc.parentNode !== document.querySelector('.docs-content')) {
                     toc.remove();
 
-                    // 插入到内容区域，但不在面包屑和操作栏之前
                     const docsContent = document.querySelector('.docs-content');
                     const markdownContent = docsContent.querySelector('.markdown-content');
                     if (markdownContent) {
@@ -2368,29 +2466,22 @@ const ErisPulseApp = (function () {
         headers.forEach(header => observer.observe(header));
     }
 
-    // 路径解析辅助函数：将相对路径转换为绝对路径
     function resolvePath(relativePath, basePath) {
-        // 移除开头的 ./ 或 ./
         let cleanPath = relativePath.replace(/^\.?\//, '');
 
-        // 如果是绝对路径（以 / 开头），直接返回
         if (relativePath.startsWith('/')) {
             return cleanPath;
         }
 
-        // 如果没有基础路径，直接返回清理后的路径
         if (!basePath) {
             return cleanPath;
         }
 
-        // 解析相对路径
         const baseParts = basePath.split('/');
         const relativeParts = cleanPath.split('/');
 
-        // 移除文件名部分，只保留目录
         baseParts.pop();
 
-        // 处理相对路径
         relativeParts.forEach(part => {
             if (part === '..') {
                 baseParts.pop();
@@ -2402,30 +2493,25 @@ const ErisPulseApp = (function () {
         return baseParts.join('/');
     }
 
-    // 将文件路径转换为文档标识符
     function getDocIdFromPath(filePath, currentDocPath) {
-        // 规范化路径：移除 .md 扩展名和开头的 docs/
         let normalizedPath = filePath.replace(/\.md$/, '');
 
-        // 移除开头的 docs/
         if (normalizedPath.startsWith('docs/')) {
             normalizedPath = normalizedPath.substring(5);
         }
 
-        // 首先尝试直接匹配
-        for (const [docId, docPath] of Object.entries(docConfig.docs)) {
+        for (const [docId, docPath] of Object.entries(CONFIG.DOCS.paths)) {
             const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
             if (normalizedDocPath === normalizedPath) {
                 return docId;
             }
         }
 
-        // 如果有当前文档路径，尝试解析相对路径后匹配
         if (currentDocPath) {
             const absolutePath = resolvePath(filePath, currentDocPath);
             const normalizedAbsolutePath = absolutePath.replace(/\.md$/, '').replace(/^docs\//, '');
 
-            for (const [docId, docPath] of Object.entries(docConfig.docs)) {
+            for (const [docId, docPath] of Object.entries(CONFIG.DOCS.paths)) {
                 const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
                 if (normalizedDocPath === normalizedAbsolutePath) {
                     return docId;
@@ -2457,115 +2543,6 @@ const ErisPulseApp = (function () {
                 }
             });
         });
-    }
-
-    async function loadGroupDocument(groupName) {
-        const docsContent = document.getElementById('docs-content');
-        const groupDocs = docConfig.groups[groupName];
-
-        if (!groupDocs) {
-            docsContent.innerHTML = `
-                <div class="error-message" style="text-align: center; padding: 3rem 0;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
-                    <h3>文档组未找到</h3>
-                    <p>请求的文档组 "${groupName}" 不存在</p>
-                </div>
-            `;
-            return;
-        }
-
-        let groupContent = `<h1>${docConfig.titles[groupName] || groupName}</h1>`;
-
-        groupContent += `<div style="background: var(--card-bg); border-radius: var(--radius); padding: 1rem; margin-bottom: 2rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border);">
-            <h3 style="margin-top: 0; color: var(--text);">文档目录</h3>
-            <ul style="list-style: none; padding: 0;">`;
-
-        for (const docId of groupDocs) {
-            const title = docConfig.titles[docId] || docId;
-            groupContent += `<li style="margin: 0.5rem 0; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
-                <a href="#${docId}" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-link"></i> ${title}
-                </a>
-            </li>`;
-        }
-
-        groupContent += `</ul></div>`;
-
-        for (const docId of groupDocs) {
-            const docPath = docConfig.docs[docId];
-            if (!docPath) continue;
-
-            try {
-                const docUrl = docConfig.baseUrl + docPath;
-                const response = await fetch(docUrl);
-                if (!response.ok) continue;
-
-                const content = await response.text();
-                const title = docConfig.titles[docId] || docId;
-
-                let parsedContent = marked.parse(content);
-                parsedContent = wrapTables(parsedContent);
-
-                groupContent += `
-                    <div id="${docId}" style="padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border);">
-                        <h2 style="color: var(--text); margin-top: 2rem;">${title}</h2>
-                        ${parsedContent}
-                    </div>
-                `;
-            } catch (error) {
-                console.error(`加载文档 ${docId} 失败:`, error);
-                groupContent += `
-                    <div id="${docId}" style="padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--border);">
-                        <h2 style="color: var(--text); margin-top: 2rem;">${docConfig.titles[docId] || docId}</h2>
-                        <div class="error-message" style="padding: 1rem; background: rgba(var(--primary-rgb), 0.1); border-radius: var(--radius);">
-                            <p>无法加载此文档内容</p>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        docsContent.innerHTML = groupContent;
-
-        if (groupDocs.length > 0) {
-            const firstDoc = groupDocs[0];
-            const firstDocPath = docConfig.docs[firstDoc];
-            if (firstDocPath) {
-                try {
-                    const apiBaseUrl = 'https://api.github.com/repos/ErisPulse/ErisPulse/commits?path=' + firstDocPath;
-                    const commitResponse = await fetch(apiBaseUrl, {
-                        headers: {
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-
-                    if (commitResponse.ok) {
-                        const commitData = await commitResponse.json();
-                        if (commitData && commitData.length > 0 && commitData[0].commit) {
-                            addDocumentMetaInfo(docsContent, groupName, commitData[0]);
-                        }
-                    }
-                } catch (error) {
-                    console.warn('获取提交信息失败:', error);
-                }
-            }
-        }
-
-        setTimeout(() => {
-            docsContent.querySelectorAll('pre code').forEach((block) => {
-                if (!block.className || !block.className.startsWith('language-')) {
-                    block.classList.add('language-python');
-                }
-
-                if (userSettings.showLineNumbers) {
-                    block.classList.add('line-numbers');
-                }
-
-                Prism.highlightElement(block);
-            });
-        }, 0)
-
-        Prism.highlightAll();
     }
 
     function addDocumentMetaInfo(docsContent, docName, commitInfo) {
