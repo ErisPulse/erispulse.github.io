@@ -163,7 +163,6 @@ const CONFIG = {
                     { id: 'core-event-system', title: '事件系统', icon: 'fa-calendar' },
                     { id: 'core-self-config', title: '配置解析', icon: 'fa-cog' },
                     { id: 'core-best-practices', title: '最佳实践', icon: 'fa-check-circle' },
-                    { id: 'core-lazy-loading', title: '懒加载机制', icon: 'fa-hourglass-half' },
                     { id: 'core-router', title: '路由系统', icon: 'fa-route' },
                     { id: 'ux-improvements', title: '用户体验改进', icon: 'fa-user-friends' }
                 ]
@@ -221,7 +220,6 @@ const CONFIG = {
             'core-event-system': 'docs/core/event-system.md',
             'core-best-practices': 'docs/core/best-practices.md',
             'core-self-config': 'docs/core/self-config.md',
-            'core-lazy-loading': 'docs/core/lazy-loading.md',
             'core-router': 'docs/core/router.md',
             'ux-improvements': 'docs/ux-improvements.md',
             'dev-readme': 'docs/development/README.md',
