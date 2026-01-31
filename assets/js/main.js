@@ -161,10 +161,10 @@ const CONFIG = {
                     { id: 'core-modules', title: '核心模块', icon: 'fa-th' },
                     { id: 'core-adapters', title: '适配器系统', icon: 'fa-plug' },
                     { id: 'core-event-system', title: '事件系统', icon: 'fa-calendar' },
+                    { id: 'core-lifecycle', title: '生命周期', icon: 'fa-clock' },
                     { id: 'core-self-config', title: '配置解析', icon: 'fa-cog' },
                     { id: 'core-best-practices', title: '最佳实践', icon: 'fa-check-circle' },
-                    { id: 'core-router', title: '路由系统', icon: 'fa-route' },
-                    { id: 'ux-improvements', title: '用户体验改进', icon: 'fa-user-friends' }
+                    { id: 'core-router', title: '路由系统', icon: 'fa-route' }
                 ]
             },
             'development': {
@@ -218,10 +218,10 @@ const CONFIG = {
             'core-modules': 'docs/core/modules.md',
             'core-adapters': 'docs/core/adapters.md',
             'core-event-system': 'docs/core/event-system.md',
+            'core-lifecycle': 'docs/core/lifecycle.md',
             'core-best-practices': 'docs/core/best-practices.md',
             'core-self-config': 'docs/core/self-config.md',
             'core-router': 'docs/core/router.md',
-            'ux-improvements': 'docs/ux-improvements.md',
             'dev-readme': 'docs/development/README.md',
             'dev-module': 'docs/development/module.md',
             'dev-adapter': 'docs/development/adapter.md',
