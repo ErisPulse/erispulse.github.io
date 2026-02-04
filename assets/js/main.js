@@ -133,7 +133,7 @@ const CONFIG = {
     // 文档配置
     DOCS: {
         baseUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Pre-Release/v2/',
-        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Pre-Release/v2/',
+        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Develop/v2',
 
         // 文档分类和导航结构
         categories: {
@@ -236,7 +236,7 @@ const CONFIG = {
             'platform-telegram': 'docs/platform-features/telegram.md',
             'platform-onebot11': 'docs/platform-features/onebot11.md',
             'platform-email': 'docs/platform-features/email.md',
-            'platform-maintain-notes': 'docs/platform-features/Pre-Release/v2tain-notes.md',
+            'platform-maintain-notes': 'docs/platform-features/maintain-notes.md',
             'styleguide': 'docs/styleguide/README.md',
             'docstring-spec': 'docs/styleguide/docstring_spec.md'
         }
@@ -298,7 +298,7 @@ const CONFIG = {
     API: {
         contributors: 'https://api.github.com/repos/ErisPulse/ErisPulse/contributors',
         packages: 'https://erisdev.com/packages.json',
-        changelog: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Pre-Release/v2/CHANGELOG.md',
+        changelog: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/CHANGELOG.md',
         ciRuns: 'https://api.github.com/repos/ErisPulse/ErisPulse/actions/runs?per_page=20'
     },
 
