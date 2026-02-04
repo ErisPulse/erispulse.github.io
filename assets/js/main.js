@@ -133,7 +133,7 @@ const CONFIG = {
     // 文档配置
     DOCS: {
         baseUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Pre-Release/v2/',
-        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Develop/v2',
+        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Develop/v2/',
 
         // 文档分类和导航结构
         categories: {
