@@ -163,6 +163,7 @@ const CONFIG = {
                     { id: 'core-event-system', title: '事件系统', icon: 'fa-calendar' },
                     { id: 'core-lifecycle', title: '生命周期', icon: 'fa-clock' },
                     { id: 'core-self-config', title: '配置解析', icon: 'fa-cog' },
+                    { id: 'core-lazy-loading', title: '懒加载机制', icon: 'fa-hourglass-half' },
                     { id: 'core-best-practices', title: '最佳实践', icon: 'fa-check-circle' },
                     { id: 'core-router', title: '路由系统', icon: 'fa-route' }
                 ]
@@ -221,6 +222,7 @@ const CONFIG = {
             'core-lifecycle': 'docs/core/lifecycle.md',
             'core-best-practices': 'docs/core/best-practices.md',
             'core-self-config': 'docs/core/self-config.md',
+            'core-lazy-loading': 'docs/core/lazy-loading.md',
             'core-router': 'docs/core/router.md',
             'dev-readme': 'docs/development/README.md',
             'dev-module': 'docs/development/module.md',
