@@ -1746,20 +1746,12 @@ const ErisPulseApp = (function () {
             category.addEventListener('click', function (e) {
                 e.stopPropagation();
                 const parentItem = this.closest('.docs-nav-item');
-                const isActive = parentItem.classList.contains('active');
-
-                document.querySelectorAll('.docs-nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-
-                if (!isActive) {
-                    parentItem.classList.add('active');
-                }
+                parentItem.classList.toggle('active');
             });
         });
 
         document.addEventListener('click', function (e) {
-            if (!e.target.closest('.docs-nav-item')) {
+            if (!e.target.closest('.docs-sidebar')) {
                 document.querySelectorAll('.docs-nav-item').forEach(item => {
                     item.classList.remove('active');
                 });
