@@ -840,17 +840,16 @@ const ErisPulseApp = (function () {
 
                 if (this.checked) {
                     document.body.classList.add('show-line-numbers');
-                    document.querySelectorAll('pre code').forEach(block => {
-                        block.classList.add('line-numbers');
+                    document.querySelectorAll('pre').forEach(pre => {
+                        pre.classList.add('line-numbers');
                     });
+                    Prism.highlightAll();
                 } else {
                     document.body.classList.remove('show-line-numbers');
-                    document.querySelectorAll('pre code').forEach(block => {
-                        block.classList.remove('line-numbers');
+                    document.querySelectorAll('pre').forEach(pre => {
+                        pre.classList.remove('line-numbers');
                     });
                 }
-
-                Prism.highlightAll();
             });
         }
 
@@ -1963,34 +1962,6 @@ const ErisPulseApp = (function () {
             breadcrumb.addEventListener('click', function (e) {
                 if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#docs') {
                     e.preventDefault();
-                    document.querySelector('.docs-content').innerHTML = `
-                        <div class="docs-guidance">
-                            <div class="guidance-content">
-                                <h3>探索 ErisPulse 文档</h3>
-                                <p>从以下分类开始您的探索，或使用左侧导航栏查找特定内容</p>
-                                <div class="guidance-categories">
-                                    <div class="category">
-                                        <h4><i class="fas fa-rocket"></i> 入门指南</h4>
-                                        <a href="#docs/quick-start">快速开始指南</a>
-                                        <a href="#docs/cli">命令行接口</a>
-                                        <a href="#docs/ai-module">AI模块生成</a>
-                                    </div>
-                                    <div class="category">
-                                        <h4><i class="fas fa-code"></i> 开发指南</h4>
-                                        <a href="#docs/dev-module">模块开发</a>
-                                        <a href="#docs/dev-adapter">适配器开发</a>
-                                        <a href="#docs/dev-cli">CLI扩展</a>
-                                    </div>
-                                    <div class="category">
-                                        <h4><i class="fas fa-book"></i> API参考</h4>
-                                        <a href="https://github.com/ErisPulse/ErisPulse/tree/main/docs/api" target="_blank">
-                                            <i class="fab fa-github"></i> 在GitHub查看API文档
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
                     updateBreadcrumb('home');
                 }
             });
