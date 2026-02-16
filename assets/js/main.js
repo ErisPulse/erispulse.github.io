@@ -334,6 +334,8 @@ const ErisPulseApp = (function () {
         setupModals();
         setupSettings();
         renderFriendLinks();
+        setupHomeAnimations();
+        setupCopyCode();
     }
 
     function setupStorage() {
@@ -2288,6 +2290,80 @@ const ErisPulseApp = (function () {
         }
     }
 
+    // ==================== 首页功能 ====================
+    function setupHomeAnimations() {
+        // 特性卡片滚动动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const featureObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const cards = entry.target.querySelectorAll('.feature-card');
+                    cards.forEach((card, index) => {
+                        setTimeout(() => {
+                            card.classList.add('animate');
+                        }, index * 100);
+                    });
+                }
+            });
+        }, observerOptions);
+
+        const featuresSection = document.querySelector('.features-section');
+        if (featuresSection) {
+            featureObserver.observe(featuresSection);
+        }
+
+        // 步骤滚动动画
+        const stepObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const steps = entry.target.querySelectorAll('.step-item');
+                    steps.forEach((step, index) => {
+                        setTimeout(() => {
+                            step.style.opacity = '1';
+                            step.style.transform = 'translateY(0)';
+                        }, index * 150);
+                    });
+                }
+            });
+        }, observerOptions);
+
+        const stepsSection = document.querySelector('.steps-section');
+        if (stepsSection) {
+            stepObserver.observe(stepsSection);
+        }
+    }
+
+    function setupCopyCode() {
+        const copyBtn = document.getElementById('copy-code-btn');
+        if (!copyBtn) return;
+
+        const codeBlock = document.querySelector('.code-block code');
+        if (!codeBlock) return;
+
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(codeBlock.textContent);
+                
+                // 显示复制成功提示
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                copyBtn.style.background = 'var(--accent)';
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.style.background = '';
+                }, 2000);
+            } catch (err) {
+                console.error('复制失败:', err);
+                showMessage('复制失败，请手动复制', 'error');
+            }
+        });
+    }
+
     // ==================== 公共API ====================
     return {
         init: init,
@@ -2295,7 +2371,9 @@ const ErisPulseApp = (function () {
         showInstallModal: showInstallModal,
         showDocsModal: showDocsModal,
         clearToc: clearToc,
-        moveTocToSidebar: moveTocToSidebar
+        moveTocToSidebar: moveTocToSidebar,
+        setupHomeAnimations: setupHomeAnimations,
+        setupCopyCode: setupCopyCode
     };
 })();
 
