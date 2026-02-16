@@ -206,6 +206,13 @@ const CONFIG = {
                     { id: 'platform-email', title: '邮件平台特性', icon: 'fa-envelope' },
                     { id: 'platform-maintain-notes', title: '维护说明', icon: 'fa-tools' }
                 ]
+            },
+            'changelog': {
+                title: '更新日志',
+                icon: 'fa-history',
+                docs: [
+                    { id: 'changelog', title: '更新日志', icon: 'fa-history' }
+                ]
             }
         },
 
@@ -238,7 +245,8 @@ const CONFIG = {
             'platform-email': 'docs/platform-features/email.md',
             'platform-maintain-notes': 'docs/platform-features/maintain-notes.md',
             'styleguide': 'docs/styleguide/README.md',
-            'docstring-spec': 'docs/styleguide/docstring_spec.md'
+            'docstring-spec': 'docs/styleguide/docstring_spec.md',
+            'changelog': 'CHANGELOG.md'
         }
     },
 
@@ -297,31 +305,7 @@ const CONFIG = {
     // API 端点
     API: {
         contributors: 'https://api.github.com/repos/ErisPulse/ErisPulse/contributors',
-        packages: 'https://erisdev.com/packages.json',
-        changelog: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/CHANGELOG.md',
-        ciRuns: 'https://api.github.com/repos/ErisPulse/ErisPulse/actions/runs?per_page=20'
-    },
-
-    // 服务状态监控
-    SERVICES: {
-        install: {
-            name: '安装服务',
-            domain: 'get.erisdev.com',
-            url: 'https://get.erisdev.com/install.sh',
-            icon: 'fa-download'
-        },
-        packages: {
-            name: '包源服务',
-            domain: 'erisdev.com',
-            url: 'https://erisdev.com/packages',
-            icon: 'fa-box'
-        },
-        ci: {
-            name: 'CI/CD',
-            domain: 'GitHub Actions',
-            url: '',
-            icon: 'fab fa-github'
-        }
+        packages: 'https://erisdev.com/packages.json'
     }
 };
 
@@ -335,12 +319,6 @@ const ErisPulseApp = (function () {
     let activeCategory = 'all';
     let searchQuery = '';
     let userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
-    let filters = {
-        version: 'all',
-        change: 'all',
-        time: 'all'
-    };
-    let changelogData = [];
 
     // ==================== 初始化模块 ====================
     function init() {
@@ -352,7 +330,6 @@ const ErisPulseApp = (function () {
         setupHamburgerMenu();
         setupViewSwitching();
         setupMarketplace();
-        setupChangelog();
         setupDocumentation();
         setupModals();
         setupSettings();
@@ -633,7 +610,13 @@ const ErisPulseApp = (function () {
                 }, 500);
             }
         } else if (hash === 'changelog') {
-            view = 'changelog';
+            view = 'docs';
+            setTimeout(() => {
+                const docLink = document.querySelector(`.docs-nav-link[data-doc="changelog"]`);
+                if (docLink) {
+                    docLink.click();
+                }
+            }, 500);
         } else if (hash === 'about') {
             view = 'about';
         } else if (hash === 'settings') {
@@ -672,11 +655,6 @@ const ErisPulseApp = (function () {
 
         if (view === 'market') {
             loadModuleData();
-        }
-
-        if (view === 'changelog') {
-            loadChangelogData();
-            checkServiceStatus();
         }
 
         if (view === 'about') {
@@ -1180,562 +1158,6 @@ const ErisPulseApp = (function () {
             `;
             container.appendChild(depElement);
         });
-    }
-
-    // ==================== 更新日志模块 ====================
-    function setupChangelog() {
-        const searchInput = document.getElementById('changelog-search');
-        const clearSearchBtn = document.getElementById('clear-search');
-
-        searchInput.addEventListener('input', function () {
-            searchQuery = this.value.trim();
-            clearSearchBtn.style.display = searchQuery ? 'flex' : 'none';
-            renderChangelog();
-        });
-
-        clearSearchBtn.addEventListener('click', function () {
-            searchInput.value = '';
-            searchQuery = '';
-            clearSearchBtn.style.display = 'none';
-            renderChangelog();
-        });
-
-        const toggleFiltersBtn = document.getElementById('toggle-filters');
-        const filtersContent = document.getElementById('filters-content');
-
-        toggleFiltersBtn.addEventListener('click', function () {
-            filtersContent.classList.toggle('expanded');
-            toggleFiltersBtn.classList.toggle('active');
-        });
-
-        document.querySelectorAll('.version-filter-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const filterType = this.dataset.type;
-                const filterValue = this.dataset.filter;
-
-                document.querySelectorAll(`.version-filter-btn[data-type="${filterType}"]`).forEach(b => {
-                    b.classList.remove('active');
-                });
-                this.classList.add('active');
-
-                filters[filterType] = filterValue;
-                renderChangelog();
-            });
-        });
-
-        document.getElementById('reset-filters')?.addEventListener('click', function () {
-            filters = {
-                version: 'all',
-                change: 'all',
-                time: 'all'
-            };
-
-            document.querySelectorAll('.version-filter-btn').forEach(btn => {
-                if (btn.dataset.filter === 'all') {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            renderChangelog();
-        });
-
-        document.querySelectorAll('.service-status-item').forEach(item => {
-            const header = item.querySelector('.service-status-header');
-            header.addEventListener('click', function () {
-                item.classList.toggle('expanded');
-            });
-        });
-
-        window.addEventListener('hashchange', checkChangelogView);
-        checkChangelogView();
-    }
-
-    function checkChangelogView() {
-        const hash = window.location.hash.substring(1);
-        if (hash.startsWith('changelog')) {
-            loadChangelogData();
-            checkServiceStatus();
-        }
-    }
-
-    async function checkServiceStatus() {
-        checkService(CONFIG.SERVICES.install.url, 'install');
-        checkService(CONFIG.SERVICES.packages.url, 'packages');
-        checkCIStatus();
-    }
-
-    async function checkService(url, serviceName) {
-        const indicator = document.getElementById(`status-${serviceName}`);
-        const statusText = document.getElementById(`status-text-${serviceName}`);
-        const detailResponse = document.getElementById(`detail-response-${serviceName}`);
-        const detailStatus = document.getElementById(`detail-status-${serviceName}`);
-
-        if (!indicator || !statusText) return;
-
-        try {
-            const startTime = Date.now();
-            const response = await fetch(url, {
-                method: 'HEAD',
-                mode: 'no-cors'
-            });
-            const endTime = Date.now();
-            const responseTime = endTime - startTime;
-
-            indicator.className = 'status-indicator online';
-            indicator.innerHTML = '<i class="fas fa-circle"></i>';
-
-            if (responseTime < 200) {
-                statusText.textContent = '正常';
-            } else if (responseTime < 500) {
-                statusText.textContent = '稍慢';
-            } else {
-                statusText.textContent = '较慢';
-            }
-
-            if (detailResponse) {
-                detailResponse.textContent = `${responseTime}ms`;
-            }
-            if (detailStatus) {
-                detailStatus.textContent = '在线';
-                detailStatus.style.color = '#10b981';
-            }
-        } catch (error) {
-            indicator.className = 'status-indicator offline';
-            indicator.innerHTML = '<i class="fas fa-circle"></i>';
-
-            statusText.textContent = '离线';
-
-            if (detailResponse) {
-                detailResponse.textContent = '--';
-            }
-            if (detailStatus) {
-                detailStatus.textContent = '离线';
-                detailStatus.style.color = '#ef4444';
-            }
-        }
-    }
-
-    async function checkCIStatus() {
-        const indicator = document.getElementById('status-ci');
-        const statusText = document.getElementById('status-text-ci');
-        const detailWorkflowCount = document.getElementById('detail-workflow-count');
-        const detailLastRun = document.getElementById('detail-last-run');
-        const detailStatus = document.getElementById('detail-status-ci');
-
-        if (!indicator || !statusText) return;
-
-        try {
-            const response = await fetch(CONFIG.API.ciRuns);
-            if (response.ok) {
-                const data = await response.json();
-                const runs = data.workflow_runs || [];
-
-                if (runs.length > 0) {
-                    const successCount = runs.filter(run => run.conclusion === 'success').length;
-                    const totalCount = runs.length;
-                    const successRate = (successCount / totalCount * 100).toFixed(1);
-
-                    const lastRun = runs[0];
-                    const lastRunTime = new Date(lastRun.created_at);
-                    const timeDiff = Date.now() - lastRunTime.getTime();
-                    const hoursAgo = Math.floor(timeDiff / (1000 * 60 * 60));
-                    const minutesAgo = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-
-                    let timeAgoText;
-                    if (hoursAgo > 24) {
-                        timeAgoText = `${Math.floor(hoursAgo / 24)} 天前`;
-                    } else if (hoursAgo > 0) {
-                        timeAgoText = `${hoursAgo} 小时前`;
-                    } else {
-                        timeAgoText = `${minutesAgo} 分钟前`;
-                    }
-
-                    if (successRate >= 90) {
-                        indicator.className = 'status-indicator online';
-                        indicator.innerHTML = '<i class="fas fa-circle"></i>';
-                        statusText.textContent = '正常';
-
-                        if (detailStatus) {
-                            detailStatus.textContent = '正常运行';
-                            detailStatus.style.color = '#10b981';
-                        }
-                    } else if (successRate >= 70) {
-                        indicator.className = 'status-indicator unknown';
-                        indicator.innerHTML = '<i class="fas fa-circle"></i>';
-                        statusText.textContent = '波动';
-
-                        if (detailStatus) {
-                            detailStatus.textContent = `成功率 ${successRate}%`;
-                            detailStatus.style.color = '#f59e0b';
-                        }
-                    } else {
-                        indicator.className = 'status-indicator offline';
-                        indicator.innerHTML = '<i class="fas fa-circle"></i>';
-                        statusText.textContent = '异常';
-
-                        if (detailStatus) {
-                            detailStatus.textContent = `成功率 ${successRate}%`;
-                            detailStatus.style.color = '#ef4444';
-                        }
-                    }
-
-                    if (detailWorkflowCount) {
-                        detailWorkflowCount.textContent = totalCount;
-                    }
-                    if (detailLastRun) {
-                        detailLastRun.textContent = timeAgoText;
-                    }
-                } else {
-                    indicator.className = 'status-indicator unknown';
-                    indicator.innerHTML = '<i class="fas fa-circle"></i>';
-                    statusText.textContent = '无数据';
-
-                    if (detailStatus) {
-                        detailStatus.textContent = '无运行记录';
-                        detailStatus.style.color = '#f59e0b';
-                    }
-                }
-            } else {
-                throw new Error('API 请求失败');
-            }
-        } catch (error) {
-            console.error('CI状态检查失败:', error);
-            indicator.className = 'status-indicator unknown';
-            indicator.innerHTML = '<i class="fas fa-circle"></i>';
-            statusText.textContent = '未知';
-
-            if (detailStatus) {
-                detailStatus.textContent = '状态未知';
-                detailStatus.style.color = '#f59e0b';
-            }
-        }
-    }
-
-    async function loadChangelogData() {
-        const changelogList = document.getElementById('changelog-list');
-
-        try {
-            const response = await fetch(CONFIG.API.changelog);
-            if (!response.ok) throw new Error('获取更新日志失败');
-
-            const markdown = await response.text();
-            changelogData = parseChangelog(markdown);
-            renderChangelog();
-        } catch (error) {
-            console.error('加载更新日志失败:', error);
-            changelogList.innerHTML = `
-                <div class="changelog-empty">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>加载失败</h3>
-                    <p>无法加载更新日志，请稍后再试</p>
-                    <button id="retry-load-changelog" style="margin-top: 1rem; padding: 0.6rem 1.2rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
-                        重新加载
-                    </button>
-                </div>
-            `;
-
-            document.getElementById('retry-load-changelog')?.addEventListener('click', loadChangelogData);
-        }
-    }
-
-    function parseChangelog(markdown) {
-        const versions = [];
-        let currentVersion = null;
-        let shouldSkipSection = false;
-        let inCodeBlock = false;
-
-        const lines = markdown.split('\n');
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-
-            if (line.trim().startsWith('```')) {
-                inCodeBlock = !inCodeBlock;
-                continue;
-            }
-
-            if (inCodeBlock) {
-                continue;
-            }
-
-            const versionMatch = line.match(/^##\s+\[([^\]]+)\]\s*-\s*(\d{4}\/\d{2}\/\d{2})/);
-            if (versionMatch) {
-                if (currentVersion) {
-                    versions.push(currentVersion);
-                }
-
-                currentVersion = {
-                    version: versionMatch[1],
-                    date: versionMatch[2],
-                    sections: [],
-                    type: getVersionType(versionMatch[1])
-                };
-                shouldSkipSection = false;
-
-                continue;
-            }
-
-            const ruleMatch = line.match(/^##\s+(规则|示例)/);
-            if (ruleMatch) {
-                shouldSkipSection = true;
-                continue;
-            }
-
-            if (shouldSkipSection) {
-                continue;
-            }
-
-            if (line.trim().startsWith('>')) {
-                if (currentVersion) {
-                    currentVersion.note = line.replace(/^>\s*/, '');
-                }
-                continue;
-            }
-
-            const sectionMatch = line.match(/^###\s+(新增|变更|修复|移除|废弃|文档)/);
-            if (sectionMatch && currentVersion) {
-                currentVersion.sections.push({
-                    type: sectionMatch[1],
-                    items: []
-                });
-                continue;
-            }
-
-            if (!currentVersion || currentVersion.sections.length === 0) {
-                continue;
-            }
-
-            const currentSection = currentVersion.sections[currentVersion.sections.length - 1];
-
-            const contributorMatch = line.match(/^\s*-\s*@(\w+)/);
-            if (contributorMatch) {
-                currentSection.items.push({
-                    type: 'contributor',
-                    username: contributorMatch[1]
-                });
-                continue;
-            }
-
-            const itemMatch = line.match(/^\s*-\s+(.+)$/);
-            if (itemMatch) {
-                currentSection.items.push({
-                    type: 'text',
-                    content: itemMatch[1]
-                });
-                continue;
-            }
-
-            const nestedMatch = line.match(/^\s{4,}-\s+(.+)$/);
-            if (nestedMatch && currentSection.items.length > 0) {
-                const lastItem = currentSection.items[currentSection.items.length - 1];
-                if (!lastItem.subitems) {
-                    lastItem.subitems = [];
-                }
-                lastItem.subitems.push(nestedMatch[1]);
-            }
-        }
-
-        if (currentVersion) {
-            versions.push(currentVersion);
-        }
-
-        return versions;
-    }
-
-    function getVersionType(version) {
-        if (version.includes('dev') || version.includes('pre')) {
-            return 'dev';
-        }
-        return 'stable';
-    }
-
-    function renderChangelog() {
-        const changelogList = document.getElementById('changelog-list');
-
-        let filteredVersions = changelogData.map(version => {
-            if (filters.version !== 'all' && version.type !== filters.version) {
-                return null;
-            }
-
-            if (filters.time !== 'all') {
-                const versionDate = new Date(version.date.replace(/\//g, '-'));
-                const now = new Date();
-                const timeDiff = now - versionDate;
-                const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
-
-                const timeFilters = {
-                    '7d': 7,
-                    '30d': 30,
-                    '90d': 90,
-                    '1y': 365
-                };
-
-                if (daysDiff > timeFilters[filters.time]) {
-                    return null;
-                }
-            }
-
-            let filteredSections = version.sections;
-            let versionMatchesSearch = false;
-
-            if (searchQuery) {
-                const query = searchQuery.toLowerCase();
-                const versionText = `${version.version} ${version.date} ${version.note || ''}`.toLowerCase();
-                versionMatchesSearch = versionText.includes(query);
-
-                if (versionMatchesSearch) {
-                    return {
-                        ...version,
-                        sections: version.sections
-                    };
-                }
-
-                filteredSections = version.sections.map(section => {
-                    const sectionMatches = section.type.toLowerCase().includes(query);
-                    const filteredItems = section.items.filter(item => {
-                        const itemText = (item.content || item.username || '').toLowerCase();
-                        const subitemText = item.subitems ? item.subitems.join(' ').toLowerCase() : '';
-                        return itemText.includes(query) || subitemText.includes(query);
-                    });
-
-                    if (sectionMatches || filteredItems.length > 0) {
-                        return {
-                            ...section,
-                            items: sectionMatches ? section.items : filteredItems
-                        };
-                    }
-                    return null;
-                }).filter(Boolean);
-
-                if (filteredSections.length === 0 && !versionMatchesSearch) {
-                    return null;
-                }
-            }
-
-            if (filters.change !== 'all') {
-                const changeTypeMap = {
-                    'added': '新增',
-                    'changed': '变更',
-                    'fixed': '修复'
-                };
-
-                filteredSections = filteredSections.filter(section => {
-                    return section.type === changeTypeMap[filters.change];
-                });
-
-                if (filteredSections.length === 0) {
-                    return null;
-                }
-            }
-
-            return {
-                ...version,
-                sections: filteredSections
-            };
-        }).filter(Boolean);
-
-        if (filteredVersions.length === 0) {
-            changelogList.innerHTML = `
-                <div class="changelog-empty">
-                    <i class="fas fa-box-open"></i>
-                    <h3>暂无结果</h3>
-                    <p>${searchQuery ? '没有找到匹配的更新日志' : '没有找到符合条件的更新日志'}</p>
-                </div>
-            `;
-            return;
-        }
-
-        changelogList.innerHTML = filteredVersions.map((version, index) => {
-            const versionBadge = getVersionBadge(version.version);
-            const sectionsHtml = version.sections.map(section => renderSection(section)).join('');
-            const noteHtml = version.note ? `<div class="changelog-dev-note"><i class="fas fa-info-circle"></i> ${version.note}</div>` : '';
-
-            return `
-                <div class="changelog-card ${version.type === 'dev' ? 'version-dev' : ''}" style="animation-delay: ${index * 0.1}s">
-                    <div class="changelog-header-info">
-                        <div class="changelog-version">
-                            ${version.version}
-                            ${versionBadge}
-                        </div>
-                        <div class="changelog-date">${version.date}</div>
-                    </div>
-                    ${noteHtml}
-                    <div class="changelog-sections">
-                        ${sectionsHtml}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function getVersionBadge(version) {
-        if (version.includes('dev')) {
-            return '<span class="version-badge dev">开发版本</span>';
-        } else if (version.includes('alpha')) {
-            return '<span class="version-badge alpha">Alpha</span>';
-        } else if (version.includes('beta')) {
-            return '<span class="version-badge beta">Beta</span>';
-        } else if (version.includes('pre')) {
-            return '<span class="version-badge alpha">预览版</span>';
-        } else {
-            return '<span class="version-badge stable">正式版</span>';
-        }
-    }
-
-    function renderSection(section) {
-        const sectionIcons = {
-            '新增': 'fa-plus-circle',
-            '变更': 'fa-sync-alt',
-            '修复': 'fa-wrench',
-            '文档': 'fa-book'
-        };
-
-        const sectionClass = {
-            '新增': 'added',
-            '变更': 'changed',
-            '修复': 'fixed',
-            '文档': 'added'
-        };
-
-        const icon = sectionIcons[section.type] || 'fa-circle';
-        const className = sectionClass[section.type] || '';
-
-        const itemsHtml = section.items.map(item => {
-            if (item.type === 'contributor') {
-                return `
-                    <li class="changelog-item">
-                        <div class="changelog-item-contributor">
-                            <i class="fas fa-user"></i>
-                            By <a href="https://github.com/${item.username}" target="_blank">@${item.username}</a>
-                        </div>
-                        ${item.subitems ? item.subitems.map(sub => `<div class="changelog-subitem">${sub}</div>`).join('') : ''}
-                    </li>
-                `;
-            } else {
-                return `
-                    <li class="changelog-item">
-                        <span class="changelog-item-text">${item.content}</span>
-                        ${item.subitems ? item.subitems.map(sub => `<div class="changelog-subitem">${sub}</div>`).join('') : ''}
-                    </li>
-                `;
-            }
-        }).join('');
-
-        return `
-            <div class="changelog-section">
-                <div class="changelog-section-header">
-                    <h3 class="changelog-section-title ${className}">
-                        <i class="fas ${icon}"></i>
-                        ${section.type}
-                    </h3>
-                </div>
-                <ul class="changelog-content">
-                    ${itemsHtml}
-                </ul>
-            </div>
-        `;
     }
 
     // ==================== 文档模块 ====================
