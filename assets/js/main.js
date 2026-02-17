@@ -1581,64 +1581,8 @@ const ErisPulseApp = (function () {
             } catch (commitError) {
                 console.warn('获取提交信息失败:', commitError);
             }
-
-            if (docName === 'ai-module') {
-                const aiReferenceLinks = `
-                <div class="ai-reference-section">
-                    <div class="ai-reference-header">
-                        <h3><i class="fas fa-brain"></i> AI开发参考物料</h3>
-                        <p>下载ErisPulse开发参考文档，用于投喂给AI以更快生成您想要的模块或通过AI的介绍了解项目</p>
-                    </div>
-
-                    <div class="ai-reference-grid">
-                        <div class="ai-reference-card">
-                            <div class="ai-card-header">
-                                <h4><i class="fas fa-cube"></i> 模块开发</h4>
-                            </div>
-                            <div class="ai-card-body">
-                                <p>用于指导AI生成自定义功能模块的参考文档</p>
-                                <a href="${CONFIG.DOCS.baseUrl}docs/ai/AIDocs/ErisPulse-ModuleDev.md" 
-                                    download="ErisPulse-ModuleDev.md"
-                                    class="ai-download-btn">
-                                    <i class="fas fa-download"></i> 下载
-                                </a>
-                            </div>
-                        </div>
-                    
-                        <div class="ai-reference-card">
-                            <div class="ai-card-header">
-                                <h4><i class="fas fa-plug"></i> 适配器开发</h4>
-                            </div>
-                            <div class="ai-card-body">
-                                <p>用于指导AI开发平台适配器的参考文档</p>
-                                <a href="${CONFIG.DOCS.baseUrl}docs/ai/AIDocs/ErisPulse-AdapterDev.md" 
-                                    download="ErisPulse-AdapterDev.md"
-                                    class="ai-download-btn">
-                                    <i class="fas fa-download"></i> 下载
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <div class="ai-reference-card">
-                            <div class="ai-card-header">
-                                <h4><i class="fas fa-archive"></i> 文档合集</h4>
-                            </div>
-                            <div class="ai-card-body">
-                                <p>完整的ErisPulse开发参考文档集合</p>
-                                <a href="${CONFIG.DOCS.baseUrl}docs/ai/AIDocs/ErisPulse-Full.md" 
-                                    download="ErisPulse-Full.md"
-                                    class="ai-download-btn">
-                                    <i class="fas fa-download"></i> 下载
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-                docsContent.innerHTML = aiReferenceLinks + htmlContent;
-            } else {
-                docsContent.innerHTML = htmlContent;
-            }
+            
+            docsContent.innerHTML = htmlContent;
 
             addDocumentMetaInfo(docsContent, docName, commitInfo);
 
@@ -2255,6 +2199,14 @@ const ErisPulseApp = (function () {
                     ${htmlContent}
                 </div>
             `;
+
+            // 应用代码高亮
+            document.querySelectorAll('#module-modal-content pre code').forEach((block) => {
+                if (!block.className || !block.className.startsWith('language-')) {
+                    block.classList.add('language-python');
+                }
+                Prism.highlightElement(block);
+            });
         }).catch(error => {
             console.error('获取文档失败:', error);
             modalContent.innerHTML = `
