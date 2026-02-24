@@ -2202,16 +2202,125 @@ const ErisPulseApp = (function () {
     }
 
     function getDocIdFromPath(filePath) {
-        // 标准化路径
-        let normalizedPath = filePath.replace(/\.md$/, '');
+        // 标准化路径 - 将 \ 替换为 /
+        let normalizedPath = filePath.replace(/\\/g, '/');
+        
+        // 移除 .md 扩展名
+        normalizedPath = normalizedPath.replace(/\.md$/, '');
+        
+        // 处理相对路径（包括 ../、./ 和同目录文件名）
+        if (normalizedPath.startsWith('../') || normalizedPath.startsWith('./') || !normalizedPath.includes('/')) {
+            // 获取当前文档路径
+            const currentDoc = window.location.hash.split('/')[1];
+            if (currentDoc) {
+                // 解析相对路径
+                const resolvedPath = resolveRelativePath(currentDoc.replace(/\.md$/, ''), normalizedPath);
+                if (resolvedPath) {
+                    normalizedPath = resolvedPath;
+                }
+            }
+        }
+        
+        // 移除开头的 docs/（如果存在）
         if (normalizedPath.startsWith('docs/')) {
             normalizedPath = normalizedPath.substring(5);
         }
-
+        
         // 尝试直接匹配
         const allDocs = DocsIndexManager.getAllDocuments();
-        const doc = allDocs.find(d => d.path.replace(/\.md$/, '').replace(/^docs\//, '') === normalizedPath);
+        
+        // 精确匹配
+        let doc = allDocs.find(d => {
+            const docPath = d.path.replace(/\\/g, '/').replace(/\.md$/, '').replace(/^docs\//, '');
+            return docPath === normalizedPath;
+        });
+        
+        // 如果精确匹配失败，尝试模糊匹配
+        if (!doc) {
+            doc = fuzzyMatchDocument(normalizedPath, allDocs);
+        }
+        
         return doc ? doc.path : null;
+    }
+    
+    /**
+     * 模糊匹配文档
+     * @param {string} targetPath - 目标路径
+     * @param {Array} allDocs - 所有文档列表
+     * @returns {Object|null} - 匹配的文档对象，或 null
+     */
+    function fuzzyMatchDocument(targetPath, allDocs) {
+        const normalizedTarget = targetPath.toLowerCase().replace(/\.md$/, '');
+        const targetFileName = normalizedTarget.split('/').pop();
+        
+        // 尝试多种匹配策略
+        for (const doc of allDocs) {
+            const docPath = doc.path.replace(/\\/g, '/');
+            const normalizedDocPath = docPath.toLowerCase().replace(/\.md$/, '').replace(/^docs\//, '');
+            const docFileName = normalizedDocPath.split('/').pop();
+            
+            // 策略1: 文件名完全匹配
+            if (docFileName === targetFileName) {
+                return doc;
+            }
+            
+            // 策略2: 路径完全匹配（忽略大小写）
+            if (normalizedDocPath === normalizedTarget) {
+                return doc;
+            }
+            
+            // 策略3: 路径包含关系
+            if (normalizedDocPath.includes(normalizedTarget) || normalizedTarget.includes(normalizedDocPath)) {
+                return doc;
+            }
+            
+            // 策略4: 移除目录后匹配文件名
+            if (docPath.endsWith(`${targetPath}.md`)) {
+                return doc;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 解析相对路径
+     * @param {string} basePath - 基础路径
+     * @param {string} relativePath - 相对路径
+     * @returns {string|null} - 解析后的绝对路径，或 null（如果无效）
+     */
+    function resolveRelativePath(basePath, relativePath) {
+        // 将基础路径分割为目录
+        const baseParts = basePath.split('/');
+        
+        // 处理 ./ 开头的路径
+        if (relativePath.startsWith('./')) {
+            relativePath = relativePath.substring(2);
+        }
+        
+        // 分割相对路径
+        const relativeParts = relativePath.split('/');
+        
+        // 处理 ../ 开头的路径
+        const resultParts = [...baseParts];
+        resultParts.pop(); // 移除文件名，保留目录
+        
+        for (const part of relativeParts) {
+            if (part === '..') {
+                // 向上一级目录
+                if (resultParts.length > 0) {
+                    resultParts.pop();
+                }
+            } else if (part === '.') {
+                // 当前目录，忽略
+                continue;
+            } else if (part) {
+                // 正常路径部分
+                resultParts.push(part);
+            }
+        }
+        
+        return resultParts.join('/');
     }
 
     function clearToc() {
