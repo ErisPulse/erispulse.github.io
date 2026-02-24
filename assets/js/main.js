@@ -51,54 +51,44 @@ const CONFIG = {
     // 项目依赖列表配置
     PROJECT_DEPENDENCIES: [
         {
-            name: "aiohttp",
-            url: "https://github.com/aio-libs/aiohttp",
-            description: "异步HTTP客户端/服务器框架，用于处理网络请求"
-        },
-        {
-            name: "fastapi",
-            url: "https://github.com/tiangolo/fastapi",
-            description: "现代、快速（高性能）的Web框架，用于构建API"
-        },
-        {
-            name: "pydantic",
-            url: "https://github.com/pydantic/pydantic",
-            description: "数据验证和设置管理，基于Python类型提示"
-        },
-        {
             name: "rich",
             url: "https://github.com/Textualize/rich",
-            description: "在终端中提供丰富的文本和美观的格式化输出"
+            description: "在多个文件中广泛使用（日志、CLI 界面、进度条等）"
         },
         {
             name: "colorama",
             url: "https://github.com/tartley/colorama",
-            description: "简化在Windows上的彩色终端文本输出"
+            description: "在 console.py 中用于 Windows 终端颜色初始化"
         },
         {
-            name: "keyboard",
-            url: "https://github.com/boppreh/keyboard",
-            description: "处理键盘事件的跨平台库"
+            name: "aiohttp",
+            url: "https://github.com/aio-libs/aiohttp",
+            description: "在 package_manager.py 中用于异步 HTTP 请求"
         },
         {
             name: "watchdog",
             url: "https://github.com/gorakhargosh/watchdog",
-            description: "监控文件系统事件的库，用于热重载功能"
+            description: "在 run.py 中用于文件系统监控"
         },
         {
             name: "toml",
             url: "https://github.com/uiri/toml",
-            description: "解析和生成TOML格式配置文件"
+            description: "在 config.py 中用于解析 TOML 配置文件"
+        },
+        {
+            name: "fastapi",
+            url: "https://github.com/tiangolo/fastapi",
+            description: "在 router.py 中用于构建 Web API"
         },
         {
             name: "hypercorn",
             url: "https://github.com/pgjones/hypercorn",
-            description: "基于ASGI的HTTP服务器，用于运行FastAPI应用"
+            description: "在 router.py 中作为 ASGI 服务器"
         },
         {
-            name: "python-multipart",
-            url: "https://github.com/andrew-d/python-multipart",
-            description: "解析multipart/form-data格式数据"
+            name: "packaging",
+            url: "https://github.com/pypa/packaging",
+            description: "在 package_manager.py 中用于版本比较"
         }
     ],
 
