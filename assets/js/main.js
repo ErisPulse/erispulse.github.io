@@ -1478,7 +1478,7 @@ const ErisPulseApp = (function () {
         });
     }
 
-    function navigateToDocument(docPath) {
+    function navigateToDocument(docPath, targetLine = null, keyword = null) {
         document.querySelectorAll('.docs-nav-link').forEach(item => {
             item.classList.remove('active');
         });
@@ -1497,7 +1497,7 @@ const ErisPulseApp = (function () {
         }
 
         history.pushState(null, null, `#docs/${docPath}`);
-        loadDocument(docPath);
+        loadDocument(docPath, targetLine, keyword);
         updateBreadcrumb(docPath);
 
         window.scrollTo({
@@ -1507,20 +1507,73 @@ const ErisPulseApp = (function () {
     }
 
     function setupDocumentationSearch() {
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.placeholder = '搜索文档... (Ctrl+K)';
-        searchInput.className = 'docs-search-input';
-
-        const searchContainer = document.createElement('div');
-        searchContainer.className = 'docs-search-container';
-        searchContainer.innerHTML = '<i class="fas fa-search"></i>';
-        searchContainer.appendChild(searchInput);
+         
+        const searchTrigger = document.createElement('button');
+        searchTrigger.type = 'button';
+        searchTrigger.className = 'docs-search-trigger';
+        searchTrigger.innerHTML = '<i class="fas fa-search"></i> 搜索文档...';
 
         const sidebarHeader = document.querySelector('.docs-sidebar-header');
         if (sidebarHeader) {
-            sidebarHeader.appendChild(searchContainer);
+            sidebarHeader.appendChild(searchTrigger);
         }
+
+         
+        createSearchOverlay();
+
+         
+        searchTrigger.addEventListener('click', function () {
+            openSearchOverlay();
+        });
+
+         
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                openSearchOverlay();
+            }
+            
+             
+            if (e.key === 'Escape') {
+                closeSearchOverlay();
+            }
+        });
+    }
+
+    function createSearchOverlay() {
+         
+        if (document.querySelector('.docs-search-overlay')) {
+            return;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.className = 'docs-search-overlay';
+        overlay.innerHTML = `
+            <button class="docs-search-close-btn" title="关闭 (ESC)">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="docs-search-overlay-content">
+                <div class="docs-search-overlay-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="docs-search-overlay-input" placeholder="搜索文档..." autocomplete="off">
+                </div>
+                <div class="search-shortcut-hint">
+                    按 <kbd>ESC</kbd> 关闭 · <kbd>↑↓</kbd> 导航结果
+                </div>
+                <div class="docs-search-results" id="overlay-search-results">
+                    <div class="search-no-results">
+                        <i class="fas fa-search"></i>
+                        <p>输入关键词开始搜索</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+         
+        const searchInput = overlay.querySelector('.docs-search-overlay-input');
+        const closeBtn = overlay.querySelector('.docs-search-close-btn');
 
         let searchTimeout;
         searchInput.addEventListener('input', function () {
@@ -1528,20 +1581,133 @@ const ErisPulseApp = (function () {
             searchTimeout = setTimeout(() => {
                 const query = this.value.trim();
                 if (query.length > 0) {
-                    performDocumentSearch(query);
+                    performOverlaySearch(query);
                 } else {
-                    clearSearchResults();
+                    clearOverlaySearchResults();
                 }
             }, 300);
         });
 
          
-        document.addEventListener('keydown', function (e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                searchInput.focus();
+        closeBtn.addEventListener('click', function () {
+            closeSearchOverlay();
+        });
+
+         
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) {
+                closeSearchOverlay();
             }
         });
+
+         
+        overlay.addEventListener('keydown', function (e) {
+            const results = overlay.querySelectorAll('.search-result-item');
+            if (results.length === 0) return;
+
+            const currentIndex = Array.from(results).findIndex(item => item.classList.contains('keyboard-focused'));
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const nextIndex = currentIndex === -1 ? 0 : Math.min(currentIndex + 1, results.length - 1);
+                focusResultItem(results[nextIndex]);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prevIndex = currentIndex === -1 ? results.length - 1 : Math.max(currentIndex - 1, 0);
+                focusResultItem(results[prevIndex]);
+            } else if (e.key === 'Enter' && currentIndex !== -1) {
+                e.preventDefault();
+                results[currentIndex].click();
+            }
+        });
+    }
+
+    function openSearchOverlay() {
+        const overlay = document.querySelector('.docs-search-overlay');
+        if (!overlay) return;
+
+        overlay.classList.add('active');
+        const searchInput = overlay.querySelector('.docs-search-overlay-input');
+        searchInput.value = '';
+        searchInput.focus();
+        clearOverlaySearchResults();
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSearchOverlay() {
+        const overlay = document.querySelector('.docs-search-overlay');
+        if (!overlay) return;
+
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function focusResultItem(item) {
+         
+        document.querySelectorAll('.search-result-item').forEach(i => i.classList.remove('keyboard-focused'));
+        item.classList.add('keyboard-focused');
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function performOverlaySearch(query) {
+        const results = DocsIndexManager.searchDocuments(query);
+        displayOverlaySearchResults(results, query);
+    }
+
+    function displayOverlaySearchResults(results, query) {
+        const resultsContainer = document.getElementById('overlay-search-results');
+        if (!resultsContainer) return;
+
+        if (results.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="search-no-results">
+                    <i class="fas fa-search"></i>
+                    <p>未找到相关文档</p>
+                </div>
+            `;
+            return;
+        }
+
+        resultsContainer.innerHTML = `
+            <div class="search-results-header">
+                <h4>搜索结果 (${results.length})</h4>
+            </div>
+            <div class="search-results-list">
+                ${results.map((result, index) => `
+                    <div class="search-result-item" data-doc="${result.document}" data-line="${result.line}" data-keyword="${result.keyword}" tabindex="${index}">
+                        <div class="result-title">${result.title}</div>
+                        <div class="result-meta">
+                            <span class="result-doc">${result.document}</span>
+                            <span class="result-level">H${result.level}</span>
+                        </div>
+                        <div class="result-snippet">...${result.keyword}...</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+         
+        resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', function () {
+                const docPath = this.getAttribute('data-doc');
+                const line = parseInt(this.getAttribute('data-line'));
+                const keyword = this.getAttribute('data-keyword');
+                navigateToDocument(docPath, line, keyword);
+                closeSearchOverlay();
+            });
+        });
+    }
+
+    function clearOverlaySearchResults() {
+        const resultsContainer = document.getElementById('overlay-search-results');
+        if (!resultsContainer) return;
+
+        resultsContainer.innerHTML = `
+            <div class="search-no-results">
+                <i class="fas fa-search"></i>
+                <p>输入关键词开始搜索</p>
+            </div>
+        `;
     }
 
     function performDocumentSearch(query) {
@@ -1718,7 +1884,7 @@ const ErisPulseApp = (function () {
         return CONFIG.DOCS.githubBaseUrl + docPath;
     }
 
-    async function loadDocument(docPath, targetLine = null) {
+    async function loadDocument(docPath, targetLine = null, keyword = null) {
         const docsContent = document.getElementById('docs-content');
         docsContent.innerHTML = `
             <div style="text-align: center; padding: 3rem 0;">
@@ -1764,11 +1930,6 @@ const ErisPulseApp = (function () {
             docsContent.innerHTML = htmlContent;
             addDocumentMetaInfo(docsContent, docPath, commitInfo);
 
-             
-            if (targetLine) {
-                setTimeout(() => scrollToLine(targetLine), 100);
-            }
-
         } catch (error) {
             console.error('加载文档失败:', error);
             showDocumentError(docsContent, error);
@@ -1776,6 +1937,15 @@ const ErisPulseApp = (function () {
 
         setTimeout(() => {
             moveTocToSidebar();
+
+             
+            if (keyword) {
+                setTimeout(() => scrollToKeyword(keyword), 300);
+            }
+             
+            else if (targetLine) {
+                setTimeout(() => scrollToLine(targetLine), 300);
+            }
 
             document.querySelectorAll('.toc-link').forEach(link => {
                 link.addEventListener('click', function (e) {
@@ -1853,14 +2023,88 @@ const ErisPulseApp = (function () {
         }, 100);
     }
 
-    function scrollToLine(lineNumber) {
-        const lines = document.querySelectorAll('#docs-content p, #docs-content li, #docs-content div');
-        if (lines.length >= lineNumber) {
-            lines[lineNumber - 1].scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+    function scrollToKeyword(keyword) {
+         
+        if (!keyword) {
+            console.warn('scrollToKeyword: 关键词为空');
+            return;
         }
+
+        console.log('scrollToKeyword: 搜索关键词', keyword);
+
+         
+        setTimeout(() => {
+            const docsContent = document.getElementById('docs-content');
+            if (!docsContent) {
+                console.warn('scrollToKeyword: 文档内容未找到');
+                return;
+            }
+
+             
+            const walker = document.createTreeWalker(
+                docsContent,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const lowerKeyword = keyword.toLowerCase();
+            let targetElement = null;
+            let targetNode = null;
+
+            while (walker.nextNode()) {
+                const node = walker.currentNode;
+                if (node.textContent && node.textContent.toLowerCase().includes(lowerKeyword)) {
+                     
+                    targetNode = node;
+                    targetElement = node.parentElement;
+                    break;
+                }
+            }
+
+            if (targetElement) {
+                 
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+
+                 
+                if (targetNode.parentNode && targetNode.parentNode.parentNode) {
+                    const originalStyle = targetNode.parentNode.style.backgroundColor;
+                    targetNode.parentNode.style.transition = 'background-color 0.3s ease';
+                    targetNode.parentNode.style.backgroundColor = 'rgba(var(--primary-rgb), 0.3)';
+                    targetNode.parentNode.style.borderLeft = '4px solid var(--primary)';
+
+                     
+                    setTimeout(() => {
+                        targetNode.parentNode.style.backgroundColor = originalStyle;
+                        targetNode.parentNode.style.borderLeft = '';
+                    }, 2000);
+                }
+
+                console.log('已滚动到关键词位置:', keyword);
+                showMessage(`已定位到 "${keyword}"`, 'success');
+            } else {
+                console.warn('未找到关键词:', keyword);
+                showMessage('未找到指定内容', 'warning');
+            }
+        }, 500);
+    }
+
+    function scrollToLine(lineNumber) {
+         
+         
+         
+        console.log('scrollToLine: 行号跳转功能已禁用，滚动到文档顶部');
+        
+        document.getElementById('docs-content').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+        
+         
+        showMessage('文档已加载', 'success');
     }
 
     function getDocIdFromPath(filePath) {
