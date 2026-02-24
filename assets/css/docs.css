@@ -845,41 +845,183 @@
     }
 }
 
-/* 文档搜索功能 */
-.docs-search-container {
+/* 文档搜索触发按钮 */
+.docs-search-trigger {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    padding-left: 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition: var(--transition);
     position: relative;
-    margin-bottom: 1.5rem;
+    user-select: none;
 }
 
-.docs-search-container i {
+.docs-search-trigger i {
     position: absolute;
     left: 0.8rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-secondary);
-    z-index: 1;
 }
 
-.docs-search-input {
+.docs-search-trigger:hover {
+    border-color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.05);
+}
+
+.docs-search-trigger:active {
+    transform: scale(0.98);
+}
+
+.docs-search-trigger::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* 全屏搜索遮罩层 */
+.docs-search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: none;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.docs-search-overlay.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 15vh;
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* 全屏搜索容器 */
+.docs-search-overlay-content {
     width: 100%;
-    padding: 0.8rem 0.8rem 0.8rem 2.5rem;
-    border: 1px solid var(--border);
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 全屏搜索输入框 */
+.docs-search-overlay-input {
+    width: 100%;
+    padding: 1.2rem 1.5rem 1.2rem 3.5rem;
+    font-size: 1.3rem;
+    border: 2px solid var(--primary);
     border-radius: var(--radius);
     background: var(--card-bg);
     color: var(--text);
-    font-size: 0.95rem;
+    outline: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     transition: var(--transition);
 }
 
-.docs-search-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+.docs-search-overlay-input:focus {
+    box-shadow: 0 10px 50px rgba(var(--primary-rgb), 0.3);
 }
 
-.docs-search-input::placeholder {
+.docs-search-overlay-input::placeholder {
     color: var(--text-secondary);
-    opacity: 0.7;
+    opacity: 0.5;
+}
+
+.docs-search-overlay-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.docs-search-overlay-wrapper i {
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+/* 搜索关闭按钮 */
+.docs-search-close-btn {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: var(--transition);
+    z-index: 10;
+}
+
+.docs-search-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+/* 快捷键提示 */
+.search-shortcut-hint {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.search-shortcut-hint kbd {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin: 0 0.3rem;
+    font-weight: 500;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* 搜索结果样式 */
@@ -891,6 +1033,42 @@
     max-height: 300px;
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
+}
+
+/* 全屏遮罩层中的搜索结果样式 */
+.docs-search-overlay .docs-search-results {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+.docs-search-overlay .docs-search-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.docs-search-overlay .docs-search-results::-webkit-scrollbar-track {
+    background: rgba(var(--border-rgb), 0.3);
+    border-radius: 3px;
+}
+
+.docs-search-overlay .docs-search-results::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 3px;
+}
+
+.docs-search-overlay .docs-search-results::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* 键盘导航焦点样式 */
+.search-result-item.keyboard-focused {
+    background: rgba(var(--primary-rgb), 0.15);
+    border-left: 3px solid var(--primary);
+    transform: translateX(5px);
 }
 
 .search-results-header {
