@@ -132,121 +132,21 @@ const CONFIG = {
 
     // 文档配置
     DOCS: {
-        baseUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Pre-Release/v2/',
-        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Develop/v2/',
-
-        // 文档分类和导航结构
-        categories: {
-            'getting-started': {
-                title: '快速开始',
-                icon: 'fa-rocket',
-                docs: [
-                    { id: 'quick-start', title: '快速开始指南', icon: 'fa-rocket' }
-                ]
-            },
-            'ai': {
-                title: 'AI相关',
-                icon: 'fa-brain',
-                docs: [
-                    { id: 'ai-module', title: 'AI模块生成', icon: 'fa-brain' },
-                    { id: 'ai-readme', title: 'AI文档总览', icon: 'fa-book' }
-                ]
-            },
-            'core': {
-                title: '核心功能',
-                icon: 'fa-cogs',
-                docs: [
-                    { id: 'cli', title: '命令行接口', icon: 'fa-terminal' },
-                    { id: 'core-concepts', title: '核心概念', icon: 'fa-cogs' },
-                    { id: 'core-modules', title: '核心模块', icon: 'fa-th' },
-                    { id: 'core-adapters', title: '适配器系统', icon: 'fa-plug' },
-                    { id: 'core-event-system', title: '事件系统', icon: 'fa-calendar' },
-                    { id: 'core-lifecycle', title: '生命周期', icon: 'fa-clock' },
-                    { id: 'core-self-config', title: '配置解析', icon: 'fa-cog' },
-                    { id: 'core-lazy-loading', title: '懒加载机制', icon: 'fa-hourglass-half' },
-                    { id: 'core-best-practices', title: '最佳实践', icon: 'fa-check-circle' },
-                    { id: 'core-router', title: '路由系统', icon: 'fa-route' }
-                ]
-            },
-            'development': {
-                title: '开发指南',
-                icon: 'fa-code',
-                docs: [
-                    { id: 'dev-readme', title: '开发入门', icon: 'fa-book' },
-                    { id: 'dev-module', title: '模块开发', icon: 'fa-cube' },
-                    { id: 'dev-adapter', title: '适配器开发', icon: 'fa-plug' },
-                    { id: 'dev-cli', title: 'CLI 开发', icon: 'fa-terminal' }
-                ]
-            },
-            'standards': {
-                title: '标准规范',
-                icon: 'fa-file-alt',
-                docs: [
-                    { id: 'adapter-standards', title: '标准规范总览', icon: 'fa-file-alt' },
-                    { id: 'event-conversion', title: '事件转换', icon: 'fa-random' },
-                    { id: 'api-response', title: 'API 响应', icon: 'fa-exchange-alt' }
-                ]
-            },
-            'styleguide': {
-                title: '风格指南',
-                icon: 'fa-code',
-                docs: [
-                    { id: 'styleguide', title: '代码风格指南', icon: 'fa-code' },
-                    { id: 'docstring-spec', title: '文档字符串规范', icon: 'fa-file-code' }
-                ]
-            },
-            'platform-features': {
-                title: '平台特性',
-                icon: 'fa-list',
-                docs: [
-                    { id: 'platform-features', title: '平台特性总览', icon: 'fa-list' },
-                    { id: 'platform-yunhu', title: '云湖平台特性', icon: 'fa-cloud' },
-                    { id: 'platform-telegram', title: 'Telegram平台特性', icon: 'fab fa-telegram' },
-                    { id: 'platform-onebot11', title: 'OneBot11平台特性', icon: 'fa-robot' },
-                    { id: 'platform-email', title: '邮件平台特性', icon: 'fa-envelope' },
-                    { id: 'platform-maintain-notes', title: '维护说明', icon: 'fa-tools' }
-                ]
-            },
-            'changelog': {
-                title: '更新日志',
-                icon: 'fa-history',
-                docs: [
-                    { id: 'changelog', title: '更新日志', icon: 'fa-history' }
-                ]
+        baseUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/',
+        githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Develop/v2/docs/',
+        
+        // 索引文件配置
+        index: {
+            cdnUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/',
+            githubUrl: 'https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/',
+            mappingFile: 'docs-mapping.json',
+            searchIndexFile: 'docs-search-index.json',
+            cacheExpiry: 24 * 60 * 60 * 1000, // 24小时
+            storageKeys: {
+                mapping: 'erispulse-docs-mapping',
+                searchIndex: 'erispulse-docs-search-index',
+                searchHistory: 'erispulse-search-history'
             }
-        },
-
-        // 文档路径映射
-        paths: {
-            'quick-start': 'docs/quick-start.md',
-            'ai-module': 'docs/ai/module-generation.md',
-            'ai-readme': 'docs/ai/README.md',
-            'cli': 'docs/core/cli.md',
-            'core-concepts': 'docs/core/concepts.md',
-            'core-modules': 'docs/core/modules.md',
-            'core-adapters': 'docs/core/adapters.md',
-            'core-event-system': 'docs/core/event-system.md',
-            'core-lifecycle': 'docs/core/lifecycle.md',
-            'core-best-practices': 'docs/core/best-practices.md',
-            'core-self-config': 'docs/core/self-config.md',
-            'core-lazy-loading': 'docs/core/lazy-loading.md',
-            'core-router': 'docs/core/router.md',
-            'dev-readme': 'docs/development/README.md',
-            'dev-module': 'docs/development/module.md',
-            'dev-adapter': 'docs/development/adapter.md',
-            'dev-cli': 'docs/development/cli.md',
-            'adapter-standards': 'docs/standards/README.md',
-            'event-conversion': 'docs/standards/event-conversion.md',
-            'api-response': 'docs/standards/api-response.md',
-            'platform-features': 'docs/platform-features/README.md',
-            'platform-yunhu': 'docs/platform-features/yunhu.md',
-            'platform-telegram': 'docs/platform-features/telegram.md',
-            'platform-onebot11': 'docs/platform-features/onebot11.md',
-            'platform-email': 'docs/platform-features/email.md',
-            'platform-maintain-notes': 'docs/platform-features/maintain-notes.md',
-            'styleguide': 'docs/styleguide/README.md',
-            'docstring-spec': 'docs/styleguide/docstring_spec.md',
-            'changelog': 'CHANGELOG.md'
         }
     },
 
@@ -308,6 +208,313 @@ const CONFIG = {
         packages: 'https://erisdev.com/packages.json'
     }
 };
+
+// ==================== 索引管理器 ====================
+const DocsIndexManager = (function() {
+    let mappingCache = null;
+    let searchIndexCache = null;
+    
+    /**
+     * 加载映射索引（三层降级策略）
+     */
+    async function loadMapping() {
+        try {
+            console.log('尝试从CDN加载映射索引...');
+            const data = await loadFromCDN(CONFIG.DOCS.index.mappingFile);
+            mappingCache = data;
+            saveToCache(CONFIG.DOCS.index.storageKeys.mapping, data);
+            console.log('✓ 从CDN成功加载映射索引');
+            return data;
+        } catch (cdnError) {
+            console.warn('CDN加载失败，尝试从GitHub加载...', cdnError);
+            try {
+                const data = await loadFromGitHub(CONFIG.DOCS.index.mappingFile);
+                mappingCache = data;
+                saveToCache(CONFIG.DOCS.index.storageKeys.mapping, data);
+                console.log('✓ 从GitHub成功加载映射索引');
+                return data;
+            } catch (githubError) {
+                console.warn('GitHub加载失败，尝试从缓存加载...', githubError);
+                try {
+                    const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.mapping);
+                    mappingCache = data;
+                    console.log('✓ 从缓存成功加载映射索引');
+                    return data;
+                } catch (cacheError) {
+                    console.error('所有加载方式均失败', cacheError);
+                    throw new Error('无法加载文档索引，请检查网络连接');
+                }
+            }
+        }
+    }
+    
+    /**
+     * 加载搜索索引（三层降级策略）
+     */
+    async function loadSearchIndex() {
+        try {
+            console.log('尝试从CDN加载搜索索引...');
+            const data = await loadFromCDN(CONFIG.DOCS.index.searchIndexFile);
+            searchIndexCache = data;
+            saveToCache(CONFIG.DOCS.index.storageKeys.searchIndex, data);
+            console.log('✓ 从CDN成功加载搜索索引');
+            return data;
+        } catch (cdnError) {
+            console.warn('CDN加载失败，尝试从GitHub加载...', cdnError);
+            try {
+                const data = await loadFromGitHub(CONFIG.DOCS.index.searchIndexFile);
+                searchIndexCache = data;
+                saveToCache(CONFIG.DOCS.index.storageKeys.searchIndex, data);
+                console.log('✓ 从GitHub成功加载搜索索引');
+                return data;
+            } catch (githubError) {
+                console.warn('GitHub加载失败，尝试从缓存加载...', githubError);
+                try {
+                    const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.searchIndex);
+                    searchIndexCache = data;
+                    console.log('✓ 从缓存成功加载搜索索引');
+                    return data;
+                } catch (cacheError) {
+                    console.error('所有加载方式均失败', cacheError);
+                    throw new Error('无法加载搜索索引，请检查网络连接');
+                }
+            }
+        }
+    }
+    
+    /**
+     * 从CDN加载
+     */
+    async function loadFromCDN(filename) {
+        const url = CONFIG.DOCS.index.cdnUrl + filename;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`CDN请求失败: ${response.status}`);
+        }
+        return await response.json();
+    }
+    
+    /**
+     * 从GitHub加载
+     */
+    async function loadFromGitHub(filename) {
+        const url = CONFIG.DOCS.index.githubUrl + filename;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`GitHub请求失败: ${response.status}`);
+        }
+        return await response.json();
+    }
+    
+    /**
+     * 从缓存加载
+     */
+    async function loadFromCache(storageKey) {
+        try {
+            const cached = localStorage.getItem(storageKey);
+            if (!cached) {
+                throw new Error('缓存不存在');
+            }
+            
+            const data = JSON.parse(cached);
+            
+            // 检查缓存是否过期
+            if (data.timestamp && Date.now() - data.timestamp > CONFIG.DOCS.index.cacheExpiry) {
+                throw new Error('缓存已过期');
+            }
+            
+            return data.content;
+        } catch (error) {
+            throw new Error(`缓存加载失败: ${error.message}`);
+        }
+    }
+    
+    /**
+     * 保存到缓存
+     */
+    function saveToCache(storageKey, content) {
+        try {
+            const cacheData = {
+                timestamp: Date.now(),
+                content: content
+            };
+            localStorage.setItem(storageKey, JSON.stringify(cacheData));
+        } catch (error) {
+            console.warn('保存缓存失败:', error);
+        }
+    }
+    
+    /**
+     * 获取文档路径
+     */
+    function getDocumentPath(docId) {
+        if (!mappingCache || !mappingCache.categories) {
+            return null;
+        }
+        
+        for (const categoryName of Object.keys(mappingCache.categories)) {
+            const category = mappingCache.categories[categoryName];
+            if (category.documents) {
+                const doc = category.documents.find(d => d.path === docId || d.path.includes(docId));
+                if (doc) {
+                    return doc.path;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * 获取文档标题
+     */
+    function getDocumentTitle(docPath) {
+        if (!mappingCache || !mappingCache.categories) {
+            return null;
+        }
+        
+        for (const categoryName of Object.keys(mappingCache.categories)) {
+            const category = mappingCache.categories[categoryName];
+            if (category.documents) {
+                const doc = category.documents.find(d => d.path === docPath);
+                if (doc) {
+                    return doc.title;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * 获取文档分类
+     */
+    function getDocumentCategory(docPath) {
+        if (!mappingCache || !mappingCache.categories) {
+            return null;
+        }
+        
+        for (const [categoryName, category] of Object.entries(mappingCache.categories)) {
+            if (category.documents) {
+                const doc = category.documents.find(d => d.path === docPath);
+                if (doc) {
+                    return {
+                        name: categoryName,
+                        title: category.name,
+                        description: category.description
+                    };
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * 获取所有文档列表
+     */
+    function getAllDocuments() {
+        if (!mappingCache || !mappingCache.categories) {
+            return [];
+        }
+        
+        const docs = [];
+        for (const [categoryName, category] of Object.entries(mappingCache.categories)) {
+            if (category.documents) {
+                category.documents.forEach(doc => {
+                    docs.push({
+                        path: doc.path,
+                        title: doc.title,
+                        level: doc.level,
+                        category: categoryName
+                    });
+                });
+            }
+        }
+        return docs;
+    }
+    
+    /**
+     * 搜索文档
+     */
+    function searchDocuments(query) {
+        if (!searchIndexCache || !searchIndexCache.keywords) {
+            return [];
+        }
+        
+        const results = [];
+        const lowerQuery = query.toLowerCase();
+        
+        for (const [keyword, occurrences] of Object.entries(searchIndexCache.keywords)) {
+            if (keyword.toLowerCase().includes(lowerQuery) || lowerQuery.includes(keyword.toLowerCase())) {
+                occurrences.forEach(occurrence => {
+                    results.push({
+                        document: occurrence.document,
+                        title: occurrence.title,
+                        line: occurrence.line,
+                        level: occurrence.level,
+                        keyword: keyword,
+                        relevance: calculateRelevance(query, keyword)
+                    });
+                });
+            }
+        }
+        
+        // 按相关性排序
+        results.sort((a, b) => b.relevance - a.relevance);
+        
+        return results;
+    }
+    
+    /**
+     * 计算相关性
+     */
+    function calculateRelevance(query, keyword) {
+        const lowerQuery = query.toLowerCase();
+        const lowerKeyword = keyword.toLowerCase();
+        
+        // 精确匹配
+        if (lowerKeyword === lowerQuery) {
+            return 100;
+        }
+        
+        // 开头匹配
+        if (lowerKeyword.startsWith(lowerQuery)) {
+            return 80;
+        }
+        
+        // 包含匹配
+        if (lowerKeyword.includes(lowerQuery)) {
+            return 60;
+        }
+        
+        return 0;
+    }
+    
+    /**
+     * 清除缓存
+     */
+    function clearCache() {
+        try {
+            localStorage.removeItem(CONFIG.DOCS.index.storageKeys.mapping);
+            localStorage.removeItem(CONFIG.DOCS.index.storageKeys.searchIndex);
+            console.log('缓存已清除');
+        } catch (error) {
+            console.warn('清除缓存失败:', error);
+        }
+    }
+    
+    // 公共API
+    return {
+        loadMapping,
+        loadSearchIndex,
+        getDocumentPath,
+        getDocumentTitle,
+        getDocumentCategory,
+        getAllDocuments,
+        searchDocuments,
+        clearCache,
+        get mapping() { return mappingCache; },
+        get searchIndex() { return searchIndexCache; }
+    };
+})();
 
 // ==================== 主应用对象 ====================
 const ErisPulseApp = (function () {
@@ -1163,9 +1370,87 @@ const ErisPulseApp = (function () {
     }
 
     // ==================== 文档模块 ====================
-    function setupDocumentation() {
-        renderDocsNavigation();
-        
+    async function setupDocumentation() {
+        try {
+            // 加载索引
+            await DocsIndexManager.loadMapping();
+            await DocsIndexManager.loadSearchIndex();
+            
+            renderDocsNavigation();
+            setupDocumentationSearch();
+            setupBreadcrumbNavigation();
+            setupDocumentActions();
+            setupDocumentationResponsive();
+
+            const hash = window.location.hash.substring(1);
+            if (hash === 'docs') {
+                const firstDocLink = document.querySelector('.docs-nav-link');
+                if (firstDocLink) {
+                    firstDocLink.click();
+                }
+            }
+        } catch (error) {
+            console.error('文档系统初始化失败:', error);
+            const docsContent = document.getElementById('docs-content');
+            if (docsContent) {
+                docsContent.innerHTML = `
+                    <div class="error-message" style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                        <h3>无法加载文档索引</h3>
+                        <p>${error.message}</p>
+                        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> 重新加载
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    function renderDocsNavigation() {
+        const navContainer = document.querySelector('.docs-nav-container');
+        if (!navContainer) return;
+
+        const mapping = DocsIndexManager.mapping;
+        if (!mapping || !mapping.categories) {
+            navContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-secondary);">加载中...</p>';
+            return;
+        }
+
+        let navHtml = '';
+
+        for (const [categoryId, category] of Object.entries(mapping.categories)) {
+            navHtml += `
+                <div class="docs-nav-item">
+                    <div class="docs-nav-category" data-category="${categoryId}">
+                        <span>${categoryId}</span>
+                        <span class="doc-count">${category.count || category.documents?.length || 0}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="docs-dropdown">
+                        ${category.documents.map(doc => `
+                            <a href="#docs/${doc.path}" class="docs-nav-link" data-doc="${doc.path}">
+                                <i class="fas fa-file-alt"></i>
+                                ${doc.title}
+                            </a>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        navHtml += `
+            <div class="docs-nav-item">
+                <a href="https://github.com/ErisPulse/ErisPulse/tree/Develop/v2/docs/api" target="_blank" class="docs-nav-link" style="justify-content: flex-start;">
+                    <i class="fab fa-github"></i>
+                    <span>API 文档</span>
+                </a>
+            </div>
+        `;
+
+        navContainer.innerHTML = navHtml;
+
+        // 绑定事件
         document.querySelectorAll('.docs-nav-category').forEach(category => {
             category.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -1184,71 +1469,21 @@ const ErisPulseApp = (function () {
 
         document.querySelectorAll('.docs-nav-link').forEach(link => {
             link.addEventListener('click', function (e) {
-                const docName = this.getAttribute('data-doc');
-                if (docName) {
+                const docPath = this.getAttribute('data-doc');
+                if (docPath) {
                     e.preventDefault();
-                    navigateToDocument(docName);
+                    navigateToDocument(docPath);
                 }
             });
         });
-
-        setupDocumentationSearch();
-        setupBreadcrumbNavigation();
-        setupDocumentActions();
-        setupDocumentationResponsive();
-
-        const hash = window.location.hash.substring(1);
-        if (hash === 'docs') {
-            const firstDocLink = document.querySelector('.docs-nav-link[data-doc]');
-            if (firstDocLink) {
-                firstDocLink.click();
-            }
-        }
     }
 
-    function renderDocsNavigation() {
-        const navContainer = document.querySelector('.docs-nav-container');
-        if (!navContainer) return;
-
-        let navHtml = '';
-
-        for (const [categoryId, category] of Object.entries(CONFIG.DOCS.categories)) {
-            navHtml += `
-                <div class="docs-nav-item">
-                    <div class="docs-nav-category" data-category="${categoryId}">
-                        <span>${category.title}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="docs-dropdown">
-                        ${category.docs.map(doc => `
-                            <a href="#docs/${doc.id}" class="docs-nav-link" data-doc="${doc.id}">
-                                <i class="fas ${doc.icon}"></i>
-                                ${doc.title}
-                            </a>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        navHtml += `
-            <div class="docs-nav-item">
-                <a href="https://github.com/ErisPulse/ErisPulse/tree/Pre-Release/v2/docs/api" target="_blank" class="docs-nav-link" style="justify-content: flex-start;">
-                    <i class="fab fa-github"></i>
-                    <span>API 文档</span>
-                </a>
-            </div>
-        `;
-
-        navContainer.innerHTML = navHtml;
-    }
-
-    function navigateToDocument(docName) {
+    function navigateToDocument(docPath) {
         document.querySelectorAll('.docs-nav-link').forEach(item => {
             item.classList.remove('active');
         });
 
-        const activeLink = document.querySelector(`.docs-nav-link[data-doc="${docName}"]`);
+        const activeLink = document.querySelector(`.docs-nav-link[data-doc="${docPath}"]`);
         if (activeLink) {
             activeLink.classList.add('active');
 
@@ -1261,9 +1496,9 @@ const ErisPulseApp = (function () {
             }
         }
 
-        history.pushState(null, null, `#docs/${docName}`);
-        loadDocument(docName);
-        updateBreadcrumb(docName);
+        history.pushState(null, null, `#docs/${docPath}`);
+        loadDocument(docPath);
+        updateBreadcrumb(docPath);
 
         window.scrollTo({
             top: 0,
@@ -1274,7 +1509,7 @@ const ErisPulseApp = (function () {
     function setupDocumentationSearch() {
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
-        searchInput.placeholder = '搜索文档...';
+        searchInput.placeholder = '搜索文档... (Ctrl+K)';
         searchInput.className = 'docs-search-input';
 
         const searchContainer = document.createElement('div');
@@ -1291,37 +1526,30 @@ const ErisPulseApp = (function () {
         searchInput.addEventListener('input', function () {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                const query = this.value.trim().toLowerCase();
+                const query = this.value.trim();
                 if (query.length > 0) {
-                    searchDocuments(query);
+                    performDocumentSearch(query);
                 } else {
                     clearSearchResults();
                 }
             }, 300);
         });
+
+        // 快捷键支持
+        document.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
     }
 
-    function searchDocuments(query) {
-        const results = [];
-
-        for (const [categoryId, category] of Object.entries(CONFIG.DOCS.categories)) {
-            category.docs.forEach(doc => {
-                const title = doc.title.toLowerCase();
-                if (title.includes(query)) {
-                    results.push({
-                        name: doc.id,
-                        title: doc.title,
-                        category: category.title,
-                        categoryId: categoryId
-                    });
-                }
-            });
-        }
-
-        displaySearchResults(results);
+    function performDocumentSearch(query) {
+        const results = DocsIndexManager.searchDocuments(query);
+        displaySearchResults(results, query);
     }
 
-    function displaySearchResults(results) {
+    function displaySearchResults(results, query) {
         const resultsContainer = document.createElement('div');
         resultsContainer.className = 'docs-search-results';
 
@@ -1339,9 +1567,13 @@ const ErisPulseApp = (function () {
                 </div>
                 <div class="search-results-list">
                     ${results.map(result => `
-                        <div class="search-result-item" data-doc="${result.name}">
+                        <div class="search-result-item" data-doc="${result.document}" data-line="${result.line}">
                             <div class="result-title">${result.title}</div>
-                            <div class="result-category">${result.category}</div>
+                            <div class="result-meta">
+                                <span class="result-doc">${result.document}</span>
+                                <span class="result-level">H${result.level}</span>
+                            </div>
+                            <div class="result-snippet">...${result.keyword}...</div>
                         </div>
                     `).join('')}
                 </div>
@@ -1360,8 +1592,9 @@ const ErisPulseApp = (function () {
 
         resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
             item.addEventListener('click', function () {
-                const docName = this.getAttribute('data-doc');
-                navigateToDocument(docName);
+                const docPath = this.getAttribute('data-doc');
+                const line = parseInt(this.getAttribute('data-line'));
+                navigateToDocument(docPath, line);
                 clearSearchResults();
             });
         });
@@ -1380,56 +1613,48 @@ const ErisPulseApp = (function () {
             breadcrumb.addEventListener('click', function (e) {
                 if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#docs') {
                     e.preventDefault();
-                    updateBreadcrumb('home');
+                    const firstDoc = document.querySelector('.docs-nav-link');
+                    if (firstDoc) {
+                        firstDoc.click();
+                    }
                 }
             });
         }
     }
 
-    function updateBreadcrumb(docName) {
+    function updateBreadcrumb(docPath) {
         const breadcrumb = document.querySelector('.docs-breadcrumb');
         if (!breadcrumb) return;
 
-        let category = 'other';
-        let categoryName = '其他';
+        const category = DocsIndexManager.getDocumentCategory(docPath);
+        const docTitle = DocsIndexManager.getDocumentTitle(docPath);
 
-        for (const [catId, cat] of Object.entries(CONFIG.DOCS.categories)) {
-            if (cat.docs.some(doc => doc.id === docName)) {
-                category = catId;
-                categoryName = cat.title;
-                break;
-            }
-        }
-
-        const docTitle = getDocTitle(docName);
-
-        if (docName === 'home' || !docName) {
+        if (!docPath || docPath === 'home') {
             breadcrumb.innerHTML = `<span class="current">文档中心</span>`;
             return;
         }
 
-        breadcrumb.innerHTML = `
-            <a href="#docs" class="breadcrumb-link">
-                <i class="fas fa-home breadcrumb-icon"></i>
-                <span>文档中心</span>
-            </a>
-            <span class="separator">/</span>
-            <a href="#docs" class="breadcrumb-link breadcrumb-category">
-                <span>${categoryName}</span>
-            </a>
-            <span class="separator">/</span>
-            <span class="current">${docTitle}</span>
-        `;
-    }
-
-    function getDocTitle(docName) {
-        for (const category of Object.values(CONFIG.DOCS.categories)) {
-            const doc = category.docs.find(d => d.id === docName);
-            if (doc) {
-                return doc.title;
-            }
+        if (category) {
+            breadcrumb.innerHTML = `
+                <a href="#docs" class="breadcrumb-link">
+                    <i class="fas fa-home breadcrumb-icon"></i>
+                    <span>文档中心</span>
+                </a>
+                <span class="separator">/</span>
+                <span class="breadcrumb-category">${category.name}</span>
+                <span class="separator">/</span>
+                <span class="current">${docTitle || docPath}</span>
+            `;
+        } else {
+            breadcrumb.innerHTML = `
+                <a href="#docs" class="breadcrumb-link">
+                    <i class="fas fa-home breadcrumb-icon"></i>
+                    <span>文档中心</span>
+                </a>
+                <span class="separator">/</span>
+                <span class="current">${docTitle || docPath}</span>
+            `;
         }
-        return docName;
     }
 
     function setupDocumentActions() {
@@ -1457,11 +1682,11 @@ const ErisPulseApp = (function () {
     function shareDocument() {
         const currentUrl = window.location.href;
         const currentDoc = window.location.hash.split('/')[1];
-        const title = getDocTitle(currentDoc);
+        const docTitle = DocsIndexManager.getDocumentTitle(currentDoc) || currentDoc;
 
         if (navigator.share) {
             navigator.share({
-                title: title,
+                title: docTitle,
                 text: '查看 ErisPulse 文档',
                 url: currentUrl
             });
@@ -1489,44 +1714,11 @@ const ErisPulseApp = (function () {
         handleResize();
     }
 
-    function getEditUrl(docName) {
-        if (CONFIG.DOCS.paths[docName]) {
-            return CONFIG.DOCS.githubBaseUrl + CONFIG.DOCS.paths[docName];
-        }
-        return null;
+    function getEditUrl(docPath) {
+        return CONFIG.DOCS.githubBaseUrl + docPath;
     }
 
-    function getNextDocument(currentDoc) {
-        const docOrder = [];
-        Object.values(CONFIG.DOCS.categories).forEach(category => {
-            category.docs.forEach(doc => {
-                docOrder.push(doc.id);
-            });
-        });
-
-        const currentIndex = docOrder.indexOf(currentDoc);
-        if (currentIndex >= 0 && currentIndex < docOrder.length - 1) {
-            return docOrder[currentIndex + 1];
-        }
-        return null;
-    }
-
-    function getPrevDocument(currentDoc) {
-        const docOrder = [];
-        Object.values(CONFIG.DOCS.categories).forEach(category => {
-            category.docs.forEach(doc => {
-                docOrder.push(doc.id);
-            });
-        });
-
-        const currentIndex = docOrder.indexOf(currentDoc);
-        if (currentIndex > 0) {
-            return docOrder[currentIndex - 1];
-        }
-        return null;
-    }
-
-    async function loadDocument(docName) {
+    async function loadDocument(docPath, targetLine = null) {
         const docsContent = document.getElementById('docs-content');
         docsContent.innerHTML = `
             <div style="text-align: center; padding: 3rem 0;">
@@ -1537,33 +1729,20 @@ const ErisPulseApp = (function () {
 
         clearToc();
 
-        const docPath = CONFIG.DOCS.paths[docName];
-        if (!docPath) {
-            docsContent.innerHTML = `
-                <div class="error-message" style="text-align: center; padding: 3rem 0;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
-                    <h3>文档未找到</h3>
-                    <p>请求的文档 "${docName}" 不存在</p>
-                </div>
-            `;
-            return;
-        }
-
-        let docUrl = CONFIG.DOCS.baseUrl + docPath;
-        let docContent = '';
-        let commitInfo = null;
-
         try {
+            const docUrl = CONFIG.DOCS.baseUrl + docPath;
             const docResponse = await fetch(docUrl);
             if (!docResponse.ok) {
                 throw new Error(`文档加载失败: HTTP ${docResponse.status}`);
             }
-            docContent = await docResponse.text();
+
+            const docContent = await docResponse.text();
             let htmlContent = marked.parse(docContent);
 
             htmlContent = addTableOfContents(htmlContent);
             htmlContent = wrapTables(htmlContent);
 
+            let commitInfo = null;
             try {
                 const apiBaseUrl = 'https://api.github.com/repos/ErisPulse/ErisPulse/commits?path=' + docPath;
                 const commitResponse = await fetch(apiBaseUrl, {
@@ -1581,10 +1760,14 @@ const ErisPulseApp = (function () {
             } catch (commitError) {
                 console.warn('获取提交信息失败:', commitError);
             }
-            
-            docsContent.innerHTML = htmlContent;
 
-            addDocumentMetaInfo(docsContent, docName, commitInfo);
+            docsContent.innerHTML = htmlContent;
+            addDocumentMetaInfo(docsContent, docPath, commitInfo);
+
+            // 如果指定了目标行，滚动到该位置
+            if (targetLine) {
+                setTimeout(() => scrollToLine(targetLine), 100);
+            }
 
         } catch (error) {
             console.error('加载文档失败:', error);
@@ -1638,11 +1821,7 @@ const ErisPulseApp = (function () {
 
                     if (href && !href.includes('://')) {
                         e.preventDefault();
-
-                        const currentDoc = window.location.hash.split('/')[1];
-                        const currentDocPath = CONFIG.DOCS.paths[currentDoc] || '';
-                        const targetDocId = getDocIdFromPath(href, currentDocPath);
-
+                        const targetDocId = getDocIdFromPath(href);
                         if (targetDocId) {
                             navigateToDocument(targetDocId);
                         } else {
@@ -1672,6 +1851,29 @@ const ErisPulseApp = (function () {
 
             addScrollSpy();
         }, 100);
+    }
+
+    function scrollToLine(lineNumber) {
+        const lines = document.querySelectorAll('#docs-content p, #docs-content li, #docs-content div');
+        if (lines.length >= lineNumber) {
+            lines[lineNumber - 1].scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+    }
+
+    function getDocIdFromPath(filePath) {
+        // 标准化路径
+        let normalizedPath = filePath.replace(/\.md$/, '');
+        if (normalizedPath.startsWith('docs/')) {
+            normalizedPath = normalizedPath.substring(5);
+        }
+
+        // 尝试直接匹配
+        const allDocs = DocsIndexManager.getAllDocuments();
+        const doc = allDocs.find(d => d.path.replace(/\.md$/, '').replace(/^docs\//, '') === normalizedPath);
+        return doc ? doc.path : null;
     }
 
     function clearToc() {
@@ -1797,62 +1999,6 @@ const ErisPulseApp = (function () {
         headers.forEach(header => observer.observe(header));
     }
 
-    function resolvePath(relativePath, basePath) {
-        let cleanPath = relativePath.replace(/^\.?\//, '');
-
-        if (relativePath.startsWith('/')) {
-            return cleanPath;
-        }
-
-        if (!basePath) {
-            return cleanPath;
-        }
-
-        const baseParts = basePath.split('/');
-        const relativeParts = cleanPath.split('/');
-
-        baseParts.pop();
-
-        relativeParts.forEach(part => {
-            if (part === '..') {
-                baseParts.pop();
-            } else if (part !== '.' && part !== '') {
-                baseParts.push(part);
-            }
-        });
-
-        return baseParts.join('/');
-    }
-
-    function getDocIdFromPath(filePath, currentDocPath) {
-        let normalizedPath = filePath.replace(/\.md$/, '');
-
-        if (normalizedPath.startsWith('docs/')) {
-            normalizedPath = normalizedPath.substring(5);
-        }
-
-        for (const [docId, docPath] of Object.entries(CONFIG.DOCS.paths)) {
-            const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
-            if (normalizedDocPath === normalizedPath) {
-                return docId;
-            }
-        }
-
-        if (currentDocPath) {
-            const absolutePath = resolvePath(filePath, currentDocPath);
-            const normalizedAbsolutePath = absolutePath.replace(/\.md$/, '').replace(/^docs\//, '');
-
-            for (const [docId, docPath] of Object.entries(CONFIG.DOCS.paths)) {
-                const normalizedDocPath = docPath.replace(/\.md$/, '').replace(/^docs\//, '');
-                if (normalizedDocPath === normalizedAbsolutePath) {
-                    return docId;
-                }
-            }
-        }
-
-        return null;
-    }
-
     function renderCharts() {
         const chartContainers = document.querySelectorAll('.chart-container');
 
@@ -1876,7 +2022,7 @@ const ErisPulseApp = (function () {
         });
     }
 
-    function addDocumentMetaInfo(docsContent, docName, commitInfo) {
+    function addDocumentMetaInfo(docsContent, docPath, commitInfo) {
         const metaContainer = document.createElement('div');
         metaContainer.style.marginTop = '2rem';
         metaContainer.style.paddingTop = '1.5rem';
@@ -1935,46 +2081,47 @@ const ErisPulseApp = (function () {
         navContainer.style.gap = '1rem';
         navContainer.style.marginTop = '1rem';
 
-        const editUrl = getEditUrl(docName);
-        const prevDoc = getPrevDocument(docName);
-        const nextDoc = getNextDocument(docName);
+        // const editUrl = getEditUrl(docPath);
+        // if (editUrl) {
+        //     const editLink = document.createElement('a');
+        //     editLink.href = editUrl;
+        //     editLink.target = '_blank';
+        //     editLink.style.display = 'inline-flex';
+        //     editLink.style.alignItems = 'center';
+        //     editLink.style.gap = '0.5rem';
+        //     editLink.style.background = 'var(--primary)';
+        //     editLink.style.color = 'white';
+        //     editLink.style.padding = '0.5rem 1rem';
+        //     editLink.style.borderRadius = 'var(--radius)';
+        //     editLink.style.textDecoration = 'none';
+        //     editLink.style.transition = 'var(--transition)';
+        //     editLink.innerHTML = '<i class="fas fa-edit"></i> 编辑此页';
+        //     editLink.style.fontSize = '0.9rem';
 
-        if (editUrl) {
-            const editLink = document.createElement('a');
-            editLink.href = editUrl;
-            editLink.target = '_blank';
-            editLink.style.display = 'inline-flex';
-            editLink.style.alignItems = 'center';
-            editLink.style.gap = '0.5rem';
-            editLink.style.background = 'var(--primary)';
-            editLink.style.color = 'white';
-            editLink.style.padding = '0.5rem 1rem';
-            editLink.style.borderRadius = 'var(--radius)';
-            editLink.style.textDecoration = 'none';
-            editLink.style.transition = 'var(--transition)';
-            editLink.innerHTML = '<i class="fas fa-edit"></i> 编辑此页';
-            editLink.style.fontSize = '0.9rem';
+        //     editLink.addEventListener('mouseenter', function () {
+        //         this.style.opacity = '0.9';
+        //         this.style.transform = 'translateY(-2px)';
+        //     });
 
-            editLink.addEventListener('mouseenter', function () {
-                this.style.opacity = '0.9';
-                this.style.transform = 'translateY(-2px)';
-            });
+        //     editLink.addEventListener('mouseleave', function () {
+        //         this.style.opacity = '1';
+        //         this.style.transform = 'translateY(0)';
+        //     });
 
-            editLink.addEventListener('mouseleave', function () {
-                this.style.opacity = '1';
-                this.style.transform = 'translateY(0)';
-            });
-
-            navContainer.appendChild(editLink);
-        }
+        //     navContainer.appendChild(editLink);
+        // }
 
         const navLinksContainer = document.createElement('div');
         navLinksContainer.style.display = 'flex';
         navLinksContainer.style.gap = '0.5rem';
 
-        if (prevDoc) {
+        const allDocs = DocsIndexManager.getAllDocuments();
+        const currentIndex = allDocs.findIndex(d => d.path === docPath);
+        
+        if (currentIndex > 0) {
+            const prevDoc = allDocs[currentIndex - 1];
             const prevLink = document.createElement('a');
-            prevLink.href = '#docs/' + prevDoc;
+            prevLink.href = '#docs/' + prevDoc.path;
             prevLink.style.display = 'inline-flex';
             prevLink.style.alignItems = 'center';
             prevLink.style.gap = '0.5rem';
@@ -2000,18 +2147,16 @@ const ErisPulseApp = (function () {
 
             prevLink.addEventListener('click', function (e) {
                 e.preventDefault();
-                const prevDocLink = document.querySelector(`.docs-nav-link[data-doc="${prevDoc}"]`);
-                if (prevDocLink) {
-                    prevDocLink.click();
-                }
+                navigateToDocument(prevDoc.path);
             });
 
             navLinksContainer.appendChild(prevLink);
         }
 
-        if (nextDoc) {
+        if (currentIndex < allDocs.length - 1) {
+            const nextDoc = allDocs[currentIndex + 1];
             const nextLink = document.createElement('a');
-            nextLink.href = '#docs/' + nextDoc;
+            nextLink.href = '#docs/' + nextDoc.path;
             nextLink.style.display = 'inline-flex';
             nextLink.style.alignItems = 'center';
             nextLink.style.gap = '0.5rem';
@@ -2037,10 +2182,7 @@ const ErisPulseApp = (function () {
 
             nextLink.addEventListener('click', function (e) {
                 e.preventDefault();
-                const nextDocLink = document.querySelector(`.docs-nav-link[data-doc="${nextDoc}"]`);
-                if (nextDocLink) {
-                    nextDocLink.click();
-                }
+                navigateToDocument(nextDoc.path);
             });
 
             navLinksContainer.appendChild(nextLink);
@@ -2065,12 +2207,10 @@ const ErisPulseApp = (function () {
             errorMessage = '网络连接失败';
             suggestion = '请检查您的网络连接后重试';
             showRetryButton = true;
-        }
-        else if (errorMessage.includes('API rate limit exceeded')) {
+        } else if (errorMessage.includes('API rate limit exceeded')) {
             errorMessage = 'GitHub API请求次数已达上限';
             suggestion = '请等待1小时后重试，或使用GitHub个人访问令牌提高限制';
-        }
-        else if (errorMessage.includes('HTTP')) {
+        } else if (errorMessage.includes('HTTP')) {
             const statusMatch = errorMessage.match(/HTTP (\d+)/);
             if (statusMatch) {
                 const statusCode = statusMatch[1];
