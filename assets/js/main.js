@@ -213,17 +213,27 @@ const CONFIG = {
 const DocsIndexManager = (function() {
     let mappingCache = null;
     let searchIndexCache = null;
+    let isLoadingMapping = false;
+    let isLoadingSearchIndex = false;
+    let loadCallbacks = [];
     
     /**
      * 加载映射索引（三层降级策略）
      */
     async function loadMapping() {
+        if (isLoadingMapping && mappingCache) {
+            return mappingCache;
+        }
+        
+        isLoadingMapping = true;
+        
         try {
             console.log('尝试从CDN加载映射索引...');
             const data = await loadFromCDN(CONFIG.DOCS.index.mappingFile);
             mappingCache = data;
             saveToCache(CONFIG.DOCS.index.storageKeys.mapping, data);
             console.log('✓ 从CDN成功加载映射索引');
+            notifyLoadCallbacks('mapping', true, data);
             return data;
         } catch (cdnError) {
             console.warn('CDN加载失败，尝试从GitHub加载...', cdnError);
@@ -232,6 +242,7 @@ const DocsIndexManager = (function() {
                 mappingCache = data;
                 saveToCache(CONFIG.DOCS.index.storageKeys.mapping, data);
                 console.log('✓ 从GitHub成功加载映射索引');
+                notifyLoadCallbacks('mapping', true, data);
                 return data;
             } catch (githubError) {
                 console.warn('GitHub加载失败，尝试从缓存加载...', githubError);
@@ -239,12 +250,17 @@ const DocsIndexManager = (function() {
                     const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.mapping);
                     mappingCache = data;
                     console.log('✓ 从缓存成功加载映射索引');
+                    notifyLoadCallbacks('mapping', true, data);
                     return data;
                 } catch (cacheError) {
                     console.error('所有加载方式均失败', cacheError);
-                    throw new Error('无法加载文档索引，请检查网络连接');
+                    const error = new Error('无法加载文档索引，请检查网络连接');
+                    notifyLoadCallbacks('mapping', false, null, error);
+                    throw error;
                 }
             }
+        } finally {
+            isLoadingMapping = false;
         }
     }
     
@@ -252,12 +268,19 @@ const DocsIndexManager = (function() {
      * 加载搜索索引（三层降级策略）
      */
     async function loadSearchIndex() {
+        if (isLoadingSearchIndex && searchIndexCache) {
+            return searchIndexCache;
+        }
+        
+        isLoadingSearchIndex = true;
+        
         try {
             console.log('尝试从CDN加载搜索索引...');
             const data = await loadFromCDN(CONFIG.DOCS.index.searchIndexFile);
             searchIndexCache = data;
             saveToCache(CONFIG.DOCS.index.storageKeys.searchIndex, data);
             console.log('✓ 从CDN成功加载搜索索引');
+            notifyLoadCallbacks('search', true, data);
             return data;
         } catch (cdnError) {
             console.warn('CDN加载失败，尝试从GitHub加载...', cdnError);
@@ -266,6 +289,7 @@ const DocsIndexManager = (function() {
                 searchIndexCache = data;
                 saveToCache(CONFIG.DOCS.index.storageKeys.searchIndex, data);
                 console.log('✓ 从GitHub成功加载搜索索引');
+                notifyLoadCallbacks('search', true, data);
                 return data;
             } catch (githubError) {
                 console.warn('GitHub加载失败，尝试从缓存加载...', githubError);
@@ -273,13 +297,45 @@ const DocsIndexManager = (function() {
                     const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.searchIndex);
                     searchIndexCache = data;
                     console.log('✓ 从缓存成功加载搜索索引');
+                    notifyLoadCallbacks('search', true, data);
                     return data;
                 } catch (cacheError) {
                     console.error('所有加载方式均失败', cacheError);
-                    throw new Error('无法加载搜索索引，请检查网络连接');
+                    const error = new Error('无法加载搜索索引，请检查网络连接');
+                    notifyLoadCallbacks('search', false, null, error);
+                    throw error;
                 }
             }
+        } finally {
+            isLoadingSearchIndex = false;
         }
+    }
+    
+    /**
+     * 注册加载完成回调
+     */
+    function onLoad(callback) {
+        loadCallbacks.push(callback);
+    }
+    
+    /**
+     * 通知所有回调
+     */
+    function notifyLoadCallbacks(type, success, data, error = null) {
+        loadCallbacks.forEach(callback => {
+            try {
+                callback(type, success, data, error);
+            } catch (e) {
+                console.error('回调执行失败:', e);
+            }
+        });
+    }
+    
+    /**
+     * 检查是否正在加载
+     */
+    function isLoaded() {
+        return mappingCache !== null && searchIndexCache !== null;
     }
     
     /**
@@ -505,6 +561,8 @@ const DocsIndexManager = (function() {
     return {
         loadMapping,
         loadSearchIndex,
+        onLoad,
+        isLoaded,
         getDocumentPath,
         getDocumentTitle,
         getDocumentCategory,
@@ -1370,41 +1428,63 @@ const ErisPulseApp = (function () {
     }
 
     // ==================== 文档模块 ====================
-    async function setupDocumentation() {
-        try {
-            // 加载索引
-            await DocsIndexManager.loadMapping();
-            await DocsIndexManager.loadSearchIndex();
-            
-            renderDocsNavigation();
-            setupDocumentationSearch();
-            setupBreadcrumbNavigation();
-            setupDocumentActions();
-            setupDocumentationResponsive();
+    function setupDocumentation() {
+        // 立即初始化UI，不等待索引加载
+        renderDocsNavigation();
+        setupDocumentationSearch();
+        setupBreadcrumbNavigation();
+        setupDocumentActions();
+        setupDocumentationResponsive();
 
-            const hash = window.location.hash.substring(1);
-            if (hash === 'docs') {
-                const firstDocLink = document.querySelector('.docs-nav-link');
-                if (firstDocLink) {
-                    firstDocLink.click();
+        // 注册索引加载回调
+        DocsIndexManager.onLoad(function(type, success, data, error) {
+            if (type === 'mapping' || type === 'search') {
+                // 每当任何一个索引加载完成，就更新导航
+                renderDocsNavigation();
+                
+                // 检查是否两个索引都已加载
+                if (DocsIndexManager.isLoaded()) {
+                    console.log('文档索引加载完成');
+                    
+                    // 如果当前是 docs 视图且还没有加载文档，加载第一个文档
+                    const hash = window.location.hash.substring(1);
+                    if (hash === 'docs') {
+                        const firstDocLink = document.querySelector('.docs-nav-link');
+                        if (firstDocLink) {
+                            firstDocLink.click();
+                        }
+                    }
                 }
             }
-        } catch (error) {
-            console.error('文档系统初始化失败:', error);
-            const docsContent = document.getElementById('docs-content');
-            if (docsContent) {
-                docsContent.innerHTML = `
-                    <div class="error-message" style="text-align: center; padding: 3rem 0;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
-                        <h3>无法加载文档索引</h3>
-                        <p>${error.message}</p>
-                        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
-                            <i class="fas fa-sync-alt"></i> 重新加载
-                        </button>
-                    </div>
-                `;
+            
+            if (!success && error) {
+                console.error(`加载${type === 'mapping' ? '映射' : '搜索'}索引失败:`, error);
+                // 只在映射索引失败时显示错误
+                if (type === 'mapping') {
+                    const docsContent = document.getElementById('docs-content');
+                    if (docsContent && !DocsIndexManager.mapping) {
+                        docsContent.innerHTML = `
+                            <div class="error-message" style="text-align: center; padding: 3rem 0;">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
+                                <h3>无法加载文档索引</h3>
+                                <p>${error.message}</p>
+                                <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
+                                    <i class="fas fa-sync-alt"></i> 重新加载
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
             }
-        }
+        });
+
+        // 在后台异步加载索引（不阻塞）
+        DocsIndexManager.loadMapping().catch(err => {
+            console.error('映射索引加载失败:', err);
+        });
+        DocsIndexManager.loadSearchIndex().catch(err => {
+            console.error('搜索索引加载失败:', err);
+        });
     }
 
     function renderDocsNavigation() {
@@ -1650,6 +1730,20 @@ const ErisPulseApp = (function () {
     }
 
     function performOverlaySearch(query) {
+        // 检查搜索索引是否已加载
+        if (!DocsIndexManager.searchIndex) {
+            const resultsContainer = document.getElementById('overlay-search-results');
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `
+                    <div class="search-no-results">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>搜索索引加载中...</p>
+                    </div>
+                `;
+            }
+            return;
+        }
+        
         const results = DocsIndexManager.searchDocuments(query);
         displayOverlaySearchResults(results, query);
     }
