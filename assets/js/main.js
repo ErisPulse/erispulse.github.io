@@ -1529,8 +1529,8 @@ const ErisPulseApp = (function () {
     async function loadDocument(docName) {
         const docsContent = document.getElementById('docs-content');
         docsContent.innerHTML = `
-            <div class="loading-spinner" style="text-align: center; padding: 3rem 0;">
-                <div style="width: 50px; height: 50px; border: 5px solid rgba(var(--primary-rgb), 0.2); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
+            <div style="text-align: center; padding: 3rem 0;">
+                <i class="fas fa-spinner fa-pulse fa-3x"></i>
                 <p>正在加载文档...</p>
             </div>
         `;
