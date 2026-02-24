@@ -2203,15 +2203,124 @@ const ErisPulseApp = (function () {
 
     function getDocIdFromPath(filePath) {
          
-        let normalizedPath = filePath.replace(/\.md$/, '');
+        let normalizedPath = filePath.replace(/\\/g, '/');
+        
+         
+        normalizedPath = normalizedPath.replace(/\.md$/, '');
+        
+         
+        if (normalizedPath.startsWith('../') || normalizedPath.startsWith('./') || !normalizedPath.includes('/')) {
+             
+            const currentDoc = window.location.hash.split('/')[1];
+            if (currentDoc) {
+                 
+                const resolvedPath = resolveRelativePath(currentDoc.replace(/\.md$/, ''), normalizedPath);
+                if (resolvedPath) {
+                    normalizedPath = resolvedPath;
+                }
+            }
+        }
+        
+         
         if (normalizedPath.startsWith('docs/')) {
             normalizedPath = normalizedPath.substring(5);
         }
-
+        
          
         const allDocs = DocsIndexManager.getAllDocuments();
-        const doc = allDocs.find(d => d.path.replace(/\.md$/, '').replace(/^docs\//, '') === normalizedPath);
+        
+         
+        let doc = allDocs.find(d => {
+            const docPath = d.path.replace(/\\/g, '/').replace(/\.md$/, '').replace(/^docs\//, '');
+            return docPath === normalizedPath;
+        });
+        
+         
+        if (!doc) {
+            doc = fuzzyMatchDocument(normalizedPath, allDocs);
+        }
+        
         return doc ? doc.path : null;
+    }
+    
+    
+
+
+
+
+
+    function fuzzyMatchDocument(targetPath, allDocs) {
+        const normalizedTarget = targetPath.toLowerCase().replace(/\.md$/, '');
+        const targetFileName = normalizedTarget.split('/').pop();
+        
+         
+        for (const doc of allDocs) {
+            const docPath = doc.path.replace(/\\/g, '/');
+            const normalizedDocPath = docPath.toLowerCase().replace(/\.md$/, '').replace(/^docs\//, '');
+            const docFileName = normalizedDocPath.split('/').pop();
+            
+             
+            if (docFileName === targetFileName) {
+                return doc;
+            }
+            
+             
+            if (normalizedDocPath === normalizedTarget) {
+                return doc;
+            }
+            
+             
+            if (normalizedDocPath.includes(normalizedTarget) || normalizedTarget.includes(normalizedDocPath)) {
+                return doc;
+            }
+            
+             
+            if (docPath.endsWith(`${targetPath}.md`)) {
+                return doc;
+            }
+        }
+        
+        return null;
+    }
+    
+    
+
+
+
+
+
+    function resolveRelativePath(basePath, relativePath) {
+         
+        const baseParts = basePath.split('/');
+        
+         
+        if (relativePath.startsWith('./')) {
+            relativePath = relativePath.substring(2);
+        }
+        
+         
+        const relativeParts = relativePath.split('/');
+        
+         
+        const resultParts = [...baseParts];
+        resultParts.pop();  
+        
+        for (const part of relativeParts) {
+            if (part === '..') {
+                 
+                if (resultParts.length > 0) {
+                    resultParts.pop();
+                }
+            } else if (part === '.') {
+                 
+                continue;
+            } else if (part) {
+                 
+                resultParts.push(part);
+            }
+        }
+        
+        return resultParts.join('/');
     }
 
     function clearToc() {
