@@ -1259,6 +1259,8 @@ const ErisPulseApp = (function () {
     }
 
     function updateStats() {
+        const totalCount = allModules.length + allAdapters.length + allCliExtensions.length;
+        document.getElementById('total-all-modules').textContent = totalCount;
         document.getElementById('total-modules').textContent = allModules.length;
         document.getElementById('adapter-count').textContent = allAdapters.length;
         document.getElementById('cli-count').textContent = allCliExtensions.length;
