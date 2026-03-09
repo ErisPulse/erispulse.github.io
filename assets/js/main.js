@@ -2571,8 +2571,9 @@ const ErisPulseApp = (function () {
             prevLink.style.textDecoration = 'none';
             prevLink.style.transition = 'var(--transition)';
             prevLink.style.border = '1px solid var(--border)';
-            prevLink.innerHTML = '<i class="fas fa-arrow-left"></i> 上一章';
+            prevLink.innerHTML = `<i class="fas fa-arrow-left"></i> ${prevDoc.title}`;
             prevLink.style.fontSize = '0.9rem';
+            prevLink.classList.add('doc-nav-link');
 
             prevLink.addEventListener('mouseenter', function () {
                 this.style.borderColor = 'var(--primary)';
@@ -2606,8 +2607,9 @@ const ErisPulseApp = (function () {
             nextLink.style.textDecoration = 'none';
             nextLink.style.transition = 'var(--transition)';
             nextLink.style.border = '1px solid var(--border)';
-            nextLink.innerHTML = '下一章 <i class="fas fa-arrow-right"></i>';
+            nextLink.innerHTML = ` ${nextDoc.title} <i class="fas fa-arrow-right"></i>`;
             nextLink.style.fontSize = '0.9rem';
+            nextLink.classList.add('doc-nav-link');
 
             nextLink.addEventListener('mouseenter', function () {
                 this.style.borderColor = 'var(--primary)';
