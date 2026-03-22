@@ -849,10 +849,8 @@ const ErisPulseApp = (function () {
             const docMatch = hash.match(/docs\/(.+)/);
             if (docMatch && docMatch[1]) {
                 setTimeout(() => {
-                    const docLink = document.querySelector(`.docs-nav-link[data-doc="${docMatch[1]}"]`);
-                    if (docLink) {
-                        docLink.click();
-                    }
+                     
+                    navigateToDocument(docMatch[1]);
                 }, 500);
             }
         } else if (hash.startsWith('market')) {
@@ -866,29 +864,20 @@ const ErisPulseApp = (function () {
                     }
                 }, 500);
             }
-        } else if (hash === 'changelog') {
+        } else if (hash === 'changelog' || hash.startsWith('dev-') ||
+            hash.startsWith('cli') || hash.startsWith('quick-start') ||
+            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
+            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
             view = 'docs';
+             
+            const docPath = hash === 'changelog' ? 'changelog' : hash;
             setTimeout(() => {
-                const docLink = document.querySelector(`.docs-nav-link[data-doc="changelog"]`);
-                if (docLink) {
-                    docLink.click();
-                }
+                navigateToDocument(docPath);
             }, 500);
         } else if (hash === 'about') {
             view = 'about';
         } else if (hash === 'settings') {
             view = 'settings';
-        } else if (hash.startsWith('dev-') ||
-            hash.startsWith('cli') || hash.startsWith('quick-start') ||
-            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
-            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
-            view = 'docs';
-            setTimeout(() => {
-                const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
-                if (docLink) {
-                    docLink.click();
-                }
-            }, 500);
         }
 
         updateView(view);
@@ -1420,6 +1409,12 @@ const ErisPulseApp = (function () {
     }
 
      
+     
+    let currentNavState = 'categories';  
+    let currentCategory = null;
+    let currentDocPath = null;
+    let currentChapterToc = [];
+
     function setupDocumentation() {
          
         renderDocsNavigation();
@@ -1427,6 +1422,7 @@ const ErisPulseApp = (function () {
         setupBreadcrumbNavigation();
         setupDocumentActions();
         setupDocumentationResponsive();
+        setupGlobalNavigationEvents();  
 
          
         DocsIndexManager.onLoad(function(type, success, data, error) {
@@ -1441,10 +1437,7 @@ const ErisPulseApp = (function () {
                      
                     const hash = window.location.hash.substring(1);
                     if (hash === 'docs') {
-                        const firstDocLink = document.querySelector('.docs-nav-link');
-                        if (firstDocLink) {
-                            firstDocLink.click();
-                        }
+                        showCategoryLevel();
                     }
                 }
             }
@@ -1479,96 +1472,275 @@ const ErisPulseApp = (function () {
         });
     }
 
+     
+
+    
+
+
     function renderDocsNavigation() {
         const navContainer = document.querySelector('.docs-nav-container');
-        if (!navContainer) return;
+        if (!navContainer) {
+            console.warn('renderDocsNavigation: 导航容器未找到');
+            return;
+        }
 
         const mapping = DocsIndexManager.mapping;
+        console.log('renderDocsNavigation: 映射索引状态', mapping ? '已加载' : '未加载');
+        
         if (!mapping || !mapping.categories) {
             navContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-secondary);">加载中...</p>';
             return;
         }
 
-        let navHtml = '';
+         
+        showCategoryLevel();
+    }
+
+    
+
+
+    function showCategoryLevel() {
+        currentNavState = 'categories';
+        currentCategory = null;
+        
+        const navContainer = document.querySelector('.docs-nav-container');
+        const mapping = DocsIndexManager.mapping;
+        
+        if (!mapping || !mapping.categories) return;
+
+        let navHtml = '<div class="docs-nav-view">';
+        navHtml += '<div class="category-list">';
 
         for (const [categoryId, category] of Object.entries(mapping.categories)) {
+            const icon = getCategoryIcon(categoryId);
             navHtml += `
-                <div class="docs-nav-item">
-                    <div class="docs-nav-category" data-category="${categoryId}">
-                        <span>${categoryId}</span>
-                        <span class="doc-count">${category.count || category.documents?.length || 0}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="docs-dropdown">
-                        ${category.documents.map(doc => `
-                            <a href="#docs/${doc.path}" class="docs-nav-link" data-doc="${doc.path}">
-                                <i class="fas fa-file-alt"></i>
-                                ${doc.title}
-                            </a>
-                        `).join('')}
-                    </div>
+                <div class="category-item" data-category="${categoryId}">
+                    <i class="category-icon fas ${icon}"></i>
+                    <span class="category-name">${categoryId}</span>
+                    <span class="doc-count">${category.documents?.length || 0}</span>
+                    <i class="chevron fas fa-chevron-right"></i>
                 </div>
             `;
         }
 
-        navHtml += `
-            <div class="docs-nav-item">
-                <a href="https://github.com/ErisPulse/ErisPulse/tree/Develop/v2/docs/api" target="_blank" class="docs-nav-link" style="justify-content: flex-start;">
-                    <i class="fab fa-github"></i>
-                    <span>API 文档</span>
-                </a>
-            </div>
-        `;
+        navHtml += '</div></div>';
 
         navContainer.innerHTML = navHtml;
 
          
-        document.querySelectorAll('.docs-nav-category').forEach(category => {
-            category.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const parentItem = this.closest('.docs-nav-item');
-                parentItem.classList.toggle('active');
-            });
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('.docs-sidebar')) {
-                document.querySelectorAll('.docs-nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-            }
-        });
-
-        document.querySelectorAll('.docs-nav-link').forEach(link => {
-            link.addEventListener('click', function (e) {
-                const docPath = this.getAttribute('data-doc');
-                if (docPath) {
-                    e.preventDefault();
-                    navigateToDocument(docPath);
-                }
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const categoryId = this.getAttribute('data-category');
+                showDocumentList(categoryId);
             });
         });
     }
 
-    function navigateToDocument(docPath, targetLine = null, keyword = null) {
-        document.querySelectorAll('.docs-nav-link').forEach(item => {
-            item.classList.remove('active');
+    
+
+
+    function showDocumentList(categoryId) {
+        console.log('showDocumentList: 显示文档列表, categoryId =', categoryId);
+        currentNavState = 'documents';
+        currentCategory = categoryId;
+        
+        const navContainer = document.querySelector('.docs-nav-container');
+        const mapping = DocsIndexManager.mapping;
+        const category = mapping.categories[categoryId];
+        
+        if (!category || !category.documents) {
+            console.warn('showDocumentList: 分类或文档不存在', { categoryId, category });
+            return;
+        }
+        
+        console.log('showDocumentList: 找到', category.documents.length, '个文档');
+
+        const categoryName = categoryId;
+        
+        let navHtml = '<div class="docs-nav-view">';
+        
+         
+        navHtml += `
+            <div class="docs-nav-breadcrumb">
+                <a class="breadcrumb-back" data-action="back-to-categories">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>返回分类</span>
+                </a>
+                <span class="breadcrumb-title">${categoryName}</span>
+            </div>
+        `;
+
+         
+        navHtml += '<div class="doc-list">';
+        
+        category.documents.forEach(doc => {
+            const isActive = doc.path === currentDocPath ? 'active' : '';
+            const icon = getDocIcon(doc.path);
+            navHtml += `
+                <div class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
+                    <i class="fas ${icon}"></i>
+                    <span>${doc.title}</span>
+                </div>
+            `;
         });
 
-        const activeLink = document.querySelector(`.docs-nav-link[data-doc="${docPath}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
+        navHtml += '</div></div>';
 
-            const parentItem = activeLink.closest('.docs-nav-item');
-            if (parentItem) {
-                document.querySelectorAll('.docs-nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                parentItem.classList.add('active');
+        navContainer.innerHTML = navHtml;
+
+         
+        navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', showCategoryLevel);
+    }
+
+    
+
+
+    function showChapterToc(docPath) {
+        currentNavState = 'chapters';
+        currentDocPath = docPath;
+        
+        const navContainer = document.querySelector('.docs-nav-container');
+        const docTitle = DocsIndexManager.getDocumentTitle(docPath);
+        
+        if (!currentChapterToc || currentChapterToc.length === 0) return;
+
+        let navHtml = '<div class="docs-nav-view">';
+        
+         
+        navHtml += `
+            <div class="docs-nav-breadcrumb">
+                <a class="breadcrumb-back" data-action="back-to-docs">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>返回文档</span>
+                </a>
+                <span class="breadcrumb-title">${docTitle || '目录'}</span>
+            </div>
+        `;
+
+         
+        navHtml += '<div class="chapter-toc">';
+        
+        currentChapterToc.forEach(item => {
+            const levelIcon = getChapterLevelIcon(item.level);
+            navHtml += `
+                <div class="chapter-item" data-target="${item.id}">
+                    <span class="chapter-level">${levelIcon}</span>
+                    <span class="chapter-text">${item.text}</span>
+                </div>
+            `;
+        });
+
+        navHtml += '</div></div>';
+
+        navContainer.innerHTML = navHtml;
+
+         
+        navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', () => {
+            if (currentCategory) {
+                showDocumentList(currentCategory);
+            } else {
+                showCategoryLevel();
             }
-        }
+        });
+        
+        document.querySelectorAll('.chapter-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                     
+                    document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
 
+         
+        updateActiveChapter();
+    }
+
+    
+
+
+    function updateActiveChapter() {
+        const headers = document.querySelectorAll('.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6');
+        const chapterItems = document.querySelectorAll('.chapter-item');
+        
+        if (headers.length === 0 || chapterItems.length === 0) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    chapterItems.forEach(item => {
+                        item.classList.remove('active');
+                        if (item.getAttribute('data-target') === id) {
+                            item.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, {
+            rootMargin: '-20% 0% -80% 0%'
+        });
+
+        headers.forEach(header => observer.observe(header));
+    }
+
+    
+
+
+    function syncNavigationState(docPath) {
+         
+        currentDocPath = docPath;
+        
+         
+        const category = DocsIndexManager.getDocumentCategory(docPath);
+        currentCategory = category ? category.name : null;
+        
+         
+        if (currentNavState === 'chapters' && currentChapterToc.length > 0) {
+            document.querySelectorAll('.doc-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-doc') === docPath) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+         
+        const hash = window.location.hash.substring(1);
+        
+         
+        if (hash === 'docs') {
+            showCategoryLevel();
+            return;
+        }
+        
+         
+        if (hash.startsWith('docs/') && docPath) {
+             
+            setTimeout(() => {
+                showChapterToc(docPath);
+            }, 100);
+            return;
+        }
+    }
+
+    
+
+
+    function navigateToDocument(docPath, targetLine = null, keyword = null) {
+        console.log('navigateToDocument: 开始导航到文档', { docPath, targetLine, keyword });
+        
+         
         history.pushState(null, null, `#docs/${docPath}`);
+        
+         
+        syncNavigationState(docPath);
+        
+         
         loadDocument(docPath, targetLine, keyword);
         updateBreadcrumb(docPath);
 
@@ -1576,6 +1748,129 @@ const ErisPulseApp = (function () {
             top: 0,
             behavior: 'smooth'
         });
+    }
+
+    
+
+
+    function getCategoryIcon(categoryId) {
+        const iconMap = {
+            '快速开始': 'fa-rocket',
+            '开发指南': 'fa-code',
+            'API参考': 'fa-book',
+            '配置': 'fa-cog',
+            '部署': 'fa-server'
+        };
+        return iconMap[categoryId] || 'fa-folder';
+    }
+
+    
+
+
+    function getDocIcon(docPath) {
+        if (docPath.endsWith('.md')) {
+            return 'fa-file-alt';
+        }
+        const ext = docPath.split('.').pop();
+        const iconMap = {
+            'py': 'fa-file-code',
+            'js': 'fa-file-code',
+            'json': 'fa-file-code',
+            'yaml': 'fa-file-code',
+            'yml': 'fa-file-code',
+            'txt': 'fa-file-alt'
+        };
+        return iconMap[ext] || 'fa-file-alt';
+    }
+
+    
+
+
+    function getChapterLevelIcon(level) {
+        return `H${level}`;
+    }
+
+    
+
+
+    function setupGlobalNavigationEvents() {
+        const navContainer = document.querySelector('.docs-nav-container');
+        if (!navContainer) return;
+
+        console.log('setupGlobalNavigationEvents: 设置全局事件委托');
+
+         
+        const oldHandler = navContainer._navClickHandler;
+        if (oldHandler) {
+            navContainer.removeEventListener('click', oldHandler);
+        }
+
+         
+        const clickHandler = function(e) {
+            console.log('全局导航事件触发，目标元素:', e.target);
+
+             
+            const categoryItem = e.target.closest('.category-item');
+            if (categoryItem) {
+                const categoryId = categoryItem.getAttribute('data-category');
+                console.log('点击分类项:', categoryId);
+                e.preventDefault();
+                e.stopPropagation();
+                showDocumentList(categoryId);
+                return;
+            }
+
+             
+            const docItem = e.target.closest('.doc-item');
+            if (docItem) {
+                const docPath = docItem.getAttribute('data-doc');
+                console.log('点击文档项，docPath =', docPath);
+                e.preventDefault();
+                e.stopPropagation();
+                navigateToDocument(docPath);
+                return;
+            }
+
+             
+            const chapterItem = e.target.closest('.chapter-item');
+            if (chapterItem) {
+                const targetId = chapterItem.getAttribute('data-target');
+                console.log('点击章节项，targetId =', targetId);
+                e.preventDefault();
+                e.stopPropagation();
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                     
+                    document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
+                    chapterItem.classList.add('active');
+                }
+                return;
+            }
+
+             
+            const breadcrumbBack = e.target.closest('.breadcrumb-back');
+            if (breadcrumbBack) {
+                const action = breadcrumbBack.getAttribute('data-action');
+                console.log('点击面包屑返回，action =', action);
+                e.preventDefault();
+                e.stopPropagation();
+                if (action === 'back-to-categories') {
+                    showCategoryLevel();
+                } else if (action === 'back-to-docs') {
+                    if (currentCategory) {
+                        showDocumentList(currentCategory);
+                    } else {
+                        showCategoryLevel();
+                    }
+                }
+                return;
+            }
+        };
+
+         
+        navContainer._navClickHandler = clickHandler;
+        navContainer.addEventListener('click', clickHandler, false);
     }
 
     function setupDocumentationSearch() {
@@ -1863,12 +2158,10 @@ const ErisPulseApp = (function () {
         const breadcrumb = document.querySelector('.docs-breadcrumb');
         if (breadcrumb) {
             breadcrumb.addEventListener('click', function (e) {
-                if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#docs') {
+                 
+                if (e.target.closest('.breadcrumb-link')?.getAttribute('href') === '#docs') {
                     e.preventDefault();
-                    const firstDoc = document.querySelector('.docs-nav-link');
-                    if (firstDoc) {
-                        firstDoc.click();
-                    }
+                    showCategoryLevel();
                 }
             });
         }
@@ -1959,7 +2252,10 @@ const ErisPulseApp = (function () {
 
     function setupDocumentationResponsive() {
         function handleResize() {
+            console.log('handleResize: 窗口大小变化，重新设置全局事件委托');
             moveTocToSidebar();
+             
+            setupGlobalNavigationEvents();
         }
 
         window.addEventListener('resize', handleResize);
@@ -2022,7 +2318,10 @@ const ErisPulseApp = (function () {
         }
 
         setTimeout(() => {
-            moveTocToSidebar();
+             
+            if (currentNavState !== 'chapters' && currentChapterToc.length > 0) {
+                showChapterToc(currentDocPath);
+            }
 
              
             if (keyword) {
@@ -2033,49 +2332,25 @@ const ErisPulseApp = (function () {
                 setTimeout(() => scrollToLine(targetLine), 300);
             }
 
-            document.querySelectorAll('.toc-link').forEach(link => {
+             
+            document.querySelectorAll('#docs-content a[href^="#"]').forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-
-                    const targetId = this.getAttribute('data-target');
+                    const targetId = this.getAttribute('href').substring(1);
                     const targetElement = document.getElementById(targetId);
-
                     if (targetElement) {
-                        targetElement.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-
-                        document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
-                        this.classList.add('active');
-
-                        history.pushState(null, null, `#${targetId}`);
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
             });
 
-            document.querySelectorAll('#docs-content a').forEach(link => {
-                link.addEventListener('click', function (e) {
-                    const href = this.getAttribute('href');
-
-                    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
-                        return;
-                    }
-
-                    if (href && href.startsWith('#')) {
-                        e.preventDefault();
-                        const targetElement = document.getElementById(href.substring(1));
-                        if (targetElement) {
-                            targetElement.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start'
-                            });
-                        }
-                        return;
-                    }
-
-                    if (href && !href.includes('://')) {
+             
+            document.querySelectorAll('#docs-content a[href]').forEach(link => {
+                const href = link.getAttribute('href');
+                 
+                if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#')) {
+                    link.addEventListener('click', function (e) {
                         e.preventDefault();
                         const targetDocId = getDocIdFromPath(href);
                         if (targetDocId) {
@@ -2083,8 +2358,8 @@ const ErisPulseApp = (function () {
                         } else {
                             showDocumentLinkWarning(href);
                         }
-                    }
-                });
+                    });
+                }
             });
 
             if (typeof mermaid !== 'undefined') {
@@ -2104,8 +2379,6 @@ const ErisPulseApp = (function () {
 
                 Prism.highlightElement(block);
             });
-
-            addScrollSpy();
         }, 100);
     }
 
@@ -2341,30 +2614,10 @@ const ErisPulseApp = (function () {
             });
         });
 
-        if (tocItems.length > 0) {
-            let tocHtml = `
-            <div class="table-of-contents">
-                <h3>目录</h3>
-                <ul>
-            `;
+         
+        currentChapterToc = tocItems;
 
-            tocItems.forEach(item => {
-                const indent = (item.level - 1) * 20;
-                tocHtml += `
-                    <li style="margin-left: ${indent}px;">
-                        <a href="#${item.id}" class="toc-link" data-target="${item.id}">${item.text}</a>
-                    </li>
-                `;
-            });
-
-            tocHtml += `
-                </ul>
-            </div>
-            `;
-
-            tempDiv.insertAdjacentHTML('afterbegin', tocHtml);
-        }
-
+         
         return tempDiv.innerHTML;
     }
 
@@ -2373,69 +2626,13 @@ const ErisPulseApp = (function () {
     }
 
     function moveTocToSidebar() {
-        const toc = document.querySelector('.table-of-contents');
-        const docsLayout = document.querySelector('.docs-layout');
-
-        if (toc && docsLayout) {
-            if (window.innerWidth > 1200) {
-                const contentToc = document.querySelector('.docs-content .table-of-contents');
-                if (contentToc) {
-                    contentToc.remove();
-                }
-
-                const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
-                if (!rightSidebar) {
-                    toc.style.width = '250px';
-                    toc.style.position = 'sticky';
-                    toc.style.top = '100px';
-                    toc.style.maxHeight = 'calc(100vh - 120px)';
-                    toc.style.overflowY = 'auto';
-                    docsLayout.appendChild(toc);
-                }
-            } else {
-                const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
-                if (rightSidebar) {
-                    rightSidebar.remove();
-                }
-
-                if (toc.parentNode !== document.querySelector('.docs-content')) {
-                    toc.remove();
-
-                    const docsContent = document.querySelector('.docs-content');
-                    const markdownContent = docsContent.querySelector('.markdown-content');
-                    if (markdownContent) {
-                        markdownContent.insertAdjacentElement('afterbegin', toc);
-                    } else {
-                        docsContent.insertAdjacentElement('afterbegin', toc);
-                    }
-                }
-            }
-        }
+         
+         
     }
 
     function addScrollSpy() {
-        const headers = document.querySelectorAll('.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6');
-        const tocLinks = document.querySelectorAll('.toc-link');
-
-        if (headers.length === 0 || tocLinks.length === 0) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.id;
-                    tocLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('data-target') === id) {
-                            link.classList.add('active');
-                        }
-                    });
-                }
-            });
-        }, {
-            rootMargin: '-20% 0% -80% 0%'
-        });
-
-        headers.forEach(header => observer.observe(header));
+         
+         
     }
 
     function renderCharts() {
