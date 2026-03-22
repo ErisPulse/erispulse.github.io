@@ -1593,16 +1593,21 @@ const ErisPulseApp = (function () {
     }
 
     /**
-     * 状态3：显示文档的章节目录
+     * 显示文档的章节目录
      */
     function showChapterToc(docPath) {
+        console.log('showChapterToc: 显示章节目录, docPath =', docPath, 'currentChapterToc.length =', currentChapterToc.length);
+        
         currentNavState = 'chapters';
         currentDocPath = docPath;
         
         const navContainer = document.querySelector('.docs-nav-container');
         const docTitle = DocsIndexManager.getDocumentTitle(docPath);
         
-        if (!currentChapterToc || currentChapterToc.length === 0) return;
+        if (!currentChapterToc || currentChapterToc.length === 0) {
+            console.warn('showChapterToc: 章节目录为空');
+            return;
+        }
 
         let navHtml = '<div class="docs-nav-view">';
         
@@ -1634,8 +1639,9 @@ const ErisPulseApp = (function () {
 
         navContainer.innerHTML = navHtml;
 
-        // 绑定事件
+        // 绑定面包屑返回事件
         navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', () => {
+            console.log('showChapterToc: 点击面包屑返回, currentCategory =', currentCategory);
             if (currentCategory) {
                 showDocumentList(currentCategory);
             } else {
@@ -1643,20 +1649,10 @@ const ErisPulseApp = (function () {
             }
         });
         
-        document.querySelectorAll('.chapter-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const targetElement = document.getElementById(targetId);
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    // 更新active状态
-                    document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                }
-            });
-        });
+        // 章节点击事件由全局事件委托处理,这里不需要重复绑定
+        console.log('showChapterToc: 章节目录已渲染,等待全局事件委托处理点击');
 
-        // 高亮当前章节
+        // 高亮当前章节并设置滚动监听
         updateActiveChapter();
     }
 
@@ -1692,13 +1688,17 @@ const ErisPulseApp = (function () {
      * 同步导航状态（确保所有跳转场景都正确更新）
      */
     function syncNavigationState(docPath) {
+        console.log('syncNavigationState: 同步导航状态, docPath =', docPath);
+
         // 更新当前文档路径
         currentDocPath = docPath;
-        
+
         // 获取文档的分类
         const category = DocsIndexManager.getDocumentCategory(docPath);
         currentCategory = category ? category.name : null;
-        
+
+        console.log('syncNavigationState: 当前分类 =', currentCategory, 'currentNavState =', currentNavState);
+
         // 如果当前在章节目录视图，刷新章节列表的active状态
         if (currentNavState === 'chapters' && currentChapterToc.length > 0) {
             document.querySelectorAll('.doc-item').forEach(item => {
@@ -1708,24 +1708,18 @@ const ErisPulseApp = (function () {
                 }
             });
         }
-        
+
         // 根据当前hash决定显示哪个视图
         const hash = window.location.hash.substring(1);
-        
+
         // 如果hash是 "docs"，显示分类列表
         if (hash === 'docs') {
             showCategoryLevel();
             return;
         }
-        
-        // 如果hash是 "docs/xxx"，且文档已加载，显示章节目录
-        if (hash.startsWith('docs/') && docPath) {
-            // 延迟一下，确保文档内容已加载
-            setTimeout(() => {
-                showChapterToc(docPath);
-            }, 100);
-            return;
-        }
+
+        // 注意: 这里不调用 showChapterToc,因为 loadDocument 会在文档加载完成后调用
+        // 如果hash是 "docs/xxx"，文档加载后自然会显示章节目录
     }
 
     /**
@@ -2319,8 +2313,9 @@ const ErisPulseApp = (function () {
 
         setTimeout(() => {
             // 文档加载完成后，自动显示章节目录
-            if (currentNavState !== 'chapters' && currentChapterToc.length > 0) {
-                showChapterToc(currentDocPath);
+            console.log('loadDocument: 文档加载完成, currentNavState =', currentNavState, 'currentChapterToc.length =', currentChapterToc.length);
+            if (currentChapterToc.length > 0) {
+                showChapterToc(docPath);
             }
 
             // 如果有关键词，跳转到包含关键词的位置
