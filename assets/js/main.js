@@ -849,10 +849,8 @@ const ErisPulseApp = (function () {
             const docMatch = hash.match(/docs\/(.+)/);
             if (docMatch && docMatch[1]) {
                 setTimeout(() => {
-                    const docLink = document.querySelector(`.docs-nav-link[data-doc="${docMatch[1]}"]`);
-                    if (docLink) {
-                        docLink.click();
-                    }
+                    // 对于新的三级导航系统，直接调用 navigateToDocument
+                    navigateToDocument(docMatch[1]);
                 }, 500);
             }
         } else if (hash.startsWith('market')) {
@@ -866,29 +864,20 @@ const ErisPulseApp = (function () {
                     }
                 }, 500);
             }
-        } else if (hash === 'changelog') {
+        } else if (hash === 'changelog' || hash.startsWith('dev-') ||
+            hash.startsWith('cli') || hash.startsWith('quick-start') ||
+            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
+            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
             view = 'docs';
+            // 对于新的三级导航系统，直接调用 navigateToDocument
+            const docPath = hash === 'changelog' ? 'changelog' : hash;
             setTimeout(() => {
-                const docLink = document.querySelector(`.docs-nav-link[data-doc="changelog"]`);
-                if (docLink) {
-                    docLink.click();
-                }
+                navigateToDocument(docPath);
             }, 500);
         } else if (hash === 'about') {
             view = 'about';
         } else if (hash === 'settings') {
             view = 'settings';
-        } else if (hash.startsWith('dev-') ||
-            hash.startsWith('cli') || hash.startsWith('quick-start') ||
-            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
-            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
-            view = 'docs';
-            setTimeout(() => {
-                const docLink = document.querySelector(`.docs-nav-link[data-doc="${hash}"]`);
-                if (docLink) {
-                    docLink.click();
-                }
-            }, 500);
         }
 
         updateView(view);
@@ -1420,6 +1409,12 @@ const ErisPulseApp = (function () {
     }
 
     // ==================== 文档模块 ====================
+    // 导航状态管理
+    let currentNavState = 'categories'; // 'categories', 'documents', 'chapters'
+    let currentCategory = null;
+    let currentDocPath = null;
+    let currentChapterToc = [];
+
     function setupDocumentation() {
         // 立即初始化UI，不等待索引加载
         renderDocsNavigation();
@@ -1427,24 +1422,22 @@ const ErisPulseApp = (function () {
         setupBreadcrumbNavigation();
         setupDocumentActions();
         setupDocumentationResponsive();
+        setupGlobalNavigationEvents(); // 添加全局事件委托
 
         // 注册索引加载回调
         DocsIndexManager.onLoad(function(type, success, data, error) {
             if (type === 'mapping' || type === 'search') {
-                // 每当任何一个索引加载完成，就更新导航
+                // 更新导航
                 renderDocsNavigation();
                 
                 // 检查是否两个索引都已加载
                 if (DocsIndexManager.isLoaded()) {
                     console.log('文档索引加载完成');
                     
-                    // 如果当前是 docs 视图且还没有加载文档，加载第一个文档
+                    // 如果当前是 docs 视图且还没有加载文档，显示分类列表
                     const hash = window.location.hash.substring(1);
                     if (hash === 'docs') {
-                        const firstDocLink = document.querySelector('.docs-nav-link');
-                        if (firstDocLink) {
-                            firstDocLink.click();
-                        }
+                        showCategoryLevel();
                     }
                 }
             }
@@ -1479,96 +1472,275 @@ const ErisPulseApp = (function () {
         });
     }
 
+    // ==================== 三级导航系统 ====================
+
+    /**
+     * 渲染初始导航
+     */
     function renderDocsNavigation() {
         const navContainer = document.querySelector('.docs-nav-container');
-        if (!navContainer) return;
+        if (!navContainer) {
+            console.warn('renderDocsNavigation: 导航容器未找到');
+            return;
+        }
 
         const mapping = DocsIndexManager.mapping;
+        console.log('renderDocsNavigation: 映射索引状态', mapping ? '已加载' : '未加载');
+        
         if (!mapping || !mapping.categories) {
             navContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-secondary);">加载中...</p>';
             return;
         }
 
-        let navHtml = '';
+        // 默认显示分类列表
+        showCategoryLevel();
+    }
+
+    /**
+     * 状态1：显示所有分类
+     */
+    function showCategoryLevel() {
+        currentNavState = 'categories';
+        currentCategory = null;
+        
+        const navContainer = document.querySelector('.docs-nav-container');
+        const mapping = DocsIndexManager.mapping;
+        
+        if (!mapping || !mapping.categories) return;
+
+        let navHtml = '<div class="docs-nav-view">';
+        navHtml += '<div class="category-list">';
 
         for (const [categoryId, category] of Object.entries(mapping.categories)) {
+            const icon = getCategoryIcon(categoryId);
             navHtml += `
-                <div class="docs-nav-item">
-                    <div class="docs-nav-category" data-category="${categoryId}">
-                        <span>${categoryId}</span>
-                        <span class="doc-count">${category.count || category.documents?.length || 0}</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="docs-dropdown">
-                        ${category.documents.map(doc => `
-                            <a href="#docs/${doc.path}" class="docs-nav-link" data-doc="${doc.path}">
-                                <i class="fas fa-file-alt"></i>
-                                ${doc.title}
-                            </a>
-                        `).join('')}
-                    </div>
+                <div class="category-item" data-category="${categoryId}">
+                    <i class="category-icon fas ${icon}"></i>
+                    <span class="category-name">${categoryId}</span>
+                    <span class="doc-count">${category.documents?.length || 0}</span>
+                    <i class="chevron fas fa-chevron-right"></i>
                 </div>
             `;
         }
 
-        navHtml += `
-            <div class="docs-nav-item">
-                <a href="https://github.com/ErisPulse/ErisPulse/tree/Develop/v2/docs/api" target="_blank" class="docs-nav-link" style="justify-content: flex-start;">
-                    <i class="fab fa-github"></i>
-                    <span>API 文档</span>
-                </a>
-            </div>
-        `;
+        navHtml += '</div></div>';
 
         navContainer.innerHTML = navHtml;
 
         // 绑定事件
-        document.querySelectorAll('.docs-nav-category').forEach(category => {
-            category.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const parentItem = this.closest('.docs-nav-item');
-                parentItem.classList.toggle('active');
-            });
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('.docs-sidebar')) {
-                document.querySelectorAll('.docs-nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-            }
-        });
-
-        document.querySelectorAll('.docs-nav-link').forEach(link => {
-            link.addEventListener('click', function (e) {
-                const docPath = this.getAttribute('data-doc');
-                if (docPath) {
-                    e.preventDefault();
-                    navigateToDocument(docPath);
-                }
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const categoryId = this.getAttribute('data-category');
+                showDocumentList(categoryId);
             });
         });
     }
 
-    function navigateToDocument(docPath, targetLine = null, keyword = null) {
-        document.querySelectorAll('.docs-nav-link').forEach(item => {
-            item.classList.remove('active');
+    /**
+     * 状态2：显示分类下的文档列表
+     */
+    function showDocumentList(categoryId) {
+        console.log('showDocumentList: 显示文档列表, categoryId =', categoryId);
+        currentNavState = 'documents';
+        currentCategory = categoryId;
+        
+        const navContainer = document.querySelector('.docs-nav-container');
+        const mapping = DocsIndexManager.mapping;
+        const category = mapping.categories[categoryId];
+        
+        if (!category || !category.documents) {
+            console.warn('showDocumentList: 分类或文档不存在', { categoryId, category });
+            return;
+        }
+        
+        console.log('showDocumentList: 找到', category.documents.length, '个文档');
+
+        const categoryName = categoryId;
+        
+        let navHtml = '<div class="docs-nav-view">';
+        
+        // 面包屑
+        navHtml += `
+            <div class="docs-nav-breadcrumb">
+                <a class="breadcrumb-back" data-action="back-to-categories">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>返回分类</span>
+                </a>
+                <span class="breadcrumb-title">${categoryName}</span>
+            </div>
+        `;
+
+        // 文档列表
+        navHtml += '<div class="doc-list">';
+        
+        category.documents.forEach(doc => {
+            const isActive = doc.path === currentDocPath ? 'active' : '';
+            const icon = getDocIcon(doc.path);
+            navHtml += `
+                <div class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
+                    <i class="fas ${icon}"></i>
+                    <span>${doc.title}</span>
+                </div>
+            `;
         });
 
-        const activeLink = document.querySelector(`.docs-nav-link[data-doc="${docPath}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
+        navHtml += '</div></div>';
 
-            const parentItem = activeLink.closest('.docs-nav-item');
-            if (parentItem) {
-                document.querySelectorAll('.docs-nav-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                parentItem.classList.add('active');
+        navContainer.innerHTML = navHtml;
+
+        // 绑定事件 - 使用事件委托
+        navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', showCategoryLevel);
+    }
+
+    /**
+     * 状态3：显示文档的章节目录
+     */
+    function showChapterToc(docPath) {
+        currentNavState = 'chapters';
+        currentDocPath = docPath;
+        
+        const navContainer = document.querySelector('.docs-nav-container');
+        const docTitle = DocsIndexManager.getDocumentTitle(docPath);
+        
+        if (!currentChapterToc || currentChapterToc.length === 0) return;
+
+        let navHtml = '<div class="docs-nav-view">';
+        
+        // 面包屑
+        navHtml += `
+            <div class="docs-nav-breadcrumb">
+                <a class="breadcrumb-back" data-action="back-to-docs">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>返回文档</span>
+                </a>
+                <span class="breadcrumb-title">${docTitle || '目录'}</span>
+            </div>
+        `;
+
+        // 章节目录
+        navHtml += '<div class="chapter-toc">';
+        
+        currentChapterToc.forEach(item => {
+            const levelIcon = getChapterLevelIcon(item.level);
+            navHtml += `
+                <div class="chapter-item" data-target="${item.id}">
+                    <span class="chapter-level">${levelIcon}</span>
+                    <span class="chapter-text">${item.text}</span>
+                </div>
+            `;
+        });
+
+        navHtml += '</div></div>';
+
+        navContainer.innerHTML = navHtml;
+
+        // 绑定事件
+        navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', () => {
+            if (currentCategory) {
+                showDocumentList(currentCategory);
+            } else {
+                showCategoryLevel();
             }
-        }
+        });
+        
+        document.querySelectorAll('.chapter-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // 更新active状态
+                    document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
 
+        // 高亮当前章节
+        updateActiveChapter();
+    }
+
+    /**
+     * 更新active章节（基于滚动位置）
+     */
+    function updateActiveChapter() {
+        const headers = document.querySelectorAll('.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6');
+        const chapterItems = document.querySelectorAll('.chapter-item');
+        
+        if (headers.length === 0 || chapterItems.length === 0) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    chapterItems.forEach(item => {
+                        item.classList.remove('active');
+                        if (item.getAttribute('data-target') === id) {
+                            item.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, {
+            rootMargin: '-20% 0% -80% 0%'
+        });
+
+        headers.forEach(header => observer.observe(header));
+    }
+
+    /**
+     * 同步导航状态（确保所有跳转场景都正确更新）
+     */
+    function syncNavigationState(docPath) {
+        // 更新当前文档路径
+        currentDocPath = docPath;
+        
+        // 获取文档的分类
+        const category = DocsIndexManager.getDocumentCategory(docPath);
+        currentCategory = category ? category.name : null;
+        
+        // 如果当前在章节目录视图，刷新章节列表的active状态
+        if (currentNavState === 'chapters' && currentChapterToc.length > 0) {
+            document.querySelectorAll('.doc-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-doc') === docPath) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+        // 根据当前hash决定显示哪个视图
+        const hash = window.location.hash.substring(1);
+        
+        // 如果hash是 "docs"，显示分类列表
+        if (hash === 'docs') {
+            showCategoryLevel();
+            return;
+        }
+        
+        // 如果hash是 "docs/xxx"，且文档已加载，显示章节目录
+        if (hash.startsWith('docs/') && docPath) {
+            // 延迟一下，确保文档内容已加载
+            setTimeout(() => {
+                showChapterToc(docPath);
+            }, 100);
+            return;
+        }
+    }
+
+    /**
+     * 导航到文档
+     */
+    function navigateToDocument(docPath, targetLine = null, keyword = null) {
+        console.log('navigateToDocument: 开始导航到文档', { docPath, targetLine, keyword });
+        
+        // 更新URL
         history.pushState(null, null, `#docs/${docPath}`);
+        
+        // 同步导航状态
+        syncNavigationState(docPath);
+        
+        // 加载文档
         loadDocument(docPath, targetLine, keyword);
         updateBreadcrumb(docPath);
 
@@ -1576,6 +1748,129 @@ const ErisPulseApp = (function () {
             top: 0,
             behavior: 'smooth'
         });
+    }
+
+    /**
+     * 获取分类图标
+     */
+    function getCategoryIcon(categoryId) {
+        const iconMap = {
+            '快速开始': 'fa-rocket',
+            '开发指南': 'fa-code',
+            'API参考': 'fa-book',
+            '配置': 'fa-cog',
+            '部署': 'fa-server'
+        };
+        return iconMap[categoryId] || 'fa-folder';
+    }
+
+    /**
+     * 获取文档图标
+     */
+    function getDocIcon(docPath) {
+        if (docPath.endsWith('.md')) {
+            return 'fa-file-alt';
+        }
+        const ext = docPath.split('.').pop();
+        const iconMap = {
+            'py': 'fa-file-code',
+            'js': 'fa-file-code',
+            'json': 'fa-file-code',
+            'yaml': 'fa-file-code',
+            'yml': 'fa-file-code',
+            'txt': 'fa-file-alt'
+        };
+        return iconMap[ext] || 'fa-file-alt';
+    }
+
+    /**
+     * 获取章节级别图标
+     */
+    function getChapterLevelIcon(level) {
+        return `H${level}`;
+    }
+
+    /**
+     * 设置全局导航事件委托（解决resize导致事件丢失的问题）
+     */
+    function setupGlobalNavigationEvents() {
+        const navContainer = document.querySelector('.docs-nav-container');
+        if (!navContainer) return;
+
+        console.log('setupGlobalNavigationEvents: 设置全局事件委托');
+
+        // 移除旧的事件监听器（避免重复绑定）
+        const oldHandler = navContainer._navClickHandler;
+        if (oldHandler) {
+            navContainer.removeEventListener('click', oldHandler);
+        }
+
+        // 创建新的事件处理器
+        const clickHandler = function(e) {
+            console.log('全局导航事件触发，目标元素:', e.target);
+
+            // 处理分类项点击
+            const categoryItem = e.target.closest('.category-item');
+            if (categoryItem) {
+                const categoryId = categoryItem.getAttribute('data-category');
+                console.log('点击分类项:', categoryId);
+                e.preventDefault();
+                e.stopPropagation();
+                showDocumentList(categoryId);
+                return;
+            }
+
+            // 处理文档项点击
+            const docItem = e.target.closest('.doc-item');
+            if (docItem) {
+                const docPath = docItem.getAttribute('data-doc');
+                console.log('点击文档项，docPath =', docPath);
+                e.preventDefault();
+                e.stopPropagation();
+                navigateToDocument(docPath);
+                return;
+            }
+
+            // 处理章节项点击
+            const chapterItem = e.target.closest('.chapter-item');
+            if (chapterItem) {
+                const targetId = chapterItem.getAttribute('data-target');
+                console.log('点击章节项，targetId =', targetId);
+                e.preventDefault();
+                e.stopPropagation();
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // 更新active状态
+                    document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
+                    chapterItem.classList.add('active');
+                }
+                return;
+            }
+
+            // 处理面包屑返回点击
+            const breadcrumbBack = e.target.closest('.breadcrumb-back');
+            if (breadcrumbBack) {
+                const action = breadcrumbBack.getAttribute('data-action');
+                console.log('点击面包屑返回，action =', action);
+                e.preventDefault();
+                e.stopPropagation();
+                if (action === 'back-to-categories') {
+                    showCategoryLevel();
+                } else if (action === 'back-to-docs') {
+                    if (currentCategory) {
+                        showDocumentList(currentCategory);
+                    } else {
+                        showCategoryLevel();
+                    }
+                }
+                return;
+            }
+        };
+
+        // 保存处理器引用并绑定
+        navContainer._navClickHandler = clickHandler;
+        navContainer.addEventListener('click', clickHandler, false);
     }
 
     function setupDocumentationSearch() {
@@ -1863,12 +2158,10 @@ const ErisPulseApp = (function () {
         const breadcrumb = document.querySelector('.docs-breadcrumb');
         if (breadcrumb) {
             breadcrumb.addEventListener('click', function (e) {
-                if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#docs') {
+                // 点击"文档中心"链接时，返回分类列表
+                if (e.target.closest('.breadcrumb-link')?.getAttribute('href') === '#docs') {
                     e.preventDefault();
-                    const firstDoc = document.querySelector('.docs-nav-link');
-                    if (firstDoc) {
-                        firstDoc.click();
-                    }
+                    showCategoryLevel();
                 }
             });
         }
@@ -1959,7 +2252,10 @@ const ErisPulseApp = (function () {
 
     function setupDocumentationResponsive() {
         function handleResize() {
+            console.log('handleResize: 窗口大小变化，重新设置全局事件委托');
             moveTocToSidebar();
+            // 重新设置全局事件委托，确保事件不会丢失
+            setupGlobalNavigationEvents();
         }
 
         window.addEventListener('resize', handleResize);
@@ -2022,7 +2318,10 @@ const ErisPulseApp = (function () {
         }
 
         setTimeout(() => {
-            moveTocToSidebar();
+            // 文档加载完成后，自动显示章节目录
+            if (currentNavState !== 'chapters' && currentChapterToc.length > 0) {
+                showChapterToc(currentDocPath);
+            }
 
             // 如果有关键词，跳转到包含关键词的位置
             if (keyword) {
@@ -2033,49 +2332,25 @@ const ErisPulseApp = (function () {
                 setTimeout(() => scrollToLine(targetLine), 300);
             }
 
-            document.querySelectorAll('.toc-link').forEach(link => {
+            // 处理文档内的锚点链接（滚动到标题）
+            document.querySelectorAll('#docs-content a[href^="#"]').forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-
-                    const targetId = this.getAttribute('data-target');
+                    const targetId = this.getAttribute('href').substring(1);
                     const targetElement = document.getElementById(targetId);
-
                     if (targetElement) {
-                        targetElement.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-
-                        document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
-                        this.classList.add('active');
-
-                        history.pushState(null, null, `#${targetId}`);
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
             });
 
-            document.querySelectorAll('#docs-content a').forEach(link => {
-                link.addEventListener('click', function (e) {
-                    const href = this.getAttribute('href');
-
-                    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
-                        return;
-                    }
-
-                    if (href && href.startsWith('#')) {
-                        e.preventDefault();
-                        const targetElement = document.getElementById(href.substring(1));
-                        if (targetElement) {
-                            targetElement.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start'
-                            });
-                        }
-                        return;
-                    }
-
-                    if (href && !href.includes('://')) {
+            // 处理文档内跳转到其他文档的链接
+            document.querySelectorAll('#docs-content a[href]').forEach(link => {
+                const href = link.getAttribute('href');
+                // 只处理非外部链接且非锚点的链接
+                if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#')) {
+                    link.addEventListener('click', function (e) {
                         e.preventDefault();
                         const targetDocId = getDocIdFromPath(href);
                         if (targetDocId) {
@@ -2083,8 +2358,8 @@ const ErisPulseApp = (function () {
                         } else {
                             showDocumentLinkWarning(href);
                         }
-                    }
-                });
+                    });
+                }
             });
 
             if (typeof mermaid !== 'undefined') {
@@ -2104,8 +2379,6 @@ const ErisPulseApp = (function () {
 
                 Prism.highlightElement(block);
             });
-
-            addScrollSpy();
         }, 100);
     }
 
@@ -2341,30 +2614,10 @@ const ErisPulseApp = (function () {
             });
         });
 
-        if (tocItems.length > 0) {
-            let tocHtml = `
-            <div class="table-of-contents">
-                <h3>目录</h3>
-                <ul>
-            `;
+        // 保存到全局变量，供 showChapterToc 使用
+        currentChapterToc = tocItems;
 
-            tocItems.forEach(item => {
-                const indent = (item.level - 1) * 20;
-                tocHtml += `
-                    <li style="margin-left: ${indent}px;">
-                        <a href="#${item.id}" class="toc-link" data-target="${item.id}">${item.text}</a>
-                    </li>
-                `;
-            });
-
-            tocHtml += `
-                </ul>
-            </div>
-            `;
-
-            tempDiv.insertAdjacentHTML('afterbegin', tocHtml);
-        }
-
+        // 返回修改后的 HTML（包含 id 属性）
         return tempDiv.innerHTML;
     }
 
@@ -2373,69 +2626,13 @@ const ErisPulseApp = (function () {
     }
 
     function moveTocToSidebar() {
-        const toc = document.querySelector('.table-of-contents');
-        const docsLayout = document.querySelector('.docs-layout');
-
-        if (toc && docsLayout) {
-            if (window.innerWidth > 1200) {
-                const contentToc = document.querySelector('.docs-content .table-of-contents');
-                if (contentToc) {
-                    contentToc.remove();
-                }
-
-                const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
-                if (!rightSidebar) {
-                    toc.style.width = '250px';
-                    toc.style.position = 'sticky';
-                    toc.style.top = '100px';
-                    toc.style.maxHeight = 'calc(100vh - 120px)';
-                    toc.style.overflowY = 'auto';
-                    docsLayout.appendChild(toc);
-                }
-            } else {
-                const rightSidebar = document.querySelector('.docs-layout > .table-of-contents');
-                if (rightSidebar) {
-                    rightSidebar.remove();
-                }
-
-                if (toc.parentNode !== document.querySelector('.docs-content')) {
-                    toc.remove();
-
-                    const docsContent = document.querySelector('.docs-content');
-                    const markdownContent = docsContent.querySelector('.markdown-content');
-                    if (markdownContent) {
-                        markdownContent.insertAdjacentElement('afterbegin', toc);
-                    } else {
-                        docsContent.insertAdjacentElement('afterbegin', toc);
-                    }
-                }
-            }
-        }
+        // 已弃用：TOC 现在集成到左侧导航栏的章节目录中
+        // 此函数保留以避免破坏现有代码
     }
 
     function addScrollSpy() {
-        const headers = document.querySelectorAll('.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6');
-        const tocLinks = document.querySelectorAll('.toc-link');
-
-        if (headers.length === 0 || tocLinks.length === 0) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.id;
-                    tocLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('data-target') === id) {
-                            link.classList.add('active');
-                        }
-                    });
-                }
-            });
-        }, {
-            rootMargin: '-20% 0% -80% 0%'
-        });
-
-        headers.forEach(header => observer.observe(header));
+        // 已弃用：滚动监听现在在 showChapterToc 中处理
+        // 此函数保留以避免破坏现有代码
     }
 
     function renderCharts() {
