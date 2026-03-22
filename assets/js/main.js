@@ -1596,13 +1596,18 @@ const ErisPulseApp = (function () {
 
 
     function showChapterToc(docPath) {
+        console.log('showChapterToc: 显示章节目录, docPath =', docPath, 'currentChapterToc.length =', currentChapterToc.length);
+        
         currentNavState = 'chapters';
         currentDocPath = docPath;
         
         const navContainer = document.querySelector('.docs-nav-container');
         const docTitle = DocsIndexManager.getDocumentTitle(docPath);
         
-        if (!currentChapterToc || currentChapterToc.length === 0) return;
+        if (!currentChapterToc || currentChapterToc.length === 0) {
+            console.warn('showChapterToc: 章节目录为空');
+            return;
+        }
 
         let navHtml = '<div class="docs-nav-view">';
         
@@ -1636,6 +1641,7 @@ const ErisPulseApp = (function () {
 
          
         navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', () => {
+            console.log('showChapterToc: 点击面包屑返回, currentCategory =', currentCategory);
             if (currentCategory) {
                 showDocumentList(currentCategory);
             } else {
@@ -1643,18 +1649,8 @@ const ErisPulseApp = (function () {
             }
         });
         
-        document.querySelectorAll('.chapter-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const targetElement = document.getElementById(targetId);
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                     
-                    document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                }
-            });
-        });
+         
+        console.log('showChapterToc: 章节目录已渲染,等待全局事件委托处理点击');
 
          
         updateActiveChapter();
@@ -1692,13 +1688,17 @@ const ErisPulseApp = (function () {
 
 
     function syncNavigationState(docPath) {
+        console.log('syncNavigationState: 同步导航状态, docPath =', docPath);
+
          
         currentDocPath = docPath;
-        
+
          
         const category = DocsIndexManager.getDocumentCategory(docPath);
         currentCategory = category ? category.name : null;
-        
+
+        console.log('syncNavigationState: 当前分类 =', currentCategory, 'currentNavState =', currentNavState);
+
          
         if (currentNavState === 'chapters' && currentChapterToc.length > 0) {
             document.querySelectorAll('.doc-item').forEach(item => {
@@ -1708,24 +1708,18 @@ const ErisPulseApp = (function () {
                 }
             });
         }
-        
+
          
         const hash = window.location.hash.substring(1);
-        
+
          
         if (hash === 'docs') {
             showCategoryLevel();
             return;
         }
-        
+
          
-        if (hash.startsWith('docs/') && docPath) {
-             
-            setTimeout(() => {
-                showChapterToc(docPath);
-            }, 100);
-            return;
-        }
+         
     }
 
     
@@ -2319,8 +2313,9 @@ const ErisPulseApp = (function () {
 
         setTimeout(() => {
              
-            if (currentNavState !== 'chapters' && currentChapterToc.length > 0) {
-                showChapterToc(currentDocPath);
+            console.log('loadDocument: 文档加载完成, currentNavState =', currentNavState, 'currentChapterToc.length =', currentChapterToc.length);
+            if (currentChapterToc.length > 0) {
+                showChapterToc(docPath);
             }
 
              
