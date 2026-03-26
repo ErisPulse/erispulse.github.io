@@ -208,6 +208,14 @@ const DocsIndexManager = (function() {
     let loadCallbacks = [];
     
     /**
+     * 获取当前语言的索引文件名
+     */
+    function getLanguageIndexFile(filename) {
+        const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+        return `${lang}/${filename}`;
+    }
+    
+    /**
      * 加载映射索引（三层降级策略）
      */
     async function loadMapping() {
@@ -219,10 +227,12 @@ const DocsIndexManager = (function() {
         
         try {
             console.log('尝试从CDN加载映射索引...');
-            const data = await loadFromCDN(CONFIG.DOCS.index.mappingFile);
+            const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+            const langFilename = getLanguageIndexFile(CONFIG.DOCS.index.mappingFile);
+            const data = await loadFromCDN(langFilename);
             mappingCache = data;
             saveToCache(CONFIG.DOCS.index.storageKeys.mapping, data);
-            console.log('✓ 从CDN成功加载映射索引');
+            console.log(`✓ 从CDN成功加载${lang}映射索引`);
             notifyLoadCallbacks('mapping', true, data);
             return data;
         } catch (cdnError) {
@@ -266,10 +276,12 @@ const DocsIndexManager = (function() {
         
         try {
             console.log('尝试从CDN加载搜索索引...');
-            const data = await loadFromCDN(CONFIG.DOCS.index.searchIndexFile);
+            const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+            const langFilename = getLanguageIndexFile(CONFIG.DOCS.index.searchIndexFile);
+            const data = await loadFromCDN(langFilename);
             searchIndexCache = data;
             saveToCache(CONFIG.DOCS.index.storageKeys.searchIndex, data);
-            console.log('✓ 从CDN成功加载搜索索引');
+            console.log(`✓ 从CDN成功加载${lang}搜索索引`);
             notifyLoadCallbacks('search', true, data);
             return data;
         } catch (cdnError) {
@@ -568,6 +580,7 @@ const DocsIndexManager = (function() {
 const ErisPulseApp = (function () {
     // ==================== 私有变量 ====================
     let currentTheme = 'light';
+    let currentLang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN'; // 当前语言
     let allModules = [];
     let allAdapters = [];
     let allCliExtensions = [];
@@ -1415,8 +1428,89 @@ const ErisPulseApp = (function () {
     let currentDocPath = null;
     let currentChapterToc = [];
 
+    // ==================== 语言切换模块 ====================
+    function setupLanguageSwitcher() {
+        const langSelect = document.getElementById('lang-select');
+        if (!langSelect) return;
+        
+        // 设置当前语言的选中状态
+        langSelect.value = currentLang;
+        
+        // 绑定change事件
+        langSelect.addEventListener('change', function() {
+            const newLang = this.value;
+            if (newLang !== currentLang) {
+                switchLanguage(newLang);
+            }
+        });
+    }
+    
+    /**
+     * 切换语言
+     */
+    function switchLanguage(lang) {
+        console.log('切换语言:', lang);
+        currentLang = lang;
+        localStorage.setItem('erispulse-docs-lang', lang);
+        
+        // 更新下拉框选中状态
+        const langSelect = document.getElementById('lang-select');
+        if (langSelect) {
+            langSelect.value = lang;
+        }
+        
+        // 清除缓存并重新加载索引
+        DocsIndexManager.clearCache();
+        DocsIndexManager.loadMapping().then(() => {
+            DocsIndexManager.loadSearchIndex();
+        }).catch(err => {
+            console.error('切换语言失败:', err);
+            showMessage('切换语言失败，请重试', 'error');
+        });
+        
+        // 回到文档首页
+        showCategoryLevel();
+        updateBreadcrumb(null);
+        
+        // 更新URL到文档首页
+        history.pushState(null, null, '#docs');
+        
+        // 重置导航状态
+        currentNavState = 'categories';
+        currentCategory = null;
+        currentDocPath = null;
+        currentChapterToc = [];
+        
+        // 清空文档内容
+        const docsContent = document.getElementById('docs-content');
+        if (docsContent) {
+            docsContent.innerHTML = `
+                <div>
+                    <h1>欢迎使用 ErisPulse</h1>
+                    <p>ErisPulse 是一个开源的 Python 库，目标是提供一个简单、易于使用的框架，用于构建异步、非阻塞的机器人程序。</p>
+                    <p>点击文档导航中的链接，开始探索 ErisPulse 的功能和用法吧。</p>
+                </div>
+            `;
+        }
+        
+        showMessage(`已切换到${getLanguageName(lang)}`, 'success');
+    }
+    
+    /**
+     * 获取语言名称
+     */
+    function getLanguageName(lang) {
+        const names = {
+            'zh-CN': '简体中文',
+            'en': 'English',
+            'zh-TW': '繁體中文'
+        };
+        return names[lang] || lang;
+    }
+
     function setupDocumentation() {
         // 立即初始化UI，不等待索引加载
+        setupLanguageSwitcher(); // 初始化语言切换器
         renderDocsNavigation();
         setupDocumentationSearch();
         setupBreadcrumbNavigation();
@@ -2272,7 +2366,8 @@ const ErisPulseApp = (function () {
         clearToc();
 
         try {
-            const docUrl = CONFIG.DOCS.baseUrl + docPath;
+            const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+            const docUrl = CONFIG.DOCS.baseUrl + lang + '/' + docPath;
             const docResponse = await fetch(docUrl);
             if (!docResponse.ok) {
                 throw new Error(`文档加载失败: HTTP ${docResponse.status}`);
