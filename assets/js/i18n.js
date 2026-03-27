@@ -5,7 +5,19 @@
 
 const I18n = (function () {
     const STORAGE_KEY = 'erispulse-lang';
-    let currentLang = localStorage.getItem(STORAGE_KEY) || 'zh-CN';
+
+    /**
+     * 根据浏览器语言偏好检测默认语言
+     * zh-CN → 简体中文，其它zh开头 → 繁體中文，其余 → English
+     */
+    function detectBrowserLang() {
+        const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+        if (lang === 'zh-cn' || lang === 'zh') return 'zh-CN';
+        if (lang.startsWith('zh')) return 'zh-TW';
+        return 'en';
+    }
+
+    let currentLang = localStorage.getItem(STORAGE_KEY) || detectBrowserLang();
 
     // ==================== 翻译字典 ====================
     const messages = {
