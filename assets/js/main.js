@@ -211,7 +211,7 @@ const DocsIndexManager = (function() {
 
 
     function getLanguageIndexFile(filename) {
-        const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+        const lang = I18n.getLang();
         return `${lang}/${filename}`;
     }
     
@@ -227,7 +227,7 @@ const DocsIndexManager = (function() {
         
         try {
             console.log('尝试从CDN加载映射索引...');
-            const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+            const lang = I18n.getLang();
             const langFilename = getLanguageIndexFile(CONFIG.DOCS.index.mappingFile);
             const data = await loadFromCDN(langFilename);
             mappingCache = data;
@@ -254,7 +254,7 @@ const DocsIndexManager = (function() {
                     return data;
                 } catch (cacheError) {
                     console.error('所有加载方式均失败', cacheError);
-                    const error = new Error('无法加载文档索引，请检查网络连接');
+                    const error = new Error(I18n.t('docs.loadIndexFailed'));
                     notifyLoadCallbacks('mapping', false, null, error);
                     throw error;
                 }
@@ -276,7 +276,7 @@ const DocsIndexManager = (function() {
         
         try {
             console.log('尝试从CDN加载搜索索引...');
-            const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+            const lang = I18n.getLang();
             const langFilename = getLanguageIndexFile(CONFIG.DOCS.index.searchIndexFile);
             const data = await loadFromCDN(langFilename);
             searchIndexCache = data;
@@ -303,7 +303,7 @@ const DocsIndexManager = (function() {
                     return data;
                 } catch (cacheError) {
                     console.error('所有加载方式均失败', cacheError);
-                    const error = new Error('无法加载搜索索引，请检查网络连接');
+                    const error = new Error(I18n.t('docs.loadIndexFailed'));
                     notifyLoadCallbacks('search', false, null, error);
                     throw error;
                 }
@@ -580,7 +580,6 @@ const DocsIndexManager = (function() {
 const ErisPulseApp = (function () {
      
     let currentTheme = 'light';
-    let currentLang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';  
     let allModules = [];
     let allAdapters = [];
     let allCliExtensions = [];
@@ -590,6 +589,9 @@ const ErisPulseApp = (function () {
 
      
     function init() {
+         
+        I18n.init();
+        
         setupStorage();
         loadUserSettings();
         applyUserSettings();
@@ -597,6 +599,7 @@ const ErisPulseApp = (function () {
         setupThemeToggle();
         setupHamburgerMenu();
         setupViewSwitching();
+        setupGlobalLangSwitcher();
         setupMarketplace();
         setupDocumentation();
         setupModals();
@@ -604,6 +607,71 @@ const ErisPulseApp = (function () {
         renderFriendLinks();
         setupHomeAnimations();
         setupCopyCode();
+    }
+
+     
+    function setupGlobalLangSwitcher() {
+        const globalSelect = document.getElementById('global-lang-select');
+        if (!globalSelect) return;
+
+         
+        globalSelect.value = I18n.getLang();
+
+        globalSelect.addEventListener('change', function () {
+            const newLang = this.value;
+            if (newLang !== I18n.getLang()) {
+                handleLanguageSwitch(newLang);
+            }
+        });
+    }
+
+    
+
+
+    function handleLanguageSwitch(lang) {
+        console.log('切换语言:', lang);
+
+         
+        I18n.setLang(lang, true);
+
+         
+        DocsIndexManager.clearCache();
+        DocsIndexManager.loadMapping().then(() => {
+            DocsIndexManager.loadSearchIndex();
+        }).catch(err => {
+            console.error('切换语言失败:', err);
+            showMessage(I18n.t('common.langSwitchFailed'), 'error');
+        });
+
+         
+        showCategoryLevel();
+        updateBreadcrumb(null);
+        history.pushState(null, null, '#docs');
+
+         
+        currentNavState = 'categories';
+        currentCategory = null;
+        currentDocPath = null;
+        currentChapterToc = [];
+
+         
+        const docsContent = document.getElementById('docs-content');
+        if (docsContent) {
+            docsContent.innerHTML = `
+                <div>
+                    <h1>${I18n.t('docs.welcome')}</h1>
+                    <p>${I18n.t('docs.welcome.desc')}</p>
+                    <p>${I18n.t('docs.welcome.hint')}</p>
+                </div>
+            `;
+        }
+
+         
+        if (document.getElementById('market-view').classList.contains('active')) {
+            renderModules();
+        }
+
+        showMessage(I18n.t('common.langSwitched', { name: I18n.getLanguageName(lang) }), 'success');
     }
 
     function setupStorage() {
@@ -766,7 +834,7 @@ const ErisPulseApp = (function () {
                     userSettings.presetTheme = preset;
                     userSettings.customColors = {};
                     saveUserSettings();
-                    showMessage(`已应用 ${getPresetThemeName(preset)} 预设样式`, 'success');
+                    showMessage(I18n.t('settings.presetApplied', { name: getPresetThemeName(preset) }), 'success');
                 }
             }
         } else {
@@ -774,20 +842,19 @@ const ErisPulseApp = (function () {
                 userSettings.presetTheme = 'default';
                 userSettings.customColors = {};
                 saveUserSettings();
-                showMessage('已恢复默认主题', 'success');
+                showMessage(I18n.t('settings.defaultRestored'), 'success');
             }
         }
     }
 
     function getPresetThemeName(preset) {
-        const names = {
-            'default': '默认',
-            'ocean': '海洋风格',
-            'sunset': '日落风格',
-            'forest': '森林风格',
-            'lavender': '薰衣草风格'
+        const keyMap = {
+            'ocean': 'settings.oceanPreset',
+            'sunset': 'settings.sunsetPreset',
+            'forest': 'settings.forestPreset',
+            'lavender': 'settings.lavenderPreset'
         };
-        return names[preset] || preset;
+        return keyMap[preset] ? I18n.t(keyMap[preset]) : preset;
     }
 
     function setupThemeToggle() {
@@ -862,7 +929,6 @@ const ErisPulseApp = (function () {
             const docMatch = hash.match(/docs\/(.+)/);
             if (docMatch && docMatch[1]) {
                 setTimeout(() => {
-                     
                     navigateToDocument(docMatch[1]);
                 }, 500);
             }
@@ -882,7 +948,6 @@ const ErisPulseApp = (function () {
             hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
             hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
             view = 'docs';
-             
             const docPath = hash === 'changelog' ? 'changelog' : hash;
             setTimeout(() => {
                 navigateToDocument(docPath);
@@ -972,7 +1037,7 @@ const ErisPulseApp = (function () {
         if (!container) return;
 
         if (CONFIG.FRIEND_LINKS.length === 0) {
-            container.innerHTML = '<p class="no-friend-links">暂无友链</p>';
+            container.innerHTML = `<p class="no-friend-links">${I18n.t('common.noData')}</p>`;
             return;
         }
 
@@ -1041,7 +1106,7 @@ const ErisPulseApp = (function () {
 
         if (document.getElementById('reset-settings')) {
             document.getElementById('reset-settings').addEventListener('click', function () {
-                if (confirm('确定要重置所有设置吗？这将恢复所有选项为默认值。')) {
+                if (confirm(I18n.t('settings.resetConfirm'))) {
                     localStorage.removeItem(CONFIG.STORAGE_KEYS.SETTINGS);
                     location.reload();
                 }
@@ -1179,7 +1244,7 @@ const ErisPulseApp = (function () {
         userSettings.customColors = colorSettings;
         applyCustomColors();
         saveUserSettings();
-        showMessage('颜色设置已应用', 'success');
+        showMessage(I18n.t('settings.colorsApplied'), 'success');
         initPresetSelector();
     }
 
@@ -1256,7 +1321,7 @@ const ErisPulseApp = (function () {
 
         } catch (error) {
             console.error('加载模块数据失败:', error);
-            showError('加载模块失败，请稍后再试');
+            showError(I18n.t('market.loadFailed'));
         }
     }
 
@@ -1297,8 +1362,8 @@ const ErisPulseApp = (function () {
             modulesGrid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                     <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
-                    <h3>未找到匹配的模块</h3>
-                    <p>尝试不同的搜索关键词或查看所有模块</p>
+                    <h3>${I18n.t('market.empty')}</h3>
+                    <p>${I18n.t('market.empty.hint')}</p>
                 </div>
             `;
             return;
@@ -1311,7 +1376,7 @@ const ErisPulseApp = (function () {
 
             const cliBadge = pkg.type === 'cli' ? '<span class="module-tag">CLI</span>' : '';
             const commandInfo = pkg.command && pkg.command.length > 0 ?
-                `<p style="font-size: 0.85rem; margin-top: 0.5rem;"><i class="fas fa-terminal"></i> 命令: ${pkg.command.join(', ')}</p>` : '';
+                `<p style="font-size: 0.85rem; margin-top: 0.5rem;"><i class="fas fa-terminal"></i> ${I18n.t('market.commands')}: ${pkg.command.join(', ')}</p>` : '';
 
             card.innerHTML = `
                 <div class="module-header">
@@ -1335,10 +1400,10 @@ const ErisPulseApp = (function () {
                     <div class="module-author">${pkg.author}</div>
                     <div class="module-actions">
                         <button class="module-btn" data-action="install" data-package="${pkg.package}">
-                            <i class="fas fa-download"></i> 安装
+                            <i class="fas fa-download"></i> ${I18n.t('market.install')}
                         </button>
                         ${pkg.repository ? `<button class="module-btn" data-action="docs" data-package="${pkg.package}" data-repo="${pkg.repository}">
-                            <i class="fas fa-book"></i> 文档
+                            <i class="fas fa-book"></i> ${I18n.t('market.docs')}
                         </button>` : ''}
                     </div>
                 </div>
@@ -1372,7 +1437,7 @@ const ErisPulseApp = (function () {
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
                 <h3>${message}</h3>
                 <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
-                    重新加载
+                    ${I18n.t('market.reload')}
                 </button>
             </div>
         `;
@@ -1434,101 +1499,35 @@ const ErisPulseApp = (function () {
         if (!langSelect) return;
         
          
-        langSelect.value = currentLang;
+        langSelect.value = I18n.getLang();
         
          
         langSelect.addEventListener('change', function() {
             const newLang = this.value;
-            if (newLang !== currentLang) {
-                switchLanguage(newLang);
+            if (newLang !== I18n.getLang()) {
+                handleLanguageSwitch(newLang);
             }
         });
-    }
-    
-    
-
-
-    function switchLanguage(lang) {
-        console.log('切换语言:', lang);
-        currentLang = lang;
-        localStorage.setItem('erispulse-docs-lang', lang);
-        
-         
-        const langSelect = document.getElementById('lang-select');
-        if (langSelect) {
-            langSelect.value = lang;
-        }
-        
-         
-        DocsIndexManager.clearCache();
-        DocsIndexManager.loadMapping().then(() => {
-            DocsIndexManager.loadSearchIndex();
-        }).catch(err => {
-            console.error('切换语言失败:', err);
-            showMessage('切换语言失败，请重试', 'error');
-        });
-        
-         
-        showCategoryLevel();
-        updateBreadcrumb(null);
-        
-         
-        history.pushState(null, null, '#docs');
-        
-         
-        currentNavState = 'categories';
-        currentCategory = null;
-        currentDocPath = null;
-        currentChapterToc = [];
-        
-         
-        const docsContent = document.getElementById('docs-content');
-        if (docsContent) {
-            docsContent.innerHTML = `
-                <div>
-                    <h1>欢迎使用 ErisPulse</h1>
-                    <p>ErisPulse 是一个开源的 Python 库，目标是提供一个简单、易于使用的框架，用于构建异步、非阻塞的机器人程序。</p>
-                    <p>点击文档导航中的链接，开始探索 ErisPulse 的功能和用法吧。</p>
-                </div>
-            `;
-        }
-        
-        showMessage(`已切换到${getLanguageName(lang)}`, 'success');
-    }
-    
-    
-
-
-    function getLanguageName(lang) {
-        const names = {
-            'zh-CN': '简体中文',
-            'en': 'English',
-            'zh-TW': '繁體中文'
-        };
-        return names[lang] || lang;
     }
 
     function setupDocumentation() {
          
-        setupLanguageSwitcher();  
+        setupLanguageSwitcher();
         renderDocsNavigation();
         setupDocumentationSearch();
         setupBreadcrumbNavigation();
         setupDocumentActions();
         setupDocumentationResponsive();
-        setupGlobalNavigationEvents();  
+        setupGlobalNavigationEvents();
 
          
         DocsIndexManager.onLoad(function(type, success, data, error) {
             if (type === 'mapping' || type === 'search') {
-                 
                 renderDocsNavigation();
                 
-                 
                 if (DocsIndexManager.isLoaded()) {
                     console.log('文档索引加载完成');
                     
-                     
                     const hash = window.location.hash.substring(1);
                     if (hash === 'docs') {
                         showCategoryLevel();
@@ -1538,17 +1537,16 @@ const ErisPulseApp = (function () {
             
             if (!success && error) {
                 console.error(`加载${type === 'mapping' ? '映射' : '搜索'}索引失败:`, error);
-                 
                 if (type === 'mapping') {
                     const docsContent = document.getElementById('docs-content');
                     if (docsContent && !DocsIndexManager.mapping) {
                         docsContent.innerHTML = `
                             <div class="error-message" style="text-align: center; padding: 3rem 0;">
                                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
-                                <h3>无法加载文档索引</h3>
+                                <h3>${I18n.t('docs.loadIndexFailed')}</h3>
                                 <p>${error.message}</p>
                                 <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: var(--radius); cursor: pointer;">
-                                    <i class="fas fa-sync-alt"></i> 重新加载
+                                    <i class="fas fa-sync-alt"></i> ${I18n.t('market.reload')}
                                 </button>
                             </div>
                         `;
@@ -1557,7 +1555,6 @@ const ErisPulseApp = (function () {
             }
         });
 
-         
         DocsIndexManager.loadMapping().catch(err => {
             console.error('映射索引加载失败:', err);
         });
@@ -1567,9 +1564,6 @@ const ErisPulseApp = (function () {
     }
 
      
-
-    
-
 
     function renderDocsNavigation() {
         const navContainer = document.querySelector('.docs-nav-container');
@@ -1582,16 +1576,12 @@ const ErisPulseApp = (function () {
         console.log('renderDocsNavigation: 映射索引状态', mapping ? '已加载' : '未加载');
         
         if (!mapping || !mapping.categories) {
-            navContainer.innerHTML = '<p style="padding: 1rem; text-align: center; color: var(--text-secondary);">加载中...</p>';
+            navContainer.innerHTML = `<p style="padding: 1rem; text-align: center; color: var(--text-secondary);">${I18n.t('common.loading')}</p>`;
             return;
         }
 
-         
         showCategoryLevel();
     }
-
-    
-
 
     function showCategoryLevel() {
         currentNavState = 'categories';
@@ -1621,7 +1611,6 @@ const ErisPulseApp = (function () {
 
         navContainer.innerHTML = navHtml;
 
-         
         document.querySelectorAll('.category-item').forEach(item => {
             item.addEventListener('click', function() {
                 const categoryId = this.getAttribute('data-category');
@@ -1629,9 +1618,6 @@ const ErisPulseApp = (function () {
             });
         });
     }
-
-    
-
 
     function showDocumentList(categoryId) {
         console.log('showDocumentList: 显示文档列表, categoryId =', categoryId);
@@ -1653,18 +1639,16 @@ const ErisPulseApp = (function () {
         
         let navHtml = '<div class="docs-nav-view">';
         
-         
         navHtml += `
             <div class="docs-nav-breadcrumb">
                 <a class="breadcrumb-back" data-action="back-to-categories">
                     <i class="fas fa-arrow-left"></i>
-                    <span>返回分类</span>
+                    <span>${I18n.t('docs.backToCategories')}</span>
                 </a>
                 <span class="breadcrumb-title">${categoryName}</span>
             </div>
         `;
 
-         
         navHtml += '<div class="doc-list">';
         
         category.documents.forEach(doc => {
@@ -1682,12 +1666,8 @@ const ErisPulseApp = (function () {
 
         navContainer.innerHTML = navHtml;
 
-         
         navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', showCategoryLevel);
     }
-
-    
-
 
     function showChapterToc(docPath) {
         console.log('showChapterToc: 显示章节目录, docPath =', docPath, 'currentChapterToc.length =', currentChapterToc.length);
@@ -1705,18 +1685,16 @@ const ErisPulseApp = (function () {
 
         let navHtml = '<div class="docs-nav-view">';
         
-         
         navHtml += `
             <div class="docs-nav-breadcrumb">
                 <a class="breadcrumb-back" data-action="back-to-docs">
                     <i class="fas fa-arrow-left"></i>
-                    <span>返回文档</span>
+                    <span>${I18n.t('docs.backToDocs')}</span>
                 </a>
-                <span class="breadcrumb-title">${docTitle || '目录'}</span>
+                <span class="breadcrumb-title">${docTitle || I18n.t('docs.toc')}</span>
             </div>
         `;
 
-         
         navHtml += '<div class="chapter-toc">';
         
         currentChapterToc.forEach(item => {
@@ -1733,7 +1711,6 @@ const ErisPulseApp = (function () {
 
         navContainer.innerHTML = navHtml;
 
-         
         navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', () => {
             console.log('showChapterToc: 点击面包屑返回, currentCategory =', currentCategory);
             if (currentCategory) {
@@ -1743,15 +1720,10 @@ const ErisPulseApp = (function () {
             }
         });
         
-         
         console.log('showChapterToc: 章节目录已渲染,等待全局事件委托处理点击');
 
-         
         updateActiveChapter();
     }
-
-    
-
 
     function updateActiveChapter() {
         const headers = document.querySelectorAll('.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4, .markdown-content h5, .markdown-content h6');
@@ -1778,22 +1750,16 @@ const ErisPulseApp = (function () {
         headers.forEach(header => observer.observe(header));
     }
 
-    
-
-
     function syncNavigationState(docPath) {
         console.log('syncNavigationState: 同步导航状态, docPath =', docPath);
 
-         
         currentDocPath = docPath;
 
-         
         const category = DocsIndexManager.getDocumentCategory(docPath);
         currentCategory = category ? category.name : null;
 
         console.log('syncNavigationState: 当前分类 =', currentCategory, 'currentNavState =', currentNavState);
 
-         
         if (currentNavState === 'chapters' && currentChapterToc.length > 0) {
             document.querySelectorAll('.doc-item').forEach(item => {
                 item.classList.remove('active');
@@ -1803,32 +1769,21 @@ const ErisPulseApp = (function () {
             });
         }
 
-         
         const hash = window.location.hash.substring(1);
 
-         
         if (hash === 'docs') {
             showCategoryLevel();
             return;
         }
-
-         
-         
     }
-
-    
-
 
     function navigateToDocument(docPath, targetLine = null, keyword = null) {
         console.log('navigateToDocument: 开始导航到文档', { docPath, targetLine, keyword });
         
-         
         history.pushState(null, null, `#docs/${docPath}`);
         
-         
         syncNavigationState(docPath);
         
-         
         loadDocument(docPath, targetLine, keyword);
         updateBreadcrumb(docPath);
 
@@ -1837,9 +1792,6 @@ const ErisPulseApp = (function () {
             behavior: 'smooth'
         });
     }
-
-    
-
 
     function getCategoryIcon(categoryId) {
         const iconMap = {
@@ -1851,9 +1803,6 @@ const ErisPulseApp = (function () {
         };
         return iconMap[categoryId] || 'fa-folder';
     }
-
-    
-
 
     function getDocIcon(docPath) {
         if (docPath.endsWith('.md')) {
@@ -1871,15 +1820,9 @@ const ErisPulseApp = (function () {
         return iconMap[ext] || 'fa-file-alt';
     }
 
-    
-
-
     function getChapterLevelIcon(level) {
         return `H${level}`;
     }
-
-    
-
 
     function setupGlobalNavigationEvents() {
         const navContainer = document.querySelector('.docs-nav-container');
@@ -1887,17 +1830,14 @@ const ErisPulseApp = (function () {
 
         console.log('setupGlobalNavigationEvents: 设置全局事件委托');
 
-         
         const oldHandler = navContainer._navClickHandler;
         if (oldHandler) {
             navContainer.removeEventListener('click', oldHandler);
         }
 
-         
         const clickHandler = function(e) {
             console.log('全局导航事件触发，目标元素:', e.target);
 
-             
             const categoryItem = e.target.closest('.category-item');
             if (categoryItem) {
                 const categoryId = categoryItem.getAttribute('data-category');
@@ -1908,7 +1848,6 @@ const ErisPulseApp = (function () {
                 return;
             }
 
-             
             const docItem = e.target.closest('.doc-item');
             if (docItem) {
                 const docPath = docItem.getAttribute('data-doc');
@@ -1919,7 +1858,6 @@ const ErisPulseApp = (function () {
                 return;
             }
 
-             
             const chapterItem = e.target.closest('.chapter-item');
             if (chapterItem) {
                 const targetId = chapterItem.getAttribute('data-target');
@@ -1929,14 +1867,12 @@ const ErisPulseApp = (function () {
                 const targetElement = document.getElementById(targetId);
                 if (targetElement) {
                     targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                     
                     document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
                     chapterItem.classList.add('active');
                 }
                 return;
             }
 
-             
             const breadcrumbBack = e.target.closest('.breadcrumb-back');
             if (breadcrumbBack) {
                 const action = breadcrumbBack.getAttribute('data-action');
@@ -1956,39 +1892,33 @@ const ErisPulseApp = (function () {
             }
         };
 
-         
         navContainer._navClickHandler = clickHandler;
         navContainer.addEventListener('click', clickHandler, false);
     }
 
     function setupDocumentationSearch() {
-         
         const searchTrigger = document.createElement('button');
         searchTrigger.type = 'button';
         searchTrigger.className = 'docs-search-trigger';
-        searchTrigger.innerHTML = '<i class="fas fa-search"></i> 搜索文档...';
+        searchTrigger.innerHTML = `<i class="fas fa-search"></i> ${I18n.t('docs.searchTrigger')}`;
 
         const sidebarHeader = document.querySelector('.docs-sidebar-header');
         if (sidebarHeader) {
             sidebarHeader.appendChild(searchTrigger);
         }
 
-         
         createSearchOverlay();
 
-         
         searchTrigger.addEventListener('click', function () {
             openSearchOverlay();
         });
 
-         
         document.addEventListener('keydown', function (e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                 e.preventDefault();
                 openSearchOverlay();
             }
             
-             
             if (e.key === 'Escape') {
                 closeSearchOverlay();
             }
@@ -1996,7 +1926,6 @@ const ErisPulseApp = (function () {
     }
 
     function createSearchOverlay() {
-         
         if (document.querySelector('.docs-search-overlay')) {
             return;
         }
@@ -2010,15 +1939,15 @@ const ErisPulseApp = (function () {
             <div class="docs-search-overlay-content">
                 <div class="docs-search-overlay-wrapper">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="docs-search-overlay-input" placeholder="搜索文档..." autocomplete="off">
+                    <input type="text" class="docs-search-overlay-input" placeholder="${I18n.t('docs.searchPlaceholder')}" autocomplete="off">
                 </div>
                 <div class="search-shortcut-hint">
-                    按 <kbd>ESC</kbd> 关闭 · <kbd>↑↓</kbd> 导航结果
+                    ${I18n.t('docs.searchHint')}
                 </div>
                 <div class="docs-search-results" id="overlay-search-results">
                     <div class="search-no-results">
                         <i class="fas fa-search"></i>
-                        <p>输入关键词开始搜索</p>
+                        <p>${I18n.t('docs.searchEmpty')}</p>
                     </div>
                 </div>
             </div>
@@ -2026,7 +1955,6 @@ const ErisPulseApp = (function () {
 
         document.body.appendChild(overlay);
 
-         
         const searchInput = overlay.querySelector('.docs-search-overlay-input');
         const closeBtn = overlay.querySelector('.docs-search-close-btn');
 
@@ -2043,19 +1971,16 @@ const ErisPulseApp = (function () {
             }, 300);
         });
 
-         
         closeBtn.addEventListener('click', function () {
             closeSearchOverlay();
         });
 
-         
         overlay.addEventListener('click', function (e) {
             if (e.target === overlay) {
                 closeSearchOverlay();
             }
         });
 
-         
         overlay.addEventListener('keydown', function (e) {
             const results = overlay.querySelectorAll('.search-result-item');
             if (results.length === 0) return;
@@ -2084,6 +2009,7 @@ const ErisPulseApp = (function () {
         overlay.classList.add('active');
         const searchInput = overlay.querySelector('.docs-search-overlay-input');
         searchInput.value = '';
+        searchInput.placeholder = I18n.t('docs.searchPlaceholder');
         searchInput.focus();
         clearOverlaySearchResults();
         document.body.style.overflow = 'hidden';
@@ -2098,21 +2024,19 @@ const ErisPulseApp = (function () {
     }
 
     function focusResultItem(item) {
-         
         document.querySelectorAll('.search-result-item').forEach(i => i.classList.remove('keyboard-focused'));
         item.classList.add('keyboard-focused');
         item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function performOverlaySearch(query) {
-         
         if (!DocsIndexManager.searchIndex) {
             const resultsContainer = document.getElementById('overlay-search-results');
             if (resultsContainer) {
                 resultsContainer.innerHTML = `
                     <div class="search-no-results">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <p>搜索索引加载中...</p>
+                        <p>${I18n.t('docs.searchIndexLoading')}</p>
                     </div>
                 `;
             }
@@ -2131,7 +2055,7 @@ const ErisPulseApp = (function () {
             resultsContainer.innerHTML = `
                 <div class="search-no-results">
                     <i class="fas fa-search"></i>
-                    <p>未找到相关文档</p>
+                    <p>${I18n.t('docs.noResults')}</p>
                 </div>
             `;
             return;
@@ -2139,7 +2063,7 @@ const ErisPulseApp = (function () {
 
         resultsContainer.innerHTML = `
             <div class="search-results-header">
-                <h4>搜索结果 (${results.length})</h4>
+                <h4>${I18n.t('docs.searchResults')} (${results.length})</h4>
             </div>
             <div class="search-results-list">
                 ${results.map((result, index) => `
@@ -2155,7 +2079,6 @@ const ErisPulseApp = (function () {
             </div>
         `;
 
-         
         resultsContainer.querySelectorAll('.search-result-item').forEach(item => {
             item.addEventListener('click', function () {
                 const docPath = this.getAttribute('data-doc');
@@ -2174,7 +2097,7 @@ const ErisPulseApp = (function () {
         resultsContainer.innerHTML = `
             <div class="search-no-results">
                 <i class="fas fa-search"></i>
-                <p>输入关键词开始搜索</p>
+                <p>${I18n.t('docs.searchEmpty')}</p>
             </div>
         `;
     }
@@ -2192,13 +2115,13 @@ const ErisPulseApp = (function () {
             resultsContainer.innerHTML = `
                 <div class="search-no-results">
                     <i class="fas fa-search"></i>
-                    <p>未找到相关文档</p>
+                    <p>${I18n.t('docs.noResults')}</p>
                 </div>
             `;
         } else {
             resultsContainer.innerHTML = `
                 <div class="search-results-header">
-                    <h4>搜索结果 (${results.length})</h4>
+                    <h4>${I18n.t('docs.searchResults')} (${results.length})</h4>
                 </div>
                 <div class="search-results-list">
                     ${results.map(result => `
@@ -2246,7 +2169,6 @@ const ErisPulseApp = (function () {
         const breadcrumb = document.querySelector('.docs-breadcrumb');
         if (breadcrumb) {
             breadcrumb.addEventListener('click', function (e) {
-                 
                 if (e.target.closest('.breadcrumb-link')?.getAttribute('href') === '#docs') {
                     e.preventDefault();
                     showCategoryLevel();
@@ -2263,7 +2185,7 @@ const ErisPulseApp = (function () {
         const docTitle = DocsIndexManager.getDocumentTitle(docPath);
 
         if (!docPath || docPath === 'home') {
-            breadcrumb.innerHTML = `<span class="current">文档中心</span>`;
+            breadcrumb.innerHTML = `<span class="current">${I18n.t('docs.title')}</span>`;
             return;
         }
 
@@ -2271,7 +2193,7 @@ const ErisPulseApp = (function () {
             breadcrumb.innerHTML = `
                 <a href="#docs" class="breadcrumb-link">
                     <i class="fas fa-home breadcrumb-icon"></i>
-                    <span>文档中心</span>
+                    <span>${I18n.t('docs.title')}</span>
                 </a>
                 <span class="separator">/</span>
                 <span class="breadcrumb-category">${category.name}</span>
@@ -2282,7 +2204,7 @@ const ErisPulseApp = (function () {
             breadcrumb.innerHTML = `
                 <a href="#docs" class="breadcrumb-link">
                     <i class="fas fa-home breadcrumb-icon"></i>
-                    <span>文档中心</span>
+                    <span>${I18n.t('docs.title')}</span>
                 </a>
                 <span class="separator">/</span>
                 <span class="current">${docTitle || docPath}</span>
@@ -2320,12 +2242,12 @@ const ErisPulseApp = (function () {
         if (navigator.share) {
             navigator.share({
                 title: docTitle,
-                text: '查看 ErisPulse 文档',
+                text: `${I18n.t('docs.title')} - ErisPulse`,
                 url: currentUrl
             });
         } else {
             navigator.clipboard.writeText(currentUrl).then(() => {
-                showMessage('链接已复制到剪贴板', 'success');
+                showMessage(I18n.t('docs.linkCopied'), 'success');
             }).catch(() => {
                 const tempInput = document.createElement('input');
                 tempInput.value = currentUrl;
@@ -2333,7 +2255,7 @@ const ErisPulseApp = (function () {
                 tempInput.select();
                 document.execCommand('copy');
                 document.body.removeChild(tempInput);
-                showMessage('链接已复制到剪贴板', 'success');
+                showMessage(I18n.t('docs.linkCopied'), 'success');
             });
         }
     }
@@ -2342,7 +2264,6 @@ const ErisPulseApp = (function () {
         function handleResize() {
             console.log('handleResize: 窗口大小变化，重新设置全局事件委托');
             moveTocToSidebar();
-             
             setupGlobalNavigationEvents();
         }
 
@@ -2359,18 +2280,18 @@ const ErisPulseApp = (function () {
         docsContent.innerHTML = `
             <div style="text-align: center; padding: 3rem 0;">
                 <i class="fas fa-spinner fa-pulse fa-3x"></i>
-                <p>正在加载文档...</p>
+                <p>${I18n.t('docs.loading')}</p>
             </div>
         `;
 
         clearToc();
 
         try {
-            const lang = localStorage.getItem('erispulse-docs-lang') || 'zh-CN';
+            const lang = I18n.getLang();
             const docUrl = CONFIG.DOCS.baseUrl + lang + '/' + docPath;
             const docResponse = await fetch(docUrl);
             if (!docResponse.ok) {
-                throw new Error(`文档加载失败: HTTP ${docResponse.status}`);
+                throw new Error(`HTTP ${docResponse.status}`);
             }
 
             const docContent = await docResponse.text();
@@ -2407,22 +2328,18 @@ const ErisPulseApp = (function () {
         }
 
         setTimeout(() => {
-             
             console.log('loadDocument: 文档加载完成, currentNavState =', currentNavState, 'currentChapterToc.length =', currentChapterToc.length);
             if (currentChapterToc.length > 0) {
                 showChapterToc(docPath);
             }
 
-             
             if (keyword) {
                 setTimeout(() => scrollToKeyword(keyword), 300);
             }
-             
             else if (targetLine) {
                 setTimeout(() => scrollToLine(targetLine), 300);
             }
 
-             
             document.querySelectorAll('#docs-content a[href^="#"]').forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -2435,10 +2352,8 @@ const ErisPulseApp = (function () {
                 });
             });
 
-             
             document.querySelectorAll('#docs-content a[href]').forEach(link => {
                 const href = link.getAttribute('href');
-                 
                 if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#')) {
                     link.addEventListener('click', function (e) {
                         e.preventDefault();
@@ -2473,7 +2388,6 @@ const ErisPulseApp = (function () {
     }
 
     function scrollToKeyword(keyword) {
-         
         if (!keyword) {
             console.warn('scrollToKeyword: 关键词为空');
             return;
@@ -2481,7 +2395,6 @@ const ErisPulseApp = (function () {
 
         console.log('scrollToKeyword: 搜索关键词', keyword);
 
-         
         setTimeout(() => {
             const docsContent = document.getElementById('docs-content');
             if (!docsContent) {
@@ -2489,7 +2402,6 @@ const ErisPulseApp = (function () {
                 return;
             }
 
-             
             const walker = document.createTreeWalker(
                 docsContent,
                 NodeFilter.SHOW_TEXT,
@@ -2504,7 +2416,6 @@ const ErisPulseApp = (function () {
             while (walker.nextNode()) {
                 const node = walker.currentNode;
                 if (node.textContent && node.textContent.toLowerCase().includes(lowerKeyword)) {
-                     
                     targetNode = node;
                     targetElement = node.parentElement;
                     break;
@@ -2512,20 +2423,17 @@ const ErisPulseApp = (function () {
             }
 
             if (targetElement) {
-                 
                 targetElement.scrollIntoView({
                     behavior: 'smooth',
                     block: 'center'
                 });
 
-                 
                 if (targetNode.parentNode && targetNode.parentNode.parentNode) {
                     const originalStyle = targetNode.parentNode.style.backgroundColor;
                     targetNode.parentNode.style.transition = 'background-color 0.3s ease';
                     targetNode.parentNode.style.backgroundColor = 'rgba(var(--primary-rgb), 0.3)';
                     targetNode.parentNode.style.borderLeft = '4px solid var(--primary)';
 
-                     
                     setTimeout(() => {
                         targetNode.parentNode.style.backgroundColor = originalStyle;
                         targetNode.parentNode.style.borderLeft = '';
@@ -2533,18 +2441,15 @@ const ErisPulseApp = (function () {
                 }
 
                 console.log('已滚动到关键词位置:', keyword);
-                showMessage(`已定位到 "${keyword}"`, 'success');
+                showMessage(I18n.t('docs.keywordLocated', { keyword }), 'success');
             } else {
                 console.warn('未找到关键词:', keyword);
-                showMessage('未找到指定内容', 'warning');
+                showMessage(I18n.t('docs.keywordNotFound'), 'warning');
             }
         }, 500);
     }
 
     function scrollToLine(lineNumber) {
-         
-         
-         
         console.log('scrollToLine: 行号跳转功能已禁用，滚动到文档顶部');
         
         document.getElementById('docs-content').scrollIntoView({
@@ -2552,23 +2457,17 @@ const ErisPulseApp = (function () {
             block: 'start'
         });
         
-         
-        showMessage('文档已加载', 'success');
+        showMessage(I18n.t('docs.docLoaded'), 'success');
     }
 
     function getDocIdFromPath(filePath) {
-         
         let normalizedPath = filePath.replace(/\\/g, '/');
         
-         
         normalizedPath = normalizedPath.replace(/\.md$/, '');
         
-         
         if (normalizedPath.startsWith('../') || normalizedPath.startsWith('./') || !normalizedPath.includes('/')) {
-             
             const currentDoc = window.location.hash.split('/')[1];
             if (currentDoc) {
-                 
                 const resolvedPath = resolveRelativePath(currentDoc.replace(/\.md$/, ''), normalizedPath);
                 if (resolvedPath) {
                     normalizedPath = resolvedPath;
@@ -2576,21 +2475,17 @@ const ErisPulseApp = (function () {
             }
         }
         
-         
         if (normalizedPath.startsWith('docs/')) {
             normalizedPath = normalizedPath.substring(5);
         }
         
-         
         const allDocs = DocsIndexManager.getAllDocuments();
         
-         
         let doc = allDocs.find(d => {
             const docPath = d.path.replace(/\\/g, '/').replace(/\.md$/, '').replace(/^docs\//, '');
             return docPath === normalizedPath;
         });
         
-         
         if (!doc) {
             doc = fuzzyMatchDocument(normalizedPath, allDocs);
         }
@@ -2598,38 +2493,27 @@ const ErisPulseApp = (function () {
         return doc ? doc.path : null;
     }
     
-    
-
-
-
-
-
     function fuzzyMatchDocument(targetPath, allDocs) {
         const normalizedTarget = targetPath.toLowerCase().replace(/\.md$/, '');
         const targetFileName = normalizedTarget.split('/').pop();
         
-         
         for (const doc of allDocs) {
             const docPath = doc.path.replace(/\\/g, '/');
             const normalizedDocPath = docPath.toLowerCase().replace(/\.md$/, '').replace(/^docs\//, '');
             const docFileName = normalizedDocPath.split('/').pop();
             
-             
             if (docFileName === targetFileName) {
                 return doc;
             }
             
-             
             if (normalizedDocPath === normalizedTarget) {
                 return doc;
             }
             
-             
             if (normalizedDocPath.includes(normalizedTarget) || normalizedTarget.includes(normalizedDocPath)) {
                 return doc;
             }
             
-             
             if (docPath.endsWith(`${targetPath}.md`)) {
                 return doc;
             }
@@ -2638,39 +2522,26 @@ const ErisPulseApp = (function () {
         return null;
     }
     
-    
-
-
-
-
-
     function resolveRelativePath(basePath, relativePath) {
-         
         const baseParts = basePath.split('/');
         
-         
         if (relativePath.startsWith('./')) {
             relativePath = relativePath.substring(2);
         }
         
-         
         const relativeParts = relativePath.split('/');
         
-         
         const resultParts = [...baseParts];
-        resultParts.pop();  
+        resultParts.pop();
         
         for (const part of relativeParts) {
             if (part === '..') {
-                 
                 if (resultParts.length > 0) {
                     resultParts.pop();
                 }
             } else if (part === '.') {
-                 
                 continue;
             } else if (part) {
-                 
                 resultParts.push(part);
             }
         }
@@ -2704,10 +2575,8 @@ const ErisPulseApp = (function () {
             });
         });
 
-         
         currentChapterToc = tocItems;
 
-         
         return tempDiv.innerHTML;
     }
 
@@ -2717,11 +2586,9 @@ const ErisPulseApp = (function () {
 
     function moveTocToSidebar() {
          
-         
     }
 
     function addScrollSpy() {
-         
          
     }
 
@@ -2756,7 +2623,7 @@ const ErisPulseApp = (function () {
 
         if (commitInfo) {
             const commitDate = new Date(commitInfo.commit.author.date);
-            const formattedDate = commitDate.toLocaleString('zh-CN', {
+            const formattedDate = commitDate.toLocaleString(I18n.getLang(), {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
@@ -2784,7 +2651,7 @@ const ErisPulseApp = (function () {
                         <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">
                             <span style="font-weight: 500; color: var(--text);">${commitInfo.commit.author.name}</span>
                             <span style="color: var(--text-secondary); font-size: 0.8rem; margin-left: 0.5rem;">
-                                ${relativeTime} 更新了此文档
+                                ${I18n.t('docs.updatedAgo', { time: relativeTime })}
                             </span>
                         </div>
                         <div style="font-size: 0.85rem; color: var(--text-secondary);">
@@ -2806,36 +2673,6 @@ const ErisPulseApp = (function () {
         navContainer.style.flexWrap = 'wrap';
         navContainer.style.gap = '1rem';
         navContainer.style.marginTop = '1rem';
-
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
-
-         
-         
-         
-         
-
-         
-         
-         
-         
-
-         
-         
 
         const navLinksContainer = document.createElement('div');
         navLinksContainer.style.display = 'flex';
@@ -2922,34 +2759,34 @@ const ErisPulseApp = (function () {
     }
 
     function showDocumentLinkWarning(linkUrl) {
-        const message = `文档链接提示：点击的链接 "${linkUrl || '未知文档'}" 暂未适配站内跳转，请使用左侧导航栏手动查找相关文档内容。`;
+        const message = I18n.t('docs.linkWarning', { link: linkUrl });
         showMessage(message, 'warning');
     }
 
     function showDocumentError(docsContent, error) {
         let errorMessage = error.message;
-        let suggestion = '请检查网络连接或稍后再试';
+        let suggestion = I18n.t('docs.retryHint');
         let showRetryButton = false;
 
         if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
-            errorMessage = '网络连接失败';
-            suggestion = '请检查您的网络连接后重试';
+            errorMessage = I18n.t('docs.networkError');
+            suggestion = I18n.t('docs.networkHint');
             showRetryButton = true;
         } else if (errorMessage.includes('API rate limit exceeded')) {
-            errorMessage = 'GitHub API请求次数已达上限';
-            suggestion = '请等待1小时后重试，或使用GitHub个人访问令牌提高限制';
+            errorMessage = I18n.t('docs.rateLimit');
+            suggestion = I18n.t('docs.rateLimitHint');
         } else if (errorMessage.includes('HTTP')) {
             const statusMatch = errorMessage.match(/HTTP (\d+)/);
             if (statusMatch) {
                 const statusCode = statusMatch[1];
-                errorMessage = `服务器返回错误: HTTP ${statusCode}`;
+                errorMessage = `${I18n.t('docs.serverError')}: HTTP ${statusCode}`;
 
                 if (statusCode === '404') {
-                    suggestion = '请求的文档不存在，可能是URL错误';
+                    suggestion = I18n.t('docs.noDoc');
                 } else if (statusCode === '403') {
-                    suggestion = '访问被拒绝，可能是权限问题';
+                    suggestion = I18n.t('docs.forbidden');
                 } else if (statusCode === '500') {
-                    suggestion = '服务器内部错误，请稍后再试';
+                    suggestion = I18n.t('docs.serverError');
                 }
             }
         }
@@ -2957,7 +2794,7 @@ const ErisPulseApp = (function () {
         let errorHTML = `
             <div class="error-message" style="text-align: center; padding: 3rem 0;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--danger); margin-bottom: 1rem;"></i>
-                <h3>无法加载文档</h3>
+                <h3>${I18n.t('docs.loadFailed')}</h3>
                 <p>${errorMessage}</p>
                 <p style="color: var(--secondary); margin-bottom: 1.5rem;">${suggestion}</p>
         `;
@@ -2968,7 +2805,7 @@ const ErisPulseApp = (function () {
                     style="background: var(--primary); color: white; border: none; 
                         padding: 0.75rem 1.5rem; border-radius: 50px; 
                         cursor: pointer; transition: var(--transition);">
-                    <i class="fas fa-sync-alt"></i> 重新加载
+                    <i class="fas fa-sync-alt"></i> ${I18n.t('market.reload')}
                 </button>
             `;
         }
@@ -2980,16 +2817,16 @@ const ErisPulseApp = (function () {
     function timeAgo(date) {
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = Math.floor(seconds / 31536000);
-        if (interval >= 1) return `${interval}年前`;
+        if (interval >= 1) return I18n.t('time.yearsAgo', { n: interval });
         interval = Math.floor(seconds / 2592000);
-        if (interval >= 1) return `${interval}个月前`;
+        if (interval >= 1) return I18n.t('time.monthsAgo', { n: interval });
         interval = Math.floor(seconds / 86400);
-        if (interval >= 1) return `${interval}天前`;
+        if (interval >= 1) return I18n.t('time.daysAgo', { n: interval });
         interval = Math.floor(seconds / 3600);
-        if (interval >= 1) return `${interval}小时前`;
+        if (interval >= 1) return I18n.t('time.hoursAgo', { n: interval });
         interval = Math.floor(seconds / 60);
-        if (interval >= 1) return `${interval}分钟前`;
-        return `${Math.floor(seconds)}秒前`;
+        if (interval >= 1) return I18n.t('time.minutesAgo', { n: interval });
+        return I18n.t('time.secondsAgo', { n: Math.floor(seconds) });
     }
 
      
@@ -3016,26 +2853,26 @@ const ErisPulseApp = (function () {
             <h3>${pkg.name} v${pkg.version}</h3>
             <p>${pkg.description}</p>
             
-            <h4 style="margin-top: 1.5rem;">安装命令</h4>
+            <h4 style="margin-top: 1.5rem;">${I18n.t('market.installCmd')}</h4>
             <pre style="background: var(--bg); padding: 1rem; border-radius: var(--radius);"><code>epsdk install ${pkg.package}</code></pre>
             
             ${pkg.type === 'cli' && pkg.command && pkg.command.length > 0 ? `
-            <h4 style="margin-top: 1.5rem;">可用命令</h4>
+            <h4 style="margin-top: 1.5rem;">${I18n.t('modal.availableCommands')}</h4>
             <ul>
                 ${pkg.command.map(cmd => `<li><code>epsdk ${cmd}</code></li>`).join('')}
             </ul>
             ` : ''}
             
             ${pkg.tags.length > 0 ? `
-            <h4 style="margin-top: 1.5rem;">标签</h4>
+            <h4 style="margin-top: 1.5rem;">${I18n.t('modal.tags')}</h4>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
             </div>
             ` : ''}
             
             ${pkg.repository ? `
-            <h4 style="margin-top: 1.5rem;">仓库信息</h4>
-            <p><a href="${pkg.repository}" target="_blank">查看源代码</a></p>
+            <h4 style="margin-top: 1.5rem;">${I18n.t('modal.repoInfo')}</h4>
+            <p><a href="${pkg.repository}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
             ` : ''}
         `;
 
@@ -3052,7 +2889,7 @@ const ErisPulseApp = (function () {
         modalContent.innerHTML = `
             <div style="text-align: center; padding: 2rem;">
                 <div class="loader-spinner"></div>
-                <p>正在加载文档...</p>
+                <p>${I18n.t('docs.loadingModuleDoc')}</p>
             </div>
         `;
 
@@ -3068,7 +2905,6 @@ const ErisPulseApp = (function () {
                 </div>
             `;
 
-             
             document.querySelectorAll('#module-modal-content pre code').forEach((block) => {
                 if (!block.className || !block.className.startsWith('language-')) {
                     block.classList.add('language-python');
@@ -3080,8 +2916,8 @@ const ErisPulseApp = (function () {
             modalContent.innerHTML = `
                 <div class="error-message">
                     <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
-                    <h3>无法加载文档</h3>
-                    <p>请访问 <a href="${pkg.repository}" target="_blank">模块仓库</a> 查看文档</p>
+                    <h3>${I18n.t('modal.loadDocFailed')}</h3>
+                    <p><a href="${pkg.repository}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
                 </div>
             `;
         });
@@ -3112,7 +2948,6 @@ const ErisPulseApp = (function () {
 
      
     function setupHomeAnimations() {
-         
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -100px 0px'
@@ -3136,7 +2971,6 @@ const ErisPulseApp = (function () {
             featureObserver.observe(featuresSection);
         }
 
-         
         const stepObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -3168,9 +3002,8 @@ const ErisPulseApp = (function () {
             try {
                 await navigator.clipboard.writeText(codeBlock.textContent);
                 
-                 
                 const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                copyBtn.innerHTML = `<i class="fas fa-check"></i> ${I18n.t('demo.copied')}`;
                 copyBtn.style.background = 'var(--accent)';
                 
                 setTimeout(() => {
@@ -3179,7 +3012,7 @@ const ErisPulseApp = (function () {
                 }, 2000);
             } catch (err) {
                 console.error('复制失败:', err);
-                showMessage('复制失败，请手动复制', 'error');
+                showMessage(I18n.t('common.copyFailed'), 'error');
             }
         });
     }
