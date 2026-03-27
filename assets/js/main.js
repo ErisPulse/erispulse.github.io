@@ -3094,5 +3094,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 500);
     }, 500);
 
+    if (typeof HeroCanvas !== 'undefined') {
+        HeroCanvas.init();
+    }
+
     ErisPulseApp.init();
 });
