@@ -5,7 +5,19 @@
 
 const I18n = (function () {
     const STORAGE_KEY = 'erispulse-lang';
-    let currentLang = localStorage.getItem(STORAGE_KEY) || 'zh-CN';
+
+    
+
+
+
+    function detectBrowserLang() {
+        const lang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+        if (lang === 'zh-cn' || lang === 'zh') return 'zh-CN';
+        if (lang.startsWith('zh')) return 'zh-TW';
+        return 'en';
+    }
+
+    let currentLang = localStorage.getItem(STORAGE_KEY) || detectBrowserLang();
 
      
     const messages = {

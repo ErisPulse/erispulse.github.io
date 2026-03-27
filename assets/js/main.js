@@ -611,16 +611,67 @@ const ErisPulseApp = (function () {
 
      
     function setupGlobalLangSwitcher() {
-        const globalSelect = document.getElementById('global-lang-select');
-        if (!globalSelect) return;
+        const switcher = document.getElementById('global-lang-switcher');
+        const btn = document.getElementById('lang-switcher-btn');
+        if (!switcher || !btn) return;
 
          
-        globalSelect.value = I18n.getLang();
+        updateLangSwitcherUI();
 
-        globalSelect.addEventListener('change', function () {
-            const newLang = this.value;
-            if (newLang !== I18n.getLang()) {
-                handleLanguageSwitch(newLang);
+         
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            switcher.classList.toggle('open');
+        });
+
+         
+        switcher.querySelectorAll('.lang-switcher-option').forEach(option => {
+            option.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const newLang = this.getAttribute('data-lang');
+                if (newLang && newLang !== I18n.getLang()) {
+                    handleLanguageSwitch(newLang);
+                }
+                switcher.classList.remove('open');
+
+                 
+                if (window.innerWidth <= 768) {
+                    const hamburger = document.getElementById('hamburger');
+                    const navContainer = document.getElementById('nav-container');
+                    if (hamburger && navContainer) {
+                        hamburger.classList.remove('active');
+                        navContainer.classList.remove('active');
+                    }
+                }
+            });
+        });
+
+         
+        document.addEventListener('click', function (e) {
+            if (!switcher.contains(e.target)) {
+                switcher.classList.remove('open');
+            }
+        });
+    }
+
+    
+
+
+    function updateLangSwitcherUI() {
+        const switcher = document.getElementById('global-lang-switcher');
+        if (!switcher) return;
+
+        const lang = I18n.getLang();
+        const label = switcher.querySelector('.lang-label');
+        if (label) {
+            label.textContent = I18n.getLanguageName(lang);
+        }
+
+        switcher.querySelectorAll('.lang-switcher-option').forEach(option => {
+            if (option.getAttribute('data-lang') === lang) {
+                option.classList.add('active');
+            } else {
+                option.classList.remove('active');
             }
         });
     }
@@ -633,6 +684,9 @@ const ErisPulseApp = (function () {
 
          
         I18n.setLang(lang, true);
+
+         
+        updateLangSwitcherUI();
 
          
         DocsIndexManager.clearCache();
