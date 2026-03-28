@@ -1037,7 +1037,6 @@ const ErisPulseApp = (function () {
 
         if (view === 'about') {
             loadContributors();
-            loadDependencies();
         }
     }
 
@@ -1521,23 +1520,6 @@ const ErisPulseApp = (function () {
         } catch (error) {
             console.error('加载贡献者数据失败:', error);
         }
-    }
-
-    function loadDependencies() {
-        const container = document.getElementById('dependencies-container');
-        container.innerHTML = '';
-
-        CONFIG.PROJECT_DEPENDENCIES.forEach(dep => {
-            const depElement = document.createElement('div');
-            depElement.className = 'dependency-card';
-            depElement.innerHTML = `
-                <h3 class="dependency-name">
-                    <a href="${dep.url}" target="_blank">${dep.name}</a>
-                </h3>
-                <p class="dependency-description">${dep.description}</p>
-            `;
-            container.appendChild(depElement);
-        });
     }
 
     // ==================== 文档模块 ====================

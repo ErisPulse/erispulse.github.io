@@ -170,13 +170,10 @@ const I18n = (function () {
             // 关于页
             'about.contributors': '我们的贡献者',
             'about.contributorsDesc': '感谢这些优秀的开发者为项目做出的贡献',
-            'about.dependencies': '项目依赖',
-            'about.dependenciesDesc': '感谢这些优秀的开源项目，让 ErisPulse 成为可能',
             'about.friendLinks': '友情链接',
             'about.friendLinksDesc': '推荐一些优秀的技术和开发资源',
             'about.copyright': '版权声明',
             'about.copyrightText': 'ErisPulse 使用 MIT 开源协议，允许自由分发和修改。',
-            'about.avatarCopyright': '头像版权归原作者所有：',
 
             // 页脚
             'footer.home': '项目主页',
@@ -361,13 +358,10 @@ const I18n = (function () {
             // 关于页
             'about.contributors': 'Our Contributors',
             'about.contributorsDesc': 'Thanks to these excellent developers for their contributions',
-            'about.dependencies': 'Project Dependencies',
-            'about.dependenciesDesc': 'Thanks to these amazing open-source projects that make ErisPulse possible',
             'about.friendLinks': 'Friend Links',
             'about.friendLinksDesc': 'Recommended tech and development resources',
             'about.copyright': 'Copyright',
             'about.copyrightText': 'ErisPulse is licensed under MIT, allowing free distribution and modification.',
-            'about.avatarCopyright': 'Avatar copyright belongs to the original author:',
 
             // 页脚
             'footer.home': 'Project Home',
@@ -552,13 +546,10 @@ const I18n = (function () {
             // 关于页
             'about.contributors': '我們的貢獻者',
             'about.contributorsDesc': '感謝這些優秀的開發者為專案做出的貢獻',
-            'about.dependencies': '專案依賴',
-            'about.dependenciesDesc': '感謝這些優秀的開源專案，讓 ErisPulse 成為可能',
             'about.friendLinks': '友情連結',
             'about.friendLinksDesc': '推薦一些優秀的技術和開發資源',
             'about.copyright': '版權聲明',
             'about.copyrightText': 'ErisPulse 使用 MIT 開源協議，允許自由分發和修改。',
-            'about.avatarCopyright': '頭像版權歸原作者所有：',
 
             // 页脚
             'footer.home': '專案主頁',
