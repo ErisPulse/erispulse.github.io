@@ -14,40 +14,6 @@ const CONFIG = {
         author: 'ErisPulse Team'
     },
 
-    // 外部依赖配置
-    DEPENDENCIES: {
-        // Font Awesome
-        fontAwesome: {
-            css: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-            version: '6.4.0'
-        },
-        // Prism.js (代码高亮)
-        prism: {
-            core: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js',
-            autoloader: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js',
-            lineNumbers: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js',
-            python: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js',
-            theme: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css',
-            themeLineNumbers: 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css',
-            version: '1.29.0'
-        },
-        // Marked (Markdown解析)
-        marked: {
-            js: 'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js',
-            version: '4.3.0'
-        },
-        // Chart.js (图表)
-        chart: {
-            js: 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js',
-            version: '3.9.1'
-        },
-        // Mermaid (图表)
-        mermaid: {
-            js: 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js',
-            version: '10.9.1'
-        }
-    },
-    
     // 友链配置
     FRIEND_LINKS: [
         {
