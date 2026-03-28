@@ -47,51 +47,7 @@ const CONFIG = {
             version: '10.9.1'
         }
     },
-
-    // 项目依赖列表配置
-    PROJECT_DEPENDENCIES: [
-        {
-            name: "rich",
-            url: "https://github.com/Textualize/rich",
-            description: "在多个文件中广泛使用（日志、CLI 界面、进度条等）"
-        },
-        {
-            name: "colorama",
-            url: "https://github.com/tartley/colorama",
-            description: "在 console.py 中用于 Windows 终端颜色初始化"
-        },
-        {
-            name: "aiohttp",
-            url: "https://github.com/aio-libs/aiohttp",
-            description: "在 package_manager.py 中用于异步 HTTP 请求"
-        },
-        {
-            name: "watchdog",
-            url: "https://github.com/gorakhargosh/watchdog",
-            description: "在 run.py 中用于文件系统监控"
-        },
-        {
-            name: "toml",
-            url: "https://github.com/uiri/toml",
-            description: "在 config.py 中用于解析 TOML 配置文件"
-        },
-        {
-            name: "fastapi",
-            url: "https://github.com/tiangolo/fastapi",
-            description: "在 router.py 中用于构建 Web API"
-        },
-        {
-            name: "hypercorn",
-            url: "https://github.com/pgjones/hypercorn",
-            description: "在 router.py 中作为 ASGI 服务器"
-        },
-        {
-            name: "packaging",
-            url: "https://github.com/pypa/packaging",
-            description: "在 package_manager.py 中用于版本比较"
-        }
-    ],
-
+    
     // 友链配置
     FRIEND_LINKS: [
         {
