@@ -71,47 +71,11 @@ const CONFIG = {
     DEFAULT_USER_SETTINGS: {
         version: '1.0',
         theme: 'auto',
-        presetTheme: '',
-        customColors: {},
         animations: true,
         compactLayout: false,
         showLineNumbers: false,
         stickyNav: true,
         gh_proxy: 'https://cdn.gh-proxy.org/'
-    },
-    THEME_PRESETS: {
-        ocean: {
-            '--primary': '#1e88e5',
-            '--primary-rgb': '30, 136, 229',
-            '--primary-dark': '#1565c0',
-            '--primary-dark-rgb': '21, 101, 192',
-            '--accent': '#26c6da',
-            '--accent-rgb': '38, 198, 218'
-        },
-        sunset: {
-            '--primary': '#ff7043',
-            '--primary-rgb': '255, 112, 67',
-            '--primary-dark': '#f4511e',
-            '--primary-dark-rgb': '244, 81, 30',
-            '--accent': '#ffca28',
-            '--accent-rgb': '255, 202, 40'
-        },
-        forest: {
-            '--primary': '#43a047',
-            '--primary-rgb': '67, 160, 71',
-            '--primary-dark': '#2e7d32',
-            '--primary-dark-rgb': '46, 125, 50',
-            '--accent': '#9ccc65',
-            '--accent-rgb': '156, 204, 101'
-        },
-        lavender: {
-            '--primary': '#8e24aa',
-            '--primary-rgb': '142, 36, 170',
-            '--primary-dark': '#6a1b9a',
-            '--primary-dark-rgb': '106, 27, 154',
-            '--accent': '#ab47bc',
-            '--accent-rgb': '171, 71, 188'
-        }
     },
 
     // API 端点
@@ -735,8 +699,6 @@ const ErisPulseApp = (function () {
             document.body.classList.remove('show-line-numbers');
         }
 
-        applyCustomColors();
-
         if (!userSettings.stickyNav) {
             document.body.classList.add('no-sticky-nav');
         } else {
@@ -745,92 +707,20 @@ const ErisPulseApp = (function () {
     }
 
     function applyThemeSetting() {
-        clearAllCustomVariables();
-
         if (userSettings.theme === 'auto') {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
         } else {
             document.documentElement.setAttribute('data-theme', userSettings.theme);
         }
-
-        if (userSettings.presetTheme && userSettings.presetTheme !== 'default') {
-            applyPresetTheme(userSettings.presetTheme, false);
-        } else if (userSettings.customColors && hasCustomColors()) {
-            applyCustomColors();
-        }
+        updateThemeToggleIcon();
     }
 
-    function hasCustomColors() {
-        const colors = userSettings.customColors;
-        return colors && Object.values(colors).some(color => color && color !== '');
-    }
-
-    function clearAllCustomVariables() {
-        const root = document.documentElement;
-        const customProperties = [
-            '--primary', '--primary-dark', '--accent', '--secondary',
-            '--text', '--text-secondary', '--text-light',
-            '--bg', '--card-bg', '--border',
-            '--primary-rgb', '--primary-dark-rgb', '--accent-rgb', '--secondary-rgb',
-            '--text-rgb', '--text-secondary-rgb', '--text-light-rgb',
-            '--bg-rgb', '--card-bg-rgb', '--border-rgb'
-        ];
-
-        customProperties.forEach(prop => {
-            root.style.removeProperty(prop);
-        });
-    }
-
-    function applyCustomColors() {
-        const root = document.documentElement;
-        const colors = userSettings.customColors;
-
-        if (!colors) return;
-
-        Object.keys(colors).forEach(key => {
-            if (colors[key]) {
-                root.style.setProperty(key, colors[key]);
-            }
-        });
-    }
-
-    function applyPresetTheme(preset, save = true) {
-        clearAllCustomVariables();
-
-        if (preset !== 'default') {
-            const theme = CONFIG.THEME_PRESETS[preset];
-            if (theme) {
-                const root = document.documentElement;
-                Object.keys(theme).forEach(key => {
-                    root.style.setProperty(key, theme[key]);
-                });
-
-                if (save) {
-                    userSettings.presetTheme = preset;
-                    userSettings.customColors = {};
-                    saveUserSettings();
-                    showMessage(I18n.t('settings.presetApplied', { name: getPresetThemeName(preset) }), 'success');
-                }
-            }
-        } else {
-            if (save) {
-                userSettings.presetTheme = 'default';
-                userSettings.customColors = {};
-                saveUserSettings();
-                showMessage(I18n.t('settings.defaultRestored'), 'success');
-            }
-        }
-    }
-
-    function getPresetThemeName(preset) {
-        const keyMap = {
-            'ocean': 'settings.oceanPreset',
-            'sunset': 'settings.sunsetPreset',
-            'forest': 'settings.forestPreset',
-            'lavender': 'settings.lavenderPreset'
-        };
-        return keyMap[preset] ? I18n.t(keyMap[preset]) : preset;
+    function updateThemeToggleIcon() {
+        const icon = document.getElementById('theme-toggle-icon');
+        if (!icon) return;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        icon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
     }
 
     function setupThemeToggle() {
@@ -841,14 +731,15 @@ const ErisPulseApp = (function () {
 
     function applyTheme() {
         applyThemeSetting();
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        console.log(isDark);
     }
 
     function toggleTheme() {
-        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-        localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, currentTheme);
-        applyTheme();
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const newTheme = isDark ? 'light' : 'dark';
+        userSettings.theme = newTheme;
+        localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, newTheme);
+        saveUserSettings();
+        applyThemeSetting();
     }
 
     // ==================== UI交互模块 ====================
@@ -1031,52 +922,9 @@ const ErisPulseApp = (function () {
 
     // ==================== 设置模块 ====================
     function setupSettings() {
-        document.querySelectorAll('input[name="theme"]').forEach(radio => {
-            radio.addEventListener('change', function () {
-                userSettings.theme = this.value;
-                saveUserSettings();
-                applyThemeSetting();
-            });
-        });
-
-        if (document.getElementById('apply-preset')) {
-            document.getElementById('apply-preset').addEventListener('click', function () {
-                const preset = document.getElementById('preset-themes').value;
-                applyPresetTheme(preset);
-            });
-        }
-
-        if (document.getElementById('advanced-colors-btn')) {
-            document.getElementById('advanced-colors-btn').addEventListener('click', function () {
-                openAdvancedColorsModal();
-            });
-        }
-
-        if (document.getElementById('close-advanced-modal')) {
-            document.getElementById('close-advanced-modal').addEventListener('click', function () {
-                document.getElementById('advanced-colors-modal').classList.remove('active');
-            });
-        }
-
-        if (document.getElementById('cancel-advanced-colors')) {
-            document.getElementById('cancel-advanced-colors').addEventListener('click', function () {
-                document.getElementById('advanced-colors-modal').classList.remove('active');
-            });
-        }
-
-        if (document.getElementById('apply-advanced-colors')) {
-            document.getElementById('apply-advanced-colors').addEventListener('click', function () {
-                applyAdvancedColors();
-                document.getElementById('advanced-colors-modal').classList.remove('active');
-            });
-        }
-
-        if (document.getElementById('advanced-colors-modal')) {
-            document.getElementById('advanced-colors-modal').addEventListener('click', function (e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
         }
 
         if (document.getElementById('reset-settings')) {
@@ -1148,12 +996,6 @@ const ErisPulseApp = (function () {
     }
 
     function initSettingsForm() {
-        if (document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`)) {
-            document.querySelector(`input[name="theme"][value="${userSettings.theme}"]`).checked = true;
-        }
-
-        initPresetSelector();
-
         if (document.getElementById('animations-toggle')) {
             document.getElementById('animations-toggle').checked = userSettings.animations;
         }
@@ -1166,61 +1008,6 @@ const ErisPulseApp = (function () {
         if (document.getElementById('sticky-nav')) {
             document.getElementById('sticky-nav').checked = userSettings.stickyNav;
         }
-    }
-
-    function initPresetSelector() {
-        if (!document.getElementById('preset-themes')) return;
-
-        if (userSettings.presetTheme) {
-            document.getElementById('preset-themes').value = userSettings.presetTheme;
-        } else if (hasCustomColors()) {
-            document.getElementById('preset-themes').value = 'default';
-        } else {
-            document.getElementById('preset-themes').value = 'default';
-        }
-    }
-
-    function openAdvancedColorsModal() {
-        document.getElementById('advanced-primary').value = userSettings.customColors['--primary'] || '#5a63df';
-        document.getElementById('advanced-primary-dark').value = userSettings.customColors['--primary-dark'] || '#555AB8';
-        document.getElementById('advanced-accent').value = userSettings.customColors['--accent'] || '#5ED1B3';
-        document.getElementById('advanced-bg').value = userSettings.customColors['--bg'] || '#FAFAFA';
-        document.getElementById('advanced-text').value = userSettings.customColors['--text'] || '#2D3748';
-        document.getElementById('advanced-border').value = userSettings.customColors['--border'] || '#E2E8F0';
-        document.getElementById('advanced-card-bg').value = userSettings.customColors['--card-bg'] || '#FFFFFF';
-
-        document.getElementById('advanced-primary-rgb').value = userSettings.customColors['--primary-rgb'] || '90, 99, 223';
-        document.getElementById('advanced-accent-rgb').value = userSettings.customColors['--accent-rgb'] || '94, 209, 179';
-        document.getElementById('advanced-bg-rgb').value = userSettings.customColors['--bg-rgb'] || '250, 250, 250';
-        document.getElementById('advanced-text-rgb').value = userSettings.customColors['--text-rgb'] || '45, 55, 72';
-        document.getElementById('advanced-shadow').value = userSettings.customColors['--shadow-sm'] || '0 2px 10px rgba(0, 0, 0, 0.05)';
-
-        document.getElementById('advanced-colors-modal').classList.add('active');
-    }
-
-    function applyAdvancedColors() {
-        userSettings.presetTheme = '';
-
-        const colorSettings = {
-            '--primary': document.getElementById('advanced-primary').value,
-            '--primary-dark': document.getElementById('advanced-primary-dark').value,
-            '--accent': document.getElementById('advanced-accent').value,
-            '--bg': document.getElementById('advanced-bg').value,
-            '--text': document.getElementById('advanced-text').value,
-            '--border': document.getElementById('advanced-border').value,
-            '--card-bg': document.getElementById('advanced-card-bg').value,
-            '--primary-rgb': document.getElementById('advanced-primary-rgb').value,
-            '--accent-rgb': document.getElementById('advanced-accent-rgb').value,
-            '--bg-rgb': document.getElementById('advanced-bg-rgb').value,
-            '--text-rgb': document.getElementById('advanced-text-rgb').value,
-            '--shadow-sm': document.getElementById('advanced-shadow').value
-        };
-
-        userSettings.customColors = colorSettings;
-        applyCustomColors();
-        saveUserSettings();
-        showMessage(I18n.t('settings.colorsApplied'), 'success');
-        initPresetSelector();
     }
 
     // ==================== 模块市场模块 ====================
