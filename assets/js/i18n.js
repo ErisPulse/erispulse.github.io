@@ -58,16 +58,15 @@ const I18n = (function () {
 
             // 模块市场
             'market.title': '模块市场',
+            'market.submit': '提交模块',
             'market.legacy': '查看 1.x 模块源 [已废弃]',
             'market.search': '搜索模块...',
             'market.total': '总模块数',
             'market.modules': '功能模块',
             'market.adapters': '平台适配器',
-            'market.cli': 'CLI扩展',
             'market.all': '全部模块',
             'market.install': '安装',
             'market.docs': '文档',
-            'market.commands': '命令',
             'market.empty': '未找到匹配的模块',
             'market.empty.hint': '尝试不同的搜索关键词或查看所有模块',
             'market.loadFailed': '加载模块失败，请稍后再试',
@@ -151,7 +150,6 @@ const I18n = (function () {
 
             // 模态框
             'modal.moduleDetail': '模块详情',
-            'modal.availableCommands': '可用命令',
             'modal.tags': '标签',
             'modal.repoInfo': '仓库信息',
             'modal.viewSource': '查看源代码',
@@ -210,16 +208,15 @@ const I18n = (function () {
 
             // 模块市场
             'market.title': 'Module Market',
+            'market.submit': 'Submit Module',
             'market.legacy': 'View 1.x Modules [Deprecated]',
             'market.search': 'Search modules...',
             'market.total': 'Total Modules',
             'market.modules': 'Modules',
             'market.adapters': 'Adapters',
-            'market.cli': 'CLI Extensions',
             'market.all': 'All Modules',
             'market.install': 'Install',
             'market.docs': 'Docs',
-            'market.commands': 'Commands',
             'market.empty': 'No matching modules found',
             'market.empty.hint': 'Try different keywords or browse all modules',
             'market.loadFailed': 'Failed to load modules, please try again later',
@@ -303,7 +300,6 @@ const I18n = (function () {
 
             // 模态框
             'modal.moduleDetail': 'Module Details',
-            'modal.availableCommands': 'Available Commands',
             'modal.tags': 'Tags',
             'modal.repoInfo': 'Repository',
             'modal.viewSource': 'View Source',
@@ -362,16 +358,15 @@ const I18n = (function () {
 
             // 模块市场
             'market.title': '模組市場',
+            'market.submit': '提交模組',
             'market.legacy': '檢視 1.x 模組原始碼 [已廢棄]',
             'market.search': '搜尋模組...',
             'market.total': '總模組數',
             'market.modules': '功能模組',
             'market.adapters': '平台適配器',
-            'market.cli': 'CLI擴充',
             'market.all': '全部模組',
             'market.install': '安裝',
             'market.docs': '文檔',
-            'market.commands': '命令',
             'market.empty': '未找到符合的模組',
             'market.empty.hint': '嘗試不同的搜尋關鍵字或檢視所有模組',
             'market.loadFailed': '載入模組失敗，請稍後再試',
@@ -455,7 +450,6 @@ const I18n = (function () {
 
             // 模态框
             'modal.moduleDetail': '模組詳情',
-            'modal.availableCommands': '可用命令',
             'modal.tags': '標籤',
             'modal.repoInfo': '倉庫資訊',
             'modal.viewSource': '檢視原始碼',
