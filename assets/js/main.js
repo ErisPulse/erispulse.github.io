@@ -468,7 +468,6 @@ const ErisPulseApp = (function () {
     let currentTheme = 'light';
     let allModules = [];
     let allAdapters = [];
-    let allCliExtensions = [];
     let activeCategory = 'all';
     let searchQuery = '';
     let userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
@@ -811,7 +810,7 @@ const ErisPulseApp = (function () {
                 }, 500);
             }
         } else if (hash === 'changelog' || hash.startsWith('dev-') ||
-            hash.startsWith('cli') || hash.startsWith('quick-start') ||
+            hash.startsWith('quick-start') ||
             hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
             hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
             view = 'docs';
@@ -1065,19 +1064,6 @@ const ErisPulseApp = (function () {
                 type: 'adapter'
             }));
 
-            allCliExtensions = Object.entries(data.cli_extensions || {}).map(([name, info]) => ({
-                name,
-                package: info.package,
-                version: info.version,
-                author: info.author || 'Unknown',
-                description: info.description,
-                repository: info.repository,
-                official: info.official || false,
-                tags: info.tags || [],
-                type: 'cli',
-                command: info.command || []
-            }));
-
             updateStats();
             renderModules();
 
@@ -1088,11 +1074,10 @@ const ErisPulseApp = (function () {
     }
 
     function updateStats() {
-        const totalCount = allModules.length + allAdapters.length + allCliExtensions.length;
+        const totalCount = allModules.length + allAdapters.length;
         document.getElementById('total-all-modules').textContent = totalCount;
         document.getElementById('total-modules').textContent = allModules.length;
         document.getElementById('adapter-count').textContent = allAdapters.length;
-        document.getElementById('cli-count').textContent = allCliExtensions.length;
         document.getElementById('contributors-count').textContent = '--';
     }
 
@@ -1103,13 +1088,11 @@ const ErisPulseApp = (function () {
         let packagesToShow = [];
 
         if (activeCategory === 'all') {
-            packagesToShow = [...allModules, ...allAdapters, ...allCliExtensions];
+            packagesToShow = [...allModules, ...allAdapters];
         } else if (activeCategory === 'modules') {
             packagesToShow = allModules;
         } else if (activeCategory === 'adapters') {
             packagesToShow = allAdapters;
-        } else if (activeCategory === 'cli') {
-            packagesToShow = allCliExtensions;
         }
 
         if (searchQuery) {
@@ -1136,10 +1119,6 @@ const ErisPulseApp = (function () {
             card.className = 'module-card';
             card.style.animationDelay = `${index * 0.1}s`;
 
-            const cliBadge = pkg.type === 'cli' ? '<span class="module-tag">CLI</span>' : '';
-            const commandInfo = pkg.command && pkg.command.length > 0 ?
-                `<p style="font-size: 0.85rem; margin-top: 0.5rem;"><i class="fas fa-terminal"></i> ${I18n.t('market.commands')}: ${pkg.command.join(', ')}</p>` : '';
-
             card.innerHTML = `
                 <div class="module-header">
                     <div class="module-icon">
@@ -1151,11 +1130,9 @@ const ErisPulseApp = (function () {
                     </div>
                 </div>
                 <p class="module-desc">${pkg.description}</p>
-                ${commandInfo}
                 ${pkg.tags.length > 0 ? `
                 <div class="module-tags">
                     ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
-                    ${cliBadge}
                 </div>
                 ` : ''}
                 <div class="module-footer">
@@ -1186,8 +1163,7 @@ const ErisPulseApp = (function () {
     function getIconByType(type) {
         const icons = {
             'module': '<i class="fas fa-puzzle-piece"></i>',
-            'adapter': '<i class="fas fa-plug"></i>',
-            'cli': '<i class="fas fa-terminal"></i>'
+            'adapter': '<i class="fas fa-plug"></i>'
         };
         return icons[type] || '<i class="fas fa-box"></i>';
     }
@@ -2588,7 +2564,7 @@ const ErisPulseApp = (function () {
     }
 
     function showInstallModal(packageName) {
-        const pkg = [...allModules, ...allAdapters, ...allCliExtensions].find(m => m.package === packageName);
+        const pkg = [...allModules, ...allAdapters].find(m => m.package === packageName);
         if (!pkg) return;
 
         const modal = document.getElementById('module-modal');
@@ -2597,17 +2573,10 @@ const ErisPulseApp = (function () {
         modalContent.innerHTML = `
             <h3>${pkg.name} v${pkg.version}</h3>
             <p>${pkg.description}</p>
-            
+
             <h4 style="margin-top: 1.5rem;">${I18n.t('market.installCmd')}</h4>
             <pre style="background: var(--bg); padding: 1rem; border-radius: var(--radius);"><code>epsdk install ${pkg.package}</code></pre>
-            
-            ${pkg.type === 'cli' && pkg.command && pkg.command.length > 0 ? `
-            <h4 style="margin-top: 1.5rem;">${I18n.t('modal.availableCommands')}</h4>
-            <ul>
-                ${pkg.command.map(cmd => `<li><code>epsdk ${cmd}</code></li>`).join('')}
-            </ul>
-            ` : ''}
-            
+
             ${pkg.tags.length > 0 ? `
             <h4 style="margin-top: 1.5rem;">${I18n.t('modal.tags')}</h4>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -2625,7 +2594,7 @@ const ErisPulseApp = (function () {
     }
 
     function showDocsModal(packageName, repoUrl) {
-        const pkg = [...allModules, ...allAdapters, ...allCliExtensions].find(m => m.package === packageName);
+        const pkg = [...allModules, ...allAdapters].find(m => m.package === packageName);
         if (!pkg || !repoUrl) return;
 
         const modal = document.getElementById('module-modal');
