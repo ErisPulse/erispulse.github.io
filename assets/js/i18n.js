@@ -162,6 +162,10 @@ const I18n = (function () {
             'common.langSwitchFailed': '切换语言失败，请重试',
             'common.copyFailed': '复制失败，请手动复制',
 
+            // AI 物料横幅
+            'banner.text': '知道吗？ErisPulse 支持完整的 Vibe Coding 工作流',
+            'banner.link': '了解详情',
+
             // 时间格式
             'time.yearsAgo': '{n}年前',
             'time.monthsAgo': '{n}个月前',
@@ -312,6 +316,10 @@ const I18n = (function () {
             'common.langSwitchFailed': 'Failed to switch language, please retry',
             'common.copyFailed': 'Copy failed, please copy manually',
 
+            // AI Material Banner
+            'banner.text': 'Did you know? ErisPulse supports a complete Vibe Coding workflow',
+            'banner.link': 'Learn More',
+
             // 时间格式
             'time.yearsAgo': '{n}y ago',
             'time.monthsAgo': '{n}mo ago',
@@ -461,6 +469,10 @@ const I18n = (function () {
             'common.langSwitched': '已切換到{name}',
             'common.langSwitchFailed': '切換語言失敗，請重試',
             'common.copyFailed': '複製失敗，請手動複製',
+
+            // AI 物料橫幅
+            'banner.text': '你知道嗎？ErisPulse 支援完整的 Vibe Coding 工作流',
+            'banner.link': '瞭解詳情',
 
             // 时间格式
             'time.yearsAgo': '{n}年前',
