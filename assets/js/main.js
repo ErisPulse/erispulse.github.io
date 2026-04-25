@@ -291,64 +291,47 @@ const DocsIndexManager = (function() {
     /**
      * 获取文档路径
      */
-    function getDocumentPath(docId) {
-        if (!mappingCache || !mappingCache.categories) {
-            return null;
-        }
-        
-        for (const categoryName of Object.keys(mappingCache.categories)) {
-            const category = mappingCache.categories[categoryName];
+    function _findDoc(mapping, predicate) {
+        if (!mapping || !mapping.categories) return null;
+        for (const [categoryName, category] of Object.entries(mapping.categories)) {
             if (category.documents) {
-                const doc = category.documents.find(d => d.path === docId || d.path.includes(docId));
-                if (doc) {
-                    return doc.path;
+                const doc = category.documents.find(predicate);
+                if (doc) return { doc, categoryName, category };
+            }
+            if (category.subgroups) {
+                for (const sg of Object.values(category.subgroups)) {
+                    const doc = sg.documents.find(predicate);
+                    if (doc) return { doc, categoryName, category };
                 }
             }
         }
         return null;
+    }
+
+    function getDocumentPath(docId) {
+        const found = _findDoc(mappingCache, d => d.path === docId || d.path.includes(docId));
+        return found ? found.doc.path : null;
     }
     
     /**
      * 获取文档标题
      */
     function getDocumentTitle(docPath) {
-        if (!mappingCache || !mappingCache.categories) {
-            return null;
-        }
-        
-        for (const categoryName of Object.keys(mappingCache.categories)) {
-            const category = mappingCache.categories[categoryName];
-            if (category.documents) {
-                const doc = category.documents.find(d => d.path === docPath);
-                if (doc) {
-                    return doc.title;
-                }
-            }
-        }
-        return null;
+        const found = _findDoc(mappingCache, d => d.path === docPath);
+        return found ? found.doc.title : null;
     }
     
     /**
      * 获取文档分类
      */
     function getDocumentCategory(docPath) {
-        if (!mappingCache || !mappingCache.categories) {
-            return null;
-        }
-        
-        for (const [categoryName, category] of Object.entries(mappingCache.categories)) {
-            if (category.documents) {
-                const doc = category.documents.find(d => d.path === docPath);
-                if (doc) {
-                    return {
-                        name: categoryName,
-                        title: category.name,
-                        description: category.description
-                    };
-                }
-            }
-        }
-        return null;
+        const found = _findDoc(mappingCache, d => d.path === docPath);
+        if (!found) return null;
+        return {
+            name: found.categoryName,
+            title: found.categoryName,
+            description: found.category.description
+        };
     }
     
     /**
@@ -363,13 +346,15 @@ const DocsIndexManager = (function() {
         for (const [categoryName, category] of Object.entries(mappingCache.categories)) {
             if (category.documents) {
                 category.documents.forEach(doc => {
-                    docs.push({
-                        path: doc.path,
-                        title: doc.title,
-                        level: doc.level,
-                        category: categoryName
-                    });
+                    docs.push({ path: doc.path, title: doc.title, level: doc.level, category: categoryName });
                 });
+            }
+            if (category.subgroups) {
+                for (const sg of Object.values(category.subgroups)) {
+                    sg.documents.forEach(doc => {
+                        docs.push({ path: doc.path, title: doc.title, level: doc.level, category: categoryName });
+                    });
+                }
             }
         }
         return docs;
@@ -1322,7 +1307,7 @@ const ErisPulseApp = (function () {
                 <div class="category-item" data-category="${categoryId}">
                     <i class="category-icon fas ${icon}"></i>
                     <span class="category-name">${categoryId}</span>
-                    <span class="doc-count">${category.documents?.length || 0}</span>
+                    <span class="doc-count">${category.count || 0}</span>
                     <i class="chevron fas fa-chevron-right"></i>
                 </div>
             `;
@@ -1340,54 +1325,83 @@ const ErisPulseApp = (function () {
         });
     }
 
+    function renderDocItemHtml(doc) {
+        const isActive = doc.path === currentDocPath ? 'active' : '';
+        const icon = getDocIcon(doc.path);
+        return `
+            <div class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
+                <i class="fas ${icon}"></i>
+                <span>${doc.title}</span>
+            </div>
+        `;
+    }
+
     function showDocumentList(categoryId) {
-        console.log('showDocumentList: 显示文档列表, categoryId =', categoryId);
         currentNavState = 'documents';
         currentCategory = categoryId;
-        
+
         const navContainer = document.querySelector('.docs-nav-container');
         const mapping = DocsIndexManager.mapping;
         const category = mapping.categories[categoryId];
-        
-        if (!category || !category.documents) {
-            console.warn('showDocumentList: 分类或文档不存在', { categoryId, category });
-            return;
-        }
-        
-        console.log('showDocumentList: 找到', category.documents.length, '个文档');
 
-        const categoryName = categoryId;
-        
+        if (!category) return;
+
+        const rootDocs = category.documents || [];
+        const subgroups = category.subgroups || {};
+        const subGroupKeys = Object.keys(subgroups);
+
         let navHtml = '<div class="docs-nav-view">';
-        
+
         navHtml += `
             <div class="docs-nav-breadcrumb">
                 <a class="breadcrumb-back" data-action="back-to-categories">
                     <i class="fas fa-arrow-left"></i>
                     <span>${I18n.t('docs.backToCategories')}</span>
                 </a>
-                <span class="breadcrumb-title">${categoryName}</span>
+                <span class="breadcrumb-title">${categoryId}</span>
             </div>
         `;
 
-        navHtml += '<div class="doc-list">';
-        
-        category.documents.forEach(doc => {
-            const isActive = doc.path === currentDocPath ? 'active' : '';
-            const icon = getDocIcon(doc.path);
-            navHtml += `
-                <div class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
-                    <i class="fas ${icon}"></i>
-                    <span>${doc.title}</span>
-                </div>
-            `;
-        });
+        if (subGroupKeys.length > 0) {
+            if (rootDocs.length > 0) {
+                navHtml += '<div class="doc-list">';
+                rootDocs.forEach(doc => { navHtml += renderDocItemHtml(doc); });
+                navHtml += '</div>';
+            }
 
-        navHtml += '</div></div>';
+            subGroupKeys.forEach(subKey => {
+                const sg = subgroups[subKey];
+                navHtml += `
+                    <div class="doc-subgroup">
+                        <div class="doc-subgroup-header" data-subgroup="${subKey}">
+                            <i class="fas fa-folder-open"></i>
+                            <span>${sg.name}</span>
+                            <span class="subgroup-count">${sg.documents.length}</span>
+                            <i class="fas fa-chevron-down subgroup-chevron"></i>
+                        </div>
+                        <div class="doc-list subgroup-docs">
+                `;
+                sg.documents.forEach(doc => { navHtml += renderDocItemHtml(doc); });
+                navHtml += '</div></div>';
+            });
+        } else {
+            navHtml += '<div class="doc-list">';
+            rootDocs.forEach(doc => { navHtml += renderDocItemHtml(doc); });
+            navHtml += '</div>';
+        }
 
+        navHtml += '</div>';
         navContainer.innerHTML = navHtml;
 
         navContainer.querySelector('.breadcrumb-back')?.addEventListener('click', showCategoryLevel);
+
+        navContainer.querySelectorAll('.doc-subgroup-header').forEach(header => {
+            header.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const subgroup = this.closest('.doc-subgroup');
+                subgroup.classList.toggle('collapsed');
+            });
+        });
     }
 
     function showChapterToc(docPath) {
