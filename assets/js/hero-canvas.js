@@ -28,8 +28,8 @@
     let nodes = [], particles = [], pulses = [], nebulae = [], snippets = [];
     let mouse = { x: -9999, y: -9999, active: false };
     let rafId = null, noAnim = false;
-    let pRGB = [90, 99, 223], aRGB = [94, 209, 179];
-    let bgRGB = [10, 10, 26], textRGB = [255, 255, 255];
+    let pRGB = [74, 156, 216], aRGB = [124, 196, 168];
+    let bgRGB = [249, 248, 244], textRGB = [44, 62, 80];
     let hoveredNode = null, selectedNode = null;
     let nodeTooltip = null;
 
