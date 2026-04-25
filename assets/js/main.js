@@ -2010,6 +2010,80 @@ const ErisPulseApp = (function () {
         return CONFIG.DOCS.githubBaseUrl + docPath;
     }
 
+    function injectAiMaterialDownloads(docsContent) {
+        var lang = I18n.getLang();
+        var baseUrl = 'https://github.com/ErisPulse/ErisPulse/releases/latest/download/';
+        var materials = [
+            { type: 'ModuleDev', icon: 'fa-puzzle-piece' },
+            { type: 'AdapterDev', icon: 'fa-plug' },
+            { type: 'Full', icon: 'fa-book-open' }
+        ];
+
+        var labels = {
+            'zh-CN': {
+                title: 'AI 物料下载',
+                subtitle: '下载对应语言的开发物料，投喂给 AI 即可快速生成代码',
+                download: '下载',
+                items: {
+                    'ModuleDev': { title: '模块开发物料', desc: '适用于开发功能模块' },
+                    'AdapterDev': { title: '适配器开发物料', desc: '适用于开发平台适配器' },
+                    'Full': { title: '完整开发参考', desc: '适用于复杂开发场景' }
+                }
+            },
+            'en': {
+                title: 'AI Material Downloads',
+                subtitle: 'Download language-specific materials for AI-assisted development',
+                download: 'Download',
+                items: {
+                    'ModuleDev': { title: 'Module Dev Material', desc: 'For developing functional modules' },
+                    'AdapterDev': { title: 'Adapter Dev Material', desc: 'For developing platform adapters' },
+                    'Full': { title: 'Full Dev Reference', desc: 'For complex development scenarios' }
+                }
+            },
+            'zh-TW': {
+                title: 'AI 物料下載',
+                subtitle: '下載對應語言的開發物料，投餵給 AI 即可快速生成程式碼',
+                download: '下載',
+                items: {
+                    'ModuleDev': { title: '模組開發物料', desc: '適用於開發功能模組' },
+                    'AdapterDev': { title: '介面卡開發物料', desc: '適用於開發平台介面卡' },
+                    'Full': { title: '完整開發參考', desc: '適用於複雜開發場景' }
+                }
+            }
+        };
+
+        var l = labels[lang] || labels['en'];
+
+        var cardsHtml = '<div class="ai-doc-download-section">';
+        cardsHtml += '<h3>' + l.title + '</h3>';
+        cardsHtml += '<p class="ai-doc-download-subtitle">' + l.subtitle + '</p>';
+        cardsHtml += '<div class="ai-doc-download-cards">';
+
+        materials.forEach(function(mat) {
+            var url = baseUrl + 'ErisPulse-' + mat.type + '-' + lang + '.md';
+            var item = l.items[mat.type];
+            cardsHtml += '<div class="ai-doc-download-card">';
+            cardsHtml += '<div class="ai-doc-download-icon"><i class="fas ' + mat.icon + '"></i></div>';
+            cardsHtml += '<div class="ai-doc-download-info">';
+            cardsHtml += '<h4>' + item.title + '</h4>';
+            cardsHtml += '<p>' + item.desc + '</p>';
+            cardsHtml += '</div>';
+            cardsHtml += '<a class="ai-doc-download-btn" href="' + url + '" target="_blank" rel="noopener">';
+            cardsHtml += '<i class="fas fa-download"></i> ' + l.download;
+            cardsHtml += '</a>';
+            cardsHtml += '</div>';
+        });
+
+        cardsHtml += '</div></div>';
+
+        var target = docsContent.querySelector('h2, h3');
+        if (target) {
+            target.insertAdjacentHTML('afterend', cardsHtml);
+        } else {
+            docsContent.insertAdjacentHTML('afterbegin', cardsHtml);
+        }
+    }
+
     async function loadDocument(docPath, targetLine = null, keyword = null) {
         const docsContent = document.getElementById('docs-content');
         docsContent.innerHTML = `
@@ -2056,6 +2130,10 @@ const ErisPulseApp = (function () {
 
             docsContent.innerHTML = htmlContent;
             addDocumentMetaInfo(docsContent, docPath, commitInfo);
+
+            if (docPath === 'ai-support/README.md') {
+                injectAiMaterialDownloads(docsContent);
+            }
 
         } catch (error) {
             console.error('加载文档失败:', error);
