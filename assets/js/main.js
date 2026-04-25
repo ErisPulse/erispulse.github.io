@@ -476,7 +476,6 @@ const ErisPulseApp = (function () {
         setupSettings();
         renderFriendLinks();
         setupHomeAnimations();
-        setupCopyCode();
     }
 
     // ==================== 全局语言切换 ====================
@@ -2754,73 +2753,232 @@ const ErisPulseApp = (function () {
 
     // ==================== 首页功能 ====================
     function setupHomeAnimations() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
-
-        const featureObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const cards = entry.target.querySelectorAll('.feature-card');
-                    cards.forEach((card, index) => {
-                        setTimeout(() => {
-                            card.classList.add('animate');
-                        }, index * 100);
-                    });
-                }
-            });
-        }, observerOptions);
-
-        const featuresSection = document.querySelector('.features-section');
-        if (featuresSection) {
-            featureObserver.observe(featuresSection);
-        }
-
-        const stepObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const steps = entry.target.querySelectorAll('.step-item');
-                    steps.forEach((step, index) => {
-                        setTimeout(() => {
-                            step.style.opacity = '1';
-                            step.style.transform = 'translateY(0)';
-                        }, index * 150);
-                    });
-                }
-            });
-        }, observerOptions);
-
-        const stepsSection = document.querySelector('.steps-section');
-        if (stepsSection) {
-            stepObserver.observe(stepsSection);
+        if (!document.body.classList.contains('no-animations')) {
+            setupScrollDrivenFeatures();
+            setupScrollDrivenDemo();
         }
     }
 
-    function setupCopyCode() {
-        const copyBtn = document.getElementById('copy-code-btn');
-        if (!copyBtn) return;
+    function setupScrollDrivenFeatures() {
+        const section = document.getElementById('features-scroll-section');
+        const stage = document.getElementById('features-scroll-stage');
+        const cards = document.querySelectorAll('.feature-spotlight-card');
+        const progressFill = document.getElementById('feature-progress-fill');
+        const dotsContainer = document.getElementById('feature-progress-dots');
 
-        const codeBlock = document.querySelector('.code-block code');
-        if (!codeBlock) return;
+        if (!section || !stage || cards.length === 0) return;
 
-        copyBtn.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(codeBlock.textContent);
-                
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = `<i class="fas fa-check"></i> ${I18n.t('demo.copied')}`;
-                copyBtn.style.background = 'var(--accent)';
-                
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                    copyBtn.style.background = '';
-                }, 2000);
-            } catch (err) {
-                console.error('复制失败:', err);
-                showMessage(I18n.t('common.copyFailed'), 'error');
-            }
+        const featureNames = [];
+        cards.forEach(function(card) {
+            var titleEl = card.querySelector('.spotlight-title');
+            featureNames.push(titleEl ? titleEl.textContent : '');
         });
+
+        featureNames.forEach(function(name, i) {
+            var dot = document.createElement('div');
+            dot.className = 'feature-progress-dot' + (i === 0 ? ' active' : '');
+            dot.setAttribute('data-index', i);
+            dot.innerHTML = '<span class="feature-progress-dot-label">' + name + '</span>';
+            dot.addEventListener('click', function() {
+                var scrollStart = section.offsetTop;
+                var scrollRange = section.offsetHeight - window.innerHeight;
+                var targetProgress = i / (cards.length - 1);
+                window.scrollTo({ top: scrollStart + scrollRange * targetProgress, behavior: 'smooth' });
+            });
+            dotsContainer.appendChild(dot);
+        });
+
+        var dots = dotsContainer.querySelectorAll('.feature-progress-dot');
+        var currentActive = 0;
+        var rafId = null;
+        var prevActive = -1;
+
+        function update() {
+            var rect = section.getBoundingClientRect();
+            var scrollStart = 0;
+            var scrollEnd = rect.height - window.innerHeight;
+            var scrolled = -rect.top;
+
+            if (scrolled < scrollStart || scrolled > scrollEnd) {
+                if (scrolled < scrollStart) {
+                    setActive(0);
+                    progressFill.style.height = '0%';
+                } else {
+                    setActive(cards.length - 1);
+                    progressFill.style.height = '100%';
+                }
+                return;
+            }
+
+            var progress = scrolled / scrollEnd;
+            progressFill.style.height = (progress * 100) + '%';
+
+            var featureIndex = Math.min(
+                Math.floor(progress * cards.length),
+                cards.length - 1
+            );
+
+            setActive(featureIndex);
+        }
+
+        function setActive(index) {
+            if (index === prevActive) return;
+            prevActive = index;
+
+            cards.forEach(function(card, i) {
+                card.classList.remove('active', 'exit-left', 'exit-right', 'enter-left', 'enter-right');
+
+                if (i === index) {
+                    card.classList.add('active');
+                    card.style.transform = 'translate(-50%, -50%)';
+                } else if (i < index) {
+                    card.classList.add('exit-left');
+                } else {
+                    card.classList.add('exit-right');
+                }
+            });
+
+            dots.forEach(function(dot, i) {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        function onScroll() {
+            if (rafId) return;
+            rafId = requestAnimationFrame(function() {
+                update();
+                rafId = null;
+            });
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', function() {
+            requestAnimationFrame(update);
+        }, { passive: true });
+
+        setTimeout(update, 100);
+
+        if (typeof Prism !== 'undefined') {
+            cards.forEach(function(card) {
+                var code = card.querySelector('code');
+                if (code) Prism.highlightElement(code);
+            });
+        }
+    }
+
+    function setupScrollDrivenDemo() {
+        var section = document.getElementById('demo-scroll-section');
+        var codeEl = document.getElementById('demo-typing-code');
+        var cursor = document.getElementById('typing-cursor');
+        var terminalContent = document.getElementById('demo-terminal-content');
+        var progressBar = document.getElementById('demo-progress-bar');
+        var finalActions = document.getElementById('demo-final-actions');
+
+        if (!section || !codeEl) return;
+
+        var fullCode = [
+            'from ErisPulse import sdk',
+            'from ErisPulse.Core.Event import command',
+            '',
+            '@command("ping", help="测试连接")',
+            'async def ping(event):',
+            '    await event.reply("Pong! 🏓")',
+            '',
+            'if __name__ == "__main__":',
+            '    asyncio.run(sdk.run(keep_running=True))',
+        ].join('\n');
+
+        var terminalLines = [
+            { html: '<span class="terminal-prompt">$</span> epsdk run .', threshold: 0.45 },
+            { html: '<span class="terminal-user">你:</span> /ping', threshold: 0.62, isMessage: true },
+            { html: '<span class="terminal-bot">机器人:</span> Pong! 🏓', threshold: 0.80, isMessage: true },
+        ];
+
+        terminalLines.forEach(function(line) {
+            var div = document.createElement('div');
+            div.className = 'terminal-line' + (line.isMessage ? ' terminal-message' : '');
+            div.innerHTML = line.html;
+            div.style.opacity = '0';
+            div.style.transform = 'translateY(6px)';
+            terminalContent.appendChild(div);
+        });
+
+        var termLineEls = terminalContent.querySelectorAll('.terminal-line');
+        var rafId = null;
+        var lastProgress = -1;
+
+        function update() {
+            var rect = section.getBoundingClientRect();
+            var scrollEnd = rect.height - window.innerHeight;
+            var scrolled = -rect.top;
+
+            if (scrolled < 0) {
+                renderProgress(0);
+                return;
+            }
+            if (scrolled > scrollEnd) {
+                renderProgress(1);
+                return;
+            }
+
+            var progress = scrolled / scrollEnd;
+            renderProgress(progress);
+        }
+
+        function renderProgress(progress) {
+            if (Math.abs(progress - lastProgress) < 0.002) return;
+            lastProgress = progress;
+
+            var charCount = Math.floor(progress * fullCode.length);
+            var visibleText = fullCode.substring(0, charCount);
+            codeEl.textContent = visibleText;
+
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightElement(codeEl);
+            }
+
+            if (progress >= 1) {
+                cursor.classList.add('hidden');
+            } else {
+                cursor.classList.remove('hidden');
+            }
+
+            progressBar.style.width = (progress * 100) + '%';
+
+            termLineEls.forEach(function(el, i) {
+                var threshold = terminalLines[i].threshold;
+                if (progress >= threshold) {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                    el.classList.add('visible');
+                } else {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(6px)';
+                    el.classList.remove('visible');
+                }
+            });
+
+            if (progress >= 0.95) {
+                finalActions.classList.add('visible');
+            } else {
+                finalActions.classList.remove('visible');
+            }
+        }
+
+        function onScroll() {
+            if (rafId) return;
+            rafId = requestAnimationFrame(function() {
+                update();
+                rafId = null;
+            });
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', function() {
+            requestAnimationFrame(update);
+        }, { passive: true });
+
+        setTimeout(update, 100);
     }
 
     // ==================== 公共API ====================
@@ -2831,8 +2989,7 @@ const ErisPulseApp = (function () {
         showDocsModal: showDocsModal,
         clearToc: clearToc,
         moveTocToSidebar: moveTocToSidebar,
-        setupHomeAnimations: setupHomeAnimations,
-        setupCopyCode: setupCopyCode
+        setupHomeAnimations: setupHomeAnimations
     };
 })();
 

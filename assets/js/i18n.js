@@ -48,6 +48,10 @@ const I18n = (function () {
             'features.modular.desc': '模块以独立包形式分发，支持懒加载、热更新、生命周期管理与依赖隔离',
             'features.middleware.title': '事件中间件',
             'features.middleware.desc': '可组合的中间件管道，在事件分发前进行过滤、转换、日志记录等处理',
+            'features.interactive.title': '交互式对话',
+            'features.interactive.desc': '内置确认、选择菜单、表单收集、多轮对话等交互原语，轻松构建复杂交互流程',
+            'features.interactive.title': '交互式对话',
+            'features.interactive.desc': '内置确认、选择菜单、表单收集、多轮对话等交互原语，轻松构建复杂交互流程',
 
             // 首页代码演示
             'demo.title': '快速上手',
@@ -202,6 +206,10 @@ const I18n = (function () {
             'features.modular.desc': 'Modules distributed as independent packages with lazy loading, hot updates, and lifecycle management',
             'features.middleware.title': 'Event Middleware',
             'features.middleware.desc': 'Composable middleware pipeline for filtering, transforming, and logging before event dispatch',
+            'features.interactive.title': 'Interactive Conversations',
+            'features.interactive.desc': 'Built-in primitives like confirm, choice menus, form collection, and multi-turn dialogues for complex workflows',
+            'features.interactive.title': 'Interactive Conversations',
+            'features.interactive.desc': 'Built-in primitives like confirm, choice menus, form collection, and multi-turn dialogues for complex workflows',
 
             // 首页代码演示
             'demo.title': 'Quick Start',
