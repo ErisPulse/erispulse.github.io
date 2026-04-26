@@ -50,8 +50,12 @@ const I18n = (function () {
             'features.middleware.desc': '可组合的中间件管道，在事件分发前进行过滤、转换、日志记录等处理',
             'features.interactive.title': '交互式对话',
             'features.interactive.desc': '内置确认、选择菜单、表单收集、多轮对话等交互原语，轻松构建复杂交互流程',
-            'features.interactive.title': '交互式对话',
-            'features.interactive.desc': '内置确认、选择菜单、表单收集、多轮对话等交互原语，轻松构建复杂交互流程',
+            'features.lifecycle.title': '生命周期管理',
+            'features.lifecycle.desc': '完整的事件驱动生命周期系统，支持模块加载、适配器启停、Bot上下线等关键阶段的监听与钩子',
+            'features.multiplatform.title': '多平台适配',
+            'features.multiplatform.desc': '一套代码同时对接云湖、Telegram、OneBot11/12、邮件等平台，适配器自动处理协议差异',
+            'features.messagebuilder.title': 'MessageBuilder',
+            'features.messagebuilder.desc': '链式消息段构建器，配合 SendDSL 实现类型安全的结构化消息发送',
 
             // 模块市场
             'market.title': '模块市场',
@@ -201,8 +205,12 @@ const I18n = (function () {
             'features.middleware.desc': 'Composable middleware pipeline for filtering, transforming, and logging before event dispatch',
             'features.interactive.title': 'Interactive Conversations',
             'features.interactive.desc': 'Built-in primitives like confirm, choice menus, form collection, and multi-turn dialogues for complex workflows',
-            'features.interactive.title': 'Interactive Conversations',
-            'features.interactive.desc': 'Built-in primitives like confirm, choice menus, form collection, and multi-turn dialogues for complex workflows',
+            'features.lifecycle.title': 'Lifecycle Management',
+            'features.lifecycle.desc': 'Event-driven lifecycle system with hooks for module loading, adapter start/stop, bot online/offline and more',
+            'features.multiplatform.title': 'Multi-Platform',
+            'features.multiplatform.desc': 'One codebase for Yunhu, Telegram, OneBot11/12, Email and more — adapters handle protocol differences automatically',
+            'features.messagebuilder.title': 'MessageBuilder',
+            'features.messagebuilder.desc': 'Chain-style message segment builder for type-safe structured message construction with SendDSL',
 
             // 模块市场
             'market.title': 'Module Market',
@@ -350,6 +358,13 @@ const I18n = (function () {
             'features.modular.desc': '模組以獨立套件形式分發，支援懶載入、熱更新、生命週期管理與依賴隔離',
             'features.middleware.title': '事件中介層',
             'features.middleware.desc': '可組合的中介層管道，在事件分發前進行過濾、轉換、日誌記錄等處理',
+
+            'features.lifecycle.title': '生命週期管理',
+            'features.lifecycle.desc': '完整的事件驅動生命週期系統，支援模組載入、適配器啟停、Bot上下線等關鍵階段的監聽與鉤子',
+            'features.multiplatform.title': '多平台適配',
+            'features.multiplatform.desc': '一套程式碼同時對接雲湖、Telegram、OneBot11/12、郵件等平台，適配器自動處理協議差異',
+            'features.messagebuilder.title': 'MessageBuilder',
+            'features.messagebuilder.desc': '鏈式訊息段建構器，配合 SendDSL 實現型別安全的結構化訊息發送',
 
             // 模块市场
             'market.title': '模組市場',

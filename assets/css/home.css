@@ -181,7 +181,7 @@
 .features-scroll-section {
     position: relative;
     background: var(--bg);
-    height: 350vh;
+    height: 800vh;
 }
 
 .features-scroll-stage {
@@ -246,34 +246,40 @@
     visibility: hidden;
     transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
+    will-change: transform, opacity, filter;
 }
 
 .feature-spotlight-card.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    box-shadow: 0 8px 40px rgba(var(--primary-rgb), 0.08), var(--shadow-md);
 }
 
 .feature-spotlight-card.exit-left {
     opacity: 0;
-    transform: translate(-140%, -50%) scale(0.85) rotateY(8deg);
+    transform: translate(-140%, -50%) scale(0.8) rotateY(12deg);
     visibility: hidden;
+    filter: blur(3px);
 }
 
 .feature-spotlight-card.exit-right {
     opacity: 0;
-    transform: translate(40%, -50%) scale(0.85) rotateY(-8deg);
+    transform: translate(40%, -50%) scale(0.8) rotateY(-12deg);
     visibility: hidden;
+    filter: blur(3px);
 }
 
 .feature-spotlight-card.enter-left {
     opacity: 0;
-    transform: translate(-140%, -50%) scale(0.85) rotateY(8deg);
+    transform: translate(-140%, -50%) scale(0.8) rotateY(12deg);
+    filter: blur(3px);
 }
 
 .feature-spotlight-card.enter-right {
     opacity: 0;
-    transform: translate(40%, -50%) scale(0.85) rotateY(-8deg);
+    transform: translate(40%, -50%) scale(0.8) rotateY(-12deg);
+    filter: blur(3px);
 }
 
 .spotlight-icon {
@@ -288,16 +294,38 @@
     font-size: 2.2rem;
     color: var(--primary);
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.spotlight-icon::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 28px;
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.15) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }
 
 .feature-spotlight-card.active .spotlight-icon {
-    animation: spotlightIconPulse 0.8s ease-out 0.2s both;
+    animation: spotlightIconGlow 0.8s ease-out 0.2s both;
 }
 
-@keyframes spotlightIconPulse {
-    0% { transform: scale(0.5); opacity: 0; }
-    60% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+.feature-spotlight-card.active .spotlight-icon::after {
+    opacity: 1;
+    animation: iconGlowPulse 2s ease-in-out 1s infinite;
+}
+
+@keyframes spotlightIconGlow {
+    0% { transform: scale(0.5) translateY(12px); opacity: 0; filter: blur(4px); }
+    60% { transform: scale(1.08) translateY(-3px); opacity: 1; filter: blur(0); }
+    80% { transform: scale(0.97) translateY(0); }
+    100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes iconGlowPulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
 }
 
 .spotlight-title {
@@ -332,13 +360,29 @@
 
 .feature-spotlight-card pre {
     opacity: 0;
-    transform: translateY(15px);
-    transition: all 0.5s ease 0.5s;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
+    position: relative;
+    border-radius: 14px;
+}
+
+.feature-spotlight-card pre::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.03), transparent);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.5s ease 0.6s;
 }
 
 .feature-spotlight-card.active pre {
     opacity: 1;
     transform: translateY(0);
+}
+
+.feature-spotlight-card.active pre::before {
+    opacity: 1;
 }
 
 .feature-progress {
@@ -355,7 +399,7 @@
 
 .feature-progress-track {
     width: 3px;
-    height: 200px;
+    height: 280px;
     background: var(--border);
     border-radius: 2px;
     position: relative;
@@ -378,7 +422,7 @@
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    height: 200px;
+    height: 280px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -419,6 +463,22 @@
 .feature-progress-dot:hover .feature-progress-dot-label {
     opacity: 1;
     color: var(--primary);
+}
+
+.feature-progress-counter {
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    text-align: center;
+}
+
+.feature-progress-counter .current {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 0.85rem;
 }
 
 /* ==================== 第四屏：快速开始 ==================== */
@@ -621,7 +681,7 @@
     }
 
     .features-scroll-section {
-        height: 300vh;
+        height: 700vh;
     }
     
     .feature-stage-header .section-title {
@@ -683,6 +743,10 @@
     }
 
     .feature-progress-dot-label {
+        display: none;
+    }
+
+    .feature-progress-counter {
         display: none;
     }
 
@@ -765,6 +829,7 @@
     opacity: 1;
     visibility: visible;
     transform: none;
+    filter: none;
     position: relative;
     top: auto;
     left: auto;
@@ -791,13 +856,17 @@
 
 .no-animations .feature-spotlight-card .spotlight-title,
 .no-animations .feature-spotlight-card .spotlight-desc,
-.no-animations .feature-spotlight-card pre {
+.no-animations .feature-spotlight-card pre,
+.no-animations .feature-spotlight-card pre::before {
     opacity: 1;
     transform: none;
 }
 
-.no-animations .spotlight-icon {
+.no-animations .spotlight-icon,
+.no-animations .spotlight-icon::after {
     animation: none !important;
+    opacity: 1;
+    filter: none;
 }
 
 .no-animations .feature-progress-dot {

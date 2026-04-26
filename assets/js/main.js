@@ -2809,6 +2809,12 @@ const ErisPulseApp = (function () {
             dotsContainer.appendChild(dot);
         });
 
+        // Add counter element below progress dots
+        var counterEl = document.createElement('div');
+        counterEl.className = 'feature-progress-counter';
+        counterEl.innerHTML = '<span class="current">1</span> / ' + cards.length;
+        dotsContainer.parentElement.appendChild(counterEl);
+
         var dots = dotsContainer.querySelectorAll('.feature-progress-dot');
         var currentActive = 0;
         var rafId = null;
@@ -2863,6 +2869,12 @@ const ErisPulseApp = (function () {
             dots.forEach(function(dot, i) {
                 dot.classList.toggle('active', i === index);
             });
+
+            // Update counter
+            var counterCurrent = document.querySelector('.feature-progress-counter .current');
+            if (counterCurrent) {
+                counterCurrent.textContent = index + 1;
+            }
         }
 
         featuresUpdateFn = update;
