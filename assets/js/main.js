@@ -923,8 +923,10 @@ const ErisPulseApp = (function () {
             document.getElementById('animations-toggle').addEventListener('change', function () {
                 userSettings.animations = this.checked;
                 saveUserSettings();
+                resetFeatureCards();
                 if (this.checked) {
                     document.body.classList.remove('no-animations');
+                    setupHomeAnimations();
                 } else {
                     document.body.classList.add('no-animations');
                 }
@@ -2752,10 +2754,30 @@ const ErisPulseApp = (function () {
     }
 
     // ==================== 首页功能 ====================
+    var featuresInitialized = false;
+    var featuresPrevActive = -1;
+    var featuresUpdateFn = null;
+
     function setupHomeAnimations() {
-        if (!document.body.classList.contains('no-animations')) {
+        if (!document.body.classList.contains('no-animations') && !featuresInitialized) {
+            featuresInitialized = true;
             setupScrollDrivenFeatures();
+        } else if (!document.body.classList.contains('no-animations') && featuresUpdateFn) {
+            featuresPrevActive = -1;
+            requestAnimationFrame(featuresUpdateFn);
         }
+    }
+
+    function resetFeatureCards() {
+        var cards = document.querySelectorAll('.feature-spotlight-card');
+        cards.forEach(function(card) {
+            card.classList.remove('active', 'exit-left', 'exit-right', 'enter-left', 'enter-right');
+            card.style.transform = '';
+            card.style.opacity = '';
+            card.style.visibility = '';
+        });
+        var progressFill = document.getElementById('feature-progress-fill');
+        if (progressFill) progressFill.style.height = '0%';
     }
 
     function setupScrollDrivenFeatures() {
@@ -2790,9 +2812,10 @@ const ErisPulseApp = (function () {
         var dots = dotsContainer.querySelectorAll('.feature-progress-dot');
         var currentActive = 0;
         var rafId = null;
-        var prevActive = -1;
 
         function update() {
+            if (document.body.classList.contains('no-animations')) return;
+
             var rect = section.getBoundingClientRect();
             var scrollStart = 0;
             var scrollEnd = rect.height - window.innerHeight;
@@ -2821,8 +2844,8 @@ const ErisPulseApp = (function () {
         }
 
         function setActive(index) {
-            if (index === prevActive) return;
-            prevActive = index;
+            if (index === featuresPrevActive) return;
+            featuresPrevActive = index;
 
             cards.forEach(function(card, i) {
                 card.classList.remove('active', 'exit-left', 'exit-right', 'enter-left', 'enter-right');
@@ -2841,6 +2864,8 @@ const ErisPulseApp = (function () {
                 dot.classList.toggle('active', i === index);
             });
         }
+
+        featuresUpdateFn = update;
 
         function onScroll() {
             if (rafId) return;
