@@ -2755,7 +2755,6 @@ const ErisPulseApp = (function () {
     function setupHomeAnimations() {
         if (!document.body.classList.contains('no-animations')) {
             setupScrollDrivenFeatures();
-            setupScrollDrivenDemo();
         }
     }
 
@@ -2864,121 +2863,6 @@ const ErisPulseApp = (function () {
                 if (code) Prism.highlightElement(code);
             });
         }
-    }
-
-    function setupScrollDrivenDemo() {
-        var section = document.getElementById('demo-scroll-section');
-        var codeEl = document.getElementById('demo-typing-code');
-        var cursor = document.getElementById('typing-cursor');
-        var terminalContent = document.getElementById('demo-terminal-content');
-        var progressBar = document.getElementById('demo-progress-bar');
-        var finalActions = document.getElementById('demo-final-actions');
-
-        if (!section || !codeEl) return;
-
-        var fullCode = [
-            'from ErisPulse import sdk',
-            'from ErisPulse.Core.Event import command',
-            '',
-            '@command("ping", help="测试连接")',
-            'async def ping(event):',
-            '    await event.reply("Pong! 🏓")',
-            '',
-            'if __name__ == "__main__":',
-            '    asyncio.run(sdk.run(keep_running=True))',
-        ].join('\n');
-
-        var terminalLines = [
-            { html: '<span class="terminal-prompt">$</span> epsdk run .', threshold: 0.45 },
-            { html: '<span class="terminal-user">你:</span> /ping', threshold: 0.62, isMessage: true },
-            { html: '<span class="terminal-bot">机器人:</span> Pong! 🏓', threshold: 0.80, isMessage: true },
-        ];
-
-        terminalLines.forEach(function(line) {
-            var div = document.createElement('div');
-            div.className = 'terminal-line' + (line.isMessage ? ' terminal-message' : '');
-            div.innerHTML = line.html;
-            div.style.opacity = '0';
-            div.style.transform = 'translateY(6px)';
-            terminalContent.appendChild(div);
-        });
-
-        var termLineEls = terminalContent.querySelectorAll('.terminal-line');
-        var rafId = null;
-        var lastProgress = -1;
-
-        function update() {
-            var rect = section.getBoundingClientRect();
-            var scrollEnd = rect.height - window.innerHeight;
-            var scrolled = -rect.top;
-
-            if (scrolled < 0) {
-                renderProgress(0);
-                return;
-            }
-            if (scrolled > scrollEnd) {
-                renderProgress(1);
-                return;
-            }
-
-            var progress = scrolled / scrollEnd;
-            renderProgress(progress);
-        }
-
-        function renderProgress(progress) {
-            if (Math.abs(progress - lastProgress) < 0.002) return;
-            lastProgress = progress;
-
-            var charCount = Math.floor(progress * fullCode.length);
-            var visibleText = fullCode.substring(0, charCount);
-            codeEl.textContent = visibleText;
-
-            if (typeof Prism !== 'undefined') {
-                Prism.highlightElement(codeEl);
-            }
-
-            if (progress >= 1) {
-                cursor.classList.add('hidden');
-            } else {
-                cursor.classList.remove('hidden');
-            }
-
-            progressBar.style.width = (progress * 100) + '%';
-
-            termLineEls.forEach(function(el, i) {
-                var threshold = terminalLines[i].threshold;
-                if (progress >= threshold) {
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                    el.classList.add('visible');
-                } else {
-                    el.style.opacity = '0';
-                    el.style.transform = 'translateY(6px)';
-                    el.classList.remove('visible');
-                }
-            });
-
-            if (progress >= 0.95) {
-                finalActions.classList.add('visible');
-            } else {
-                finalActions.classList.remove('visible');
-            }
-        }
-
-        function onScroll() {
-            if (rafId) return;
-            rafId = requestAnimationFrame(function() {
-                update();
-                rafId = null;
-            });
-        }
-
-        window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', function() {
-            requestAnimationFrame(update);
-        }, { passive: true });
-
-        setTimeout(update, 100);
     }
 
     // ==================== 公共API ====================

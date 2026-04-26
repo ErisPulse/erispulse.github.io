@@ -53,13 +53,6 @@ const I18n = (function () {
             'features.interactive.title': '交互式对话',
             'features.interactive.desc': '内置确认、选择菜单、表单收集、多轮对话等交互原语，轻松构建复杂交互流程',
 
-            // 首页代码演示
-            'demo.title': '快速上手',
-            'demo.subtitle': '只需几行代码，即可创建你的第一个机器人',
-            'demo.run': '运行效果',
-            'demo.copy': '复制',
-            'demo.copied': '已复制',
-
             // 模块市场
             'market.title': '模块市场',
             'market.submit': '提交模块',
@@ -211,13 +204,6 @@ const I18n = (function () {
             'features.interactive.title': 'Interactive Conversations',
             'features.interactive.desc': 'Built-in primitives like confirm, choice menus, form collection, and multi-turn dialogues for complex workflows',
 
-            // 首页代码演示
-            'demo.title': 'Quick Start',
-            'demo.subtitle': 'Create your first bot with just a few lines of code',
-            'demo.run': 'Output',
-            'demo.copy': 'Copy',
-            'demo.copied': 'Copied',
-
             // 模块市场
             'market.title': 'Module Market',
             'market.submit': 'Submit Module',
@@ -364,13 +350,6 @@ const I18n = (function () {
             'features.modular.desc': '模組以獨立套件形式分發，支援懶載入、熱更新、生命週期管理與依賴隔離',
             'features.middleware.title': '事件中介層',
             'features.middleware.desc': '可組合的中介層管道，在事件分發前進行過濾、轉換、日誌記錄等處理',
-
-            // 首页代码演示
-            'demo.title': '快速上手',
-            'demo.subtitle': '只需幾行程式碼，即可建立你的第一個機器人',
-            'demo.run': '執行效果',
-            'demo.copy': '複製',
-            'demo.copied': '已複製',
 
             // 模块市场
             'market.title': '模組市場',
