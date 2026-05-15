@@ -30,7 +30,7 @@ const I18n = (function () {
             'nav.about': '我们',
 
             // 首页 Hero
-            'hero.subtitle': '高性能异步机器人开发框架',
+            'hero.subtitle': '事件驱动 · 多平台 · 一个框架搞定一切',
             'hero.start': '开始使用',
             'hero.browse': '浏览模块',
 
@@ -166,6 +166,13 @@ const I18n = (function () {
             // AI 物料横幅
             'banner.text': '知道吗？ErisPulse 支持完整的 Vibe Coding 工作流',
             'banner.link': '了解详情',
+            'banner.slides': [
+                { icon: 'fa-wand-magic-sparkles', text: '知道吗？ErisPulse 支持完整的 Vibe Coding 工作流，让 AI 直接生成可用模块', link: '#docs/ai-support/README.md' },
+                { icon: 'fa-exchange-alt', text: '基于 OneBot12 标准的统一事件格式，一份代码在所有平台运行', link: '#docs/getting-started/basic-concepts.md' },
+                { icon: 'fa-puzzle-piece', text: '模块通过 PyPI 独立分发，支持懒加载、热重载和完整生命周期管理', link: '#docs/developer-guide/modules/getting-started.md' },
+                { icon: 'fa-comments', text: '内置确认对话、选择菜单、表单收集和多轮对话等丰富交互原语', link: '#docs/getting-started/event-handling.md' },
+                { icon: 'fa-globe', text: '同时对接云湖、Telegram、OneBot11/12、邮件等平台，适配器自动处理差异', link: '#docs/platform-guide/README.md' }
+            ],
 
             // 时间格式
             'time.yearsAgo': '{n}年前',
@@ -185,7 +192,7 @@ const I18n = (function () {
             'nav.about': 'About',
 
             // 首页 Hero
-            'hero.subtitle': 'High-Performance Async Bot Framework',
+            'hero.subtitle': 'Event-Driven · Multi-Platform · One Framework.',
             'hero.start': 'Get Started',
             'hero.browse': 'Browse Modules',
 
@@ -321,6 +328,13 @@ const I18n = (function () {
             // AI Material Banner
             'banner.text': 'Did you know? ErisPulse supports a complete Vibe Coding workflow',
             'banner.link': 'Learn More',
+            'banner.slides': [
+                { icon: 'fa-wand-magic-sparkles', text: 'ErisPulse supports a complete Vibe Coding workflow — let AI generate production-ready modules', link: '#docs/ai-support/README.md' },
+                { icon: 'fa-exchange-alt', text: 'Unified OneBot12 event format — one codebase runs on every platform', link: '#docs/getting-started/basic-concepts.md' },
+                { icon: 'fa-puzzle-piece', text: 'Modules distributed via PyPI with lazy loading, hot reload, and full lifecycle management', link: '#docs/developer-guide/modules/getting-started.md' },
+                { icon: 'fa-comments', text: 'Built-in confirm, choice menus, form collection, and multi-turn conversation primitives', link: '#docs/getting-started/event-handling.md' },
+                { icon: 'fa-globe', text: 'Connect to Yunhu, Telegram, OneBot11/12, Email and more — adapters handle protocol differences', link: '#docs/platform-guide/README.md' }
+            ],
 
             // 时间格式
             'time.yearsAgo': '{n}y ago',
@@ -340,7 +354,7 @@ const I18n = (function () {
             'nav.about': '關於',
 
             // 首页 Hero
-            'hero.subtitle': '高效能非同步機器人開發框架',
+            'hero.subtitle': '事件驅動 · 多平台 · 一個框架搞定一切',
             'hero.start': '開始使用',
             'hero.browse': '瀏覽模組',
 
@@ -475,6 +489,13 @@ const I18n = (function () {
             // AI 物料橫幅
             'banner.text': '你知道嗎？ErisPulse 支援完整的 Vibe Coding 工作流',
             'banner.link': '瞭解詳情',
+            'banner.slides': [
+                { icon: 'fa-wand-magic-sparkles', text: 'ErisPulse 支援完整的 Vibe Coding 工作流，讓 AI 直接生成可用模組', link: '#docs/ai-support/README.md' },
+                { icon: 'fa-exchange-alt', text: '基於 OneBot12 標準的統一事件格式，一份程式碼在所有平台執行', link: '#docs/getting-started/basic-concepts.md' },
+                { icon: 'fa-puzzle-piece', text: '模組透過 PyPI 獨立分發，支援懶載入、熱重載和完整生命週期管理', link: '#docs/developer-guide/modules/getting-started.md' },
+                { icon: 'fa-comments', text: '內建確認對話、選擇選單、表單收集和多輪對話等豐富互動原語', link: '#docs/getting-started/event-handling.md' },
+                { icon: 'fa-globe', text: '同時對接雲湖、Telegram、OneBot11/12、郵件等平台，適配器自動處理差異', link: '#docs/platform-guide/README.md' }
+            ],
 
             // 时间格式
             'time.yearsAgo': '{n}年前',

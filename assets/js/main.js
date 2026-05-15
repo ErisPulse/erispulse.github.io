@@ -458,6 +458,8 @@ const ErisPulseApp = (function () {
     let userSettings = { ...CONFIG.DEFAULT_USER_SETTINGS };
 
     // ==================== 初始化模块 ====================
+    var _hashProgrammatic = false;
+
     function init() {
         // 初始化 i18n（应用所有 data-i18n 翻译）
         I18n.init();
@@ -476,6 +478,7 @@ const ErisPulseApp = (function () {
         setupSettings();
         renderFriendLinks();
         setupHomeAnimations();
+        initBannerCarousel();
     }
 
     // ==================== 全局语言切换 ====================
@@ -593,6 +596,9 @@ const ErisPulseApp = (function () {
         if (document.getElementById('market-view').classList.contains('active')) {
             renderModules();
         }
+
+        clearInterval(bannerTimer);
+        initBannerCarousel();
 
         showMessage(I18n.t('common.langSwitched', { name: I18n.getLanguageName(lang) }), 'success');
     }
@@ -771,6 +777,7 @@ const ErisPulseApp = (function () {
     }
 
     function switchViewByHash() {
+        if (_hashProgrammatic) return;
         const hash = window.location.hash.substring(1);
         let view = 'home';
 
@@ -821,6 +828,19 @@ const ErisPulseApp = (function () {
             container.classList.remove('active');
         });
         document.getElementById(`${view}-view`).classList.add('active');
+
+        _hashProgrammatic = true;
+        var currentHash = window.location.hash.substring(1);
+        if (view === 'home') {
+            if (currentHash !== '') {
+                history.pushState(null, null, window.location.pathname);
+            }
+        } else if (view === 'docs' && currentHash.startsWith('docs/')) {
+            // keep docs sub-path hash intact
+        } else if (currentHash !== view && !currentHash.startsWith(view + '/')) {
+            window.location.hash = view;
+        }
+        setTimeout(function() { _hashProgrammatic = false; }, 50);
 
         window.scrollTo({
             top: 0,
@@ -2766,6 +2786,73 @@ const ErisPulseApp = (function () {
             featuresPrevActive = -1;
             requestAnimationFrame(featuresUpdateFn);
         }
+    }
+
+    // ==================== Banner 轮播 ====================
+    var bannerTimer = null;
+    var bannerCurrentIndex = 0;
+
+    function initBannerCarousel() {
+        var bannerIcon = document.getElementById('banner-icon');
+        var bannerText = document.getElementById('banner-text');
+        var bannerLink = document.getElementById('banner-link');
+        var dotsContainer = document.getElementById('banner-dots');
+
+        if (!bannerText || !bannerLink || !dotsContainer) return;
+        if (typeof I18n === 'undefined') return;
+
+        var slides = I18n.t('banner.slides');
+        if (!slides || !Array.isArray(slides) || slides.length === 0) return;
+
+        dotsContainer.innerHTML = '';
+        slides.forEach(function(_, i) {
+            var dot = document.createElement('div');
+            dot.className = 'ai-vibe-banner-dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', function() {
+                switchToSlide(i);
+                resetBannerTimer(slides.length);
+            });
+            dotsContainer.appendChild(dot);
+        });
+
+        function switchToSlide(index) {
+            var slide = slides[index];
+            if (!slide) return;
+
+            bannerText.classList.add('fade-out');
+
+            setTimeout(function() {
+                if (bannerIcon) bannerIcon.className = 'fas ' + slide.icon;
+                bannerText.textContent = slide.text;
+                bannerLink.href = slide.link;
+
+                bannerText.classList.remove('fade-out');
+                bannerText.classList.add('fade-in');
+
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        bannerText.classList.remove('fade-in');
+                    });
+                });
+            }, 350);
+
+            var dots = dotsContainer.querySelectorAll('.ai-vibe-banner-dot');
+            dots.forEach(function(dot, i) {
+                dot.classList.toggle('active', i === index);
+            });
+
+            bannerCurrentIndex = index;
+        }
+
+        function resetBannerTimer(count) {
+            clearInterval(bannerTimer);
+            bannerTimer = setInterval(function() {
+                var nextIndex = (bannerCurrentIndex + 1) % count;
+                switchToSlide(nextIndex);
+            }, 5000);
+        }
+
+        resetBannerTimer(slides.length);
     }
 
     function resetFeatureCards() {
