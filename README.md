@@ -91,13 +91,6 @@ ErisPulse-Site/
 - GitHub: https://github.com/ErisPulse
 - Telegram: https://t.me/ErisPulse
 
-### 头像版权声明
-
-网站使用的 Logo 和头像版权归原作者所有：
-- 作者：げのげ
-- PID：96369911
-- UID：63887595
-
 ## 致谢
 
 感谢以下开源项目和资源：
