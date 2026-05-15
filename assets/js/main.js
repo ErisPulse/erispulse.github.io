@@ -684,6 +684,9 @@ const ErisPulseApp = (function () {
 
         if (userSettings.showLineNumbers) {
             document.body.classList.add('show-line-numbers');
+            document.querySelectorAll('pre').forEach(function(pre) {
+                pre.classList.add('line-numbers');
+            });
         } else {
             document.body.classList.remove('show-line-numbers');
         }
