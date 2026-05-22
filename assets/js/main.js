@@ -654,6 +654,8 @@ const SubmitModuleManager = (function() {
         document.getElementById('submit-success-state').style.display = 'none';
         document.getElementById('submit-error-state').style.display = 'none';
 
+        I18n.applyTranslations();
+
         if (authState && authState.user) {
             document.getElementById('submit-user-avatar').src = authState.user.avatar_url;
             document.getElementById('submit-user-name').textContent = authState.user.login;
@@ -702,6 +704,20 @@ const SubmitModuleManager = (function() {
 
         if (formData.description.length < 10) {
             showErrorState(I18n.t('submit.descTooShort'));
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
+            return;
+        }
+
+        var existingPkgs = typeof allModules !== 'undefined' ? allModules : [];
+        var existingAdps = typeof allAdapters !== 'undefined' ? allAdapters : [];
+        var allExisting = existingPkgs.concat(existingAdps);
+        var duplicate = allExisting.find(function(p) {
+            return p.name.toLowerCase() === formData.name.toLowerCase() ||
+                   p.package.toLowerCase() === formData.package.toLowerCase();
+        });
+        if (duplicate) {
+            showErrorState(I18n.t('submit.alreadyExists', { name: duplicate.name }));
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
             return;
