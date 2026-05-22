@@ -347,9 +347,9 @@ await adapter.Send.To("group", "G1").Raw_ob12(msg)</code></pre>
                     <button class="category-btn active" data-category="all" data-i18n="market.all">全部模块</button>
                     <button class="category-btn" data-category="modules" data-i18n="market.modules">功能模块</button>
                     <button class="category-btn" data-category="adapters" data-i18n="market.adapters">平台适配器</button>
-                    <a href="https://github.com/ErisPulse/ErisPulse-ModuleRepo/issues/new?template=module_submission.md" target="_blank" class="submit-module-link">
+                    <button class="submit-module-link" id="submit-module-btn">
                         <i class="fas fa-plus"></i> <span data-i18n="market.submit">提交模块</span>
-                    </a>
+                    </button>
                 </div>
 
                 <div class="module-grid" id="modules-grid">
@@ -529,6 +529,125 @@ await adapter.Send.To("group", "G1").Raw_ob12(msg)</code></pre>
                         </div>
                     </div>
                 </section>
+            </div>
+        </div>
+
+        <!-- 提交模块模态框 -->
+        <div class="modal-overlay" id="submit-module-modal">
+            <div class="modal submit-modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" data-i18n="submit.title">提交模块</h3>
+                    <button class="close-btn" id="close-submit-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="submit-modal-content">
+                        <!-- 未登录状态 -->
+                        <div id="submit-login-state" class="submit-login-state">
+                            <div class="submit-login-icon">
+                                <i class="fab fa-github"></i>
+                            </div>
+                            <h4 data-i18n="submit.loginTitle">使用 GitHub 登录</h4>
+                            <p data-i18n="submit.loginDesc">登录后即可提交您的模块到 ErisPulse 生态系统</p>
+                            <button class="btn btn-primary btn-github-login" id="github-login-btn">
+                                <i class="fab fa-github"></i> <span data-i18n="submit.loginBtn">GitHub 登录</span>
+                            </button>
+                        </div>
+
+                        <!-- 已登录 + 表单状态 -->
+                        <div id="submit-form-state" class="submit-form-state" style="display:none;">
+                            <div class="submit-user-info">
+                                <img id="submit-user-avatar" src="" alt="" class="submit-user-avatar">
+                                <span id="submit-user-name" class="submit-user-name"></span>
+                                <button class="btn btn-outline btn-sm" id="github-logout-btn" data-i18n="submit.logout">退出登录</button>
+                            </div>
+
+                            <form id="submit-module-form" class="submit-form">
+                                <div class="form-group">
+                                    <label data-i18n="submit.type">提交类型</label>
+                                    <select id="submit-type" class="form-select" required>
+                                        <option value="module" data-i18n="submit.typeModule">模块 (Module)</option>
+                                        <option value="adapter" data-i18n="submit.typeAdapter">适配器 (Adapter)</option>
+                                        <option value="cli_extension" data-i18n="submit.typeCli">CLI 扩展 (CLI Extension)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label data-i18n="submit.name">模块名称</label>
+                                        <input type="text" id="submit-name" class="form-input" placeholder="MyModule" required pattern="[a-zA-Z0-9_-]+">
+                                        <span class="form-hint" data-i18n="submit.nameHint">英文、数字、下划线、连字符</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label data-i18n="submit.package">PyPI 包名</label>
+                                        <input type="text" id="submit-package" class="form-input" placeholder="ErisPulse-MyModule" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label data-i18n="submit.description">描述</label>
+                                    <textarea id="submit-description" class="form-textarea" rows="3" required data-i18n-placeholder="submit.descriptionPlaceholder" placeholder="简要描述模块功能..."></textarea>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label data-i18n="submit.author">作者</label>
+                                        <input type="text" id="submit-author" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label data-i18n="submit.repository">仓库地址</label>
+                                        <input type="url" id="submit-repository" class="form-input" placeholder="https://github.com/user/repo" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label data-i18n="submit.minSdkVersion">最低 SDK 版本</label>
+                                        <input type="text" id="submit-min-sdk" class="form-input" placeholder="2.0.0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label data-i18n="submit.tags">标签</label>
+                                        <input type="text" id="submit-tags" class="form-input" data-i18n-placeholder="submit.tagsPlaceholder" placeholder="用逗号分隔，如：工具,AI,解析">
+                                    </div>
+                                </div>
+
+                                <div class="form-group form-check">
+                                    <label>
+                                        <input type="checkbox" id="submit-official">
+                                        <span data-i18n="submit.official">官方维护</span>
+                                    </label>
+                                </div>
+
+                                <div class="submit-form-actions">
+                                    <button type="submit" class="btn btn-primary" id="submit-confirm-btn">
+                                        <i class="fas fa-paper-plane"></i> <span data-i18n="submit.submitBtn">提交</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- 提交成功状态 -->
+                        <div id="submit-success-state" class="submit-success-state" style="display:none;">
+                            <div class="submit-success-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h4 data-i18n="submit.successTitle">提交成功!</h4>
+                            <p data-i18n="submit.successDesc">您的模块已提交，等待管理员验证后将正式显示在模块市场中。</p>
+                            <button class="btn btn-primary" id="submit-another-btn" data-i18n="submit.submitAnother">继续提交</button>
+                        </div>
+
+                        <!-- 提交失败状态 -->
+                        <div id="submit-error-state" class="submit-error-state" style="display:none;">
+                            <div class="submit-error-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <h4 data-i18n="submit.errorTitle">提交失败</h4>
+                            <p id="submit-error-message"></p>
+                            <button class="btn btn-primary" id="submit-retry-btn" data-i18n="submit.retryBtn">重试</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -81,7 +81,15 @@ const CONFIG = {
     // API 端点
     API: {
         contributors: 'https://api.github.com/repos/ErisPulse/ErisPulse/contributors',
-        packages: 'https://erisdev.com/packages.json'
+        packages: 'https://erisdev.com/packages.json',
+        githubToken: 'https://erisdev.com/api/github-token',
+        submitModule: 'https://erisdev.com/api/submit-module',
+        githubUser: 'https://api.github.com/user'
+    },
+
+    GITHUB_OAUTH: {
+        clientId: 'Ov23lioo2vSXXnRcDixA',
+        scope: 'read:user,user:email'
     }
 };
 
@@ -447,6 +455,286 @@ const DocsIndexManager = (function() {
     };
 })();
 
+// ==================== 提交模块管理器 ====================
+const SubmitModuleManager = (function() {
+    const STORAGE_KEY = 'erispulse-github-auth';
+    let authState = null;
+
+    function init() {
+        loadAuthState();
+        setupOAuthCallback();
+        setupSubmitButton();
+        setupModalEvents();
+        setupFormSubmission();
+    }
+
+    function loadAuthState() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                authState = JSON.parse(saved);
+                if (authState.expiresAt && Date.now() > authState.expiresAt) {
+                    logout();
+                }
+            }
+        } catch (e) {
+            authState = null;
+        }
+    }
+
+    function saveAuthState() {
+        if (authState) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(authState));
+        } else {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    }
+
+    function setupOAuthCallback() {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get('code');
+        const state = url.searchParams.get('state');
+
+        if (code && state === 'erispulse-submit') {
+            url.searchParams.delete('code');
+            url.searchParams.delete('state');
+            window.history.replaceState({}, '', url.toString());
+
+            exchangeCodeForToken(code);
+        }
+    }
+
+    async function exchangeCodeForToken(code) {
+        try {
+            const response = await fetch(CONFIG.API.githubToken, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            });
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            authState = {
+                accessToken: data.access_token,
+                user: null,
+                expiresAt: Date.now() + 3600000
+            };
+
+            await fetchUserInfo();
+            saveAuthState();
+            showFormState();
+        } catch (error) {
+            console.error('GitHub OAuth failed:', error);
+            if (typeof ErisPulseApp !== 'undefined') {
+                ErisPulseApp.showMessage(I18n.t('submit.loginFailed'), 'error');
+            }
+        }
+    }
+
+    async function fetchUserInfo() {
+        if (!authState || !authState.accessToken) return;
+
+        try {
+            const response = await fetch(CONFIG.API.githubUser, {
+                headers: { 'Authorization': `token ${authState.accessToken}` }
+            });
+
+            if (response.ok) {
+                authState.user = await response.json();
+            }
+        } catch (e) {
+            console.error('Failed to fetch user info:', e);
+        }
+    }
+
+    function setupSubmitButton() {
+        const btn = document.getElementById('submit-module-btn');
+        if (btn) {
+            btn.addEventListener('click', openSubmitModal);
+        }
+    }
+
+    function setupModalEvents() {
+        const modal = document.getElementById('submit-module-modal');
+        const closeBtn = document.getElementById('close-submit-modal');
+        const loginBtn = document.getElementById('github-login-btn');
+        const logoutBtn = document.getElementById('github-logout-btn');
+        const anotherBtn = document.getElementById('submit-another-btn');
+        const retryBtn = document.getElementById('submit-retry-btn');
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeModal();
+            });
+        }
+        if (loginBtn) {
+            loginBtn.addEventListener('click', startGitHubLogin);
+        }
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                logout();
+                showLoginState();
+            });
+        }
+        if (anotherBtn) {
+            anotherBtn.addEventListener('click', function() {
+                showFormState();
+                document.getElementById('submit-module-form').reset();
+            });
+        }
+        if (retryBtn) {
+            retryBtn.addEventListener('click', function() {
+                showFormState();
+            });
+        }
+    }
+
+    function setupFormSubmission() {
+        const form = document.getElementById('submit-module-form');
+        if (form) {
+            form.addEventListener('submit', handleSubmit);
+        }
+    }
+
+    function startGitHubLogin() {
+        if (!CONFIG.GITHUB_OAUTH.clientId) {
+            if (typeof ErisPulseApp !== 'undefined') {
+                ErisPulseApp.showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
+            }
+            return;
+        }
+
+        const authUrl = new URL('https://github.com/login/oauth/authorize');
+        authUrl.searchParams.set('client_id', CONFIG.GITHUB_OAUTH.clientId);
+        authUrl.searchParams.set('redirect_uri', window.location.origin + '/');
+        authUrl.searchParams.set('scope', CONFIG.GITHUB_OAUTH.scope);
+        authUrl.searchParams.set('state', 'erispulse-submit');
+        window.location.href = authUrl.toString();
+    }
+
+    function openSubmitModal() {
+        const modal = document.getElementById('submit-module-modal');
+        if (!modal) return;
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        if (authState && authState.accessToken && authState.user) {
+            showFormState();
+        } else {
+            showLoginState();
+        }
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('submit-module-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function showLoginState() {
+        document.getElementById('submit-login-state').style.display = '';
+        document.getElementById('submit-form-state').style.display = 'none';
+        document.getElementById('submit-success-state').style.display = 'none';
+        document.getElementById('submit-error-state').style.display = 'none';
+    }
+
+    function showFormState() {
+        document.getElementById('submit-login-state').style.display = 'none';
+        document.getElementById('submit-form-state').style.display = '';
+        document.getElementById('submit-success-state').style.display = 'none';
+        document.getElementById('submit-error-state').style.display = 'none';
+
+        if (authState && authState.user) {
+            document.getElementById('submit-user-avatar').src = authState.user.avatar_url;
+            document.getElementById('submit-user-name').textContent = authState.user.login;
+            document.getElementById('submit-author').value = authState.user.login;
+        }
+    }
+
+    function showSuccessState() {
+        document.getElementById('submit-login-state').style.display = 'none';
+        document.getElementById('submit-form-state').style.display = 'none';
+        document.getElementById('submit-success-state').style.display = '';
+        document.getElementById('submit-error-state').style.display = 'none';
+    }
+
+    function showErrorState(message) {
+        document.getElementById('submit-login-state').style.display = 'none';
+        document.getElementById('submit-form-state').style.display = 'none';
+        document.getElementById('submit-success-state').style.display = 'none';
+        document.getElementById('submit-error-state').style.display = '';
+        document.getElementById('submit-error-message').textContent = message;
+    }
+
+    function logout() {
+        authState = null;
+        localStorage.removeItem(STORAGE_KEY);
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submit-confirm-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...';
+
+        const formData = {
+            type: document.getElementById('submit-type').value,
+            name: document.getElementById('submit-name').value.trim(),
+            package: document.getElementById('submit-package').value.trim(),
+            description: document.getElementById('submit-description').value.trim(),
+            author: document.getElementById('submit-author').value.trim(),
+            repository: document.getElementById('submit-repository').value.trim(),
+            min_sdk_version: document.getElementById('submit-min-sdk').value.trim(),
+            tags: document.getElementById('submit-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+            official: document.getElementById('submit-official').checked,
+            submitted_by: authState && authState.user ? authState.user.login : ''
+        };
+
+        try {
+            const response = await fetch(CONFIG.API.submitModule, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || data.message || I18n.t('submit.unknownError'));
+            }
+
+            showSuccessState();
+        } catch (error) {
+            console.error('Submit failed:', error);
+            showErrorState(error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
+        }
+    }
+
+    function isLoggedIn() {
+        return !!(authState && authState.accessToken && authState.user);
+    }
+
+    return {
+        init: init,
+        openSubmitModal: openSubmitModal,
+        isLoggedIn: isLoggedIn,
+        getUserName: function() { return authState && authState.user ? authState.user.login : null; }
+    };
+})();
+
 // ==================== 主应用对象 ====================
 const ErisPulseApp = (function () {
     // ==================== 私有变量 ====================
@@ -479,6 +767,7 @@ const ErisPulseApp = (function () {
         renderFriendLinks();
         setupHomeAnimations();
         initBannerCarousel();
+        SubmitModuleManager.init();
     }
 
     // ==================== 全局语言切换 ====================
@@ -1057,6 +1346,8 @@ const ErisPulseApp = (function () {
                 description: info.description,
                 repository: info.repository,
                 official: info.official || false,
+                verified: info.verified !== false,
+                submitted_by: info.submitted_by || '',
                 tags: info.tags || [],
                 type: 'module'
             }));
@@ -1069,6 +1360,8 @@ const ErisPulseApp = (function () {
                 description: info.description,
                 repository: info.repository,
                 official: info.official || false,
+                verified: info.verified !== false,
+                submitted_by: info.submitted_by || '',
                 tags: info.tags || [],
                 type: 'adapter'
             }));
@@ -1135,7 +1428,11 @@ const ErisPulseApp = (function () {
                     </div>
                     <div>
                         <h3 class="module-name">${pkg.name}</h3>
-                        <div class="module-version">v${pkg.version}</div>
+                        <div style="display:flex;gap:0.4rem;align-items:center;">
+                            <div class="module-version">v${pkg.version}</div>
+                            ${pkg.official ? '<span class="module-badge badge-official"><i class="fas fa-check-circle"></i> Official</span>' : ''}
+                            ${!pkg.verified ? '<span class="module-badge badge-unverified"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="market.unverified">未验证</span></span>' : ''}
+                        </div>
                     </div>
                 </div>
                 <p class="module-desc">${pkg.description}</p>
@@ -2675,6 +2972,14 @@ const ErisPulseApp = (function () {
         document.getElementById('module-modal').addEventListener('click', function (e) {
             if (e.target === this) {
                 this.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('module-modal').classList.remove('active');
+                document.getElementById('submit-module-modal').classList.remove('active');
+                document.body.style.overflow = '';
             }
         });
     }
