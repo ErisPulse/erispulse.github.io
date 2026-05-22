@@ -84,6 +84,7 @@ const CONFIG = {
         packages: 'https://erisdev.com/packages.json',
         githubToken: 'https://erisdev.com/api/github-token',
         submitModule: 'https://erisdev.com/api/submit-module',
+        checkPyPI: 'https://erisdev.com/api/check-pypi',
         githubUser: 'https://api.github.com/user'
     },
 
@@ -685,7 +686,7 @@ const SubmitModuleManager = (function() {
 
         const submitBtn = document.getElementById('submit-confirm-btn');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('submit.validating') + '</span>';
 
         const formData = {
             type: document.getElementById('submit-type').value,
@@ -696,9 +697,30 @@ const SubmitModuleManager = (function() {
             repository: document.getElementById('submit-repository').value.trim(),
             min_sdk_version: document.getElementById('submit-min-sdk').value.trim(),
             tags: document.getElementById('submit-tags').value.split(',').map(t => t.trim()).filter(Boolean),
-            official: document.getElementById('submit-official').checked,
             submitted_by: authState && authState.user ? authState.user.login : ''
         };
+
+        if (formData.description.length < 10) {
+            showErrorState(I18n.t('submit.descTooShort'));
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
+            return;
+        }
+
+        try {
+            const pypiCheckResp = await fetch(CONFIG.API.checkPyPI + '?package=' + encodeURIComponent(formData.package));
+            const pypiData = await pypiCheckResp.json();
+            if (!pypiData.exists) {
+                showErrorState(I18n.t('submit.pypiNotFound', { package: formData.package }));
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
+                return;
+            }
+        } catch (e) {
+            console.warn('PyPI pre-check failed, proceeding anyway:', e);
+        }
+
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('submit.submitting') + '</span>';
 
         try {
             const response = await fetch(CONFIG.API.submitModule, {
@@ -710,6 +732,9 @@ const SubmitModuleManager = (function() {
             const data = await response.json();
 
             if (!response.ok) {
+                if (data.code === 'RATE_LIMITED') {
+                    throw new Error(data.error);
+                }
                 throw new Error(data.error || data.message || I18n.t('submit.unknownError'));
             }
 
