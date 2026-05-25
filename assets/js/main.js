@@ -82,9 +82,9 @@ const CONFIG = {
     API: {
         contributors: 'https://api.github.com/repos/ErisPulse/ErisPulse/contributors',
         packages: 'https://erisdev.com/packages.json',
-        githubToken: 'https://erisdev.com/api/github-token',
-        submitModule: 'https://erisdev.com/api/submit-module',
-        checkPyPI: 'https://erisdev.com/api/check-pypi',
+        oauthToken: 'https://www.erisdev.com/api/oauth-token',
+        submitModule: 'https://www.erisdev.com/api/submit-module',
+        checkPyPI: 'https://www.erisdev.com/api/check-pypi',
     },
 
         OAUTH_PROVIDERS: {
@@ -534,7 +534,7 @@ const SubmitModuleManager = (function() {
 
     async function exchangeCodeForToken(code, provider) {
         try {
-            var response = await fetch(CONFIG.API.githubToken, {
+            var response = await fetch(CONFIG.API.oauthToken, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ provider: provider, code: code })
@@ -556,10 +556,8 @@ const SubmitModuleManager = (function() {
             saveAuthState();
             openSubmitModal();
          } catch (error) {
-            console.error('OAuth failed:', error);
-            if (typeof ErisPulseApp !== 'undefined') {
-                ErisPulseApp.showMessage(I18n.t('submit.loginFailed'), 'error');
-            }
+             console.error('OAuth failed:', error);
+             showMessage(I18n.t('submit.loginFailed'), 'error');
         }
     }
 
@@ -643,9 +641,7 @@ const SubmitModuleManager = (function() {
     function startOAuthLogin(provider) {
         var providerConfig = CONFIG.OAUTH_PROVIDERS[provider];
         if (!providerConfig || !providerConfig.clientId) {
-            if (typeof ErisPulseApp !== 'undefined') {
-                ErisPulseApp.showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
-            }
+            showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
             return;
         }
 
