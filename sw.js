@@ -1,4 +1,4 @@
-const CACHE_NAME = 'erispulse-v2.2.0';
+const CACHE_NAME = 'erispulse-v2.2.1';
 const EXTERNAL_LIBS = [
   'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/',
@@ -48,6 +48,10 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const requestUrl = event.request.url;
+  
+  if (requestUrl.includes('/api/')) {
+    return;
+  }
   
   // 检查是否为外部库
   const isExternalLib = EXTERNAL_LIBS.some(lib => requestUrl.startsWith(lib));
