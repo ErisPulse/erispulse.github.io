@@ -83,6 +83,7 @@ const CONFIG = {
         contributors: 'https://api.github.com/repos/ErisPulse/ErisPulse/contributors',
         packages: 'https://erisdev.com/packages.json',
         oauthToken: 'https://erisdev.com/api/oauth-token',
+        userInfo: 'https://erisdev.com/api/userinfo',
         submitModule: 'https://erisdev.com/api/submit-module',
         checkPyPI: 'https://erisdev.com/api/check-pypi',
     },
@@ -93,8 +94,6 @@ const CONFIG = {
             authUrl: 'https://github.com/login/oauth/authorize',
             redirectUri: null,
             scope: 'read:user,user:email',
-            userInfoUrl: 'https://api.github.com/user',
-            userInfoHeaders: function(token) { return { 'Authorization': 'token ' + token }; },
             parseUser: function(data) { return { login: data.login, avatar_url: data.avatar_url, name: data.name || data.login }; }
         },
         codeberg: {
@@ -102,8 +101,6 @@ const CONFIG = {
             authUrl: 'https://codeberg.org/login/oauth/authorize',
             redirectUri: null,
             scope: 'read:user',
-            userInfoUrl: 'https://codeberg.org/api/v1/user',
-            userInfoHeaders: function(token) { return { 'Authorization': 'token ' + token }; },
             parseUser: function(data) { return { login: data.login, avatar_url: data.avatar_url, name: data.full_name || data.login }; }
         },
         yunhu: {
@@ -111,8 +108,6 @@ const CONFIG = {
             authUrl: 'https://oauth2.jwzhd.com/oauth/authorize',
             redirectUri: 'https://www.erisdev.com/#market',
             scope: 'profile',
-            userInfoUrl: 'https://oauth2.jwzhd.com/api/userinfo',
-            userInfoHeaders: function(token) { return { 'Authorization': 'Bearer ' + token }; },
             parseUser: function(data) { return { login: data.nickname || String(data.user_id), avatar_url: data.avatar_url, name: data.nickname || String(data.user_id) }; }
         }
     }
@@ -569,8 +564,10 @@ const SubmitModuleManager = (function() {
         if (!providerConfig) return;
 
         try {
-            var response = await fetch(providerConfig.userInfoUrl, {
-                headers: providerConfig.userInfoHeaders(authState.accessToken)
+            var response = await fetch(CONFIG.API.userInfo, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider: provider, access_token: authState.accessToken })
             });
 
             if (response.ok) {
