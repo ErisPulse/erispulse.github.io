@@ -134,6 +134,10 @@ async function handleRequest(request) {
         return handleOAuthToken(request);
     }
 
+    if (path === '/api/userinfo' && request.method === 'POST') {
+        return handleUserInfo(request);
+    }
+
     if (path === '/api/check-pypi' && request.method === 'GET') {
         const pkg = url.searchParams.get('package');
         if (!pkg) {
@@ -282,6 +286,38 @@ async function handleOAuthToken(request) {
         });
     } catch (error) {
         return jsonResponse({ error: 'Token exchange failed', message: error.message }, 500);
+    }
+}
+
+async function handleUserInfo(request) {
+    try {
+        const { provider, access_token } = await request.json();
+        if (!access_token || !provider) {
+            return jsonResponse({ error: 'Missing provider or access_token' }, 400);
+        }
+
+        const providerKey = provider.toLowerCase();
+        const config = OAUTH_PROVIDERS[providerKey];
+        if (!config || !config.userInfoUrl) {
+            return jsonResponse({ error: `Unknown provider: ${providerKey}` }, 400);
+        }
+
+        const headers = { 'Accept': 'application/json' };
+        if (providerKey === 'yunhu') {
+            headers['Authorization'] = 'Bearer ' + access_token;
+        } else {
+            headers['Authorization'] = 'token ' + access_token;
+        }
+
+        const userInfoResponse = await fetch(config.userInfoUrl, { headers });
+        if (!userInfoResponse.ok) {
+            return jsonResponse({ error: 'Failed to fetch user info' }, userInfoResponse.status);
+        }
+
+        const data = await userInfoResponse.json();
+        return jsonResponse(data);
+    } catch (error) {
+        return jsonResponse({ error: 'User info fetch failed', message: error.message }, 500);
     }
 }
 
