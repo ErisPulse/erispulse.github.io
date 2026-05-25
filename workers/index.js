@@ -151,6 +151,33 @@ async function handleRequest(request) {
         return handleSubmitModule(request);
     }
 
+    if (path === '/api/avatar' && request.method === 'GET') {
+        const avatarUrl = url.searchParams.get('url');
+        if (!avatarUrl) {
+            return jsonResponse({ error: 'Missing url parameter' }, 400);
+        }
+        try {
+            const avatarResponse = await fetch(avatarUrl, {
+                headers: {
+                    'User-Agent': 'ErisPulse-Worker',
+                    'Referer': 'http://myapp.jwznb.com',
+                }
+            });
+            const contentType = avatarResponse.headers.get('Content-Type') || 'image/png';
+            const body = avatarResponse.body;
+            return new Response(body, {
+                status: avatarResponse.status,
+                headers: {
+                    'Content-Type': contentType,
+                    'Cache-Control': 'public, max-age=86400',
+                    ...corsHeaders(),
+                },
+            });
+        } catch (e) {
+            return jsonResponse({ error: 'Failed to fetch avatar' }, 500);
+        }
+    }
+
     let response;
 
     if (path === '/packages.json' || path === '/packages' || path === '/packages.json/') {

@@ -108,7 +108,7 @@ const CONFIG = {
             authUrl: 'https://oauth2.jwzhd.com/oauth/authorize',
             redirectUri: 'https://www.erisdev.com/#market',
             scope: 'profile',
-            parseUser: function(data) { return { login: data.nickname || String(data.user_id), avatar_url: data.avatar_url, name: data.nickname || String(data.user_id) }; }
+            parseUser: function(data) { var a = data.avatar_url || ''; return { login: data.nickname || String(data.user_id), avatar_url: a.includes('jwznb.com') ? 'https://erisdev.com/api/avatar?url=' + encodeURIComponent(a) : a, name: data.nickname || String(data.user_id) }; }
         }
     }
 };
