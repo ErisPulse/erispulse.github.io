@@ -84,6 +84,8 @@ const CONFIG = {
         packages: 'https://erisdev.com/packages.json',
         oauthToken: 'https://erisdev.com/api/oauth-token',
         userInfo: 'https://erisdev.com/api/userinfo',
+        myModules: 'https://erisdev.com/api/my-modules',
+        manageModule: 'https://erisdev.com/api/manage-module',
         submitModule: 'https://erisdev.com/api/submit-module',
         checkPyPI: 'https://erisdev.com/api/check-pypi',
     },
@@ -94,21 +96,21 @@ const CONFIG = {
             authUrl: 'https://github.com/login/oauth/authorize',
             redirectUri: null,
             scope: 'read:user,user:email',
-            parseUser: function(data) { return { login: data.login, avatar_url: data.avatar_url, name: data.name || data.login }; }
+            parseUser: function(data) { return { uid: 'github:' + data.id, login: data.login, avatar_url: data.avatar_url, name: data.name || data.login }; }
         },
         codeberg: {
             clientId: '182590e7-41fd-4242-835f-f407bd112f8c',
             authUrl: 'https://codeberg.org/login/oauth/authorize',
             redirectUri: null,
             scope: 'read:user',
-            parseUser: function(data) { return { login: data.login, avatar_url: data.avatar_url, name: data.full_name || data.login }; }
+            parseUser: function(data) { return { uid: 'codeberg:' + data.id, login: data.login, avatar_url: data.avatar_url, name: data.full_name || data.login }; }
         },
         yunhu: {
             clientId: 'DmqnwUGFrLVkmykgeAJXzYBJqd8hM_ga',
             authUrl: 'https://oauth2.jwzhd.com/oauth/authorize',
             redirectUri: 'https://www.erisdev.com/#market',
             scope: 'profile',
-            parseUser: function(data) { var a = data.avatar_url || ''; return { login: data.nickname || String(data.user_id), avatar_url: a.includes('jwznb.com') ? 'https://erisdev.com/api/avatar?url=' + encodeURIComponent(a) : a, name: data.nickname || String(data.user_id) }; }
+            parseUser: function(data) { var a = data.avatar_url || ''; return { uid: 'yunhu:' + data.user_id, login: data.nickname || String(data.user_id), avatar_url: a.includes('jwznb.com') ? 'https://erisdev.com/api/avatar?url=' + encodeURIComponent(a) : a, name: data.nickname || String(data.user_id) }; }
         }
     }
 };
@@ -486,6 +488,7 @@ const SubmitModuleManager = (function() {
         setupSubmitButton();
         setupModalEvents();
         setupFormSubmission();
+        setupTabs();
     }
 
     function loadAuthState() {
@@ -736,7 +739,8 @@ const SubmitModuleManager = (function() {
             repository: document.getElementById('submit-repository').value.trim(),
             min_sdk_version: document.getElementById('submit-min-sdk').value.trim(),
             tags: document.getElementById('submit-tags').value.split(',').map(function(t) { return t.trim(); }).filter(Boolean),
-            submitted_by: authState && authState.user ? authState.user.login : ''
+            access_token: authState ? authState.accessToken : '',
+            oauth_provider: authState ? authState.provider || '' : ''
         };
 
         if (formData.description.length < 10) {
@@ -798,6 +802,102 @@ const SubmitModuleManager = (function() {
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
+        }
+    }
+
+    function setupTabs() {
+        var tabs = document.querySelectorAll('.submit-tab');
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                var target = tab.getAttribute('data-tab');
+                document.querySelectorAll('.submit-tab-content').forEach(function(c) { c.style.display = 'none'; });
+                var panel = document.getElementById('tab-' + target);
+                if (panel) panel.style.display = '';
+                if (target === 'my-modules') loadMyModules();
+            });
+        });
+    }
+
+    async function loadMyModules() {
+        if (!authState || !authState.accessToken) return;
+        var container = document.getElementById('my-modules-list');
+        container.innerHTML = '<div class="my-modules-loading"><i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('manage.loading') + '</span></div>';
+
+        try {
+            var response = await fetch(CONFIG.API.myModules, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_token: authState.accessToken, provider: authState.provider })
+            });
+            var data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            if (!data.modules || data.modules.length === 0) {
+                container.innerHTML = '<div class="my-modules-empty"><i class="fas fa-box-open"></i><p data-i18n="manage.empty">' + I18n.t('manage.empty') + '</p></div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            data.modules.forEach(function(mod) {
+                var item = document.createElement('div');
+                item.className = 'my-module-item';
+                var statusBadge = mod.hidden
+                    ? '<span class="my-module-badge badge-hidden">' + I18n.t('manage.statusHidden') + '</span>'
+                    : (mod.verified
+                        ? '<span class="my-module-badge badge-verified">' + I18n.t('manage.statusVerified') + '</span>'
+                        : '<span class="my-module-badge badge-pending">' + I18n.t('manage.statusPending') + '</span>');
+
+                item.innerHTML = '<div class="my-module-info">' +
+                    '<div class="my-module-name">' + mod.name + ' ' + statusBadge + '</div>' +
+                    '<div class="my-module-desc">' + (mod.description || '') + '</div>' +
+                    '<div class="my-module-meta">' + mod.type + ' · ' + (mod.package || '') + '</div>' +
+                '</div>' +
+                '<div class="my-module-actions">' +
+                    (mod.hidden
+                        ? '<button class="btn btn-outline btn-sm" data-action="unhide" data-name="' + mod.name + '" data-type="' + mod.type + '">' + I18n.t('manage.unhide') + '</button>'
+                        : '<button class="btn btn-outline btn-sm" data-action="hide" data-name="' + mod.name + '" data-type="' + mod.type + '">' + I18n.t('manage.hide') + '</button>'
+                    ) +
+                    '<button class="btn btn-outline btn-sm btn-danger" data-action="delete" data-name="' + mod.name + '" data-type="' + mod.type + '">' + I18n.t('manage.delete') + '</button>' +
+                '</div>';
+                container.appendChild(item);
+            });
+
+            container.querySelectorAll('[data-action]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    handleManageAction(btn.getAttribute('data-action'), btn.getAttribute('data-name'), btn.getAttribute('data-type'));
+                });
+            });
+        } catch (e) {
+            container.innerHTML = '<div class="my-modules-error"><p>' + (e.message || I18n.t('manage.loadFailed')) + '</p></div>';
+        }
+    }
+
+    async function handleManageAction(action, name, type) {
+        if (!authState || !authState.accessToken) return;
+        var confirmMsg = I18n.t('manage.confirm' + action.charAt(0).toUpperCase() + action.slice(1), { name: name });
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            var response = await fetch(CONFIG.API.manageModule, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: action,
+                    name: name,
+                    type: type,
+                    access_token: authState.accessToken,
+                    provider: authState.provider
+                })
+            });
+            var data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            ErisPulseApp.showMessage(I18n.t('manage.success' + action.charAt(0).toUpperCase() + action.slice(1), { name: name }), 'success');
+            loadMyModules();
+        } catch (e) {
+            ErisPulseApp.showMessage(e.message || I18n.t('manage.failed'), 'error');
         }
     }
 
