@@ -473,10 +473,8 @@ async function handleSubmitModule(request) {
                     author: submission.author,
                     repository: submission.repository,
                     min_sdk_version: submission.min_sdk_version || '',
-                    tags: submission.tags || [],
-                    submitted_by: verifiedUser.name,
-                    submitted_by_uid: verifiedUser.uid,
-                    oauth_provider: verifiedUser.provider,
+                    tags: JSON.stringify(submission.tags || []),
+                    submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
                 },
             }),
         });
