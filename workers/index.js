@@ -374,11 +374,30 @@ async function verifyUser(provider, accessToken) {
 async function handleUserInfo(request) {
     try {
         const { provider, access_token } = await request.json();
-        const user = await verifyUser(provider, access_token);
-        if (!user) {
-            return jsonResponse({ error: 'User verification failed' }, 401);
+        if (!access_token || !provider) {
+            return jsonResponse({ error: 'Missing provider or access_token' }, 400);
         }
-        return jsonResponse(user);
+
+        const providerKey = provider.toLowerCase();
+        const config = OAUTH_PROVIDERS[providerKey];
+        if (!config || !config.userInfoUrl) {
+            return jsonResponse({ error: `Unknown provider: ${providerKey}` }, 400);
+        }
+
+        const headers = { 'Accept': 'application/json' };
+        if (providerKey === 'yunhu') {
+            headers['Authorization'] = 'Bearer ' + access_token;
+        } else {
+            headers['Authorization'] = 'token ' + access_token;
+        }
+
+        const userInfoResponse = await fetch(config.userInfoUrl, { headers });
+        if (!userInfoResponse.ok) {
+            return jsonResponse({ error: 'Failed to fetch user info' }, userInfoResponse.status);
+        }
+
+        const data = await userInfoResponse.json();
+        return jsonResponse(data);
     } catch (error) {
         return jsonResponse({ error: 'User info fetch failed', message: error.message }, 500);
     }
