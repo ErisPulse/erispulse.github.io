@@ -692,7 +692,9 @@ const SubmitModuleManager = (function() {
         I18n.applyTranslations();
 
         if (authState && authState.user) {
-            document.getElementById('submit-user-avatar').src = authState.user.avatar_url || '';
+            var avatarEl = document.getElementById('submit-user-avatar');
+            avatarEl.src = authState.user.avatar_url || '';
+            avatarEl.setAttribute('referrerpolicy', 'no-referrer');
             document.getElementById('submit-user-name').textContent = authState.user.name || authState.user.login;
             document.getElementById('submit-author').value = authState.user.name || authState.user.login;
         }
@@ -1578,7 +1580,7 @@ const ErisPulseApp = (function () {
                 const contributorElement = document.createElement('div');
                 contributorElement.className = 'contributor';
                 contributorElement.innerHTML = `
-                    <img src="${contributor.avatar_url}" alt="${contributor.login}" class="contributor-avatar">
+                    <img src="${contributor.avatar_url}" alt="${contributor.login}" class="contributor-avatar" referrerpolicy="no-referrer">
                     <span class="contributor-name">${contributor.login}</span>
                 `;
                 contributorElement.onclick = () => window.open(contributor.html_url, '_blank');
@@ -2856,7 +2858,7 @@ const ErisPulseApp = (function () {
 
             commitCard.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <img src="${commitInfo.author.avatar_url}" alt="${commitInfo.commit.author.name}" style="width: 40px; height: 40px; border-radius: 50%;">
+                    <img src="${commitInfo.author.avatar_url}" alt="${commitInfo.commit.author.name}" style="width: 40px; height: 40px; border-radius: 50%;" referrerpolicy="no-referrer">
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">
                             <span style="font-weight: 500; color: var(--text);">${commitInfo.commit.author.name}</span>
