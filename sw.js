@@ -1,9 +1,7 @@
-const CACHE_NAME = 'erispulse-v2.4.0';
+const CACHE_NAME = 'erispulse-v2.5.0';
 const EXTERNAL_LIBS = [
-  'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/',
   'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/'
 ];
 
@@ -13,11 +11,17 @@ const urlsToCache = [
   '/assets/css/main.css',
   '/assets/css/home.css',
   '/assets/css/market.css',
+  '/assets/css/markdown.css',
   '/assets/css/docs.css',
   '/assets/css/setting.css',
   '/assets/css/about.css',
+  '/assets/js/i18n.js',
+  '/assets/js/hero-canvas.js',
   '/assets/js/main.js',
   '/assets/img/logo.png',
+  '/assets/img/codeberg.svg',
+  '/assets/img/yunhu.png',
+  '/assets/img/ep_chan.png',
   '/manifest.json'
 ];
 
@@ -52,8 +56,8 @@ self.addEventListener('fetch', event => {
   if (requestUrl.includes('/api/')) {
     return;
   }
-  
-  // 检查是否为外部库
+
+    // 检查是否为外部库
   const isExternalLib = EXTERNAL_LIBS.some(lib => requestUrl.startsWith(lib));
   
   // 检查是否为本地资源
@@ -73,16 +77,16 @@ self.addEventListener('fetch', event => {
           // 否则发起网络请求，并将结果添加到缓存中
           return fetch(event.request)
             .then(response => {
-              if (!response || response.status !== 200 || response.type !== 'basic') {
+              if (!response || response.status !== 200) {
                 return response;
               }
-              
+
               const responseToCache = response.clone();
               caches.open(CACHE_NAME)
                 .then(cache => {
                   cache.put(event.request, responseToCache);
                 });
-              
+
               return response;
             });
         })

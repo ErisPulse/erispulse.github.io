@@ -1387,6 +1387,11 @@ const ErisPulseApp = (function () {
             loadModuleData();
         }
 
+        if (view === 'docs') {
+            loadDocsLibs();
+            loadDocsIndexes();
+        }
+
         if (view === 'about') {
             loadContributors();
         }
@@ -1570,9 +1575,11 @@ const ErisPulseApp = (function () {
         });
 
         const searchInput = document.getElementById('module-search');
+        var _searchTimer = null;
         searchInput.addEventListener('input', function () {
             searchQuery = this.value.trim();
-            renderModules();
+            clearTimeout(_searchTimer);
+            _searchTimer = setTimeout(renderModules, 300);
         });
     }
 
@@ -1781,6 +1788,37 @@ const ErisPulseApp = (function () {
         });
     }
 
+    var _docsLibsLoaded = false;
+    function loadDocsLibs() {
+        if (_docsLibsLoaded) return;
+        _docsLibsLoaded = true;
+        var libs = [
+            'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js'
+        ];
+        libs.forEach(function(url) {
+            var s = document.createElement('script');
+            s.src = url;
+            s.defer = true;
+            if (url.includes('mermaid')) {
+                s.onload = function() { if (typeof mermaid !== 'undefined') mermaid.initialize({ startOnLoad: false }); };
+            }
+            document.head.appendChild(s);
+        });
+    }
+
+    var _docsIndexesLoaded = false;
+    function loadDocsIndexes() {
+        if (_docsIndexesLoaded) return;
+        _docsIndexesLoaded = true;
+        DocsIndexManager.loadMapping().catch(err => {
+            console.error('映射索引加载失败:', err);
+        });
+        DocsIndexManager.loadSearchIndex().catch(err => {
+            console.error('搜索索引加载失败:', err);
+        });
+    }
+
     function setupDocumentation() {
         // 立即初始化UI，不等待索引加载
         setupLanguageSwitcher();
@@ -1791,11 +1829,9 @@ const ErisPulseApp = (function () {
         setupDocumentationResponsive();
         setupGlobalNavigationEvents();
 
-        // 注册索引加载回调
         DocsIndexManager.onLoad(function(type, success, data, error) {
             if (type === 'mapping' || type === 'search') {
                 renderDocsNavigation();
-                
                 if (DocsIndexManager.isLoaded()) {
                     console.log('文档索引加载完成');
                     
@@ -1824,13 +1860,6 @@ const ErisPulseApp = (function () {
                     }
                 }
             }
-        });
-
-        DocsIndexManager.loadMapping().catch(err => {
-            console.error('映射索引加载失败:', err);
-        });
-        DocsIndexManager.loadSearchIndex().catch(err => {
-            console.error('搜索索引加载失败:', err);
         });
     }
 
