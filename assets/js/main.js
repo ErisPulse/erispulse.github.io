@@ -750,18 +750,24 @@ const SubmitModuleManager = (function() {
             return;
         }
 
-        var existingPkgs = typeof allModules !== 'undefined' ? allModules : [];
-        var existingAdps = typeof allAdapters !== 'undefined' ? allAdapters : [];
-        var allExisting = existingPkgs.concat(existingAdps);
-        var duplicate = allExisting.find(function(p) {
-            return p.name.toLowerCase() === formData.name.toLowerCase() ||
-                   p.package.toLowerCase() === formData.package.toLowerCase();
-        });
-        if (duplicate) {
-            showErrorState(I18n.t('submit.alreadyExists', { name: duplicate.name }));
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
-            return;
+        if (editingModule) {
+            formData.name = editingModule.name;
+        } else {
+            var existingPkgs = typeof allModules !== 'undefined' ? allModules : [];
+            var existingAdps = typeof allAdapters !== 'undefined' ? allAdapters : [];
+            var allExisting = existingPkgs.concat(existingAdps);
+            var duplicate = allExisting.find(function(p) {
+                return p.name.toLowerCase() === formData.name.toLowerCase() ||
+                       p.package.toLowerCase() === formData.package.toLowerCase();
+            });
+            if (duplicate) {
+                showErrorState(I18n.t('submit.alreadyExists', { name: duplicate.name }));
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = editingModule
+                    ? '<i class="fas fa-save"></i> <span>' + I18n.t('manage.saveEdit') + '</span>'
+                    : '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
+                return;
+            }
         }
 
         try {
@@ -780,11 +786,34 @@ const SubmitModuleManager = (function() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('submit.submitting') + '</span>';
 
         try {
-            var response = await fetch(CONFIG.API.submitModule, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
+            var response;
+            if (editingModule) {
+                response = await fetch(CONFIG.API.manageModule, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'edit',
+                        name: editingModule.name,
+                        type: editingModule.type,
+                        access_token: authState.accessToken,
+                        provider: authState.provider,
+                        edit_data: {
+                            package: formData.package,
+                            description: formData.description,
+                            author: formData.author,
+                            repository: formData.repository,
+                            min_sdk_version: formData.min_sdk_version,
+                            tags: formData.tags,
+                        }
+                    })
+                });
+            } else {
+                response = await fetch(CONFIG.API.submitModule, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+            }
 
             var data = await response.json();
 
@@ -801,7 +830,7 @@ const SubmitModuleManager = (function() {
             showErrorState(error.message);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
+            clearEditState();
         }
     }
 
@@ -815,7 +844,11 @@ const SubmitModuleManager = (function() {
                 document.querySelectorAll('.submit-tab-content').forEach(function(c) { c.style.display = 'none'; });
                 var panel = document.getElementById('tab-' + target);
                 if (panel) panel.style.display = '';
-                if (target === 'my-modules') loadMyModules();
+                if (target === 'my-modules') {
+                    loadMyModules();
+                } else if (target === 'submit') {
+                    clearEditState();
+                }
             });
         });
     }
@@ -835,7 +868,7 @@ const SubmitModuleManager = (function() {
             if (data.error) throw new Error(data.error);
 
             if (!data.modules || data.modules.length === 0) {
-                container.innerHTML = '<div class="my-modules-empty"><i class="fas fa-box-open"></i><p data-i18n="manage.empty">' + I18n.t('manage.empty') + '</p></div>';
+                container.innerHTML = '<div class="my-modules-empty"><i class="fas fa-box-open"></i><p>' + I18n.t('manage.empty') + '</p><p class="my-modules-hint">' + I18n.t('manage.cacheHint') + '</p></div>';
                 return;
             }
 
@@ -843,22 +876,18 @@ const SubmitModuleManager = (function() {
             data.modules.forEach(function(mod) {
                 var item = document.createElement('div');
                 item.className = 'my-module-item';
-                var statusBadge = mod.hidden
-                    ? '<span class="my-module-badge badge-hidden">' + I18n.t('manage.statusHidden') + '</span>'
-                    : (mod.verified
-                        ? '<span class="my-module-badge badge-verified">' + I18n.t('manage.statusVerified') + '</span>'
-                        : '<span class="my-module-badge badge-pending">' + I18n.t('manage.statusPending') + '</span>');
+                var statusBadge = mod.verified
+                    ? '<span class="my-module-badge badge-verified">' + I18n.t('manage.statusVerified') + '</span>'
+                    : '<span class="my-module-badge badge-pending">' + I18n.t('manage.statusPending') + '</span>';
 
+                var modJson = encodeURIComponent(JSON.stringify(mod));
                 item.innerHTML = '<div class="my-module-info">' +
                     '<div class="my-module-name">' + mod.name + ' ' + statusBadge + '</div>' +
                     '<div class="my-module-desc">' + (mod.description || '') + '</div>' +
                     '<div class="my-module-meta">' + mod.type + ' · ' + (mod.package || '') + '</div>' +
                 '</div>' +
                 '<div class="my-module-actions">' +
-                    (mod.hidden
-                        ? '<button class="btn btn-outline btn-sm" data-action="unhide" data-name="' + mod.name + '" data-type="' + mod.type + '">' + I18n.t('manage.unhide') + '</button>'
-                        : '<button class="btn btn-outline btn-sm" data-action="hide" data-name="' + mod.name + '" data-type="' + mod.type + '">' + I18n.t('manage.hide') + '</button>'
-                    ) +
+                    '<button class="btn btn-outline btn-sm btn-edit" data-action="edit" data-mod="' + modJson + '">' + I18n.t('manage.edit') + '</button>' +
                     '<button class="btn btn-outline btn-sm btn-danger" data-action="delete" data-name="' + mod.name + '" data-type="' + mod.type + '">' + I18n.t('manage.delete') + '</button>' +
                 '</div>';
                 container.appendChild(item);
@@ -866,12 +895,49 @@ const SubmitModuleManager = (function() {
 
             container.querySelectorAll('[data-action]').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    handleManageAction(btn.getAttribute('data-action'), btn.getAttribute('data-name'), btn.getAttribute('data-type'));
+                    var action = btn.getAttribute('data-action');
+                    if (action === 'edit') {
+                        var mod = JSON.parse(decodeURIComponent(btn.getAttribute('data-mod')));
+                        startEditModule(mod);
+                    } else {
+                        handleManageAction(action, btn.getAttribute('data-name'), btn.getAttribute('data-type'));
+                    }
                 });
             });
         } catch (e) {
             container.innerHTML = '<div class="my-modules-error"><p>' + (e.message || I18n.t('manage.loadFailed')) + '</p></div>';
         }
+    }
+
+    var editingModule = null;
+
+    function startEditModule(mod) {
+        editingModule = mod;
+        document.querySelectorAll('.submit-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelector('.submit-tab[data-tab="submit"]').classList.add('active');
+        document.querySelectorAll('.submit-tab-content').forEach(function(c) { c.style.display = 'none'; });
+        document.getElementById('tab-submit').style.display = '';
+
+        document.getElementById('submit-type').value = mod.type;
+        document.getElementById('submit-name').value = mod.name;
+        document.getElementById('submit-name').readOnly = true;
+        document.getElementById('submit-package').value = mod.package || '';
+        document.getElementById('submit-description').value = mod.description || '';
+        document.getElementById('submit-author').value = mod.author || '';
+        document.getElementById('submit-repository').value = mod.repository || '';
+        document.getElementById('submit-min-sdk').value = '';
+        document.getElementById('submit-tags').value = '';
+
+        var submitBtn = document.getElementById('submit-confirm-btn');
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> <span>' + I18n.t('manage.saveEdit') + '</span>';
+    }
+
+    function clearEditState() {
+        editingModule = null;
+        var nameInput = document.getElementById('submit-name');
+        if (nameInput) nameInput.readOnly = false;
+        var submitBtn = document.getElementById('submit-confirm-btn');
+        if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>' + I18n.t('submit.submitBtn') + '</span>';
     }
 
     async function handleManageAction(action, name, type) {
