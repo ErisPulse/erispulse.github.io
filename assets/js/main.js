@@ -648,7 +648,7 @@ const SubmitModuleManager = (function() {
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', providerConfig.scope);
         authUrl.searchParams.set('state', 'erispulse-submit:' + provider);
-        if (provider === 'yunhu') {
+        if (provider === 'yunhu' || provider === 'codeberg') {
             authUrl.searchParams.set('response_type', 'code');
         }
         window.location.href = authUrl.toString();
