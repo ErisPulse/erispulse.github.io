@@ -520,8 +520,11 @@ async function handleMyModules(request) {
                         package: info.package,
                         description: info.description,
                         author: info.author,
+                        repository: info.repository || '',
                         verified: info.verified || false,
                         official: info.official || false,
+                        min_sdk_version: info.min_sdk_version || '',
+                        tags: info.tags || [],
                     });
                 }
             }

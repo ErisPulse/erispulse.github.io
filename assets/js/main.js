@@ -925,8 +925,8 @@ const SubmitModuleManager = (function() {
         document.getElementById('submit-description').value = mod.description || '';
         document.getElementById('submit-author').value = mod.author || '';
         document.getElementById('submit-repository').value = mod.repository || '';
-        document.getElementById('submit-min-sdk').value = '';
-        document.getElementById('submit-tags').value = '';
+        document.getElementById('submit-min-sdk').value = mod.min_sdk_version || '';
+        document.getElementById('submit-tags').value = (mod.tags || []).join(',');
 
         var submitBtn = document.getElementById('submit-confirm-btn');
         submitBtn.innerHTML = '<i class="fas fa-save"></i> <span>' + I18n.t('manage.saveEdit') + '</span>';
