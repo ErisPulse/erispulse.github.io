@@ -82,9 +82,9 @@ const CONFIG = {
     API: {
         contributors: 'https://api.github.com/repos/ErisPulse/ErisPulse/contributors',
         packages: 'https://erisdev.com/packages.json',
-        oauthToken: 'https://www.erisdev.com/api/oauth-token',
-        submitModule: 'https://www.erisdev.com/api/submit-module',
-        checkPyPI: 'https://www.erisdev.com/api/check-pypi',
+        oauthToken: 'https://erisdev.com/api/oauth-token',
+        submitModule: 'https://erisdev.com/api/submit-module',
+        checkPyPI: 'https://erisdev.com/api/check-pypi',
     },
 
         OAUTH_PROVIDERS: {
@@ -557,7 +557,7 @@ const SubmitModuleManager = (function() {
             openSubmitModal();
          } catch (error) {
              console.error('OAuth failed:', error);
-             showMessage(I18n.t('submit.loginFailed'), 'error');
+             ErisPulseApp.showMessage(I18n.t('submit.loginFailed'), 'error');
         }
     }
 
@@ -641,7 +641,7 @@ const SubmitModuleManager = (function() {
     function startOAuthLogin(provider) {
         var providerConfig = CONFIG.OAUTH_PROVIDERS[provider];
         if (!providerConfig || !providerConfig.clientId) {
-            showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
+            ErisPulseApp.showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
             return;
         }
 
@@ -3384,7 +3384,8 @@ const ErisPulseApp = (function () {
         showDocsModal: showDocsModal,
         clearToc: clearToc,
         moveTocToSidebar: moveTocToSidebar,
-        setupHomeAnimations: setupHomeAnimations
+        setupHomeAnimations: setupHomeAnimations,
+        showMessage: showMessage
     };
 })();
 
