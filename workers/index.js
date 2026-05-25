@@ -522,7 +522,6 @@ async function handleMyModules(request) {
                         author: info.author,
                         verified: info.verified || false,
                         official: info.official || false,
-                        hidden: info.hidden || false,
                     });
                 }
             }
@@ -536,7 +535,8 @@ async function handleMyModules(request) {
 
 async function handleManageModule(request) {
     try {
-        const { action, name, type, access_token, provider } = await request.json();
+        const body_data = await request.json();
+        const { action, name, type, access_token, provider } = body_data;
         if (!action || !name || !type) {
             return jsonResponse({ error: 'Missing required parameters' }, 400);
         }
@@ -546,7 +546,7 @@ async function handleManageModule(request) {
             return jsonResponse({ error: 'Authentication required' }, 401);
         }
 
-        const validActions = ['delete', 'hide', 'unhide'];
+        const validActions = ['delete', 'edit'];
         if (!validActions.includes(action)) {
             return jsonResponse({ error: `Invalid action: ${action}` }, 400);
         }
@@ -554,6 +554,36 @@ async function handleManageModule(request) {
         const token = typeof GITHUB_ACTIONS_TOKEN !== 'undefined' ? GITHUB_ACTIONS_TOKEN : '';
         if (!token) {
             return jsonResponse({ error: 'GitHub Actions token not configured' }, 500);
+        }
+
+        let payload;
+        if (action === 'edit') {
+            const editData = body_data.edit_data || {};
+            const pypiResult = await checkPyPI(editData.package || '');
+            payload = {
+                event_type: 'manage_module',
+                client_payload: {
+                    action: 'edit',
+                    name: name,
+                    type: type,
+                    uid: verifiedUser.uid,
+                    edit_data: JSON.stringify({
+                        package: editData.package || '',
+                        description: editData.description || '',
+                        author: editData.author || '',
+                        repository: editData.repository || '',
+                        min_sdk_version: editData.min_sdk_version || '',
+                        tags: JSON.stringify(editData.tags || []),
+                        version: pypiResult.exists ? pypiResult.version : (editData.version || '0.0.0'),
+                        submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
+                    }),
+                },
+            };
+        } else {
+            payload = {
+                event_type: 'manage_module',
+                client_payload: { action, name, type, uid: verifiedUser.uid },
+            };
         }
 
         const dispatchResponse = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse-ModuleRepo/dispatches', {
@@ -564,10 +594,7 @@ async function handleManageModule(request) {
                 'Content-Type': 'application/json',
                 'User-Agent': 'ErisPulse-Worker',
             },
-            body: JSON.stringify({
-                event_type: 'manage_module',
-                client_payload: { action, name, type, uid: verifiedUser.uid },
-            }),
+            body: JSON.stringify(payload),
         });
 
         if (!dispatchResponse.ok) {
