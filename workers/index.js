@@ -253,9 +253,11 @@ async function handleOAuthToken(request) {
             }).toString();
         } else {
             tokenBody = JSON.stringify({
+                grant_type: 'authorization_code',
                 client_id: clientId,
                 client_secret: clientSecret,
                 code: code,
+                redirect_uri: redirectUri,
             });
         }
 
