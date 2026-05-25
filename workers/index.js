@@ -178,6 +178,14 @@ async function handleRequest(request) {
         }
     }
 
+    if (path === '/api/my-modules' && request.method === 'POST') {
+        return handleMyModules(request);
+    }
+
+    if (path === '/api/manage-module' && request.method === 'POST') {
+        return handleManageModule(request);
+    }
+
     let response;
 
     if (path === '/packages.json' || path === '/packages' || path === '/packages.json/') {
@@ -318,33 +326,59 @@ async function handleOAuthToken(request) {
     }
 }
 
+async function verifyUser(provider, accessToken) {
+    const providerKey = (provider || '').toLowerCase();
+    const config = OAUTH_PROVIDERS[providerKey];
+    if (!config || !config.userInfoUrl || !accessToken) {
+        return null;
+    }
+
+    const headers = { 'Accept': 'application/json' };
+    if (providerKey === 'yunhu') {
+        headers['Authorization'] = 'Bearer ' + accessToken;
+    } else {
+        headers['Authorization'] = 'token ' + accessToken;
+    }
+
+    try {
+        const resp = await fetch(config.userInfoUrl, { headers });
+        if (!resp.ok) return null;
+        const data = await resp.json();
+
+        let uid, login, name, avatar_url;
+        if (providerKey === 'github') {
+            uid = 'github:' + data.id;
+            login = data.login;
+            name = data.name || data.login;
+            avatar_url = data.avatar_url;
+        } else if (providerKey === 'codeberg') {
+            uid = 'codeberg:' + data.id;
+            login = data.login;
+            name = data.full_name || data.login;
+            avatar_url = data.avatar_url;
+        } else if (providerKey === 'yunhu') {
+            uid = 'yunhu:' + data.user_id;
+            login = data.nickname || String(data.user_id);
+            name = data.nickname || String(data.user_id);
+            avatar_url = data.avatar_url || '';
+        } else {
+            return null;
+        }
+
+        return { uid, login, name, avatar_url, provider: providerKey };
+    } catch (e) {
+        return null;
+    }
+}
+
 async function handleUserInfo(request) {
     try {
         const { provider, access_token } = await request.json();
-        if (!access_token || !provider) {
-            return jsonResponse({ error: 'Missing provider or access_token' }, 400);
+        const user = await verifyUser(provider, access_token);
+        if (!user) {
+            return jsonResponse({ error: 'User verification failed' }, 401);
         }
-
-        const providerKey = provider.toLowerCase();
-        const config = OAUTH_PROVIDERS[providerKey];
-        if (!config || !config.userInfoUrl) {
-            return jsonResponse({ error: `Unknown provider: ${providerKey}` }, 400);
-        }
-
-        const headers = { 'Accept': 'application/json' };
-        if (providerKey === 'yunhu') {
-            headers['Authorization'] = 'Bearer ' + access_token;
-        } else {
-            headers['Authorization'] = 'token ' + access_token;
-        }
-
-        const userInfoResponse = await fetch(config.userInfoUrl, { headers });
-        if (!userInfoResponse.ok) {
-            return jsonResponse({ error: 'Failed to fetch user info' }, userInfoResponse.status);
-        }
-
-        const data = await userInfoResponse.json();
-        return jsonResponse(data);
+        return jsonResponse(user);
     } catch (error) {
         return jsonResponse({ error: 'User info fetch failed', message: error.message }, 500);
     }
@@ -359,6 +393,11 @@ async function handleSubmitModule(request) {
             if (!submission[field]) {
                 return jsonResponse({ error: `Missing required field: ${field}` }, 400);
             }
+        }
+
+        const verifiedUser = await verifyUser(submission.oauth_provider, submission.access_token);
+        if (!verifiedUser) {
+            return jsonResponse({ error: 'Authentication required', code: 'AUTH_FAILED' }, 401);
         }
 
         const validTypes = ['module', 'adapter'];
@@ -383,8 +422,7 @@ async function handleSubmitModule(request) {
             }, 400);
         }
 
-        const submittedBy = submission.submitted_by || '';
-        const rateLimitResult = await checkRateLimit(submittedBy);
+        const rateLimitResult = await checkRateLimit(verifiedUser.uid);
         if (!rateLimitResult.allowed) {
             return jsonResponse({
                 error: `Rate limit exceeded. You have already submitted ${rateLimitResult.count} modules today. Maximum is ${MAX_DAILY_SUBMISSIONS} per day.`,
@@ -417,7 +455,9 @@ async function handleSubmitModule(request) {
                     repository: submission.repository,
                     min_sdk_version: submission.min_sdk_version || '',
                     tags: submission.tags || [],
-                    submitted_by: submittedBy,
+                    submitted_by: verifiedUser.name,
+                    submitted_by_uid: verifiedUser.uid,
+                    oauth_provider: verifiedUser.provider,
                 },
             }),
         });
@@ -427,11 +467,100 @@ async function handleSubmitModule(request) {
             return jsonResponse({ error: 'Failed to trigger workflow', details: errorBody }, 502);
         }
 
-        await recordSubmission(submittedBy);
+        await recordSubmission(verifiedUser.uid);
 
         return jsonResponse({ success: true, message: 'Module submission received and processing' });
     } catch (error) {
         return jsonResponse({ error: 'Submission processing failed', message: error.message }, 500);
+    }
+}
+
+async function handleMyModules(request) {
+    try {
+        const { access_token, provider } = await request.json();
+        const verifiedUser = await verifyUser(provider, access_token);
+        if (!verifiedUser) {
+            return jsonResponse({ error: 'Authentication required' }, 401);
+        }
+
+        const pkgResponse = await fetch('https://raw.githubusercontent.com/ErisPulse/ErisPulse-ModuleRepo/2x/packages.json', {
+            cf: { cacheEverything: true, cacheTtl: 300 }
+        });
+        if (!pkgResponse.ok) {
+            return jsonResponse({ error: 'Failed to fetch packages.json' }, 500);
+        }
+
+        const packages = await pkgResponse.json();
+        const results = [];
+
+        for (const cat of ['modules', 'adapters']) {
+            const items = packages[cat] || {};
+            for (const [name, info] of Object.entries(items)) {
+                if (info.submitted_by_uid === verifiedUser.uid) {
+                    results.push({
+                        name,
+                        type: cat === 'modules' ? 'module' : 'adapter',
+                        package: info.package,
+                        description: info.description,
+                        author: info.author,
+                        verified: info.verified || false,
+                        official: info.official || false,
+                        hidden: info.hidden || false,
+                    });
+                }
+            }
+        }
+
+        return jsonResponse({ modules: results });
+    } catch (error) {
+        return jsonResponse({ error: 'Failed to fetch my modules', message: error.message }, 500);
+    }
+}
+
+async function handleManageModule(request) {
+    try {
+        const { action, name, type, access_token, provider } = await request.json();
+        if (!action || !name || !type) {
+            return jsonResponse({ error: 'Missing required parameters' }, 400);
+        }
+
+        const verifiedUser = await verifyUser(provider, access_token);
+        if (!verifiedUser) {
+            return jsonResponse({ error: 'Authentication required' }, 401);
+        }
+
+        const validActions = ['delete', 'hide', 'unhide'];
+        if (!validActions.includes(action)) {
+            return jsonResponse({ error: `Invalid action: ${action}` }, 400);
+        }
+
+        const token = typeof GITHUB_ACTIONS_TOKEN !== 'undefined' ? GITHUB_ACTIONS_TOKEN : '';
+        if (!token) {
+            return jsonResponse({ error: 'GitHub Actions token not configured' }, 500);
+        }
+
+        const dispatchResponse = await fetch('https://api.github.com/repos/ErisPulse/ErisPulse-ModuleRepo/dispatches', {
+            method: 'POST',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+                'User-Agent': 'ErisPulse-Worker',
+            },
+            body: JSON.stringify({
+                event_type: 'manage_module',
+                client_payload: { action, name, type, uid: verifiedUser.uid },
+            }),
+        });
+
+        if (!dispatchResponse.ok) {
+            const errorBody = await dispatchResponse.text();
+            return jsonResponse({ error: 'Failed to trigger workflow', details: errorBody }, 502);
+        }
+
+        return jsonResponse({ success: true, message: `Module ${action} request received` });
+    } catch (error) {
+        return jsonResponse({ error: 'Manage module failed', message: error.message }, 500);
     }
 }
 
