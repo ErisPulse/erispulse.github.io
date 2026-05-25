@@ -77,8 +77,9 @@ const I18n = (function () {
 
             // 提交模块
             'submit.title': '提交模块',
-            'submit.loginTitle': '使用 GitHub 登录',
+            'submit.loginTitle': '选择登录方式',
             'submit.loginDesc': '登录后即可提交您的模块到 ErisPulse 生态系统',
+            'submit.loginYunhu': '云湖',
             'submit.loginBtn': 'GitHub 登录',
             'submit.logout': '退出登录',
             'submit.type': '提交类型',
@@ -106,7 +107,8 @@ const I18n = (function () {
             'submit.submitAnother': '继续提交',
             'submit.errorTitle': '提交失败',
             'submit.retryBtn': '重试',
-            'submit.loginFailed': 'GitHub 登录失败，请重试',
+            'submit.loginFailed': '登录失败，请重试',
+            'submit.loginFailedAll': '登录失败，请重试',
             'submit.oauthNotConfigured': 'GitHub 登录暂未配置，请联系管理员',
             'submit.unknownError': '未知错误',
 
@@ -275,8 +277,9 @@ const I18n = (function () {
 
             // 提交模块
             'submit.title': 'Submit Module',
-            'submit.loginTitle': 'Sign in with GitHub',
+            'submit.loginTitle': 'Choose a login method',
             'submit.loginDesc': 'Sign in to submit your module to the ErisPulse ecosystem',
+            'submit.loginYunhu': 'Yunhu',
             'submit.loginBtn': 'Sign in with GitHub',
             'submit.logout': 'Sign Out',
             'submit.type': 'Submission Type',
@@ -304,7 +307,7 @@ const I18n = (function () {
             'submit.submitAnother': 'Submit Another',
             'submit.errorTitle': 'Submission Failed',
             'submit.retryBtn': 'Retry',
-            'submit.loginFailed': 'GitHub login failed, please try again',
+            'submit.loginFailed': 'Login failed, please try again',
             'submit.oauthNotConfigured': 'GitHub login is not configured, please contact admin',
             'submit.unknownError': 'Unknown error',
 
@@ -472,8 +475,9 @@ const I18n = (function () {
 
             // 提交模組
             'submit.title': '提交模組',
-            'submit.loginTitle': '使用 GitHub 登入',
+            'submit.loginTitle': '選擇登入方式',
             'submit.loginDesc': '登入後即可提交您的模組到 ErisPulse 生態系統',
+            'submit.loginYunhu': '雲湖',
             'submit.loginBtn': 'GitHub 登入',
             'submit.logout': '登出',
             'submit.type': '提交類型',
@@ -501,7 +505,7 @@ const I18n = (function () {
             'submit.submitAnother': '繼續提交',
             'submit.errorTitle': '提交失敗',
             'submit.retryBtn': '重試',
-            'submit.loginFailed': 'GitHub 登入失敗，請重試',
+            'submit.loginFailed': '登入失敗，請重試',
             'submit.oauthNotConfigured': 'GitHub 登入暫未配置，請聯絡管理員',
             'submit.unknownError': '未知錯誤',
 

@@ -2,7 +2,6 @@ addEventListener('fetch', event => {
     event.respondWith(handleRequest(event.request))
 })
 
-const PURGE_PASSWORD = 'your_secure_password_here';
 const ALLOWED_ORIGIN = 'https://www.erisdev.com';
 const SUBMIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const MAX_DAILY_SUBMISSIONS = 3;
@@ -131,8 +130,8 @@ async function handleRequest(request) {
         return Response.redirect('https://www.erisdev.com', 301);
     }
 
-    if (path === '/api/github-token' && request.method === 'POST') {
-        return handleGitHubToken(request);
+    if (path === '/api/oauth-token' && request.method === 'POST') {
+        return handleOAuthToken(request);
     }
 
     if (path === '/api/check-pypi' && request.method === 'GET') {
@@ -165,7 +164,7 @@ async function handleRequest(request) {
         });
     } else if (path.startsWith('/purge-cache/')) {
         const password = path.split('/')[2];
-        if (password === PURGE_PASSWORD) {
+        if (password === globalThis.PURGE_PASSWORD) {
             response = await purgeCache();
         } else {
             response = new Response(JSON.stringify({ error: 'Unauthorized', message: 'Invalid password' }), {
@@ -187,40 +186,100 @@ async function handleRequest(request) {
     return response;
 }
 
-async function handleGitHubToken(request) {
+const OAUTH_PROVIDERS = {
+    github: {
+        tokenUrl: 'https://github.com/login/oauth/access_token',
+        tokenMethod: 'POST',
+        tokenContentType: 'application/json',
+        tokenAccept: 'application/json',
+        userInfoUrl: 'https://api.github.com/user',
+        envClientId: 'GITHUB_CLIENT_ID',
+        envClientSecret: 'GITHUB_CLIENT_SECRET',
+    },
+    codeberg: {
+        tokenUrl: 'https://codeberg.org/login/oauth/access_token',
+        tokenMethod: 'POST',
+        tokenContentType: 'application/json',
+        tokenAccept: 'application/json',
+        userInfoUrl: 'https://codeberg.org/api/v1/user',
+        envClientId: 'CODEBERG_CLIENT_ID',
+        envClientSecret: 'CODEBERG_CLIENT_SECRET',
+    },
+    yunhu: {
+        tokenUrl: 'https://oauth2.jwzhd.com/oauth/token',
+        tokenMethod: 'POST',
+        tokenContentType: 'application/x-www-form-urlencoded',
+        tokenAccept: 'application/json',
+        userInfoUrl: 'https://oauth2.jwzhd.com/api/userinfo',
+        envClientId: 'YUNHU_CLIENT_ID',
+        envClientSecret: 'YUNHU_CLIENT_SECRET',
+        redirectUri: 'https://www.erisdev.com/#market',
+    },
+};
+
+async function handleOAuthToken(request) {
     try {
-        const { code } = await request.json();
+        const { provider, code } = await request.json();
         if (!code) {
             return jsonResponse({ error: 'Missing code parameter' }, 400);
         }
 
-        const clientId = typeof GITHUB_CLIENT_ID !== 'undefined' ? GITHUB_CLIENT_ID : '';
-        const clientSecret = typeof GITHUB_CLIENT_SECRET !== 'undefined' ? GITHUB_CLIENT_SECRET : '';
-
-        if (!clientId || !clientSecret) {
-            return jsonResponse({ error: 'GitHub OAuth not configured' }, 500);
+        const providerKey = (provider || 'github').toLowerCase();
+        const config = OAUTH_PROVIDERS[providerKey];
+        if (!config) {
+            return jsonResponse({ error: `Unknown OAuth provider: ${providerKey}` }, 400);
         }
 
-        const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
+        const clientId = typeof globalThis[config.envClientId] !== 'undefined' ? globalThis[config.envClientId] : '';
+        const clientSecret = typeof globalThis[config.envClientSecret] !== 'undefined' ? globalThis[config.envClientSecret] : '';
+
+        if (!clientId || !clientSecret) {
+            return jsonResponse({ error: `${providerKey} OAuth not configured` }, 500);
+        }
+
+        let tokenBody;
+        const redirectUri = config.redirectUri || 'https://www.erisdev.com/';
+        if (config.tokenContentType === 'application/x-www-form-urlencoded') {
+            tokenBody = new URLSearchParams({
+                grant_type: 'authorization_code',
+                code: code,
+                redirect_uri: redirectUri,
+                client_id: clientId,
+                client_secret: clientSecret,
+            }).toString();
+        } else {
+            tokenBody = JSON.stringify({
                 client_id: clientId,
                 client_secret: clientSecret,
                 code: code,
-            }),
+            });
+        }
+
+        const tokenResponse = await fetch(config.tokenUrl, {
+            method: config.tokenMethod,
+            headers: {
+                'Content-Type': config.tokenContentType,
+                'Accept': config.tokenAccept,
+            },
+            body: tokenBody,
         });
 
-        const tokenData = await tokenResponse.json();
+        let tokenData;
+        const respText = await tokenResponse.text();
+        try {
+            tokenData = JSON.parse(respText);
+        } catch (e) {
+            tokenData = Object.fromEntries(new URLSearchParams(respText));
+        }
 
         if (tokenData.error) {
             return jsonResponse({ error: tokenData.error_description || tokenData.error }, 400);
         }
 
-        return jsonResponse({ access_token: tokenData.access_token });
+        return jsonResponse({
+            access_token: tokenData.access_token,
+            provider: providerKey,
+        });
     } catch (error) {
         return jsonResponse({ error: 'Token exchange failed', message: error.message }, 500);
     }

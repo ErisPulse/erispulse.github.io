@@ -38,7 +38,7 @@ const CONFIG = {
             name: 'Codeberg',
             url: 'https://codeberg.org',
             description: '自由、开源的代码托管社区',
-            icon: 'fas fa-code-branch'
+            icon: 'assets/img/codeberg.svg'
         }
     ],
 
@@ -85,12 +85,36 @@ const CONFIG = {
         githubToken: 'https://erisdev.com/api/github-token',
         submitModule: 'https://erisdev.com/api/submit-module',
         checkPyPI: 'https://erisdev.com/api/check-pypi',
-        githubUser: 'https://api.github.com/user'
     },
 
-    GITHUB_OAUTH: {
-        clientId: 'Ov23lioo2vSXXnRcDixA',
-        scope: 'read:user,user:email'
+        OAUTH_PROVIDERS: {
+        github: {
+            clientId: 'Ov23lioo2vSXXnRcDixA',
+            authUrl: 'https://github.com/login/oauth/authorize',
+            redirectUri: null,
+            scope: 'read:user,user:email',
+            userInfoUrl: 'https://api.github.com/user',
+            userInfoHeaders: function(token) { return { 'Authorization': 'token ' + token }; },
+            parseUser: function(data) { return { login: data.login, avatar_url: data.avatar_url, name: data.name || data.login }; }
+        },
+        codeberg: {
+            clientId: '182590e7-41fd-4242-835f-f407bd112f8c',
+            authUrl: 'https://codeberg.org/login/oauth/authorize',
+            redirectUri: null,
+            scope: 'read:user',
+            userInfoUrl: 'https://codeberg.org/api/v1/user',
+            userInfoHeaders: function(token) { return { 'Authorization': 'token ' + token }; },
+            parseUser: function(data) { return { login: data.login, avatar_url: data.avatar_url, name: data.full_name || data.login }; }
+        },
+        yunhu: {
+            clientId: 'DmqnwUGFrLVkmykgeAJXzYBJqd8hM_ga',
+            authUrl: 'https://oauth2.jwzhd.com/oauth/authorize',
+            redirectUri: 'https://www.erisdev.com/#market',
+            scope: 'profile',
+            userInfoUrl: 'https://oauth2.jwzhd.com/api/userinfo',
+            userInfoHeaders: function(token) { return { 'Authorization': 'Bearer ' + token }; },
+            parseUser: function(data) { return { login: data.nickname || String(data.user_id), avatar_url: data.avatar_url, name: data.nickname || String(data.user_id) }; }
+        }
     }
 };
 
@@ -458,7 +482,7 @@ const DocsIndexManager = (function() {
 
 // ==================== 提交模块管理器 ====================
 const SubmitModuleManager = (function() {
-    const STORAGE_KEY = 'erispulse-github-auth';
+    const STORAGE_KEY = 'erispulse-oauth-auth';
     let authState = null;
 
     function init() {
@@ -492,43 +516,47 @@ const SubmitModuleManager = (function() {
     }
 
     function setupOAuthCallback() {
-        const url = new URL(window.location.href);
-        const code = url.searchParams.get('code');
-        const state = url.searchParams.get('state');
+        var url = new URL(window.location.href);
+        var code = url.searchParams.get('code');
+        var state = url.searchParams.get('state');
 
-        if (code && state === 'erispulse-submit') {
+        if (code && state && state.indexOf('erispulse-submit') === 0) {
+            var provider = state.split(':')[1] || 'github';
+
             url.searchParams.delete('code');
             url.searchParams.delete('state');
+            url.hash = '#market';
             window.history.replaceState({}, '', url.toString());
 
-            exchangeCodeForToken(code);
+            exchangeCodeForToken(code, provider);
         }
     }
 
-    async function exchangeCodeForToken(code) {
+    async function exchangeCodeForToken(code, provider) {
         try {
-            const response = await fetch(CONFIG.API.githubToken, {
+            var response = await fetch(CONFIG.API.githubToken, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
+                body: JSON.stringify({ provider: provider, code: code })
             });
 
-            const data = await response.json();
+            var data = await response.json();
             if (data.error) {
                 throw new Error(data.error);
             }
 
             authState = {
                 accessToken: data.access_token,
+                provider: provider,
                 user: null,
                 expiresAt: Date.now() + 3600000
             };
 
             await fetchUserInfo();
             saveAuthState();
-            showFormState();
-        } catch (error) {
-            console.error('GitHub OAuth failed:', error);
+            openSubmitModal();
+         } catch (error) {
+            console.error('OAuth failed:', error);
             if (typeof ErisPulseApp !== 'undefined') {
                 ErisPulseApp.showMessage(I18n.t('submit.loginFailed'), 'error');
             }
@@ -538,13 +566,18 @@ const SubmitModuleManager = (function() {
     async function fetchUserInfo() {
         if (!authState || !authState.accessToken) return;
 
+        var provider = authState.provider || 'github';
+        var providerConfig = CONFIG.OAUTH_PROVIDERS[provider];
+        if (!providerConfig) return;
+
         try {
-            const response = await fetch(CONFIG.API.githubUser, {
-                headers: { 'Authorization': `token ${authState.accessToken}` }
+            var response = await fetch(providerConfig.userInfoUrl, {
+                headers: providerConfig.userInfoHeaders(authState.accessToken)
             });
 
             if (response.ok) {
-                authState.user = await response.json();
+                var rawData = await response.json();
+                authState.user = providerConfig.parseUser(rawData);
             }
         } catch (e) {
             console.error('Failed to fetch user info:', e);
@@ -552,19 +585,18 @@ const SubmitModuleManager = (function() {
     }
 
     function setupSubmitButton() {
-        const btn = document.getElementById('submit-module-btn');
+        var btn = document.getElementById('submit-module-btn');
         if (btn) {
             btn.addEventListener('click', openSubmitModal);
         }
     }
 
     function setupModalEvents() {
-        const modal = document.getElementById('submit-module-modal');
-        const closeBtn = document.getElementById('close-submit-modal');
-        const loginBtn = document.getElementById('github-login-btn');
-        const logoutBtn = document.getElementById('github-logout-btn');
-        const anotherBtn = document.getElementById('submit-another-btn');
-        const retryBtn = document.getElementById('submit-retry-btn');
+        var modal = document.getElementById('submit-module-modal');
+        var closeBtn = document.getElementById('close-submit-modal');
+        var logoutBtn = document.getElementById('github-logout-btn');
+        var anotherBtn = document.getElementById('submit-another-btn');
+        var retryBtn = document.getElementById('submit-retry-btn');
 
         if (closeBtn) {
             closeBtn.addEventListener('click', closeModal);
@@ -574,9 +606,14 @@ const SubmitModuleManager = (function() {
                 if (e.target === modal) closeModal();
             });
         }
-        if (loginBtn) {
-            loginBtn.addEventListener('click', startGitHubLogin);
-        }
+
+        document.querySelectorAll('[data-provider]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var provider = this.getAttribute('data-provider');
+                startOAuthLogin(provider);
+            });
+        });
+
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function() {
                 logout();
@@ -597,30 +634,35 @@ const SubmitModuleManager = (function() {
     }
 
     function setupFormSubmission() {
-        const form = document.getElementById('submit-module-form');
+        var form = document.getElementById('submit-module-form');
         if (form) {
             form.addEventListener('submit', handleSubmit);
         }
     }
 
-    function startGitHubLogin() {
-        if (!CONFIG.GITHUB_OAUTH.clientId) {
+    function startOAuthLogin(provider) {
+        var providerConfig = CONFIG.OAUTH_PROVIDERS[provider];
+        if (!providerConfig || !providerConfig.clientId) {
             if (typeof ErisPulseApp !== 'undefined') {
                 ErisPulseApp.showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
             }
             return;
         }
 
-        const authUrl = new URL('https://github.com/login/oauth/authorize');
-        authUrl.searchParams.set('client_id', CONFIG.GITHUB_OAUTH.clientId);
-        authUrl.searchParams.set('redirect_uri', window.location.origin + '/');
-        authUrl.searchParams.set('scope', CONFIG.GITHUB_OAUTH.scope);
-        authUrl.searchParams.set('state', 'erispulse-submit');
+        var authUrl = new URL(providerConfig.authUrl);
+        authUrl.searchParams.set('client_id', providerConfig.clientId);
+        var redirectUri = providerConfig.redirectUri || (window.location.origin + '/');
+        authUrl.searchParams.set('redirect_uri', redirectUri);
+        authUrl.searchParams.set('scope', providerConfig.scope);
+        authUrl.searchParams.set('state', 'erispulse-submit:' + provider);
+        if (provider === 'yunhu') {
+            authUrl.searchParams.set('response_type', 'code');
+        }
         window.location.href = authUrl.toString();
     }
 
     function openSubmitModal() {
-        const modal = document.getElementById('submit-module-modal');
+        var modal = document.getElementById('submit-module-modal');
         if (!modal) return;
 
         modal.classList.add('active');
@@ -634,7 +676,7 @@ const SubmitModuleManager = (function() {
     }
 
     function closeModal() {
-        const modal = document.getElementById('submit-module-modal');
+        var modal = document.getElementById('submit-module-modal');
         if (modal) {
             modal.classList.remove('active');
             document.body.style.overflow = '';
@@ -657,9 +699,9 @@ const SubmitModuleManager = (function() {
         I18n.applyTranslations();
 
         if (authState && authState.user) {
-            document.getElementById('submit-user-avatar').src = authState.user.avatar_url;
-            document.getElementById('submit-user-name').textContent = authState.user.login;
-            document.getElementById('submit-author').value = authState.user.login;
+            document.getElementById('submit-user-avatar').src = authState.user.avatar_url || '';
+            document.getElementById('submit-user-name').textContent = authState.user.name || authState.user.login;
+            document.getElementById('submit-author').value = authState.user.name || authState.user.login;
         }
     }
 
@@ -686,11 +728,11 @@ const SubmitModuleManager = (function() {
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const submitBtn = document.getElementById('submit-confirm-btn');
+        var submitBtn = document.getElementById('submit-confirm-btn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('submit.validating') + '</span>';
 
-        const formData = {
+        var formData = {
             type: document.getElementById('submit-type').value,
             name: document.getElementById('submit-name').value.trim(),
             package: document.getElementById('submit-package').value.trim(),
@@ -698,7 +740,7 @@ const SubmitModuleManager = (function() {
             author: document.getElementById('submit-author').value.trim(),
             repository: document.getElementById('submit-repository').value.trim(),
             min_sdk_version: document.getElementById('submit-min-sdk').value.trim(),
-            tags: document.getElementById('submit-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+            tags: document.getElementById('submit-tags').value.split(',').map(function(t) { return t.trim(); }).filter(Boolean),
             submitted_by: authState && authState.user ? authState.user.login : ''
         };
 
@@ -724,8 +766,8 @@ const SubmitModuleManager = (function() {
         }
 
         try {
-            const pypiCheckResp = await fetch(CONFIG.API.checkPyPI + '?package=' + encodeURIComponent(formData.package));
-            const pypiData = await pypiCheckResp.json();
+            var pypiCheckResp = await fetch(CONFIG.API.checkPyPI + '?package=' + encodeURIComponent(formData.package));
+            var pypiData = await pypiCheckResp.json();
             if (!pypiData.exists) {
                 showErrorState(I18n.t('submit.pypiNotFound', { package: formData.package }));
                 submitBtn.disabled = false;
@@ -739,13 +781,13 @@ const SubmitModuleManager = (function() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('submit.submitting') + '</span>';
 
         try {
-            const response = await fetch(CONFIG.API.submitModule, {
+            var response = await fetch(CONFIG.API.submitModule, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
 
-            const data = await response.json();
+            var data = await response.json();
 
             if (!response.ok) {
                 if (data.code === 'RATE_LIMITED') {
@@ -1245,7 +1287,7 @@ const ErisPulseApp = (function () {
 
         const linksHtml = CONFIG.FRIEND_LINKS.map(link => `
             <a href="${link.url}" target="_blank" class="friend-link" rel="noopener noreferrer">
-                <i class="${link.icon || 'fas fa-link'}"></i>
+                ${link.icon && link.icon.endsWith('.svg') ? `<img src="${link.icon}" alt="${link.name}" class="friend-link-icon">` : `<i class="${link.icon || 'fas fa-link'}"></i>`}
                 <div class="friend-link-info">
                     <span class="friend-link-name">${link.name}</span>
                     <span class="friend-link-desc">${link.description}</span>
