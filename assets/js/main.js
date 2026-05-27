@@ -3437,53 +3437,38 @@ const ErisPulseApp = (function () {
     }
 
     function resetFeatureCards() {
-        var cards = document.querySelectorAll('.feature-spotlight-card');
-        cards.forEach(function(card) {
-            card.classList.remove('active', 'exit-left', 'exit-right', 'enter-left', 'enter-right');
-            card.style.transform = '';
-            card.style.opacity = '';
-            card.style.visibility = '';
+        var panes = document.querySelectorAll('.feature-immersive');
+        panes.forEach(function(pane) {
+            pane.classList.remove('active');
         });
-        var progressFill = document.getElementById('feature-progress-fill');
-        if (progressFill) progressFill.style.height = '0%';
     }
 
     function setupScrollDrivenFeatures() {
-        const section = document.getElementById('features-scroll-section');
-        const stage = document.getElementById('features-scroll-stage');
-        const cards = document.querySelectorAll('.feature-spotlight-card');
-        const progressFill = document.getElementById('feature-progress-fill');
-        const dotsContainer = document.getElementById('feature-progress-dots');
+        var section = document.getElementById('features-scroll-section');
+        var stage = document.getElementById('features-scroll-stage');
+        var panes = document.querySelectorAll('.feature-immersive');
+        var navContainer = document.getElementById('feature-immersive-nav');
 
-        if (!section || !stage || cards.length === 0) return;
+        if (!section || !stage || panes.length === 0) return;
 
-        const featureNames = [];
-        cards.forEach(function(card) {
-            var titleEl = card.querySelector('.spotlight-title');
-            featureNames.push(titleEl ? titleEl.textContent : '');
-        });
-
-        featureNames.forEach(function(name, i) {
-            var dot = document.createElement('div');
-            dot.className = 'feature-progress-dot' + (i === 0 ? ' active' : '');
-            dot.setAttribute('data-index', i);
-            dot.innerHTML = '<span class="feature-progress-dot-label">' + name + '</span>';
-            dot.addEventListener('click', function() {
-                var scrollStart = section.offsetTop;
-                var scrollRange = section.offsetHeight - window.innerHeight;
-                var targetProgress = i / (cards.length - 1);
-                window.scrollTo({ top: scrollStart + scrollRange * targetProgress, behavior: 'smooth' });
+        var navDotsContainer = document.getElementById('feature-immersive-nav');
+        if (navDotsContainer) {
+            navDotsContainer.innerHTML = '';
+            panes.forEach(function(_, i) {
+                var dot = document.createElement('div');
+                dot.className = 'feature-nav-dot' + (i === 0 ? ' active' : '');
+                dot.setAttribute('data-index', i);
+                dot.addEventListener('click', function() {
+                    var scrollStart = section.offsetTop;
+                    var scrollRange = section.offsetHeight - window.innerHeight;
+                    var targetProgress = i / (panes.length - 1);
+                    window.scrollTo({ top: scrollStart + scrollRange * targetProgress, behavior: 'smooth' });
+                });
+                navDotsContainer.appendChild(dot);
             });
-            dotsContainer.appendChild(dot);
-        });
+        }
 
-        // Add counter element below progress dots
-        var counterEl = document.createElement('div');
-        counterEl.className = 'feature-progress-counter';
-        counterEl.innerHTML = '<span class="current">1</span> / ' + cards.length;
-        dotsContainer.parentElement.appendChild(counterEl);
-
-        var dots = dotsContainer.querySelectorAll('.feature-progress-dot');
+        var dots = navDotsContainer ? navDotsContainer.querySelectorAll('.feature-nav-dot') : [];
         var currentActive = 0;
         var rafId = null;
 
@@ -3495,23 +3480,27 @@ const ErisPulseApp = (function () {
             var scrollEnd = rect.height - window.innerHeight;
             var scrolled = -rect.top;
 
-            if (scrolled < scrollStart || scrolled > scrollEnd) {
-                if (scrolled < scrollStart) {
-                    setActive(0);
-                    progressFill.style.height = '0%';
+            if (navContainer) {
+                if (scrolled >= scrollStart && scrolled <= scrollEnd) {
+                    navContainer.classList.add('visible');
                 } else {
-                    setActive(cards.length - 1);
-                    progressFill.style.height = '100%';
+                    navContainer.classList.remove('visible');
                 }
+            }
+
+            if (scrolled < scrollStart) {
+                setActive(0);
+                return;
+            }
+            if (scrolled > scrollEnd) {
+                setActive(panes.length - 1);
                 return;
             }
 
             var progress = scrolled / scrollEnd;
-            progressFill.style.height = (progress * 100) + '%';
-
             var featureIndex = Math.min(
-                Math.floor(progress * cards.length),
-                cards.length - 1
+                Math.floor(progress * panes.length),
+                panes.length - 1
             );
 
             setActive(featureIndex);
@@ -3519,18 +3508,19 @@ const ErisPulseApp = (function () {
 
         function setActive(index) {
             if (index === featuresPrevActive) return;
-            featuresPrevActive = index;
 
-            cards.forEach(function(card, i) {
-                card.classList.remove('active', 'exit-left', 'exit-right', 'enter-left', 'enter-right');
-
+            panes.forEach(function(pane, i) {
                 if (i === index) {
-                    card.classList.add('active');
-                    card.style.transform = 'translate(-50%, -50%)';
-                } else if (i < index) {
-                    card.classList.add('exit-left');
+                    pane.classList.remove('leaving');
+                    pane.classList.add('active');
+                } else if (pane.classList.contains('active')) {
+                    pane.classList.add('leaving');
+                    pane.classList.remove('active');
+                    setTimeout(function() {
+                        pane.classList.remove('leaving');
+                    }, 450);
                 } else {
-                    card.classList.add('exit-right');
+                    pane.classList.remove('active', 'leaving');
                 }
             });
 
@@ -3538,11 +3528,7 @@ const ErisPulseApp = (function () {
                 dot.classList.toggle('active', i === index);
             });
 
-            // Update counter
-            var counterCurrent = document.querySelector('.feature-progress-counter .current');
-            if (counterCurrent) {
-                counterCurrent.textContent = index + 1;
-            }
+            featuresPrevActive = index;
         }
 
         featuresUpdateFn = update;
@@ -3563,8 +3549,8 @@ const ErisPulseApp = (function () {
         setTimeout(update, 100);
 
         if (typeof Prism !== 'undefined') {
-            cards.forEach(function(card) {
-                var code = card.querySelector('code');
+            panes.forEach(function(pane) {
+                var code = pane.querySelector('code');
                 if (code) Prism.highlightElement(code);
             });
         }
