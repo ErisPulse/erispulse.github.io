@@ -1011,6 +1011,7 @@ const ErisPulseApp = (function () {
         renderFriendLinks();
         setupHomeAnimations();
         initBannerCarousel();
+        initInstallOverlay();
         SubmitModuleManager.init();
     }
 
@@ -1355,6 +1356,16 @@ const ErisPulseApp = (function () {
     }
 
     function updateView(view) {
+        var expanded = document.getElementById('hero-actions-expanded');
+        var startBtn = document.getElementById('hero-start-btn');
+        if (expanded && expanded.classList.contains('visible') && startBtn) {
+            expanded.classList.remove('visible');
+            setTimeout(function() {
+                startBtn.classList.remove('hidden');
+                startBtn.classList.remove('hiding');
+            }, 300);
+        }
+
         document.querySelectorAll('[data-view]').forEach(link => link.classList.remove('active'));
         if (document.querySelector(`[data-view="${view}"]`)) {
             document.querySelector(`[data-view="${view}"]`).classList.add('active');
@@ -3554,6 +3565,124 @@ const ErisPulseApp = (function () {
                 if (code) Prism.highlightElement(code);
             });
         }
+    }
+
+    // ==================== Install Overlay ====================
+    function initInstallOverlay() {
+        var startBtn = document.getElementById('hero-start-btn');
+        var expanded = document.getElementById('hero-actions-expanded');
+        var overlay = document.getElementById('hero-install-overlay');
+        var installBtn = document.getElementById('hero-install-btn');
+        var closeBtn = document.getElementById('install-overlay-close');
+        var copyBtn = document.getElementById('install-copy-btn');
+        var copyIcon = document.getElementById('install-copy-icon');
+        var codeText = document.getElementById('install-code-text');
+        var codePrefix = document.getElementById('install-code-prefix');
+        var tabs = overlay ? overlay.querySelectorAll('.install-tab') : [];
+
+        if (startBtn && expanded) {
+            function collapseExpanded() {
+                if (!expanded.classList.contains('visible')) return;
+                expanded.classList.remove('visible');
+                setTimeout(function() {
+                    startBtn.classList.remove('hidden');
+                    startBtn.classList.remove('hiding');
+                }, 300);
+            }
+
+            startBtn.addEventListener('click', function() {
+                startBtn.classList.add('hiding');
+                setTimeout(function() {
+                    startBtn.classList.add('hidden');
+                    expanded.classList.add('visible');
+                }, 300);
+            });
+
+            document.addEventListener('click', function(e) {
+                if (expanded.classList.contains('visible') &&
+                    !expanded.contains(e.target) &&
+                    e.target !== startBtn &&
+                    !startBtn.contains(e.target)) {
+                    collapseExpanded();
+                }
+            });
+        }
+
+        if (!overlay || !installBtn) return;
+
+        var commands = {
+            windows: function() { return I18n.t('install.winCmd'); },
+            unix: function() { return I18n.t('install.unixCmd'); }
+        };
+
+        function updateCommand(platform) {
+            if (!codeText || !codePrefix) return;
+            codeText.textContent = commands[platform]();
+            codeText.title = commands[platform]();
+            codePrefix.textContent = platform === 'windows' ? 'PS>' : '$';
+        }
+
+        function openOverlay(e) {
+            if (e) e.preventDefault();
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeOverlay() {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        installBtn.addEventListener('click', openOverlay);
+
+        closeBtn.addEventListener('click', closeOverlay);
+
+        overlay.querySelector('.hero-install-backdrop').addEventListener('click', closeOverlay);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                closeOverlay();
+            }
+        });
+
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                updateCommand(tab.dataset.platform);
+            });
+        });
+
+        var isWin = navigator.platform && navigator.platform.indexOf('Win') !== -1;
+        if (isWin) {
+            updateCommand('windows');
+        } else {
+            tabs[0].classList.remove('active');
+            tabs[1].classList.add('active');
+            updateCommand('unix');
+        }
+
+        copyBtn.addEventListener('click', function() {
+            var text = codeText.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text);
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            copyIcon.className = 'fas fa-check';
+            copyBtn.classList.add('copied');
+            setTimeout(function() {
+                copyIcon.className = 'fas fa-copy';
+                copyBtn.classList.remove('copied');
+            }, 2000);
+        });
     }
 
     // ==================== 公共API ====================

@@ -32,7 +32,8 @@ const I18n = (function () {
             // 首页 Hero
             'hero.subtitle': '事件驱动 · 多平台 · 一个框架搞定一切',
             'hero.start': '开始使用',
-            'hero.browse': '浏览模块',
+            'hero.docs': '文档中心',
+            'hero.browse': '模块市场',
 
             // 首页特性区
             'features.title': '核心特性',
@@ -236,7 +237,16 @@ const I18n = (function () {
             'time.daysAgo': '{n}天前',
             'time.hoursAgo': '{n}小时前',
             'time.minutesAgo': '{n}分钟前',
-            'time.secondsAgo': '{n}秒前'
+            'time.secondsAgo': '{n}秒前',
+
+            // 安装
+            'install.btn': '立即安装',
+            'install.title': '一键安装',
+            'install.desc': '自动检测环境，引导选择最适合的安装方式',
+            'install.hint': '支持 Docker、Python、uv 等多种安装方式',
+            'install.copied': '已复制!',
+            'install.winCmd': 'irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1',
+            'install.unixCmd': 'curl -fsSL https://get.erisdev.com/install.sh -o install.sh && chmod +x install.sh && ./install.sh'
         },
 
         'en': {
@@ -250,7 +260,8 @@ const I18n = (function () {
             // 首页 Hero
             'hero.subtitle': 'Event-Driven · Multi-Platform · One Framework.',
             'hero.start': 'Get Started',
-            'hero.browse': 'Browse Modules',
+            'hero.docs': 'Docs',
+            'hero.browse': 'Market',
 
             // 首页特性区
             'features.title': 'Core Features',
@@ -451,7 +462,16 @@ const I18n = (function () {
             'time.daysAgo': '{n}d ago',
             'time.hoursAgo': '{n}h ago',
             'time.minutesAgo': '{n}m ago',
-            'time.secondsAgo': '{n}s ago'
+            'time.secondsAgo': '{n}s ago',
+
+            // Install
+            'install.btn': 'Install Now',
+            'install.title': 'Quick Install',
+            'install.desc': 'Auto-detect your environment and guide you to the best install method',
+            'install.hint': 'Supports Docker, Python, uv and more',
+            'install.copied': 'Copied!',
+            'install.winCmd': 'irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1',
+            'install.unixCmd': 'curl -fsSL https://get.erisdev.com/install.sh -o install.sh && chmod +x install.sh && ./install.sh'
         },
 
         'zh-TW': {
@@ -465,7 +485,8 @@ const I18n = (function () {
             // 首页 Hero
             'hero.subtitle': '事件驅動 · 多平台 · 一個框架搞定一切',
             'hero.start': '開始使用',
-            'hero.browse': '瀏覽模組',
+            'hero.docs': '文檔中心',
+            'hero.browse': '模組市場',
 
             // 首页特性区
             'features.title': '核心特性',
@@ -665,7 +686,16 @@ const I18n = (function () {
             'time.daysAgo': '{n}天前',
             'time.hoursAgo': '{n}小時前',
             'time.minutesAgo': '{n}分鐘前',
-            'time.secondsAgo': '{n}秒前'
+            'time.secondsAgo': '{n}秒前',
+
+            // 安裝
+            'install.btn': '立即安裝',
+            'install.title': '一鍵安裝',
+            'install.desc': '自動偵測環境，引導選擇最適合的安裝方式',
+            'install.hint': '支援 Docker、Python、uv 等多種安裝方式',
+            'install.copied': '已複製!',
+            'install.winCmd': 'irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1',
+            'install.unixCmd': 'curl -fsSL https://get.erisdev.com/install.sh -o install.sh && chmod +x install.sh && ./install.sh'
         }
     };
 

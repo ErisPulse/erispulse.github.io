@@ -90,32 +90,135 @@
     display: flex;
     gap: 1rem;
     justify-content: center;
+    align-items: center;
+    min-height: 52px;
+    position: relative;
     animation: heroFadeIn 1s ease-out 0.45s backwards;
 }
 
-.hero-actions .btn {
-    padding: 0.85rem 1.8rem;
+.hero-start-btn {
+    padding: 0.85rem 2.4rem;
     font-size: 1rem;
     border-radius: 50px;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-}
-
-.hero-actions .btn-primary {
     background: rgba(var(--hero-primary-rgb), 0.88);
     border: none;
+    color: white;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.hero-actions .btn-secondary {
-    background: transparent;
-    border: 1.5px solid rgba(var(--hero-primary-rgb), 0.4);
-    color: rgba(var(--hero-primary-rgb), 0.95);
+.hero-start-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(var(--hero-primary-rgb), 0.3);
+}
+
+.hero-start-btn.hiding {
+    opacity: 0;
+    transform: scale(0.85);
+    pointer-events: none;
+}
+
+.hero-start-btn.hidden {
+    display: none;
+}
+
+.hero-actions-expanded {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    white-space: nowrap;
+    transform: translateX(-50%) translateY(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s 0.5s;
+}
+
+.hero-actions-expanded.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+                transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+                visibility 0s 0s;
+}
+
+.hero-actions-expanded .btn {
+    padding: 0.8rem 1.6rem;
+    font-size: 0.92rem;
+    border-radius: 50px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    letter-spacing: 0.02em;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: background 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease,
+                transform 0.3s ease,
+                opacity 0s 0.5s;
+}
+
+.hero-actions-expanded.visible .btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero-actions-expanded.visible .btn:nth-child(1) {
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
+                transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.08s,
+                background 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+.hero-actions-expanded.visible .btn:nth-child(2) {
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.16s,
+                transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.16s,
+                background 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+.hero-actions-expanded.visible .btn:nth-child(3) {
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.24s,
+                transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.24s,
+                background 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+.hero-btn-ghost {
+    background: rgba(var(--hero-text-rgb), 0.04);
+    border: 1.5px solid rgba(var(--hero-text-rgb), 0.12);
+    color: rgba(var(--hero-text-rgb), 0.75);
     box-shadow: none;
 }
 
-.hero-actions .btn-secondary:hover {
-    background: rgba(var(--hero-primary-rgb), 0.08);
-    border-color: rgba(var(--hero-primary-rgb), 0.6);
+.hero-btn-ghost:hover {
+    background: rgba(var(--hero-text-rgb), 0.08);
+    border-color: rgba(var(--hero-text-rgb), 0.2);
+    color: rgba(var(--hero-text-rgb), 0.9);
+    transform: translateY(-1px);
+}
+
+.hero-btn-install {
+    background: rgba(var(--hero-primary-rgb), 0.88);
+    border: 1.5px solid transparent;
+    color: white;
+    box-shadow: 0 2px 12px rgba(var(--hero-primary-rgb), 0.2);
+}
+
+.hero-btn-install:hover {
+    background: rgba(var(--hero-primary-rgb), 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(var(--hero-primary-rgb), 0.3);
 }
 
 /* 交互提示 */
@@ -133,6 +236,207 @@
 @keyframes scrollBounce {
     0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.35; }
     50%      { transform: translateX(-50%) translateY(8px); opacity: 0.6; }
+}
+
+/* ==================== Install Overlay ==================== */
+.hero-install-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s 0.4s;
+}
+
+.hero-install-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s 0s;
+}
+
+.hero-install-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(var(--dark-bg-rgb), 0.32);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.hero-install-panel {
+    position: relative;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2.5rem 2.8rem;
+    max-width: 600px;
+    width: 92%;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(var(--border-rgb), 0.4);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    transform: scale(0.92) translateY(12px);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-install-overlay.active .hero-install-panel {
+    transform: scale(1) translateY(0);
+}
+
+.install-overlay-close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(var(--border-rgb), 0.3);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.install-overlay-close:hover {
+    background: rgba(var(--border-rgb), 0.6);
+    color: var(--text);
+}
+
+.install-overlay-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+}
+
+.install-overlay-desc {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.6rem;
+    line-height: 1.5;
+}
+
+.install-platform-tabs {
+    display: flex;
+    background: rgba(var(--border-rgb), 0.25);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 1.2rem;
+}
+
+.install-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.install-tab:hover {
+    color: var(--text);
+}
+
+.install-tab.active {
+    background: var(--card-bg);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(var(--border-rgb), 0.5);
+}
+
+.install-tab i {
+    font-size: 0.92rem;
+}
+
+.install-code-block {
+    display: flex;
+    align-items: center;
+    background: rgba(var(--dark-bg-rgb), 0.04);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.25s ease;
+}
+
+.install-code-block:hover {
+    border-color: rgba(var(--primary-rgb), 0.3);
+}
+
+[data-theme="dark"] .install-code-block {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.install-code-prefix {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.install-code-text {
+    flex: 1;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.82rem;
+    color: var(--primary);
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.install-copy-btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(var(--card-bg-rgb), 0.6);
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.install-copy-btn:hover {
+    background: var(--card-bg);
+    color: var(--primary);
+    border-color: rgba(var(--primary-rgb), 0.3);
+}
+
+.install-copy-btn.copied {
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.06);
+}
+
+.install-hint {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    text-align: center;
 }
 
 /* ==================== AI Vibe Coding 提示条 ==================== */
@@ -1136,8 +1440,29 @@
         width: 100%;
         gap: 0.7rem;
     }
-    
-    .hero-actions .btn {
+
+    .hero-start-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem 1.4rem;
+        font-size: 0.95rem;
+    }
+
+    .hero-actions-expanded {
+        flex-direction: column;
+        position: relative;
+        left: auto;
+        transform: translateY(8px);
+        white-space: normal;
+        width: 100%;
+        gap: 0.7rem;
+    }
+
+    .hero-actions-expanded.visible {
+        transform: translateY(0);
+    }
+
+    .hero-actions-expanded .btn {
         width: 100%;
         justify-content: center;
         padding: 0.75rem 1.4rem;
@@ -1281,6 +1606,39 @@
     .scroll-indicator {
         bottom: 1.5rem;
     }
+
+    .hero-install-panel {
+        padding: 2rem 1.6rem;
+        border-radius: 20px;
+    }
+
+    .install-overlay-title {
+        font-size: 1.3rem;
+    }
+
+    .install-overlay-desc {
+        font-size: 0.85rem;
+    }
+
+    .install-code-block {
+        padding: 0.75rem 0.9rem;
+        border-radius: 12px;
+    }
+
+    .install-code-text {
+        font-size: 0.75rem;
+    }
+
+    .install-code-prefix {
+        font-size: 0.75rem;
+    }
+
+    .install-copy-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1347,6 +1705,33 @@
 
     .step-title {
         font-size: 1.3rem;
+    }
+
+    .hero-install-panel {
+        padding: 1.6rem 1.2rem;
+        border-radius: 18px;
+    }
+
+    .install-overlay-title {
+        font-size: 1.15rem;
+    }
+
+    .install-code-text {
+        font-size: 0.68rem;
+    }
+
+    .install-code-block {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .install-copy-btn {
+        width: 100%;
+        height: auto;
+        padding: 0.5rem;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        gap: 0.4rem;
     }
 }
 
