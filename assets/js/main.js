@@ -46,7 +46,11 @@ const CONFIG = {
     DOCS: {
         baseUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/',
         githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Develop/v2/docs/',
-        
+
+        // pyproject.toml（用于获取 ErisPulse 版本，确定文档版本）
+        pyprojectUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/pyproject.toml',
+        pyprojectRawUrl: 'https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/pyproject.toml',
+
         // 索引文件配置
         index: {
             cdnUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/',
@@ -59,6 +63,13 @@ const CONFIG = {
                 searchIndex: 'erispulse-docs-search-index',
                 searchHistory: 'erispulse-search-history'
             }
+        },
+
+        // 文档内容缓存配置
+        contentCache: {
+            expiry: 4 * 60 * 60 * 1000, // 4小时
+            keyPrefix: 'erispulse-doc-content:',
+            indexKey: 'erispulse-doc-content-index'
         }
     },
 
@@ -75,7 +86,9 @@ const CONFIG = {
         compactLayout: false,
         showLineNumbers: false,
         stickyNav: true,
-        gh_proxy: 'https://cdn.gh-proxy.org/'
+        gh_proxy: 'https://cdn.gh-proxy.org/',
+        disableOnlineCacheRefresh: true,
+        docsLocalized: {}
     },
 
     // API 端点
@@ -140,6 +153,22 @@ const DocsIndexManager = (function() {
         }
         
         isLoadingMapping = true;
+
+        // 离线时直接使用本地缓存（允许过期，不清理）
+        if (!navigator.onLine) {
+            try {
+                const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.mapping, true);
+                mappingCache = data;
+                console.log('✓ 离线模式：从缓存加载映射索引');
+                notifyLoadCallbacks('mapping', true, data);
+                return data;
+            } catch (cacheError) {
+                console.error('离线模式且无缓存可用', cacheError);
+                const error = new Error(I18n.t('docs.loadIndexFailed'));
+                notifyLoadCallbacks('mapping', false, null, error);
+                throw error;
+            }
+        }
         
         try {
             console.log('尝试从CDN加载映射索引...');
@@ -189,6 +218,22 @@ const DocsIndexManager = (function() {
         }
         
         isLoadingSearchIndex = true;
+
+        // 离线时直接使用本地缓存（允许过期，不清理）
+        if (!navigator.onLine) {
+            try {
+                const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.searchIndex, true);
+                searchIndexCache = data;
+                console.log('✓ 离线模式：从缓存加载搜索索引');
+                notifyLoadCallbacks('search', true, data);
+                return data;
+            } catch (cacheError) {
+                console.error('离线模式且无缓存可用', cacheError);
+                const error = new Error(I18n.t('docs.loadIndexFailed'));
+                notifyLoadCallbacks('search', false, null, error);
+                throw error;
+            }
+        }
         
         try {
             console.log('尝试从CDN加载搜索索引...');
@@ -283,7 +328,7 @@ const DocsIndexManager = (function() {
     /**
      * 从缓存加载
      */
-    async function loadFromCache(storageKey) {
+    async function loadFromCache(storageKey, allowExpired = false) {
         try {
             const cached = localStorage.getItem(storageKey);
             if (!cached) {
@@ -292,8 +337,8 @@ const DocsIndexManager = (function() {
             
             const data = JSON.parse(cached);
             
-            // 检查缓存是否过期
-            if (data.timestamp && Date.now() - data.timestamp > CONFIG.DOCS.index.cacheExpiry) {
+            // 检查缓存是否过期（离线时不清理，允许使用过期缓存）
+            if (!allowExpired && data.timestamp && Date.now() - data.timestamp > CONFIG.DOCS.index.cacheExpiry) {
                 throw new Error('缓存已过期');
             }
             
@@ -474,6 +519,203 @@ const DocsIndexManager = (function() {
         clearCache,
         get mapping() { return mappingCache; },
         get searchIndex() { return searchIndexCache; }
+    };
+})();
+
+// ==================== 文档内容缓存管理器 ====================
+const DocsContentCache = (function() {
+    const cfg = () => CONFIG.DOCS.contentCache;
+
+    function _key(lang, docPath) {
+        return cfg().keyPrefix + lang + ':' + docPath;
+    }
+
+    /**
+     * 读取缓存的原始条目（不做过期判断）
+     * @returns {{content:string, commitInfo:object|null, timestamp:number}|null}
+     */
+    function getRaw(lang, docPath) {
+        try {
+            const raw = localStorage.getItem(_key(lang, docPath));
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * 缓存条目是否在有效期内
+     */
+    function isFresh(entry) {
+        if (!entry || !entry.timestamp) return false;
+        return (Date.now() - entry.timestamp) <= cfg().expiry;
+    }
+
+    /**
+     * 写入文档内容缓存
+     */
+    function set(lang, docPath, content, commitInfo) {
+        try {
+            const entry = {
+                timestamp: Date.now(),
+                lang: lang,
+                docPath: docPath,
+                content: content,
+                commitInfo: commitInfo || null
+            };
+            localStorage.setItem(_key(lang, docPath), JSON.stringify(entry));
+            _addToIndex(lang, docPath);
+            return true;
+        } catch (e) {
+            console.warn('文档内容缓存写入失败（可能超出存储限制）:', e);
+            return false;
+        }
+    }
+
+    /**
+     * 获取当前语言已缓存的文档数量
+     */
+    function count(lang) {
+        const index = _getIndex();
+        return (index[lang] || []).length;
+    }
+
+    /**
+     * 检查某语言是否已标记为完整本地化
+     */
+    function isLocalized(lang) {
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            return !!(settings.docsLocalized && settings.docsLocalized[lang]);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /**
+     * 获取本地化时记录的 SDK 版本号
+     */
+    function getLocalizedVersion(lang) {
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            const v = settings.docsLocalized && settings.docsLocalized[lang];
+            return (typeof v === 'string') ? v : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * 标记/取消标记某语言为已完整本地化。
+     * value 为版本号字符串（标记本地化）或 false/null（取消标记）。
+     */
+    function setLocalized(lang, value) {
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            if (!settings.docsLocalized) settings.docsLocalized = {};
+            if (value) {
+                settings.docsLocalized[lang] = value;
+            } else {
+                delete settings.docsLocalized[lang];
+            }
+            localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        } catch (e) {
+            console.warn('更新本地化标记失败:', e);
+        }
+    }
+
+    /**
+     * 获取所有支持语言的缓存统计
+     */
+    function getAllLangStats() {
+        const langs = I18n.getSupportedLanguages();
+        const index = _getIndex();
+        return langs.map(function (l) {
+            return {
+                code: l.code,
+                name: l.name,
+                count: (index[l.code] || []).length,
+                localized: isLocalized(l.code),
+                version: getLocalizedVersion(l.code)
+            };
+        });
+    }
+
+    /**
+     * 清除指定语言的文档内容缓存
+     */
+    function clearLang(lang) {
+        const index = _getIndex();
+        const paths = index[lang] || [];
+        paths.forEach(function(path) {
+            localStorage.removeItem(_key(lang, path));
+        });
+        delete index[lang];
+        _saveIndex(index);
+        setLocalized(lang, false);
+    }
+
+    /**
+     * 清除所有语言的文档内容缓存
+     */
+    function clearAll() {
+        const index = _getIndex();
+        Object.keys(index).forEach(function(lang) {
+            (index[lang] || []).forEach(function(path) {
+                localStorage.removeItem(_key(lang, path));
+            });
+        });
+        localStorage.removeItem(cfg().indexKey);
+
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            if (settings.docsLocalized) {
+                delete settings.docsLocalized;
+                localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+            }
+        } catch (e) {
+            console.warn('清除本地化标记失败:', e);
+        }
+    }
+
+    // ---- 索引管理（用于统计 / 清理 / 本地化标记）----
+    function _getIndex() {
+        try {
+            return JSON.parse(localStorage.getItem(cfg().indexKey) || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function _saveIndex(index) {
+        try {
+            localStorage.setItem(cfg().indexKey, JSON.stringify(index));
+        } catch (e) {
+            console.warn('保存内容缓存索引失败:', e);
+        }
+    }
+
+    function _addToIndex(lang, docPath) {
+        const index = _getIndex();
+        if (!index[lang]) index[lang] = [];
+        if (index[lang].indexOf(docPath) === -1) {
+            index[lang].push(docPath);
+            _saveIndex(index);
+        }
+    }
+
+    return {
+        getRaw: getRaw,
+        isFresh: isFresh,
+        set: set,
+        count: count,
+        getAllLangStats: getAllLangStats,
+        isLocalized: isLocalized,
+        getLocalizedVersion: getLocalizedVersion,
+        setLocalized: setLocalized,
+        clearLang: clearLang,
+        clearAll: clearAll
     };
 })();
 
@@ -1012,7 +1254,25 @@ const ErisPulseApp = (function () {
         setupHomeAnimations();
         initBannerCarousel();
         initInstallOverlay();
+        setupOnlineOffline();
         SubmitModuleManager.init();
+    }
+
+    // ==================== 在线/离线感知 ====================
+    function setupOnlineOffline() {
+        window.addEventListener('online', function () {
+            console.log('网络已恢复');
+            showMessage(I18n.t('common.onlineRestored'), 'success');
+            updateDocsCacheStatus();
+            // 网络恢复后重新检查文档版本
+            _versionNotified = false;
+            setTimeout(runBackgroundVersionCheck, 1500);
+        });
+        window.addEventListener('offline', function () {
+            console.log('网络已断开，切换到离线缓存模式');
+            showMessage(I18n.t('common.offlineMode'), 'error');
+            updateDocsCacheStatus();
+        });
     }
 
     // ==================== 全局语言切换 ====================
@@ -1088,6 +1348,9 @@ const ErisPulseApp = (function () {
     function handleLanguageSwitch(lang) {
         console.log('切换语言:', lang);
 
+        // 保存当前正在查看的文档路径（如有），切换后重新加载该文档
+        const prevDocPath = currentDocPath;
+
         // 使用 I18n 模块设置语言（同步所有 UI data-i18n 元素 + localStorage）
         I18n.setLang(lang, true);
 
@@ -1098,33 +1361,53 @@ const ErisPulseApp = (function () {
         DocsIndexManager.clearCache();
         DocsIndexManager.loadMapping().then(() => {
             DocsIndexManager.loadSearchIndex();
+            // 索引加载完成后，重新加载之前正在查看的文档（用新语言）
+            if (prevDocPath) {
+                navigateToDocument(prevDocPath);
+            }
         }).catch(err => {
             console.error('切换语言失败:', err);
             showMessage(I18n.t('common.langSwitchFailed'), 'error');
         });
 
-        // 回到文档首页（如果当前在文档视图）
-        showCategoryLevel();
-        updateBreadcrumb(null);
-        history.pushState(null, null, '#docs');
+        if (prevDocPath) {
+            // 正在查看文档时切换语言：保持当前文档，只更新内容区为加载占位
+            const docsContent = document.getElementById('docs-content');
+            if (docsContent) {
+                docsContent.innerHTML = `
+                    <div style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-spinner fa-pulse fa-3x"></i>
+                        <p>${I18n.t('docs.loading')}</p>
+                    </div>
+                `;
+            }
+            // 保持 currentDocPath 不变，让 edit/share 按钮继续可用
+            // 索引加载完成后 navigateToDocument 会刷新内容和导航
+        } else {
+            // 没有查看具体文档时，回到分类首页
+            showCategoryLevel();
+            updateBreadcrumb(null);
+            history.pushState(null, null, '#docs');
 
-        // 重置导航状态
-        currentNavState = 'categories';
-        currentCategory = null;
-        currentDocPath = null;
-        currentChapterToc = [];
+            currentNavState = 'categories';
+            currentCategory = null;
+            currentDocPath = null;
+            currentChapterToc = [];
 
-        // 更新文档默认欢迎文本
-        const docsContent = document.getElementById('docs-content');
-        if (docsContent) {
-            docsContent.innerHTML = `
-                <div>
-                    <h1>${I18n.t('docs.welcome')}</h1>
-                    <p>${I18n.t('docs.welcome.desc')}</p>
-                    <p>${I18n.t('docs.welcome.hint')}</p>
-                </div>
-            `;
+            const docsContent = document.getElementById('docs-content');
+            if (docsContent) {
+                docsContent.innerHTML = `
+                    <div>
+                        <h1>${I18n.t('docs.welcome')}</h1>
+                        <p>${I18n.t('docs.welcome.desc')}</p>
+                        <p>${I18n.t('docs.welcome.hint')}</p>
+                    </div>
+                `;
+            }
         }
+
+        updateDocsActionButtons();
+        updateDocsCacheStatus();
 
         // 如果当前在模块市场，重新渲染模块卡片以更新按钮文字
         if (document.getElementById('market-view').classList.contains('active')) {
@@ -1300,10 +1583,24 @@ const ErisPulseApp = (function () {
         const viewLinks = document.querySelectorAll('[data-view]');
         const viewContainers = document.querySelectorAll('.view-container');
 
+        // 为所有 [data-view] 链接设置正确的 hash href，
+        // 这样右键「在新标签页中打开」/ 中键点击也能跳转到对应视图，
+        // 而不是因为 href="#" 而跳回首页。
+        viewLinks.forEach(link => {
+            const view = link.getAttribute('data-view');
+            if (view === 'home') {
+                link.setAttribute('href', window.location.pathname);
+            } else if (view) {
+                link.setAttribute('href', '#' + view);
+            }
+        });
+
         window.addEventListener('hashchange', switchViewByHash);
 
         viewLinks.forEach(link => {
             link.addEventListener('click', function (e) {
+                // 允许中键 / Ctrl / Cmd / Shift 点击交给浏览器原生「在新标签页打开」
+                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
                 e.preventDefault();
                 const view = this.getAttribute('data-view');
                 updateView(view);
@@ -1406,6 +1703,11 @@ const ErisPulseApp = (function () {
         if (view === 'about') {
             loadContributors();
         }
+
+        if (view === 'settings') {
+            updateDocsCacheStatus();
+            checkDocsVersionUpdate();
+        }
     }
 
     function showMessage(message, type) {
@@ -1452,7 +1754,122 @@ const ErisPulseApp = (function () {
         }, 3000);
     }
 
-    // ==================== 友链功能 ====================
+    /**
+     * 显示带有操作按钮的 Toast 通知（比 showMessage 存在时间更长，带可点击操作）
+     */
+    function showActionToast(message, actionText, actionCallback, duration) {
+        var existing = document.querySelector('.message');
+        if (existing) existing.remove();
+
+        var toast = document.createElement('div');
+        toast.className = 'message message-warning action-toast';
+
+        var textSpan = document.createElement('span');
+        textSpan.textContent = message;
+
+        var actionBtn = document.createElement('button');
+        actionBtn.textContent = actionText;
+        Object.assign(actionBtn.style, {
+            marginLeft: '12px',
+            padding: '4px 12px',
+            border: 'none',
+            borderRadius: 'var(--radius)',
+            background: 'rgba(255,255,255,0.25)',
+            color: 'white',
+            cursor: 'pointer',
+            fontWeight: '600',
+            whiteSpace: 'nowrap'
+        });
+
+        toast.appendChild(textSpan);
+        toast.appendChild(actionBtn);
+
+        Object.assign(toast.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: 'var(--radius)',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '1000',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(20px)',
+            opacity: '0',
+            transition: 'all 0.3s ease',
+            background: '#f59e0b',
+            display: 'flex',
+            alignItems: 'center',
+            maxWidth: '90vw'
+        });
+
+        document.body.appendChild(toast);
+
+        actionBtn.addEventListener('click', function () {
+            toast.style.transform = 'translateY(20px)';
+            toast.style.opacity = '0';
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 300);
+            if (actionCallback) actionCallback();
+        });
+
+        setTimeout(function () {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+        }, 10);
+
+        setTimeout(function () {
+            toast.style.transform = 'translateY(20px)';
+            toast.style.opacity = '0';
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 300);
+        }, duration || 8000);
+    }
+
+    // ==================== 文档版本更新检测 ====================
+
+    var _versionNotified = false;
+
+    /**
+     * 后台版本检查：比对所有已缓存语言的版本与远程版本，
+     * 若有更新则弹出可操作的 Toast 通知（每次页面加载仅提示一次）。
+     */
+    async function runBackgroundVersionCheck() {
+        if (_versionNotified || !navigator.onLine) return;
+
+        var langs = I18n.getSupportedLanguages();
+        var hasAnyLocalized = langs.some(function (l) {
+            return DocsContentCache.isLocalized(l.code);
+        });
+        if (!hasAnyLocalized) return;
+
+        try {
+            var remoteVersion = await fetchSdkVersion();
+            if (!remoteVersion) return;
+
+            // 找出所有版本过期的语言
+            var outdated = langs.filter(function (l) {
+                var v = DocsContentCache.getLocalizedVersion(l.code);
+                return v && v !== 'unknown' && v !== remoteVersion;
+            });
+
+            if (outdated.length > 0) {
+                _versionNotified = true;
+                var firstOld = DocsContentCache.getLocalizedVersion(outdated[0].code) || '?';
+                showActionToast(
+                    I18n.t('settings.docsCacheUpdateToast', { old: firstOld, new: remoteVersion }),
+                    I18n.t('settings.docsCacheGoUpdate'),
+                    function () {
+                        // 跳转到设置页
+                        history.pushState(null, null, '#settings');
+                        updateView('settings');
+                        updateDocsCacheStatus();
+                        checkDocsVersionUpdate();
+                    }
+                );
+            }
+        } catch (e) {
+            // 网络异常时静默
+        }
+    }
     function renderFriendLinks() {
         const container = document.getElementById('friend-links-container');
         if (!container) return;
@@ -1549,6 +1966,42 @@ const ErisPulseApp = (function () {
             });
         }
 
+        // 离线优先模式
+        if (document.getElementById('disable-online-refresh')) {
+            document.getElementById('disable-online-refresh').addEventListener('change', function () {
+                userSettings.disableOnlineCacheRefresh = this.checked;
+                saveUserSettings();
+                var msg = this.checked
+                    ? I18n.t('settings.offlineFirstOn')
+                    : I18n.t('settings.offlineFirstOff');
+                showMessage(msg, 'success');
+            });
+        }
+
+        // 管理文档缓存
+        if (document.getElementById('manage-docs-cache-btn')) {
+            document.getElementById('manage-docs-cache-btn').addEventListener('click', function () {
+                openDocsCacheModal();
+            });
+        }
+
+        // 清除全部语言文档缓存
+        if (document.getElementById('clear-all-docs-cache-btn')) {
+            document.getElementById('clear-all-docs-cache-btn').addEventListener('click', function () {
+                clearAllDocsContentCache();
+            });
+        }
+
+        if (document.getElementById('close-docs-cache-modal')) {
+            document.getElementById('close-docs-cache-modal').addEventListener('click', closeDocsCacheModal);
+        }
+
+        if (document.getElementById('docs-cache-modal')) {
+            document.getElementById('docs-cache-modal').addEventListener('click', function (e) {
+                if (e.target === this) closeDocsCacheModal();
+            });
+        }
+
         setTimeout(initSettingsForm, 100);
     }
 
@@ -1565,6 +2018,10 @@ const ErisPulseApp = (function () {
         if (document.getElementById('sticky-nav')) {
             document.getElementById('sticky-nav').checked = userSettings.stickyNav;
         }
+        if (document.getElementById('disable-online-refresh')) {
+            document.getElementById('disable-online-refresh').checked = userSettings.disableOnlineCacheRefresh !== false;
+        }
+        updateDocsCacheStatus();
     }
 
     // ==================== 模块市场模块 ====================
@@ -1850,6 +2307,9 @@ const ErisPulseApp = (function () {
                     if (hash === 'docs') {
                         showCategoryLevel();
                     }
+
+                    // 索引加载完成后执行后台版本检查（延迟 2 秒避免与文档内容请求竞争）
+                    setTimeout(runBackgroundVersionCheck, 2000);
                 }
             }
             
@@ -1934,10 +2394,10 @@ const ErisPulseApp = (function () {
         const isActive = doc.path === currentDocPath ? 'active' : '';
         const icon = getDocIcon(doc.path);
         return `
-            <div class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
+            <a href="#docs/${doc.path}" class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
                 <i class="fas ${icon}"></i>
                 <span>${doc.title}</span>
-            </div>
+            </a>
         `;
     }
 
@@ -2094,6 +2554,7 @@ const ErisPulseApp = (function () {
         console.log('syncNavigationState: 同步导航状态, docPath =', docPath);
 
         currentDocPath = docPath;
+        updateDocsActionButtons();
 
         const category = DocsIndexManager.getDocumentCategory(docPath);
         currentCategory = category ? category.name : null;
@@ -2192,6 +2653,8 @@ const ErisPulseApp = (function () {
             if (docItem) {
                 const docPath = docItem.getAttribute('data-doc');
                 console.log('点击文档项，docPath =', docPath);
+                // 允许中键 / Ctrl / Cmd / Shift 点击交给浏览器原生「在新标签页打开」
+                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
                 e.preventDefault();
                 e.stopPropagation();
                 navigateToDocument(docPath);
@@ -2557,8 +3020,7 @@ const ErisPulseApp = (function () {
         if (editBtn) {
             editBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                const currentDoc = window.location.hash.split('/')[1];
-                const editUrl = getEditUrl(currentDoc);
+                const editUrl = getEditUrl(currentDocPath);
                 if (editUrl) {
                     window.open(editUrl, '_blank');
                 }
@@ -2572,11 +3034,33 @@ const ErisPulseApp = (function () {
                 shareDocument();
             });
         }
+
+        updateDocsActionButtons();
+    }
+
+    /**
+     * 根据 currentDocPath 同步更新「编辑此页」按钮的 href，
+     * 这样右键「在新标签页中打开」也能跳转到正确的 GitHub 编辑页面。
+     */
+    function updateDocsActionButtons() {
+        const editBtn = document.querySelector('.docs-action-btn:nth-child(1)');
+        if (editBtn) {
+            const editUrl = getEditUrl(currentDocPath);
+            if (editUrl) {
+                editBtn.setAttribute('href', editUrl);
+                editBtn.setAttribute('target', '_blank');
+                editBtn.setAttribute('rel', 'noopener noreferrer');
+            } else {
+                editBtn.setAttribute('href', '#');
+                editBtn.removeAttribute('target');
+                editBtn.removeAttribute('rel');
+            }
+        }
     }
 
     function shareDocument() {
         const currentUrl = window.location.href;
-        const currentDoc = window.location.hash.split('/')[1];
+        const currentDoc = currentDocPath;
         const docTitle = DocsIndexManager.getDocumentTitle(currentDoc) || currentDoc;
 
         if (navigator.share) {
@@ -2612,7 +3096,297 @@ const ErisPulseApp = (function () {
     }
 
     function getEditUrl(docPath) {
-        return CONFIG.DOCS.githubBaseUrl + docPath;
+        if (!docPath) return null;
+        const lang = I18n.getLang();
+        return CONFIG.DOCS.githubBaseUrl + lang + '/' + docPath;
+    }
+
+    // ==================== 文档离线本地化 ====================
+
+    /**
+     * 从远程 pyproject.toml 获取 ErisPulse 版本号（用于确定文档版本）。
+     * CDN 失败时降级到 GitHub Raw。
+     */
+    async function fetchSdkVersion() {
+        const urls = [CONFIG.DOCS.pyprojectUrl, CONFIG.DOCS.pyprojectRawUrl];
+        for (const url of urls) {
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) continue;
+                const text = await resp.text();
+                // 解析 [project] 下的 version = "x.y.z"
+                const match = text.match(/^version\s*=\s*["']([^"']+)["']/m);
+                if (match && match[1]) {
+                    return match[1].trim();
+                }
+            } catch (e) {
+                // 尝试下一个 URL
+            }
+        }
+        return null;
+    }
+
+    async function ensureDocsIndexLoaded() {
+        if (DocsIndexManager.isLoaded()) return true;
+
+        try {
+            await Promise.all([
+                DocsIndexManager.loadMapping(),
+                DocsIndexManager.loadSearchIndex()
+            ]);
+            return DocsIndexManager.isLoaded();
+        } catch (e) {
+            console.error('加载文档索引失败:', e);
+            return false;
+        }
+    }
+
+    /**
+     * 下载指定语言（或当前语言）的全部文档并缓存到本地，实现离线阅读。
+     * 同时获取并记录 ErisPulse SDK 版本号，便于后续检测文档更新。
+     */
+    async function downloadAllDocs(targetLang, triggerBtn) {
+        const lang = targetLang || I18n.getLang();
+
+        if (!(await ensureDocsIndexLoaded())) {
+            showMessage(I18n.t('settings.docsCacheNeedIndex'), 'error');
+            return;
+        }
+
+        const mapping = DocsIndexManager.mapping;
+        if (!mapping || !mapping.categories) {
+            showMessage(I18n.t('settings.docsCacheNeedIndex'), 'error');
+            return;
+        }
+
+        const allDocs = DocsIndexManager.getAllDocuments();
+        if (allDocs.length === 0) {
+            showMessage(I18n.t('settings.docsCacheNeedIndex'), 'error');
+            return;
+        }
+
+        const btn = triggerBtn || document.querySelector('.docs-cache-download-lang[data-lang="' + lang + '"]');
+        const progressWrap = document.getElementById('docs-download-progress');
+        const progressBar = document.getElementById('docs-download-progress-bar');
+        const progressText = document.getElementById('docs-download-progress-text');
+
+        document.querySelectorAll('.docs-cache-download-lang').forEach(function (button) {
+            button.disabled = true;
+            button.classList.add('loading');
+        });
+        if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+        if (progressWrap) progressWrap.style.display = '';
+
+        // 先获取 SDK 版本号（确定文档版本）
+        if (progressText) progressText.textContent = I18n.t('settings.docsCacheFetchingVersion');
+        let sdkVersion = null;
+        try {
+            sdkVersion = await fetchSdkVersion();
+        } catch (e) {
+            console.warn('获取 SDK 版本失败:', e);
+        }
+
+        let success = 0;
+        let failed = 0;
+
+        for (let i = 0; i < allDocs.length; i++) {
+            const doc = allDocs[i];
+            const pct = Math.round(((i) / allDocs.length) * 100);
+            if (progressBar) progressBar.style.width = pct + '%';
+            if (progressText) progressText.textContent = I18n.t('settings.docsCacheProgress', { done: i, total: allDocs.length });
+
+            try {
+                const url = CONFIG.DOCS.baseUrl + lang + '/' + doc.path;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const content = await resp.text();
+                    DocsContentCache.set(lang, doc.path, content, null);
+                    success++;
+                } else {
+                    failed++;
+                }
+            } catch (e) {
+                failed++;
+            }
+            // 让 UI 有机会刷新
+            await new Promise(r => setTimeout(r, 5));
+        }
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.textContent = I18n.t('settings.docsCacheProgress', { done: allDocs.length, total: allDocs.length });
+
+        // 标记为已本地化，并记录 SDK 版本号
+        const localizedTag = sdkVersion || 'unknown';
+        DocsContentCache.setLocalized(lang, localizedTag);
+        userSettings.docsLocalized = userSettings.docsLocalized || {};
+        userSettings.docsLocalized[lang] = localizedTag;
+        saveUserSettings();
+
+        document.querySelectorAll('.docs-cache-download-lang').forEach(function (button) {
+            button.disabled = false;
+            button.classList.remove('loading');
+        });
+        if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+        setTimeout(function() {
+            if (progressWrap) progressWrap.style.display = 'none';
+            if (progressBar) progressBar.style.width = '0%';
+        }, 1500);
+
+        updateDocsCacheStatus();
+        showMessage(I18n.t('settings.docsCacheDownloaded', { success: success, failed: failed }), failed > 0 ? 'error' : 'success');
+    }
+
+    /**
+     * 清除指定语言（或当前语言）的文档内容缓存。
+     */
+    function clearDocsContentCache(lang) {
+        const targetLang = lang || I18n.getLang();
+        DocsContentCache.clearLang(targetLang);
+        userSettings.docsLocalized = userSettings.docsLocalized || {};
+        delete userSettings.docsLocalized[targetLang];
+        saveUserSettings();
+        updateDocsCacheStatus();
+        showMessage(I18n.t('settings.docsCacheLangCleared', { lang: I18n.getLanguageName(targetLang) }), 'success');
+    }
+
+    /**
+     * 清除所有语言的文档内容缓存。
+     */
+    function clearAllDocsContentCache() {
+        if (!confirm(I18n.t('settings.docsCacheClearAllConfirm'))) return;
+
+        DocsContentCache.clearAll();
+        userSettings.docsLocalized = {};
+        saveUserSettings();
+        updateDocsCacheStatus();
+        checkDocsVersionUpdate();
+        showMessage(I18n.t('settings.docsCacheAllCleared'), 'success');
+    }
+
+    function openDocsCacheModal() {
+        updateDocsCacheStatus();
+        checkDocsVersionUpdate();
+
+        // 未打开过文档页时，提前预热索引，避免下载时再提示“索引尚未加载”
+        if (!DocsIndexManager.isLoaded()) {
+            DocsIndexManager.loadMapping().catch(function (e) {
+                console.warn('预热文档映射索引失败:', e);
+            });
+            DocsIndexManager.loadSearchIndex().catch(function (e) {
+                console.warn('预热搜索索引失败:', e);
+            });
+        }
+
+        var modal = document.getElementById('docs-cache-modal');
+        if (modal) modal.classList.add('active');
+    }
+
+    function closeDocsCacheModal() {
+        var modal = document.getElementById('docs-cache-modal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, function (c) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[c];
+        });
+    }
+
+    /**
+     * 更新设置页中「文档本地化」卡片的多语言缓存状态表。
+     */
+    function updateDocsCacheStatus() {
+        const tableEl = document.getElementById('docs-cache-lang-table');
+        if (!tableEl) return;
+
+        const currentLang = I18n.getLang();
+        const rows = DocsContentCache.getAllLangStats().sort(function (a, b) {
+            if (a.code === currentLang) return -1;
+            if (b.code === currentLang) return 1;
+            return 0;
+        });
+        const html = rows.map(function (stat) {
+            const hasCache = stat.count > 0;
+            const status = stat.localized ? 'localized' : (hasCache ? 'partial' : 'empty');
+            const icon = stat.localized ? '<i class="fas fa-check-circle"></i>' : (hasCache ? '<i class="fas fa-folder-open"></i>' : '<i class="fas fa-cloud"></i>');
+            const currentBadge = stat.code === currentLang
+                ? `<span class="docs-cache-current-badge"><i class="fas fa-location-arrow"></i> ${I18n.t('settings.docsCacheCurrentLang')}</span>`
+                : '';
+            const statusText = stat.localized
+                ? I18n.t('settings.docsCacheLocalized', { count: stat.count, version: stat.version ? I18n.t('settings.docsCacheVersion', { version: stat.version }) : I18n.t('settings.docsCacheNoVersion') })
+                : (hasCache ? I18n.t('settings.docsCachePartial', { count: stat.count }) : I18n.t('settings.docsCacheEmpty'));
+            const versionText = stat.version ? I18n.t('settings.docsCacheVersion', { version: stat.version }) : I18n.t('settings.docsCacheNoVersion');
+            return `<div class="docs-cache-lang-row ${status}">
+                <img class="docs-cache-lang-cover" src="assets/img/logo.png" alt="ErisPulse">
+                <div class="docs-cache-lang-main">
+                    <strong>${escapeHtml(stat.name)} ${currentBadge}</strong>
+                    <span>${icon} ${escapeHtml(statusText)} · ${escapeHtml(versionText)}</span>
+                </div>
+                <div class="docs-cache-lang-actions">
+                    <button class="btn btn-outline docs-cache-download-lang" data-lang="${escapeHtml(stat.code)}" ${navigator.onLine ? '' : 'disabled'}>
+                        <i class="fas fa-download"></i> ${I18n.t('settings.docsCacheDownloadLang')}
+                    </button>
+                    <button class="btn btn-outline docs-cache-clear-lang" data-lang="${escapeHtml(stat.code)}" ${hasCache ? '' : 'disabled'}>
+                        <i class="fas fa-trash-alt"></i> ${I18n.t('settings.docsCacheClearLang')}
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+
+        tableEl.innerHTML = html;
+
+        tableEl.querySelectorAll('.docs-cache-download-lang').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const lang = btn.getAttribute('data-lang');
+                if (!navigator.onLine) {
+                    showMessage(I18n.t('settings.docsCacheOfflineDownload'), 'error');
+                    return;
+                }
+                downloadAllDocs(lang, btn);
+            });
+        });
+
+        tableEl.querySelectorAll('.docs-cache-clear-lang').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                clearDocsContentCache(btn.getAttribute('data-lang'));
+            });
+        });
+    }
+
+    /**
+     * 后台检查远程 SDK 版本是否与本地化缓存版本不一致，
+     * 若有更新则在设置页显示提示。
+     */
+    async function checkDocsVersionUpdate() {
+        const hintEl = document.getElementById('docs-cache-version-hint');
+        if (!hintEl) return;
+        if (!navigator.onLine) { hintEl.style.display = 'none'; return; }
+
+        const lang = I18n.getLang();
+        if (!DocsContentCache.isLocalized(lang)) { hintEl.style.display = 'none'; return; }
+
+        const cachedVersion = DocsContentCache.getLocalizedVersion(lang);
+        if (!cachedVersion || cachedVersion === 'unknown') { hintEl.style.display = 'none'; return; }
+
+        try {
+            const remoteVersion = await fetchSdkVersion();
+            if (remoteVersion && remoteVersion !== cachedVersion) {
+                hintEl.style.display = '';
+                hintEl.innerHTML = '<i class="fas fa-sync-alt"></i> ' +
+                    I18n.t('settings.docsCacheUpdateAvailable', { old: cachedVersion, new: remoteVersion });
+            } else {
+                hintEl.style.display = 'none';
+            }
+        } catch (e) {
+            // 网络异常时静默
+            hintEl.style.display = 'none';
+        }
     }
 
     function injectAiMaterialDownloads(docsContent) {
@@ -2720,8 +3494,20 @@ const ErisPulseApp = (function () {
 
         clearToc();
 
+        const lang = I18n.getLang();
+        const offline = !navigator.onLine;
+        const refreshDisabled = userSettings.disableOnlineCacheRefresh;
+        const cached = DocsContentCache.getRaw(lang, docPath);
+
+        // 缓存优先条件：离线 / 禁用联网刷新 / 缓存在有效期内
+        if (cached && (offline || refreshDisabled || DocsContentCache.isFresh(cached))) {
+            console.log('loadDocument: 使用本地缓存的文档内容', { docPath, offline, refreshDisabled });
+            _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword);
+            return;
+        }
+
+        // 需要联网获取
         try {
-            const lang = I18n.getLang();
             const docUrl = CONFIG.DOCS.baseUrl + lang + '/' + docPath;
             const docResponse = await fetch(docUrl);
             if (!docResponse.ok) {
@@ -2729,11 +3515,8 @@ const ErisPulseApp = (function () {
             }
 
             const docContent = await docResponse.text();
-            let htmlContent = marked.parse(docContent);
 
-            htmlContent = addTableOfContents(htmlContent);
-            htmlContent = wrapTables(htmlContent);
-
+            // 获取提交信息（仅联网时）
             let commitInfo = null;
             try {
                 const apiBaseUrl = 'https://api.github.com/repos/ErisPulse/ErisPulse/commits?path=' + docPath;
@@ -2753,16 +3536,39 @@ const ErisPulseApp = (function () {
                 console.warn('获取提交信息失败:', commitError);
             }
 
-            docsContent.innerHTML = htmlContent;
-            addDocumentMetaInfo(docsContent, docPath, commitInfo);
+            // 写入内容缓存
+            DocsContentCache.set(lang, docPath, docContent, commitInfo);
 
-            if (docPath === 'ai-support/README.md') {
-                injectAiMaterialDownloads(docsContent);
-            }
+            _renderDocContent(docPath, docContent, commitInfo, targetLine, keyword);
 
         } catch (error) {
             console.error('加载文档失败:', error);
-            showDocumentError(docsContent, error);
+            // 联网失败但存在（可能过期的）缓存 → 降级使用缓存
+            if (cached) {
+                console.warn('联网失败，降级使用本地缓存:', docPath);
+                _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword);
+            } else {
+                showDocumentError(docsContent, error);
+            }
+        }
+    }
+
+    /**
+     * 渲染文档内容（解析 Markdown、添加元信息、后处理）。
+     * 缓存命中与联网获取共用此函数。
+     */
+    function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, keyword) {
+        const docsContent = document.getElementById('docs-content');
+        let htmlContent = marked.parse(markdownContent);
+
+        htmlContent = addTableOfContents(htmlContent);
+        htmlContent = wrapTables(htmlContent);
+
+        docsContent.innerHTML = htmlContent;
+        addDocumentMetaInfo(docsContent, docPath, commitInfo);
+
+        if (docPath === 'ai-support/README.md') {
+            injectAiMaterialDownloads(docsContent);
         }
 
         setTimeout(() => {
