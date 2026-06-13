@@ -73,13 +73,88 @@ function applyTheme() {
     applyThemeSetting();
 }
 
-function toggleTheme() {
+function toggleTheme(event) {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     const newTheme = isDark ? 'light' : 'dark';
     state.userSettings.theme = newTheme;
     localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, newTheme);
     saveUserSettings();
-    applyThemeSetting();
+
+    var x, y;
+    var btn = document.getElementById('theme-toggle');
+    if (event && typeof event.clientX === 'number' && event.clientX > 0) {
+        x = event.clientX;
+        y = event.clientY;
+    } else if (btn) {
+        var rect = btn.getBoundingClientRect();
+        x = rect.left + rect.width / 2;
+        y = rect.top + rect.height / 2;
+    } else {
+        x = window.innerWidth / 2;
+        y = 0;
+    }
+
+    var supportsVT = typeof document.startViewTransition === 'function';
+    var animationsEnabled = !document.body.classList.contains('no-animations');
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (supportsVT && animationsEnabled && !reduceMotion) {
+        var maxRadius = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y)
+        );
+
+        if (newTheme === 'dark') {
+            document.documentElement.classList.remove('theme-reveal-out');
+        } else {
+            document.documentElement.classList.add('theme-reveal-out');
+        }
+
+        document.documentElement.classList.add('theme-transitioning');
+
+        var transition = document.startViewTransition(function () {
+            applyThemeSetting();
+        });
+
+        transition.ready.then(function () {
+            if (newTheme === 'dark') {
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            'circle(0px at ' + x + 'px ' + y + 'px)',
+                            'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)'
+                        ]
+                    },
+                    {
+                        duration: 320,
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                        pseudoElement: '::view-transition-new(root)'
+                    }
+                );
+            } else {
+                document.documentElement.animate(
+                    {
+                        clipPath: [
+                            'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)',
+                            'circle(0px at ' + x + 'px ' + y + 'px)'
+                        ]
+                    },
+                    {
+                        duration: 320,
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                        pseudoElement: '::view-transition-old(root)'
+                    }
+                );
+            }
+        });
+
+        transition.finished.then(function () {
+            document.documentElement.classList.remove('theme-reveal-out');
+            document.documentElement.classList.remove('theme-transitioning');
+        });
+    } else {
+        applyThemeSetting();
+    }
 }
 
 // ==================== 全局语言切换 ====================
