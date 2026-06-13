@@ -144,16 +144,6 @@ function switchViewByHash() {
 }
 
 export function updateView(view) {
-    var expanded = document.getElementById('hero-actions-expanded');
-    var startBtn = document.getElementById('hero-start-btn');
-    if (expanded && expanded.classList.contains('visible') && startBtn) {
-        expanded.classList.remove('visible');
-        setTimeout(function () {
-            startBtn.classList.remove('hidden');
-            startBtn.classList.remove('hiding');
-        }, 300);
-    }
-
     document.querySelectorAll('[data-view]').forEach(link => link.classList.remove('active'));
     if (document.querySelector(`[data-view="${view}"]`)) {
         document.querySelector(`[data-view="${view}"]`).classList.add('active');
