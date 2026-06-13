@@ -63,7 +63,6 @@ export const I18n = (function () {
             // 模块市场
             'market.title': '模块市场',
             'market.submit': '提交模块',
-            'market.legacy': '查看 1.x 模块源 [已废弃]',
             'market.search': '搜索模块...',
             'market.total': '总模块数',
             'market.modules': '功能模块',
@@ -326,7 +325,6 @@ export const I18n = (function () {
             // 模块市场
             'market.title': 'Module Market',
             'market.submit': 'Submit Module',
-            'market.legacy': 'View 1.x Modules [Deprecated]',
             'market.search': 'Search modules...',
             'market.total': 'Total Modules',
             'market.modules': 'Modules',
@@ -585,7 +583,6 @@ export const I18n = (function () {
             // 模块市场
             'market.title': '模組市場',
             'market.submit': '提交模組',
-            'market.legacy': '檢視 1.x 模組原始碼 [已廢棄]',
             'market.search': '搜尋模組...',
             'market.total': '總模組數',
             'market.modules': '功能模組',
@@ -838,7 +835,6 @@ export const I18n = (function () {
 
             'market.title': 'モジュールマーケット',
             'market.submit': 'モジュールを提出',
-            'market.legacy': '1.x モジュールソースを表示 [非推奨]',
             'market.search': 'モジュールを検索...',
             'market.total': '総モジュール数',
             'market.modules': '機能モジュール',
@@ -1084,7 +1080,6 @@ export const I18n = (function () {
 
             'market.title': 'Маркет модулей',
             'market.submit': 'Добавить модуль',
-            'market.legacy': 'Модули 1.x [Устаревшие]',
             'market.search': 'Поиск модулей...',
             'market.total': 'Всего модулей',
             'market.modules': 'Модули',
