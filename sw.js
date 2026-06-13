@@ -1,4 +1,4 @@
-const CACHE_NAME = 'erispulse-v2.5.0';
+const CACHE_NAME = 'erispulse-v2.6.0';
 const EXTERNAL_LIBS = [
   'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/',
   'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/',

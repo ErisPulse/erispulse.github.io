@@ -46,7 +46,11 @@ const CONFIG = {
     DOCS: {
         baseUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/',
         githubBaseUrl: 'https://github.com/ErisPulse/ErisPulse/edit/Develop/v2/docs/',
-        
+
+         
+        pyprojectUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/pyproject.toml',
+        pyprojectRawUrl: 'https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/pyproject.toml',
+
          
         index: {
             cdnUrl: 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/',
@@ -59,6 +63,13 @@ const CONFIG = {
                 searchIndex: 'erispulse-docs-search-index',
                 searchHistory: 'erispulse-search-history'
             }
+        },
+
+         
+        contentCache: {
+            expiry: 4 * 60 * 60 * 1000,  
+            keyPrefix: 'erispulse-doc-content:',
+            indexKey: 'erispulse-doc-content-index'
         }
     },
 
@@ -75,7 +86,9 @@ const CONFIG = {
         compactLayout: false,
         showLineNumbers: false,
         stickyNav: true,
-        gh_proxy: 'https://cdn.gh-proxy.org/'
+        gh_proxy: 'https://cdn.gh-proxy.org/',
+        disableOnlineCacheRefresh: true,
+        docsLocalized: {}
     },
 
      
@@ -140,6 +153,22 @@ const DocsIndexManager = (function() {
         }
         
         isLoadingMapping = true;
+
+         
+        if (!navigator.onLine) {
+            try {
+                const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.mapping, true);
+                mappingCache = data;
+                console.log('✓ 离线模式：从缓存加载映射索引');
+                notifyLoadCallbacks('mapping', true, data);
+                return data;
+            } catch (cacheError) {
+                console.error('离线模式且无缓存可用', cacheError);
+                const error = new Error(I18n.t('docs.loadIndexFailed'));
+                notifyLoadCallbacks('mapping', false, null, error);
+                throw error;
+            }
+        }
         
         try {
             console.log('尝试从CDN加载映射索引...');
@@ -189,6 +218,22 @@ const DocsIndexManager = (function() {
         }
         
         isLoadingSearchIndex = true;
+
+         
+        if (!navigator.onLine) {
+            try {
+                const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.searchIndex, true);
+                searchIndexCache = data;
+                console.log('✓ 离线模式：从缓存加载搜索索引');
+                notifyLoadCallbacks('search', true, data);
+                return data;
+            } catch (cacheError) {
+                console.error('离线模式且无缓存可用', cacheError);
+                const error = new Error(I18n.t('docs.loadIndexFailed'));
+                notifyLoadCallbacks('search', false, null, error);
+                throw error;
+            }
+        }
         
         try {
             console.log('尝试从CDN加载搜索索引...');
@@ -283,7 +328,7 @@ const DocsIndexManager = (function() {
     
 
 
-    async function loadFromCache(storageKey) {
+    async function loadFromCache(storageKey, allowExpired = false) {
         try {
             const cached = localStorage.getItem(storageKey);
             if (!cached) {
@@ -293,7 +338,7 @@ const DocsIndexManager = (function() {
             const data = JSON.parse(cached);
             
              
-            if (data.timestamp && Date.now() - data.timestamp > CONFIG.DOCS.index.cacheExpiry) {
+            if (!allowExpired && data.timestamp && Date.now() - data.timestamp > CONFIG.DOCS.index.cacheExpiry) {
                 throw new Error('缓存已过期');
             }
             
@@ -474,6 +519,203 @@ const DocsIndexManager = (function() {
         clearCache,
         get mapping() { return mappingCache; },
         get searchIndex() { return searchIndexCache; }
+    };
+})();
+
+ 
+const DocsContentCache = (function() {
+    const cfg = () => CONFIG.DOCS.contentCache;
+
+    function _key(lang, docPath) {
+        return cfg().keyPrefix + lang + ':' + docPath;
+    }
+
+    
+
+
+
+    function getRaw(lang, docPath) {
+        try {
+            const raw = localStorage.getItem(_key(lang, docPath));
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    
+
+
+    function isFresh(entry) {
+        if (!entry || !entry.timestamp) return false;
+        return (Date.now() - entry.timestamp) <= cfg().expiry;
+    }
+
+    
+
+
+    function set(lang, docPath, content, commitInfo) {
+        try {
+            const entry = {
+                timestamp: Date.now(),
+                lang: lang,
+                docPath: docPath,
+                content: content,
+                commitInfo: commitInfo || null
+            };
+            localStorage.setItem(_key(lang, docPath), JSON.stringify(entry));
+            _addToIndex(lang, docPath);
+            return true;
+        } catch (e) {
+            console.warn('文档内容缓存写入失败（可能超出存储限制）:', e);
+            return false;
+        }
+    }
+
+    
+
+
+    function count(lang) {
+        const index = _getIndex();
+        return (index[lang] || []).length;
+    }
+
+    
+
+
+    function isLocalized(lang) {
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            return !!(settings.docsLocalized && settings.docsLocalized[lang]);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    
+
+
+    function getLocalizedVersion(lang) {
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            const v = settings.docsLocalized && settings.docsLocalized[lang];
+            return (typeof v === 'string') ? v : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    
+
+
+
+    function setLocalized(lang, value) {
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            if (!settings.docsLocalized) settings.docsLocalized = {};
+            if (value) {
+                settings.docsLocalized[lang] = value;
+            } else {
+                delete settings.docsLocalized[lang];
+            }
+            localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        } catch (e) {
+            console.warn('更新本地化标记失败:', e);
+        }
+    }
+
+    
+
+
+    function getAllLangStats() {
+        const langs = I18n.getSupportedLanguages();
+        const index = _getIndex();
+        return langs.map(function (l) {
+            return {
+                code: l.code,
+                name: l.name,
+                count: (index[l.code] || []).length,
+                localized: isLocalized(l.code),
+                version: getLocalizedVersion(l.code)
+            };
+        });
+    }
+
+    
+
+
+    function clearLang(lang) {
+        const index = _getIndex();
+        const paths = index[lang] || [];
+        paths.forEach(function(path) {
+            localStorage.removeItem(_key(lang, path));
+        });
+        delete index[lang];
+        _saveIndex(index);
+        setLocalized(lang, false);
+    }
+
+    
+
+
+    function clearAll() {
+        const index = _getIndex();
+        Object.keys(index).forEach(function(lang) {
+            (index[lang] || []).forEach(function(path) {
+                localStorage.removeItem(_key(lang, path));
+            });
+        });
+        localStorage.removeItem(cfg().indexKey);
+
+        try {
+            const settings = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SETTINGS) || '{}');
+            if (settings.docsLocalized) {
+                delete settings.docsLocalized;
+                localStorage.setItem(CONFIG.STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+            }
+        } catch (e) {
+            console.warn('清除本地化标记失败:', e);
+        }
+    }
+
+     
+    function _getIndex() {
+        try {
+            return JSON.parse(localStorage.getItem(cfg().indexKey) || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function _saveIndex(index) {
+        try {
+            localStorage.setItem(cfg().indexKey, JSON.stringify(index));
+        } catch (e) {
+            console.warn('保存内容缓存索引失败:', e);
+        }
+    }
+
+    function _addToIndex(lang, docPath) {
+        const index = _getIndex();
+        if (!index[lang]) index[lang] = [];
+        if (index[lang].indexOf(docPath) === -1) {
+            index[lang].push(docPath);
+            _saveIndex(index);
+        }
+    }
+
+    return {
+        getRaw: getRaw,
+        isFresh: isFresh,
+        set: set,
+        count: count,
+        getAllLangStats: getAllLangStats,
+        isLocalized: isLocalized,
+        getLocalizedVersion: getLocalizedVersion,
+        setLocalized: setLocalized,
+        clearLang: clearLang,
+        clearAll: clearAll
     };
 })();
 
@@ -1012,7 +1254,25 @@ const ErisPulseApp = (function () {
         setupHomeAnimations();
         initBannerCarousel();
         initInstallOverlay();
+        setupOnlineOffline();
         SubmitModuleManager.init();
+    }
+
+     
+    function setupOnlineOffline() {
+        window.addEventListener('online', function () {
+            console.log('网络已恢复');
+            showMessage(I18n.t('common.onlineRestored'), 'success');
+            updateDocsCacheStatus();
+             
+            _versionNotified = false;
+            setTimeout(runBackgroundVersionCheck, 1500);
+        });
+        window.addEventListener('offline', function () {
+            console.log('网络已断开，切换到离线缓存模式');
+            showMessage(I18n.t('common.offlineMode'), 'error');
+            updateDocsCacheStatus();
+        });
     }
 
      
@@ -1089,6 +1349,9 @@ const ErisPulseApp = (function () {
         console.log('切换语言:', lang);
 
          
+        const prevDocPath = currentDocPath;
+
+         
         I18n.setLang(lang, true);
 
          
@@ -1098,33 +1361,53 @@ const ErisPulseApp = (function () {
         DocsIndexManager.clearCache();
         DocsIndexManager.loadMapping().then(() => {
             DocsIndexManager.loadSearchIndex();
+             
+            if (prevDocPath) {
+                navigateToDocument(prevDocPath);
+            }
         }).catch(err => {
             console.error('切换语言失败:', err);
             showMessage(I18n.t('common.langSwitchFailed'), 'error');
         });
 
-         
-        showCategoryLevel();
-        updateBreadcrumb(null);
-        history.pushState(null, null, '#docs');
+        if (prevDocPath) {
+             
+            const docsContent = document.getElementById('docs-content');
+            if (docsContent) {
+                docsContent.innerHTML = `
+                    <div style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-spinner fa-pulse fa-3x"></i>
+                        <p>${I18n.t('docs.loading')}</p>
+                    </div>
+                `;
+            }
+             
+             
+        } else {
+             
+            showCategoryLevel();
+            updateBreadcrumb(null);
+            history.pushState(null, null, '#docs');
 
-         
-        currentNavState = 'categories';
-        currentCategory = null;
-        currentDocPath = null;
-        currentChapterToc = [];
+            currentNavState = 'categories';
+            currentCategory = null;
+            currentDocPath = null;
+            currentChapterToc = [];
 
-         
-        const docsContent = document.getElementById('docs-content');
-        if (docsContent) {
-            docsContent.innerHTML = `
-                <div>
-                    <h1>${I18n.t('docs.welcome')}</h1>
-                    <p>${I18n.t('docs.welcome.desc')}</p>
-                    <p>${I18n.t('docs.welcome.hint')}</p>
-                </div>
-            `;
+            const docsContent = document.getElementById('docs-content');
+            if (docsContent) {
+                docsContent.innerHTML = `
+                    <div>
+                        <h1>${I18n.t('docs.welcome')}</h1>
+                        <p>${I18n.t('docs.welcome.desc')}</p>
+                        <p>${I18n.t('docs.welcome.hint')}</p>
+                    </div>
+                `;
+            }
         }
+
+        updateDocsActionButtons();
+        updateDocsCacheStatus();
 
          
         if (document.getElementById('market-view').classList.contains('active')) {
@@ -1300,10 +1583,24 @@ const ErisPulseApp = (function () {
         const viewLinks = document.querySelectorAll('[data-view]');
         const viewContainers = document.querySelectorAll('.view-container');
 
+         
+         
+         
+        viewLinks.forEach(link => {
+            const view = link.getAttribute('data-view');
+            if (view === 'home') {
+                link.setAttribute('href', window.location.pathname);
+            } else if (view) {
+                link.setAttribute('href', '#' + view);
+            }
+        });
+
         window.addEventListener('hashchange', switchViewByHash);
 
         viewLinks.forEach(link => {
             link.addEventListener('click', function (e) {
+                 
+                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
                 e.preventDefault();
                 const view = this.getAttribute('data-view');
                 updateView(view);
@@ -1406,6 +1703,11 @@ const ErisPulseApp = (function () {
         if (view === 'about') {
             loadContributors();
         }
+
+        if (view === 'settings') {
+            updateDocsCacheStatus();
+            checkDocsVersionUpdate();
+        }
     }
 
     function showMessage(message, type) {
@@ -1452,7 +1754,122 @@ const ErisPulseApp = (function () {
         }, 3000);
     }
 
+    
+
+
+    function showActionToast(message, actionText, actionCallback, duration) {
+        var existing = document.querySelector('.message');
+        if (existing) existing.remove();
+
+        var toast = document.createElement('div');
+        toast.className = 'message message-warning action-toast';
+
+        var textSpan = document.createElement('span');
+        textSpan.textContent = message;
+
+        var actionBtn = document.createElement('button');
+        actionBtn.textContent = actionText;
+        Object.assign(actionBtn.style, {
+            marginLeft: '12px',
+            padding: '4px 12px',
+            border: 'none',
+            borderRadius: 'var(--radius)',
+            background: 'rgba(255,255,255,0.25)',
+            color: 'white',
+            cursor: 'pointer',
+            fontWeight: '600',
+            whiteSpace: 'nowrap'
+        });
+
+        toast.appendChild(textSpan);
+        toast.appendChild(actionBtn);
+
+        Object.assign(toast.style, {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: 'var(--radius)',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '1000',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            transform: 'translateY(20px)',
+            opacity: '0',
+            transition: 'all 0.3s ease',
+            background: '#f59e0b',
+            display: 'flex',
+            alignItems: 'center',
+            maxWidth: '90vw'
+        });
+
+        document.body.appendChild(toast);
+
+        actionBtn.addEventListener('click', function () {
+            toast.style.transform = 'translateY(20px)';
+            toast.style.opacity = '0';
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 300);
+            if (actionCallback) actionCallback();
+        });
+
+        setTimeout(function () {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+        }, 10);
+
+        setTimeout(function () {
+            toast.style.transform = 'translateY(20px)';
+            toast.style.opacity = '0';
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 300);
+        }, duration || 8000);
+    }
+
      
+
+    var _versionNotified = false;
+
+    
+
+
+
+    async function runBackgroundVersionCheck() {
+        if (_versionNotified || !navigator.onLine) return;
+
+        var langs = I18n.getSupportedLanguages();
+        var hasAnyLocalized = langs.some(function (l) {
+            return DocsContentCache.isLocalized(l.code);
+        });
+        if (!hasAnyLocalized) return;
+
+        try {
+            var remoteVersion = await fetchSdkVersion();
+            if (!remoteVersion) return;
+
+             
+            var outdated = langs.filter(function (l) {
+                var v = DocsContentCache.getLocalizedVersion(l.code);
+                return v && v !== 'unknown' && v !== remoteVersion;
+            });
+
+            if (outdated.length > 0) {
+                _versionNotified = true;
+                var firstOld = DocsContentCache.getLocalizedVersion(outdated[0].code) || '?';
+                showActionToast(
+                    I18n.t('settings.docsCacheUpdateToast', { old: firstOld, new: remoteVersion }),
+                    I18n.t('settings.docsCacheGoUpdate'),
+                    function () {
+                         
+                        history.pushState(null, null, '#settings');
+                        updateView('settings');
+                        updateDocsCacheStatus();
+                        checkDocsVersionUpdate();
+                    }
+                );
+            }
+        } catch (e) {
+             
+        }
+    }
     function renderFriendLinks() {
         const container = document.getElementById('friend-links-container');
         if (!container) return;
@@ -1549,6 +1966,42 @@ const ErisPulseApp = (function () {
             });
         }
 
+         
+        if (document.getElementById('disable-online-refresh')) {
+            document.getElementById('disable-online-refresh').addEventListener('change', function () {
+                userSettings.disableOnlineCacheRefresh = this.checked;
+                saveUserSettings();
+                var msg = this.checked
+                    ? I18n.t('settings.offlineFirstOn')
+                    : I18n.t('settings.offlineFirstOff');
+                showMessage(msg, 'success');
+            });
+        }
+
+         
+        if (document.getElementById('manage-docs-cache-btn')) {
+            document.getElementById('manage-docs-cache-btn').addEventListener('click', function () {
+                openDocsCacheModal();
+            });
+        }
+
+         
+        if (document.getElementById('clear-all-docs-cache-btn')) {
+            document.getElementById('clear-all-docs-cache-btn').addEventListener('click', function () {
+                clearAllDocsContentCache();
+            });
+        }
+
+        if (document.getElementById('close-docs-cache-modal')) {
+            document.getElementById('close-docs-cache-modal').addEventListener('click', closeDocsCacheModal);
+        }
+
+        if (document.getElementById('docs-cache-modal')) {
+            document.getElementById('docs-cache-modal').addEventListener('click', function (e) {
+                if (e.target === this) closeDocsCacheModal();
+            });
+        }
+
         setTimeout(initSettingsForm, 100);
     }
 
@@ -1565,6 +2018,10 @@ const ErisPulseApp = (function () {
         if (document.getElementById('sticky-nav')) {
             document.getElementById('sticky-nav').checked = userSettings.stickyNav;
         }
+        if (document.getElementById('disable-online-refresh')) {
+            document.getElementById('disable-online-refresh').checked = userSettings.disableOnlineCacheRefresh !== false;
+        }
+        updateDocsCacheStatus();
     }
 
      
@@ -1850,6 +2307,9 @@ const ErisPulseApp = (function () {
                     if (hash === 'docs') {
                         showCategoryLevel();
                     }
+
+                     
+                    setTimeout(runBackgroundVersionCheck, 2000);
                 }
             }
             
@@ -1934,10 +2394,10 @@ const ErisPulseApp = (function () {
         const isActive = doc.path === currentDocPath ? 'active' : '';
         const icon = getDocIcon(doc.path);
         return `
-            <div class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
+            <a href="#docs/${doc.path}" class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
                 <i class="fas ${icon}"></i>
                 <span>${doc.title}</span>
-            </div>
+            </a>
         `;
     }
 
@@ -2094,6 +2554,7 @@ const ErisPulseApp = (function () {
         console.log('syncNavigationState: 同步导航状态, docPath =', docPath);
 
         currentDocPath = docPath;
+        updateDocsActionButtons();
 
         const category = DocsIndexManager.getDocumentCategory(docPath);
         currentCategory = category ? category.name : null;
@@ -2192,6 +2653,8 @@ const ErisPulseApp = (function () {
             if (docItem) {
                 const docPath = docItem.getAttribute('data-doc');
                 console.log('点击文档项，docPath =', docPath);
+                 
+                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
                 e.preventDefault();
                 e.stopPropagation();
                 navigateToDocument(docPath);
@@ -2557,8 +3020,7 @@ const ErisPulseApp = (function () {
         if (editBtn) {
             editBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                const currentDoc = window.location.hash.split('/')[1];
-                const editUrl = getEditUrl(currentDoc);
+                const editUrl = getEditUrl(currentDocPath);
                 if (editUrl) {
                     window.open(editUrl, '_blank');
                 }
@@ -2572,11 +3034,33 @@ const ErisPulseApp = (function () {
                 shareDocument();
             });
         }
+
+        updateDocsActionButtons();
+    }
+
+    
+
+
+
+    function updateDocsActionButtons() {
+        const editBtn = document.querySelector('.docs-action-btn:nth-child(1)');
+        if (editBtn) {
+            const editUrl = getEditUrl(currentDocPath);
+            if (editUrl) {
+                editBtn.setAttribute('href', editUrl);
+                editBtn.setAttribute('target', '_blank');
+                editBtn.setAttribute('rel', 'noopener noreferrer');
+            } else {
+                editBtn.setAttribute('href', '#');
+                editBtn.removeAttribute('target');
+                editBtn.removeAttribute('rel');
+            }
+        }
     }
 
     function shareDocument() {
         const currentUrl = window.location.href;
-        const currentDoc = window.location.hash.split('/')[1];
+        const currentDoc = currentDocPath;
         const docTitle = DocsIndexManager.getDocumentTitle(currentDoc) || currentDoc;
 
         if (navigator.share) {
@@ -2612,7 +3096,297 @@ const ErisPulseApp = (function () {
     }
 
     function getEditUrl(docPath) {
-        return CONFIG.DOCS.githubBaseUrl + docPath;
+        if (!docPath) return null;
+        const lang = I18n.getLang();
+        return CONFIG.DOCS.githubBaseUrl + lang + '/' + docPath;
+    }
+
+     
+
+    
+
+
+
+    async function fetchSdkVersion() {
+        const urls = [CONFIG.DOCS.pyprojectUrl, CONFIG.DOCS.pyprojectRawUrl];
+        for (const url of urls) {
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) continue;
+                const text = await resp.text();
+                 
+                const match = text.match(/^version\s*=\s*["']([^"']+)["']/m);
+                if (match && match[1]) {
+                    return match[1].trim();
+                }
+            } catch (e) {
+                 
+            }
+        }
+        return null;
+    }
+
+    async function ensureDocsIndexLoaded() {
+        if (DocsIndexManager.isLoaded()) return true;
+
+        try {
+            await Promise.all([
+                DocsIndexManager.loadMapping(),
+                DocsIndexManager.loadSearchIndex()
+            ]);
+            return DocsIndexManager.isLoaded();
+        } catch (e) {
+            console.error('加载文档索引失败:', e);
+            return false;
+        }
+    }
+
+    
+
+
+
+    async function downloadAllDocs(targetLang, triggerBtn) {
+        const lang = targetLang || I18n.getLang();
+
+        if (!(await ensureDocsIndexLoaded())) {
+            showMessage(I18n.t('settings.docsCacheNeedIndex'), 'error');
+            return;
+        }
+
+        const mapping = DocsIndexManager.mapping;
+        if (!mapping || !mapping.categories) {
+            showMessage(I18n.t('settings.docsCacheNeedIndex'), 'error');
+            return;
+        }
+
+        const allDocs = DocsIndexManager.getAllDocuments();
+        if (allDocs.length === 0) {
+            showMessage(I18n.t('settings.docsCacheNeedIndex'), 'error');
+            return;
+        }
+
+        const btn = triggerBtn || document.querySelector('.docs-cache-download-lang[data-lang="' + lang + '"]');
+        const progressWrap = document.getElementById('docs-download-progress');
+        const progressBar = document.getElementById('docs-download-progress-bar');
+        const progressText = document.getElementById('docs-download-progress-text');
+
+        document.querySelectorAll('.docs-cache-download-lang').forEach(function (button) {
+            button.disabled = true;
+            button.classList.add('loading');
+        });
+        if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+        if (progressWrap) progressWrap.style.display = '';
+
+         
+        if (progressText) progressText.textContent = I18n.t('settings.docsCacheFetchingVersion');
+        let sdkVersion = null;
+        try {
+            sdkVersion = await fetchSdkVersion();
+        } catch (e) {
+            console.warn('获取 SDK 版本失败:', e);
+        }
+
+        let success = 0;
+        let failed = 0;
+
+        for (let i = 0; i < allDocs.length; i++) {
+            const doc = allDocs[i];
+            const pct = Math.round(((i) / allDocs.length) * 100);
+            if (progressBar) progressBar.style.width = pct + '%';
+            if (progressText) progressText.textContent = I18n.t('settings.docsCacheProgress', { done: i, total: allDocs.length });
+
+            try {
+                const url = CONFIG.DOCS.baseUrl + lang + '/' + doc.path;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const content = await resp.text();
+                    DocsContentCache.set(lang, doc.path, content, null);
+                    success++;
+                } else {
+                    failed++;
+                }
+            } catch (e) {
+                failed++;
+            }
+             
+            await new Promise(r => setTimeout(r, 5));
+        }
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.textContent = I18n.t('settings.docsCacheProgress', { done: allDocs.length, total: allDocs.length });
+
+         
+        const localizedTag = sdkVersion || 'unknown';
+        DocsContentCache.setLocalized(lang, localizedTag);
+        userSettings.docsLocalized = userSettings.docsLocalized || {};
+        userSettings.docsLocalized[lang] = localizedTag;
+        saveUserSettings();
+
+        document.querySelectorAll('.docs-cache-download-lang').forEach(function (button) {
+            button.disabled = false;
+            button.classList.remove('loading');
+        });
+        if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+        setTimeout(function() {
+            if (progressWrap) progressWrap.style.display = 'none';
+            if (progressBar) progressBar.style.width = '0%';
+        }, 1500);
+
+        updateDocsCacheStatus();
+        showMessage(I18n.t('settings.docsCacheDownloaded', { success: success, failed: failed }), failed > 0 ? 'error' : 'success');
+    }
+
+    
+
+
+    function clearDocsContentCache(lang) {
+        const targetLang = lang || I18n.getLang();
+        DocsContentCache.clearLang(targetLang);
+        userSettings.docsLocalized = userSettings.docsLocalized || {};
+        delete userSettings.docsLocalized[targetLang];
+        saveUserSettings();
+        updateDocsCacheStatus();
+        showMessage(I18n.t('settings.docsCacheLangCleared', { lang: I18n.getLanguageName(targetLang) }), 'success');
+    }
+
+    
+
+
+    function clearAllDocsContentCache() {
+        if (!confirm(I18n.t('settings.docsCacheClearAllConfirm'))) return;
+
+        DocsContentCache.clearAll();
+        userSettings.docsLocalized = {};
+        saveUserSettings();
+        updateDocsCacheStatus();
+        checkDocsVersionUpdate();
+        showMessage(I18n.t('settings.docsCacheAllCleared'), 'success');
+    }
+
+    function openDocsCacheModal() {
+        updateDocsCacheStatus();
+        checkDocsVersionUpdate();
+
+         
+        if (!DocsIndexManager.isLoaded()) {
+            DocsIndexManager.loadMapping().catch(function (e) {
+                console.warn('预热文档映射索引失败:', e);
+            });
+            DocsIndexManager.loadSearchIndex().catch(function (e) {
+                console.warn('预热搜索索引失败:', e);
+            });
+        }
+
+        var modal = document.getElementById('docs-cache-modal');
+        if (modal) modal.classList.add('active');
+    }
+
+    function closeDocsCacheModal() {
+        var modal = document.getElementById('docs-cache-modal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, function (c) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[c];
+        });
+    }
+
+    
+
+
+    function updateDocsCacheStatus() {
+        const tableEl = document.getElementById('docs-cache-lang-table');
+        if (!tableEl) return;
+
+        const currentLang = I18n.getLang();
+        const rows = DocsContentCache.getAllLangStats().sort(function (a, b) {
+            if (a.code === currentLang) return -1;
+            if (b.code === currentLang) return 1;
+            return 0;
+        });
+        const html = rows.map(function (stat) {
+            const hasCache = stat.count > 0;
+            const status = stat.localized ? 'localized' : (hasCache ? 'partial' : 'empty');
+            const icon = stat.localized ? '<i class="fas fa-check-circle"></i>' : (hasCache ? '<i class="fas fa-folder-open"></i>' : '<i class="fas fa-cloud"></i>');
+            const currentBadge = stat.code === currentLang
+                ? `<span class="docs-cache-current-badge"><i class="fas fa-location-arrow"></i> ${I18n.t('settings.docsCacheCurrentLang')}</span>`
+                : '';
+            const statusText = stat.localized
+                ? I18n.t('settings.docsCacheLocalized', { count: stat.count, version: stat.version ? I18n.t('settings.docsCacheVersion', { version: stat.version }) : I18n.t('settings.docsCacheNoVersion') })
+                : (hasCache ? I18n.t('settings.docsCachePartial', { count: stat.count }) : I18n.t('settings.docsCacheEmpty'));
+            const versionText = stat.version ? I18n.t('settings.docsCacheVersion', { version: stat.version }) : I18n.t('settings.docsCacheNoVersion');
+            return `<div class="docs-cache-lang-row ${status}">
+                <img class="docs-cache-lang-cover" src="assets/img/logo.png" alt="ErisPulse">
+                <div class="docs-cache-lang-main">
+                    <strong>${escapeHtml(stat.name)} ${currentBadge}</strong>
+                    <span>${icon} ${escapeHtml(statusText)} · ${escapeHtml(versionText)}</span>
+                </div>
+                <div class="docs-cache-lang-actions">
+                    <button class="btn btn-outline docs-cache-download-lang" data-lang="${escapeHtml(stat.code)}" ${navigator.onLine ? '' : 'disabled'}>
+                        <i class="fas fa-download"></i> ${I18n.t('settings.docsCacheDownloadLang')}
+                    </button>
+                    <button class="btn btn-outline docs-cache-clear-lang" data-lang="${escapeHtml(stat.code)}" ${hasCache ? '' : 'disabled'}>
+                        <i class="fas fa-trash-alt"></i> ${I18n.t('settings.docsCacheClearLang')}
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+
+        tableEl.innerHTML = html;
+
+        tableEl.querySelectorAll('.docs-cache-download-lang').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const lang = btn.getAttribute('data-lang');
+                if (!navigator.onLine) {
+                    showMessage(I18n.t('settings.docsCacheOfflineDownload'), 'error');
+                    return;
+                }
+                downloadAllDocs(lang, btn);
+            });
+        });
+
+        tableEl.querySelectorAll('.docs-cache-clear-lang').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                clearDocsContentCache(btn.getAttribute('data-lang'));
+            });
+        });
+    }
+
+    
+
+
+
+    async function checkDocsVersionUpdate() {
+        const hintEl = document.getElementById('docs-cache-version-hint');
+        if (!hintEl) return;
+        if (!navigator.onLine) { hintEl.style.display = 'none'; return; }
+
+        const lang = I18n.getLang();
+        if (!DocsContentCache.isLocalized(lang)) { hintEl.style.display = 'none'; return; }
+
+        const cachedVersion = DocsContentCache.getLocalizedVersion(lang);
+        if (!cachedVersion || cachedVersion === 'unknown') { hintEl.style.display = 'none'; return; }
+
+        try {
+            const remoteVersion = await fetchSdkVersion();
+            if (remoteVersion && remoteVersion !== cachedVersion) {
+                hintEl.style.display = '';
+                hintEl.innerHTML = '<i class="fas fa-sync-alt"></i> ' +
+                    I18n.t('settings.docsCacheUpdateAvailable', { old: cachedVersion, new: remoteVersion });
+            } else {
+                hintEl.style.display = 'none';
+            }
+        } catch (e) {
+             
+            hintEl.style.display = 'none';
+        }
     }
 
     function injectAiMaterialDownloads(docsContent) {
@@ -2720,8 +3494,20 @@ const ErisPulseApp = (function () {
 
         clearToc();
 
+        const lang = I18n.getLang();
+        const offline = !navigator.onLine;
+        const refreshDisabled = userSettings.disableOnlineCacheRefresh;
+        const cached = DocsContentCache.getRaw(lang, docPath);
+
+         
+        if (cached && (offline || refreshDisabled || DocsContentCache.isFresh(cached))) {
+            console.log('loadDocument: 使用本地缓存的文档内容', { docPath, offline, refreshDisabled });
+            _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword);
+            return;
+        }
+
+         
         try {
-            const lang = I18n.getLang();
             const docUrl = CONFIG.DOCS.baseUrl + lang + '/' + docPath;
             const docResponse = await fetch(docUrl);
             if (!docResponse.ok) {
@@ -2729,11 +3515,8 @@ const ErisPulseApp = (function () {
             }
 
             const docContent = await docResponse.text();
-            let htmlContent = marked.parse(docContent);
 
-            htmlContent = addTableOfContents(htmlContent);
-            htmlContent = wrapTables(htmlContent);
-
+             
             let commitInfo = null;
             try {
                 const apiBaseUrl = 'https://api.github.com/repos/ErisPulse/ErisPulse/commits?path=' + docPath;
@@ -2753,16 +3536,39 @@ const ErisPulseApp = (function () {
                 console.warn('获取提交信息失败:', commitError);
             }
 
-            docsContent.innerHTML = htmlContent;
-            addDocumentMetaInfo(docsContent, docPath, commitInfo);
+             
+            DocsContentCache.set(lang, docPath, docContent, commitInfo);
 
-            if (docPath === 'ai-support/README.md') {
-                injectAiMaterialDownloads(docsContent);
-            }
+            _renderDocContent(docPath, docContent, commitInfo, targetLine, keyword);
 
         } catch (error) {
             console.error('加载文档失败:', error);
-            showDocumentError(docsContent, error);
+             
+            if (cached) {
+                console.warn('联网失败，降级使用本地缓存:', docPath);
+                _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword);
+            } else {
+                showDocumentError(docsContent, error);
+            }
+        }
+    }
+
+    
+
+
+
+    function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, keyword) {
+        const docsContent = document.getElementById('docs-content');
+        let htmlContent = marked.parse(markdownContent);
+
+        htmlContent = addTableOfContents(htmlContent);
+        htmlContent = wrapTables(htmlContent);
+
+        docsContent.innerHTML = htmlContent;
+        addDocumentMetaInfo(docsContent, docPath, commitInfo);
+
+        if (docPath === 'ai-support/README.md') {
+            injectAiMaterialDownloads(docsContent);
         }
 
         setTimeout(() => {
