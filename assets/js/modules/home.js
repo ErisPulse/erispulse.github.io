@@ -213,8 +213,6 @@ function setupScrollDrivenFeatures() {
 }
 
 export function initInstallOverlay() {
-    var startBtn = document.getElementById('hero-start-btn');
-    var expanded = document.getElementById('hero-actions-expanded');
     var overlay = document.getElementById('hero-install-overlay');
     var installBtn = document.getElementById('hero-install-btn');
     var closeBtn = document.getElementById('install-overlay-close');
@@ -223,34 +221,6 @@ export function initInstallOverlay() {
     var codeText = document.getElementById('install-code-text');
     var codePrefix = document.getElementById('install-code-prefix');
     var tabs = overlay ? overlay.querySelectorAll('.install-tab') : [];
-
-    if (startBtn && expanded) {
-        function collapseExpanded() {
-            if (!expanded.classList.contains('visible')) return;
-            expanded.classList.remove('visible');
-            setTimeout(function () {
-                startBtn.classList.remove('hidden');
-                startBtn.classList.remove('hiding');
-            }, 300);
-        }
-
-        startBtn.addEventListener('click', function () {
-            startBtn.classList.add('hiding');
-            setTimeout(function () {
-                startBtn.classList.add('hidden');
-                expanded.classList.add('visible');
-            }, 300);
-        });
-
-        document.addEventListener('click', function (e) {
-            if (expanded.classList.contains('visible') &&
-                !expanded.contains(e.target) &&
-                e.target !== startBtn &&
-                !startBtn.contains(e.target)) {
-                collapseExpanded();
-            }
-        });
-    }
 
     if (!overlay || !installBtn) return;
 
