@@ -179,7 +179,7 @@ export function setupGlobalLangSwitcher() {
             e.stopPropagation();
             const newLang = this.getAttribute('data-lang');
             if (newLang && newLang !== I18n.getLang()) {
-                docs.handleLanguageSwitch(newLang);
+                docs.handleLanguageSwitch(newLang, e.clientX, e.clientY);
             }
             switcher.classList.remove('open');
 
