@@ -51,10 +51,58 @@ export function updateLangSwitcherUI() {
 
 /**
  * 统一处理语言切换（全局切换器和文档侧边栏切换器共用）
+ * 使用 View Transitions API 从点击位置发出圆形波纹揭示动画。
  */
-export function handleLanguageSwitch(lang) {
+export function handleLanguageSwitch(lang, originX, originY) {
     console.log('切换语言:', lang);
 
+    var x = (typeof originX === 'number') ? originX : window.innerWidth / 2;
+    var y = (typeof originY === 'number') ? originY : window.innerHeight / 2;
+
+    var supportsVT = typeof document.startViewTransition === 'function';
+    var animationsEnabled = !document.body.classList.contains('no-animations');
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (supportsVT && animationsEnabled && !reduceMotion) {
+        var maxRadius = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y)
+        );
+
+        document.documentElement.classList.add('lang-transitioning');
+
+        var transition = document.startViewTransition(function () {
+            _doLanguageSwitch(lang);
+        });
+
+        transition.ready.then(function () {
+            document.documentElement.animate(
+                {
+                    clipPath: [
+                        'circle(0px at ' + x + 'px ' + y + 'px)',
+                        'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)'
+                    ]
+                },
+                {
+                    duration: 450,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    pseudoElement: '::view-transition-new(root)'
+                }
+            );
+        });
+
+        transition.finished.then(function () {
+            document.documentElement.classList.remove('lang-transitioning');
+        });
+    } else {
+        _doLanguageSwitch(lang);
+    }
+}
+
+/**
+ * 语言切换的实际逻辑（同步 DOM 更新 + 异步索引/文档重载）
+ */
+function _doLanguageSwitch(lang) {
     const prevDocPath = currentDocPath;
 
     I18n.setLang(lang, true);
