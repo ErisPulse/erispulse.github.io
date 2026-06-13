@@ -2,6 +2,7 @@
  * ErisPulse Hero Canvas — Nebula Constellation Network
  * 全屏随机分布的星座网络，带星云光晕、粒子拖尾、鼠标引力场
  */
+let HeroCanvas;
 (function () {
     'use strict';
 
@@ -669,5 +670,7 @@
         window.removeEventListener('resize', debResize);
     }
 
-    window.HeroCanvas = { init, destroy };
+    HeroCanvas = { init, destroy };
 })();
+
+export { HeroCanvas };

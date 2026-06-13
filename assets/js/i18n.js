@@ -3,7 +3,7 @@
  * 支持语言：zh-CN（简体中文）、en（English）、zh-TW（繁體中文）
  */
 
-const I18n = (function () {
+export const I18n = (function () {
     const STORAGE_KEY = 'erispulse-lang';
 
     /**
