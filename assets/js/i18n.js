@@ -3,7 +3,7 @@
 
 
 
-const I18n = (function () {
+export const I18n = (function () {
     const STORAGE_KEY = 'erispulse-lang';
 
     

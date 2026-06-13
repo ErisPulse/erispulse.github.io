@@ -2,6 +2,7 @@
 
 
 
+let HeroCanvas;
 (function () {
     'use strict';
 
@@ -669,5 +670,7 @@
         window.removeEventListener('resize', debResize);
     }
 
-    window.HeroCanvas = { init, destroy };
+    HeroCanvas = { init, destroy };
 })();
+
+export { HeroCanvas };
