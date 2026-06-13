@@ -1,22 +1,10 @@
 const CACHE_NAME = 'erispulse-v2.6.0';
-const EXTERNAL_LIBS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/',
-  'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/'
-];
+const EXTERNAL_LIBS = [];
 
 const urlsToCache = [
   '/',
   '/index.html',
-  '/assets/css/main.css',
-  '/assets/css/home.css',
-  '/assets/css/market.css',
-  '/assets/css/markdown.css',
-  '/assets/css/docs.css',
-  '/assets/css/setting.css',
-  '/assets/css/about.css',
   '/assets/js/i18n.js',
-  '/assets/js/hero-canvas.js',
   '/assets/js/main.js',
   '/assets/img/logo.png',
   '/assets/img/codeberg.svg',

@@ -765,7 +765,8 @@ const SubmitModuleManager = (function() {
 
             url.searchParams.delete('code');
             url.searchParams.delete('state');
-            url.hash = '#market';
+            url.pathname = '/market';
+            url.hash = '';
             window.history.replaceState({}, '', url.toString());
 
             exchangeCodeForToken(code, provider);
@@ -1234,6 +1235,36 @@ const ErisPulseApp = (function () {
     // ==================== 初始化模块 ====================
     var _hashProgrammatic = false;
 
+    function getCurrentDocPath() {
+        const path = window.location.pathname;
+        if (path.startsWith('/docs/')) {
+            return path.substring(6); // remove '/docs/'
+        }
+        const hash = window.location.hash.substring(1);
+        if (hash.startsWith('docs/')) {
+            return hash.substring(5); // remove 'docs/'
+        }
+        return null;
+    }
+
+    function getCurrentView() {
+        const path = window.location.pathname;
+        if (path.startsWith('/docs')) return 'docs';
+        if (path.startsWith('/market')) return 'market';
+        if (path.startsWith('/settings')) return 'settings';
+        if (path.startsWith('/about')) return 'about';
+        if (path === '/' || path === '/index.html') return 'home';
+
+        // Fallback to hash routing
+        const hash = window.location.hash.substring(1);
+        if (hash.startsWith('docs')) return 'docs';
+        if (hash.startsWith('market')) return 'market';
+        if (hash === 'about') return 'about';
+        if (hash === 'settings') return 'settings';
+
+        return 'home';
+    }
+
     function init() {
         // 初始化 i18n（应用所有 data-i18n 翻译）
         I18n.init();
@@ -1387,7 +1418,7 @@ const ErisPulseApp = (function () {
             // 没有查看具体文档时，回到分类首页
             showCategoryLevel();
             updateBreadcrumb(null);
-            history.pushState(null, null, '#docs');
+            history.pushState(null, null, '/docs');
 
             currentNavState = 'categories';
             currentCategory = null;
@@ -1579,80 +1610,70 @@ const ErisPulseApp = (function () {
         });
     }
 
+    function handlePopState() {
+        if (_hashProgrammatic) return;
+        const currentViewInDom = document.querySelector('.view-container')?.id?.replace('-view', '');
+        const targetView = getCurrentView();
+        
+        if (currentViewInDom && targetView !== currentViewInDom) {
+            // Pathname changed to a different view page, reload the page
+            window.location.reload();
+            return;
+        }
+        
+        // Otherwise it is the same view page (e.g. still docs, or same market subpage), run switchViewByPath
+        switchViewByPath();
+    }
+
     function setupViewSwitching() {
         const viewLinks = document.querySelectorAll('[data-view]');
-        const viewContainers = document.querySelectorAll('.view-container');
 
-        // 为所有 [data-view] 链接设置正确的 hash href，
-        // 这样右键「在新标签页中打开」/ 中键点击也能跳转到对应视图，
-        // 而不是因为 href="#" 而跳回首页。
+        // 为所有 [data-view] 链接设置正确的 Clean URL href
         viewLinks.forEach(link => {
             const view = link.getAttribute('data-view');
             if (view === 'home') {
-                link.setAttribute('href', window.location.pathname);
+                link.setAttribute('href', '/');
             } else if (view) {
-                link.setAttribute('href', '#' + view);
+                link.setAttribute('href', '/' + view);
             }
         });
 
-        window.addEventListener('hashchange', switchViewByHash);
+        window.addEventListener('popstate', handlePopState);
+        window.addEventListener('hashchange', handlePopState);
 
-        viewLinks.forEach(link => {
-            link.addEventListener('click', function (e) {
-                // 允许中键 / Ctrl / Cmd / Shift 点击交给浏览器原生「在新标签页打开」
-                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
-                e.preventDefault();
-                const view = this.getAttribute('data-view');
-                updateView(view);
-            });
-        });
+        // 我们不在此拦截链接点击，允许原生 MPA 浏览器跳转
 
-        switchViewByHash();
+        switchViewByPath();
     }
 
-    function switchViewByHash() {
+    function switchViewByPath() {
         if (_hashProgrammatic) return;
-        const hash = window.location.hash.substring(1);
-        let view = 'home';
+        const view = getCurrentView();
+        const docPath = getCurrentDocPath();
 
-        if (hash.startsWith('docs')) {
-            view = 'docs';
-            const docMatch = hash.match(/docs\/(.+)/);
-            if (docMatch && docMatch[1]) {
+        if (view === 'docs') {
+            if (docPath) {
                 setTimeout(() => {
-                    navigateToDocument(docMatch[1]);
+                    navigateToDocument(docPath);
                 }, 500);
             }
-        } else if (hash.startsWith('market')) {
-            view = 'market';
-            const categoryMatch = hash.match(/market\/(.+)/);
-            if (categoryMatch && categoryMatch[1]) {
+        } else if (view === 'market') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const category = urlParams.get('category');
+            if (category) {
                 setTimeout(() => {
-                    const categoryBtn = document.querySelector(`.category-btn[data-category="${categoryMatch[1]}"]`);
+                    const categoryBtn = document.querySelector(`.category-btn[data-category="${category}"]`);
                     if (categoryBtn) {
                         categoryBtn.click();
                     }
                 }, 500);
             }
-        } else if (hash === 'changelog' || hash.startsWith('dev-') ||
-            hash.startsWith('quick-start') ||
-            hash.startsWith('adapter-standards') || hash.startsWith('use-core') ||
-            hash.startsWith('platform-features') || hash.startsWith('ai-module')) {
-            view = 'docs';
-            const docPath = hash === 'changelog' ? 'changelog' : hash;
-            setTimeout(() => {
-                navigateToDocument(docPath);
-            }, 500);
-        } else if (hash === 'about') {
-            view = 'about';
-        } else if (hash === 'settings') {
-            view = 'settings';
         }
 
-        updateView(view);
+        updateView(view, false);
     }
 
-    function updateView(view) {
+    function updateView(view, push = false) {
         var expanded = document.getElementById('hero-actions-expanded');
         var startBtn = document.getElementById('hero-start-btn');
         if (expanded && expanded.classList.contains('visible') && startBtn) {
@@ -1671,18 +1692,17 @@ const ErisPulseApp = (function () {
         document.querySelectorAll('.view-container').forEach(container => {
             container.classList.remove('active');
         });
-        document.getElementById(`${view}-view`).classList.add('active');
+        const targetContainer = document.getElementById(`${view}-view`);
+        if (targetContainer) {
+            targetContainer.classList.add('active');
+        }
 
         _hashProgrammatic = true;
-        var currentHash = window.location.hash.substring(1);
-        if (view === 'home') {
-            if (currentHash !== '') {
-                history.pushState(null, null, window.location.pathname);
+        if (push) {
+            const targetPath = view === 'home' ? '/' : '/' + view;
+            if (window.location.pathname !== targetPath) {
+                history.pushState(null, null, targetPath);
             }
-        } else if (view === 'docs' && currentHash.startsWith('docs/')) {
-            // keep docs sub-path hash intact
-        } else if (currentHash !== view && !currentHash.startsWith(view + '/')) {
-            window.location.hash = view;
         }
         setTimeout(function() { _hashProgrammatic = false; }, 50);
 
@@ -1859,10 +1879,7 @@ const ErisPulseApp = (function () {
                     I18n.t('settings.docsCacheGoUpdate'),
                     function () {
                         // 跳转到设置页
-                        history.pushState(null, null, '#settings');
-                        updateView('settings');
-                        updateDocsCacheStatus();
-                        checkDocsVersionUpdate();
+                        window.location.href = '/settings';
                     }
                 );
             }
@@ -1894,6 +1911,9 @@ const ErisPulseApp = (function () {
 
     // ==================== 设置模块 ====================
     function setupSettings() {
+        const settingsView = document.getElementById('settings-view');
+        if (!settingsView) return;
+
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
             themeToggle.addEventListener('click', toggleTheme);
@@ -1944,7 +1964,9 @@ const ErisPulseApp = (function () {
                     document.querySelectorAll('pre').forEach(pre => {
                         pre.classList.add('line-numbers');
                     });
-                    Prism.highlightAll();
+                    if (typeof Prism !== 'undefined') {
+                        Prism.highlightAll();
+                    }
                 } else {
                     document.body.classList.remove('show-line-numbers');
                     document.querySelectorAll('pre').forEach(pre => {
@@ -2026,6 +2048,9 @@ const ErisPulseApp = (function () {
 
     // ==================== 模块市场模块 ====================
     function setupMarketplace() {
+        const marketView = document.getElementById('market-view');
+        if (!marketView) return;
+
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
@@ -2033,9 +2058,9 @@ const ErisPulseApp = (function () {
                 activeCategory = this.dataset.category;
 
                 if (activeCategory === 'all') {
-                    history.pushState(null, null, '#market');
+                    history.pushState(null, null, '/market');
                 } else {
-                    history.pushState(null, null, `#market/${activeCategory}`);
+                    history.pushState(null, null, `/market?category=${activeCategory}`);
                 }
 
                 renderModules();
@@ -2043,12 +2068,14 @@ const ErisPulseApp = (function () {
         });
 
         const searchInput = document.getElementById('module-search');
-        var _searchTimer = null;
-        searchInput.addEventListener('input', function () {
-            searchQuery = this.value.trim();
-            clearTimeout(_searchTimer);
-            _searchTimer = setTimeout(renderModules, 300);
-        });
+        if (searchInput) {
+            var _searchTimer = null;
+            searchInput.addEventListener('input', function () {
+                searchQuery = this.value.trim();
+                clearTimeout(_searchTimer);
+                _searchTimer = setTimeout(renderModules, 300);
+            });
+        }
     }
 
     async function loadModuleData() {
@@ -2096,10 +2123,14 @@ const ErisPulseApp = (function () {
 
     function updateStats() {
         const totalCount = allModules.length + allAdapters.length;
-        document.getElementById('total-all-modules').textContent = totalCount;
-        document.getElementById('total-modules').textContent = allModules.length;
-        document.getElementById('adapter-count').textContent = allAdapters.length;
-        document.getElementById('contributors-count').textContent = '--';
+        const totalAll = document.getElementById('total-all-modules');
+        const totalMod = document.getElementById('total-modules');
+        const adapterCount = document.getElementById('adapter-count');
+        const contributorsCount = document.getElementById('contributors-count');
+        if (totalAll) totalAll.textContent = totalCount;
+        if (totalMod) totalMod.textContent = allModules.length;
+        if (adapterCount) adapterCount.textContent = allAdapters.length;
+        if (contributorsCount) contributorsCount.textContent = '--';
     }
 
     function renderModules() {
@@ -2211,22 +2242,25 @@ const ErisPulseApp = (function () {
             const response = await fetch(CONFIG.API.contributors);
             if (!response.ok) throw new Error('贡献者API请求失败');
             const contributors = await response.json();
-
-            document.getElementById('contributors-count').textContent = contributors.length;
-
+ 
+            const countEl = document.getElementById('contributors-count');
+            if (countEl) countEl.textContent = contributors.length;
+ 
             const container = document.getElementById('contributors-container');
-            container.innerHTML = '';
-
-            contributors.slice(0, 12).forEach(contributor => {
-                const contributorElement = document.createElement('div');
-                contributorElement.className = 'contributor';
-                contributorElement.innerHTML = `
-                    <img src="${contributor.avatar_url}" alt="${contributor.login}" class="contributor-avatar" referrerpolicy="no-referrer">
-                    <span class="contributor-name">${contributor.login}</span>
-                `;
-                contributorElement.onclick = () => window.open(contributor.html_url, '_blank');
-                container.appendChild(contributorElement);
-            });
+            if (container) {
+                container.innerHTML = '';
+ 
+                contributors.slice(0, 12).forEach(contributor => {
+                    const contributorElement = document.createElement('div');
+                    contributorElement.className = 'contributor';
+                    contributorElement.innerHTML = `
+                        <img src="${contributor.avatar_url}" alt="${contributor.login}" class="contributor-avatar" referrerpolicy="no-referrer">
+                        <span class="contributor-name">${contributor.login}</span>
+                    `;
+                    contributorElement.onclick = () => window.open(contributor.html_url, '_blank');
+                    container.appendChild(contributorElement);
+                });
+            }
         } catch (error) {
             console.error('加载贡献者数据失败:', error);
         }
@@ -2260,19 +2294,9 @@ const ErisPulseApp = (function () {
     function loadDocsLibs() {
         if (_docsLibsLoaded) return;
         _docsLibsLoaded = true;
-        var libs = [
-            'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js'
-        ];
-        libs.forEach(function(url) {
-            var s = document.createElement('script');
-            s.src = url;
-            s.defer = true;
-            if (url.includes('mermaid')) {
-                s.onload = function() { if (typeof mermaid !== 'undefined') mermaid.initialize({ startOnLoad: false }); };
-            }
-            document.head.appendChild(s);
-        });
+        if (typeof mermaid !== 'undefined') {
+            mermaid.initialize({ startOnLoad: false });
+        }
     }
 
     var _docsIndexesLoaded = false;
@@ -2288,6 +2312,9 @@ const ErisPulseApp = (function () {
     }
 
     function setupDocumentation() {
+        const docsView = document.getElementById('docs-view');
+        if (!docsView) return;
+
         // 立即初始化UI，不等待索引加载
         setupLanguageSwitcher();
         renderDocsNavigation();
@@ -2303,8 +2330,8 @@ const ErisPulseApp = (function () {
                 if (DocsIndexManager.isLoaded()) {
                     console.log('文档索引加载完成');
                     
-                    const hash = window.location.hash.substring(1);
-                    if (hash === 'docs') {
+                    const view = getCurrentView();
+                    if (view === 'docs' && !getCurrentDocPath()) {
                         showCategoryLevel();
                     }
 
@@ -2570,9 +2597,9 @@ const ErisPulseApp = (function () {
             });
         }
 
-        const hash = window.location.hash.substring(1);
+        const view = getCurrentView();
 
-        if (hash === 'docs') {
+        if (view === 'docs' && !getCurrentDocPath()) {
             showCategoryLevel();
             return;
         }
@@ -2581,7 +2608,7 @@ const ErisPulseApp = (function () {
     function navigateToDocument(docPath, targetLine = null, keyword = null) {
         console.log('navigateToDocument: 开始导航到文档', { docPath, targetLine, keyword });
         
-        history.pushState(null, null, `#docs/${docPath}`);
+        history.pushState(null, null, `/docs/${docPath}`);
         
         syncNavigationState(docPath);
         
@@ -3710,7 +3737,7 @@ const ErisPulseApp = (function () {
         normalizedPath = normalizedPath.replace(/\.md$/, '');
         
         if (normalizedPath.startsWith('../') || normalizedPath.startsWith('./') || !normalizedPath.includes('/')) {
-            const currentDoc = window.location.hash.split('/')[1];
+            const currentDoc = getCurrentDocPath();
             if (currentDoc) {
                 const resolvedPath = resolveRelativePath(currentDoc.replace(/\.md$/, ''), normalizedPath);
                 if (resolvedPath) {
@@ -4141,7 +4168,7 @@ const ErisPulseApp = (function () {
         modal.classList.add('active');
 
         fetchReadmeContent(repoUrl).then(markdown => {
-            const htmlContent = marked.parse(markdown);
+            const htmlContent = (typeof marked !== 'undefined') ? marked.parse(markdown) : markdown;
 
             modalContent.innerHTML = `
                 <div class="markdown-content">
@@ -4150,12 +4177,14 @@ const ErisPulseApp = (function () {
                 </div>
             `;
 
-            document.querySelectorAll('#module-modal-content pre code').forEach((block) => {
-                if (!block.className || !block.className.startsWith('language-')) {
-                    block.classList.add('language-python');
-                }
-                Prism.highlightElement(block);
-            });
+            if (typeof Prism !== 'undefined') {
+                document.querySelectorAll('#module-modal-content pre code').forEach((block) => {
+                    if (!block.className || !block.className.startsWith('language-')) {
+                        block.classList.add('language-python');
+                    }
+                    Prism.highlightElement(block);
+                });
+            }
         }).catch(error => {
             console.error('获取文档失败:', error);
             modalContent.innerHTML = `
@@ -4197,6 +4226,7 @@ const ErisPulseApp = (function () {
     var featuresUpdateFn = null;
 
     function setupHomeAnimations() {
+        if (!document.getElementById('home-view')) return;
         if (!document.body.classList.contains('no-animations') && !featuresInitialized) {
             featuresInitialized = true;
             setupScrollDrivenFeatures();
@@ -4211,6 +4241,7 @@ const ErisPulseApp = (function () {
     var bannerCurrentIndex = 0;
 
     function initBannerCarousel() {
+        if (!document.getElementById('home-view')) return;
         var bannerIcon = document.getElementById('banner-icon');
         var bannerText = document.getElementById('banner-text');
         var bannerLink = document.getElementById('banner-link');
@@ -4395,6 +4426,7 @@ const ErisPulseApp = (function () {
 
     // ==================== Install Overlay ====================
     function initInstallOverlay() {
+        if (!document.getElementById('home-view')) return;
         var startBtn = document.getElementById('hero-start-btn');
         var expanded = document.getElementById('hero-actions-expanded');
         var overlay = document.getElementById('hero-install-overlay');
@@ -4525,14 +4557,13 @@ const ErisPulseApp = (function () {
 })();
 
 document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(() => {
-        const loader = document.getElementById('page-loader');
+    const loader = document.getElementById('page-loader');
+    if (loader) {
         loader.classList.add('hidden');
-
         setTimeout(() => {
             loader.style.display = 'none';
-        }, 500);
-    }, 500);
+        }, 300);
+    }
 
     if (typeof HeroCanvas !== 'undefined') {
         HeroCanvas.init();

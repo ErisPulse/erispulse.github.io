@@ -1,0 +1,117 @@
+---
+import '../styles/main.css';
+import '../styles/home.css';
+import '../styles/market.css';
+import '../styles/markdown.css';
+import '../styles/docs.css';
+import '../styles/setting.css';
+import '../styles/about.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  activeView?: string;
+  includeDocsVendors?: boolean;
+  includeSoftwareSchema?: boolean;
+}
+
+const {
+  title = 'ErisPulse - 异步机器人开发框架',
+  description = 'ErisPulse - 高性能异步机器人开发框架',
+  canonicalPath = '/',
+  activeView = 'home',
+  includeDocsVendors = true,
+  includeSoftwareSchema = true,
+} = Astro.props;
+
+const siteUrl = 'https://www.erisdev.com';
+const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#4A9CD8" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ErisPulse" />
+    <meta name="fragment" content="!" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'ErisPulse 文档中心',
+      url: 'https://www.erisdev.com/#docs',
+      description: 'ErisPulse 框架的完整文档，包括快速开始、开发指南、API参考等',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://www.erisdev.com/#docs?q={search_term_string}',
+        'query-input': 'required name=search_term_string',
+      },
+    })} />
+
+    {includeSoftwareSchema && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'ErisPulse',
+        description: '高性能异步机器人开发框架',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Windows, Mac, Linux',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      })} />
+    )}
+
+    <meta property="og:title" content="ErisPulse - 异步机器人开发框架" />
+    <meta property="og:description" content="ErisPulse 是一个高性能的异步机器人开发框架，支持模块化架构、热重载开发、OneBot12协议兼容等功能。" />
+    <meta property="og:image" content="https://www.erisdev.com/assets/img/logo.png" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+
+    <title>{title}</title>
+
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/img/logo.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <slot name="head" />
+
+    {/* 核心 Client-side JS 资源 */}
+    <script is:inline src="/assets/js/i18n.js" defer></script>
+    <script is:inline src="/assets/js/main.js" defer></script>
+
+    {/* 模块打包依赖（通过 NPM 本地安装并打包，不使用远程 CDN） */}
+    <script>
+      import { marked } from 'marked';
+      import Prism from 'prismjs';
+      import 'prismjs/components/prism-python';
+      import 'prismjs/components/prism-json';
+      import 'prismjs/components/prism-yaml';
+      import 'prismjs/components/prism-bash';
+      import 'prismjs/plugins/line-numbers/prism-line-numbers';
+
+      window.marked = marked;
+      window.Prism = Prism;
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

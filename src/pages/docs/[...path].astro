@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
+import Navbar from '../../components/Navbar.astro';
+import DocsView from '../../components/DocsView.astro';
+import Modals from '../../components/Modals.astro';
+import Footer from '../../components/Footer.astro';
+
+export async function getStaticPaths() {
+  const paths = [
+    { params: { path: undefined } } // 匹配 /docs
+  ];
+  
+  try {
+    const res = await fetch('https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/docs-mapping.json');
+    if (res.ok) {
+      const data = await res.json();
+      
+      const traverseDocs = (items: any[]) => {
+        if (!items) return;
+        items.forEach(doc => {
+          if (doc.path) {
+            let cleanPath = doc.path.replace(/\\/g, '/');
+            if (cleanPath.startsWith('docs/')) {
+              cleanPath = cleanPath.substring(5);
+            }
+            paths.push({ params: { path: cleanPath } });
+            if (cleanPath.endsWith('.md')) {
+              paths.push({ params: { path: cleanPath.slice(0, -3) } });
+            }
+          }
+        });
+      };
+      
+      if (data.categories) {
+        Object.values(data.categories).forEach((category: any) => {
+          if (category.documents) {
+            traverseDocs(category.documents);
+          }
+          if (category.subgroups) {
+            Object.values(category.subgroups).forEach((subgroup: any) => {
+              if (subgroup.documents) {
+                traverseDocs(subgroup.documents);
+              }
+            });
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.error('获取文档映射索引失败，使用默认列表:', e);
+  }
+  
+  // 保底配置，防止 GitHub 接口波动导致构建中断
+  const fallbackPaths = [
+    'changelog',
+    'quick-start/README.md',
+    'ai-support/README.md'
+  ];
+  
+  fallbackPaths.forEach(p => {
+    if (!paths.some(x => x.params.path === p)) {
+      paths.push({ params: { path: p } });
+      if (p.endsWith('.md')) {
+        paths.push({ params: { path: p.slice(0, -3) } });
+      }
+    }
+  });
+
+  return paths;
+}
+---
+
+<BaseLayout activeView="docs" title="文档中心 - ErisPulse">
+  <PageLoader />
+  <Navbar activeView="docs" />
+  
+  <main class="main-content">
+    <DocsView activeView="docs" />
+    <Modals />
+  </main>
+
+  <Footer />
+</BaseLayout>
