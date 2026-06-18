@@ -448,6 +448,7 @@ ${CODE_CONVENTIONS}
 - 禁止角色扮演文本，禁止 emoji。
 - 规划完成、用户满意后，提示用户发送「开始」进入生成阶段。
 - 用户界面当前语言为${langName()}，请**始终使用该语言**回复用户。
+- 若用户使用其他语言发送消息，请以用户所用的语言为准。
 
 ${docIndexSection()}`;
 }
@@ -490,6 +491,7 @@ ${CODE_CONVENTIONS}
 - 不要编造不存在的 API、参数或方法
 - 不确定的 API 必须用 search_docs 先查文档确认
 - 用户界面当前语言为${langName()}，请**始终使用该语言**回复用户。
+- 若用户使用其他语言发送消息，请以用户所用的语言为准。
 
 ${docIndexSection()}`;
 }
@@ -740,7 +742,7 @@ async function executeTool(name, args, ctx) {
     case "confirm_start": {
       const msg =
         String(args.message || "").trim() || I18n.t("builder.confirmStartMsg");
-      const ok = window.confirm(msg);
+      const ok = await showConfirmModal(msg);
       if (ok) {
         switchPhase("generate", true);
         return "用户已确认开始，已切换到生成阶段。";
@@ -757,13 +759,17 @@ async function executeTool(name, args, ctx) {
  * ============================================================ */
 
 function isStartCommand(text) {
-  const t = String(text || "")
-    .trim()
-    .toLowerCase();
-  if (t.length > 24) return false;
-  return /^(开始|开始生成|开始吧|生成吧|start|begin|generate|go)[!！.。]*$/i.test(
-    t,
-  );
+  const t = String(text || "").trim();
+  if (t.length > 80) return false;
+  // 命令式触发词
+  if (
+    /^(开始|开始生成|开始吧|生成吧|start|begin|generate|go)[!！.。]*$/i.test(t)
+  )
+    return true;
+  // 短消息中包含触发意图（如 "let us go", "开始吧", "请开始" 等）
+  if (t.length <= 30 && /(开始|start|begin|go|generate|lets? go)/i.test(t))
+    return true;
+  return false;
 }
 
 /**
@@ -834,7 +840,7 @@ async function runGeneration(requirement, onProgress, ctx) {
 }
 
 /* ============================================================
- * 10. JSZip 打包
+ * 10. ZIP 打包
  * ============================================================ */
 
 let jszipLoaded = false;
@@ -1094,6 +1100,81 @@ function hideTyping(messagesEl) {
   if (t) t.remove();
 }
 
+/**
+ * 统一确认弹窗（替代浏览器 confirm）
+ */
+function showConfirmModal(msg) {
+  return new Promise((resolve) => {
+    const modal = $("builder-confirm-modal");
+    const msgEl = $("builder-confirm-msg");
+    const okBtn = $("builder-confirm-ok");
+    const cancelBtn = $("builder-confirm-cancel");
+    if (!modal) {
+      resolve(false);
+      return;
+    }
+    if (msgEl) msgEl.textContent = msg;
+    modal.style.display = "flex";
+
+    const close = (result) => {
+      modal.style.display = "none";
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      modal.removeEventListener("click", onBackdrop);
+      resolve(result);
+    };
+    const onOk = () => close(true);
+    const onCancel = () => close(false);
+    const onBackdrop = (e) => {
+      if (e.target === modal) close(false);
+    };
+
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+    modal.addEventListener("click", onBackdrop);
+  });
+}
+
+/**
+ * 滚动到顶部/底部按钮
+ */
+function bindScrollButtons() {
+  const msgs = $("builder-messages");
+  const upBtn = $("builder-scroll-up");
+  const downBtn = $("builder-scroll-down");
+  if (!msgs) return;
+
+  // 移动按钮到聊天区（需要 relative 定位父元素）
+  const chat = msgs.closest(".builder-chat");
+  if (chat && upBtn && upBtn.parentElement !== chat) {
+    chat.appendChild(upBtn);
+    chat.appendChild(downBtn);
+  }
+
+  const toggle = () => {
+    const canScroll = msgs.scrollHeight > msgs.clientHeight + 4;
+    const atTop = msgs.scrollTop < 20;
+    const atBottom =
+      msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 20;
+    if (upBtn) upBtn.classList.toggle("visible", canScroll && !atTop);
+    if (downBtn) downBtn.classList.toggle("visible", canScroll && !atBottom);
+  };
+
+  msgs.addEventListener("scroll", toggle);
+  if (upBtn)
+    upBtn.addEventListener("click", () => {
+      msgs.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  if (downBtn)
+    downBtn.addEventListener("click", () => {
+      msgs.scrollTo({ top: msgs.scrollHeight, behavior: "smooth" });
+    });
+  // 初始检测 + 内容变化时更新
+  toggle();
+  const observer = new MutationObserver(toggle);
+  observer.observe(msgs, { childList: true, subtree: true });
+}
+
 function appendProgress(messagesEl, kind, html) {
   const wrap = document.createElement("div");
   wrap.className = "builder-progress";
@@ -1340,6 +1421,7 @@ function switchPhase(newPhase, announce) {
   if (announce && activeMessagesEl) {
     appendSystemMessage(activeMessagesEl, I18n.t("builder.phaseSwitched"));
   }
+  persistCurrentSession();
 }
 
 function updateInputPlaceholder() {
@@ -1663,6 +1745,7 @@ function bindChatActions() {
       setSending(false);
       updateFileList();
       persistCurrentSession();
+      renderSessionList();
     }
   };
 
@@ -1710,8 +1793,9 @@ function bindChatActions() {
   bindSendModeDropdown();
 
   if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      if (!confirm(I18n.t("builder.error.clearConfirm"))) return;
+    clearBtn.addEventListener("click", async () => {
+      const ok = await showConfirmModal(I18n.t("builder.error.clearConfirm"));
+      if (!ok) return;
       const messagesEl = $("builder-messages");
       messagesEl.innerHTML = "";
       // 重新添加欢迎消息
@@ -1869,7 +1953,7 @@ function renderSessionList() {
   if (!list) return;
   list.innerHTML = "";
   const ids = Object.keys(sessions).sort(
-    (a, b) => (sessions[a].createdAt || 0) - (sessions[b].createdAt || 0),
+    (a, b) => (sessions[b].updatedAt || 0) - (sessions[a].updatedAt || 0),
   );
   if (ids.length === 0) {
     const p = document.createElement("p");
@@ -1893,9 +1977,10 @@ function renderSessionList() {
     del.type = "button";
     del.className = "builder-session-del";
     del.innerHTML = '<i class="fas fa-times"></i>';
-    del.addEventListener("click", (e) => {
+    del.addEventListener("click", async (e) => {
       e.stopPropagation();
-      if (confirm(I18n.t("builder.deleteSessionConfirm"))) deleteSession(id);
+      const ok = await showConfirmModal(I18n.t("builder.deleteSessionConfirm"));
+      if (ok) deleteSession(id);
     });
     item.addEventListener("click", () => switchSession(id));
     item.appendChild(ic);
@@ -1922,11 +2007,11 @@ function renderHistory(messagesEl) {
     renderWelcome();
   }
 
-  let lastProgressItem = null;
+  let progressMap = {}; // call_id → progress-item DOM
   for (const msg of conversation) {
     if (msg.role === "user") {
       appendMessage(messagesEl, "user", msg.content || "");
-      lastProgressItem = null;
+      progressMap = {};
     } else if (msg.role === "assistant") {
       if (msg.content && msg.content.trim()) {
         appendMessage(messagesEl, "bot", msg.content);
@@ -1951,15 +2036,19 @@ function renderHistory(messagesEl) {
               toolLabel(fn) +
               (detail ? " <code>" + detail + "</code>" : ""),
           );
-          lastProgressItem = wrap.querySelector(".builder-progress-item");
+          progressMap[call.id || ""] = wrap.querySelector(
+            ".builder-progress-item",
+          );
         }
       }
     } else if (msg.role === "tool") {
-      if (lastProgressItem) {
+      const target =
+        progressMap[msg.tool_call_id || ""] || Object.values(progressMap)[0];
+      if (target) {
         const summary = String(msg.content || "")
           .slice(0, 80)
           .replace(/\n/g, " ");
-        lastProgressItem.innerHTML +=
+        target.innerHTML +=
           ' <span style="opacity:0.7">→ ' + escapeHtml(summary) + "</span>";
       }
     }
@@ -2001,6 +2090,7 @@ export function setupBuilder() {
   updateFileList();
   updatePhaseToggle();
   autoLoadDocs();
+  bindScrollButtons();
 }
 
 export {
