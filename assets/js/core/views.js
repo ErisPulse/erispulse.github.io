@@ -14,12 +14,13 @@
  */
 
 const FRAGMENTS = [
-    'home',
-    'market',
-    'docs',
-    'settings',
-    'about',
-    'modals',
+  "home",
+  "market",
+  "docs",
+  "builder",
+  "settings",
+  "about",
+  "modals",
 ];
 
 /**
@@ -28,12 +29,12 @@ const FRAGMENTS = [
  * @returns {Promise<string>}
  */
 async function fetchFragment(name) {
-    const url = `views/${name}.html`;
-    const res = await fetch(url, { cache: 'no-cache' });
-    if (!res.ok) {
-        throw new Error(`Failed to load view fragment: ${url} (${res.status})`);
-    }
-    return res.text();
+  const url = `views/${name}.html`;
+  const res = await fetch(url, { cache: "no-cache" });
+  if (!res.ok) {
+    throw new Error(`Failed to load view fragment: ${url} (${res.status})`);
+  }
+  return res.text();
 }
 
 /**
@@ -43,16 +44,16 @@ async function fetchFragment(name) {
  * @returns {Promise<void>}
  */
 export async function loadViews() {
-    const htmls = await Promise.all(FRAGMENTS.map(fetchFragment));
+  const htmls = await Promise.all(FRAGMENTS.map(fetchFragment));
 
-    FRAGMENTS.forEach((name, i) => {
-        const slot = document.querySelector(`[data-fragment-slot="${name}"]`);
-        if (slot) {
-            slot.outerHTML = htmls[i];
-        } else {
-            // 兜底：未找到占位符时追加到 main 末尾
-            const main = document.querySelector('main.main-content');
-            if (main) main.insertAdjacentHTML('beforeend', htmls[i]);
-        }
-    });
+  FRAGMENTS.forEach((name, i) => {
+    const slot = document.querySelector(`[data-fragment-slot="${name}"]`);
+    if (slot) {
+      slot.outerHTML = htmls[i];
+    } else {
+      // 兜底：未找到占位符时追加到 main 末尾
+      const main = document.querySelector("main.main-content");
+      if (main) main.insertAdjacentHTML("beforeend", htmls[i]);
+    }
+  });
 }
