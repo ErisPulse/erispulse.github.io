@@ -1420,6 +1420,26 @@ function bindConfigInputs() {
       }
     });
   }
+
+  // 配置模态窗打开/关闭
+  bindConfigModal();
+}
+
+function bindConfigModal() {
+  const btn = $("builder-config-modal-btn");
+  const modal = $("builder-config-modal");
+  const close = $("builder-config-modal-close");
+  if (!btn || !modal) return;
+  btn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+  if (close)
+    close.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
 }
 
 function bindDocsButtons() {

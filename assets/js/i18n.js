@@ -402,6 +402,9 @@ export const I18n = (function () {
       "builder.settingsTitle": "AI 模块构建器",
       "builder.settingsDesc":
         "配置构建器使用的 OpenAI 兼容 API（地址可填域名，会自动补 /chat/completions）。前往「构建器」页面开始对话。",
+      "builder.settingsPrivacy":
+        "所有数据（配置、会话、生成文件）保存在浏览器本地，不上传任何服务器。本站开源：github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsConfigBtn": "配置模型",
       "builder.sendMode.enter": "Enter",
       "builder.sendMode.ctrlEnter": "Ctrl+Enter",
       "builder.sendModeTitle": "切换发送键位",
@@ -815,6 +818,9 @@ export const I18n = (function () {
       "builder.settingsTitle": "AI Module Builder",
       "builder.settingsDesc":
         "Configure the OpenAI-compatible API used by the builder (a bare domain is fine; /chat/completions is appended automatically). Go to the “Builder” page to start.",
+      "builder.settingsPrivacy":
+        "All data (config, sessions, generated files) is stored locally in your browser and never uploaded. Open source: github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsConfigBtn": "Configure model",
       "builder.sendMode.enter": "Enter",
       "builder.sendMode.ctrlEnter": "Ctrl+Enter",
       "builder.sendModeTitle": "Switch send shortcut",
@@ -883,6 +889,9 @@ export const I18n = (function () {
       "builder.settingsTitle": "AI 模組構建器",
       "builder.settingsDesc":
         "配置構建器使用的 OpenAI 相容 API。前往「構建器」頁面開始對話。",
+      "builder.settingsPrivacy":
+        "所有資料（配置、會話、生成檔案）保存在瀏覽器本機，不上傳任何伺服器。開源：github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsConfigBtn": "配置模型",
       "builder.tool.search_docs": "檢索文檔",
       "builder.tool.read_document": "讀取文檔",
       "builder.tool.list_documents": "列出文檔",
@@ -1254,6 +1263,9 @@ export const I18n = (function () {
       "builder.settingsTitle": "AI モジュールビルダー",
       "builder.settingsDesc":
         "ビルダーが使用する OpenAI 互換 API を設定します。「ビルダー」ページで会話を開始してください。",
+      "builder.settingsPrivacy":
+        "すべてのデータ（設定、セッション、生成ファイル）はブラウザに保存され、サーバーには送信されません。オープンソース：github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsConfigBtn": "モデルを設定",
       "builder.tool.search_docs": "ドキュメント検索",
       "builder.tool.read_document": "ドキュメント読込",
       "builder.tool.list_documents": "ドキュメント一覧",
@@ -1637,6 +1649,9 @@ export const I18n = (function () {
       "builder.settingsTitle": "Конструктор модулей",
       "builder.settingsDesc":
         "Настройте OpenAI-совместимый API для конструктора. Перейдите на страницу «Конструктор», чтобы начать.",
+      "builder.settingsPrivacy":
+        "Все данные (настройки, сессии, сгенерированные файлы) хранятся локально в браузере и не передаются на сервер. Открытый исходный код: github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsConfigBtn": "Настроить модель",
       "builder.tool.search_docs": "Поиск в док.",
       "builder.tool.read_document": "Чтение док.",
       "builder.tool.list_documents": "Список док.",
