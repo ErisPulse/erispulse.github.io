@@ -386,9 +386,8 @@ export const I18n = (function () {
         "描述需求，AI 查阅文档后生成完整 ErisPulse 模块代码并打包下载",
       "builder.clear": "清空",
       "builder.inputPlaceholder": "描述你想构建的 ErisPulse 模块 / 适配器...",
-      "builder.inputPlaceholderPlan":
-        "描述需求或回答问题...（Enter 发送，Shift+Enter 换行）",
-      "builder.inputPlaceholderGenerate": "补充说明...（Enter 发送）",
+      "builder.inputPlaceholderPlan": "描述需求或回答问题…",
+      "builder.inputPlaceholderGenerate": "补充说明…",
       "builder.send": "发送",
       "builder.sending": "生成中...",
       "builder.question.custom": "自定义答案...",
@@ -803,8 +802,8 @@ export const I18n = (function () {
       "builder.inputPlaceholder":
         "Describe the ErisPulse module / adapter you want to build...",
       "builder.inputPlaceholderPlan":
-        "Describe your needs or answer questions... (Enter to send, Shift+Enter for newline)",
-      "builder.inputPlaceholderGenerate": "Add details... (Enter to send)",
+        "Describe your needs or answer questions…",
+      "builder.inputPlaceholderGenerate": "Add details…",
       "builder.send": "Send",
       "builder.sending": "Generating...",
       "builder.question.custom": "Custom answer...",
@@ -875,9 +874,8 @@ export const I18n = (function () {
       "builder.noSessions": "暫無會話",
       "builder.deleteSessionConfirm":
         "確定要刪除該會話？對話與生成檔案將一併清除。",
-      "builder.inputPlaceholderPlan":
-        "描述需求或回答問題…（Enter 發送，Ctrl+Enter 換行）",
-      "builder.inputPlaceholderGenerate": "補充說明…（Enter 發送）",
+      "builder.inputPlaceholderPlan": "描述需求或回答問題…",
+      "builder.inputPlaceholderGenerate": "補充說明…",
       "builder.sendMode.enter": "Enter",
       "builder.sendMode.ctrlEnter": "Ctrl+Enter",
       "builder.sendModeTitle": "切換發送鍵位",
@@ -1248,9 +1246,8 @@ export const I18n = (function () {
       "builder.noSessions": "セッションなし",
       "builder.deleteSessionConfirm":
         "このセッションを削除しますか？会話と生成ファイルは消去されます。",
-      "builder.inputPlaceholderPlan":
-        "要件を説明するか質問に答えてください…（Enter 送信、Ctrl+Enter 改行）",
-      "builder.inputPlaceholderGenerate": "補足説明…（Enter 送信）",
+      "builder.inputPlaceholderPlan": "要件を説明するか質問に答えてください…",
+      "builder.inputPlaceholderGenerate": "補足説明…",
       "builder.sendMode.enter": "Enter",
       "builder.sendMode.ctrlEnter": "Ctrl+Enter",
       "builder.sendModeTitle": "送信キー切替",
@@ -1634,9 +1631,8 @@ export const I18n = (function () {
       "builder.noSessions": "Нет сессий",
       "builder.deleteSessionConfirm":
         "Удалить эту сессию? Диалог и сгенерированные файлы будут удалены.",
-      "builder.inputPlaceholderPlan":
-        "Опишите задачу или ответьте на вопросы… (Enter — отправить, Ctrl+Enter — перенос)",
-      "builder.inputPlaceholderGenerate": "Дополните… (Enter — отправить)",
+      "builder.inputPlaceholderPlan": "Опишите задачу или ответьте на вопросы…",
+      "builder.inputPlaceholderGenerate": "Дополните…",
       "builder.sendMode.enter": "Enter",
       "builder.sendMode.ctrlEnter": "Ctrl+Enter",
       "builder.sendModeTitle": "Выбор клавиши отправки",
