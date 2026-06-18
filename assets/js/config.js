@@ -97,9 +97,9 @@ export const CONFIG = {
     docsLocalized: {},
     // AI 模块构建器配置
     builder: {
-      api_url: "",
+      api_url: "https://api.openai.com/v1",
       api_key: "",
-      model: "deepseek-ai/DeepSeek-V3",
+      model: "gpt-4o",
       useDocsCache: false,
       persistKey: true,
       sendMode: "enter",
