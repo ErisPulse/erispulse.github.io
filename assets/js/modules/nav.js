@@ -207,4 +207,14 @@ export function updateView(view) {
     docs.updateDocsCacheStatus();
     docs.checkDocsVersionUpdate();
   }
+
+  // 构建器为全屏视图，隐藏页脚以铺满界面
+  const footer = document.querySelector("footer");
+  if (footer) {
+    if (view === "builder") {
+      footer.style.display = "none";
+    } else {
+      footer.style.display = "";
+    }
+  }
 }

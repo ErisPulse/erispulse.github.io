@@ -384,6 +384,7 @@ export const I18n = (function () {
       "builder.subtitle":
         "描述需求，AI 查阅文档后生成完整 ErisPulse 模块代码并打包下载",
       "builder.clear": "清空",
+      "builder.menu": "菜单",
       "builder.inputPlaceholder": "描述你想构建的 ErisPulse 模块 / 适配器...",
       "builder.inputPlaceholderPlan": "描述需求或回答问题…",
       "builder.inputPlaceholderGenerate": "补充说明…",
@@ -799,6 +800,7 @@ export const I18n = (function () {
       "builder.subtitle":
         "Describe your needs; the AI looks up docs, then generates a complete ErisPulse module and packages it for download",
       "builder.clear": "Clear",
+      "builder.menu": "Menu",
       "builder.inputPlaceholder":
         "Describe the ErisPulse module / adapter you want to build...",
       "builder.inputPlaceholderPlan":
@@ -867,6 +869,7 @@ export const I18n = (function () {
       "builder.send": "發送",
       "builder.sending": "生成中…",
       "builder.clear": "清空",
+      "builder.menu": "選單",
       "builder.downloadZip": "下載 ZIP",
       "builder.noFiles": "尚無生成檔案",
       "builder.generatedFiles": "已生成檔案",
@@ -1241,6 +1244,7 @@ export const I18n = (function () {
       "builder.send": "送信",
       "builder.sending": "生成中…",
       "builder.clear": "クリア",
+      "builder.menu": "メニュー",
       "builder.downloadZip": "ZIP ダウンロード",
       "builder.noFiles": "生成ファイルなし",
       "builder.generatedFiles": "生成ファイル",
@@ -1628,6 +1632,7 @@ export const I18n = (function () {
       "builder.send": "Отправить",
       "builder.sending": "Генерация…",
       "builder.clear": "Очистить",
+      "builder.menu": "Меню",
       "builder.downloadZip": "Скачать ZIP",
       "builder.noFiles": "Файлов пока нет",
       "builder.generatedFiles": "Сгенерированные файлы",

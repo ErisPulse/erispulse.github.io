@@ -1581,6 +1581,28 @@ function updateSendModeUI() {
   }
 }
 
+function bindMobileDrawer() {
+  const menuBtn = $("builder-mobile-menu");
+  const overlay = $("builder-mobile-overlay");
+  const panel = document.querySelector(".builder-files-panel");
+  if (!menuBtn || !overlay || !panel) return;
+
+  const open = () => {
+    panel.classList.add("show");
+    overlay.classList.add("show");
+  };
+  const close = () => {
+    panel.classList.remove("show");
+    overlay.classList.remove("show");
+  };
+
+  menuBtn.addEventListener("click", () => {
+    if (panel.classList.contains("show")) close();
+    else open();
+  });
+  overlay.addEventListener("click", close);
+}
+
 function bindChatActions() {
   const form = $("builder-form");
   const input = $("builder-input");
@@ -2047,6 +2069,7 @@ export function setupBuilder() {
   loadSessions();
   bindConfigInputs();
   bindChatActions();
+  bindMobileDrawer();
   renderWelcome();
 
   // 会话初始化
