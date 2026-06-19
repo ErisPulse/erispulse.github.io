@@ -207,4 +207,14 @@ export function updateView(view) {
     docs.updateDocsCacheStatus();
     docs.checkDocsVersionUpdate();
   }
+
+   
+  const footer = document.querySelector("footer");
+  if (footer) {
+    if (view === "builder") {
+      footer.style.display = "none";
+    } else {
+      footer.style.display = "";
+    }
+  }
 }
