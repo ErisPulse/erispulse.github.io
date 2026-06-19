@@ -668,6 +668,7 @@ function resetAll() {
   conversation = [];
   phase = "plan";
   updatePhaseToggle();
+  persistCurrentSession();
 }
 
 /* ============================================================
@@ -782,6 +783,8 @@ async function runGeneration(requirement, onProgress, ctx) {
   const userMsg = { role: "user", content: requirement };
 
   const messages = [sysMsg, ...conversation, userMsg];
+  // 用户消息先入 conversation（保持时间顺序）
+  conversation.push(userMsg);
 
   const MAX_ROUNDS = 30;
 
@@ -833,9 +836,6 @@ async function runGeneration(requirement, onProgress, ctx) {
 
     if (finalized) break;
   }
-
-  // 用户消息也存入 conversation（多轮对话）
-  conversation.push(userMsg);
 
   return { files: { ...generatedFiles }, finalized };
 }
@@ -1134,46 +1134,6 @@ function showConfirmModal(msg) {
     cancelBtn.addEventListener("click", onCancel);
     modal.addEventListener("click", onBackdrop);
   });
-}
-
-/**
- * 滚动到顶部/底部按钮
- */
-function bindScrollButtons() {
-  const msgs = $("builder-messages");
-  const upBtn = $("builder-scroll-up");
-  const downBtn = $("builder-scroll-down");
-  if (!msgs) return;
-
-  // 移动按钮到聊天区（需要 relative 定位父元素）
-  const chat = msgs.closest(".builder-chat");
-  if (chat && upBtn && upBtn.parentElement !== chat) {
-    chat.appendChild(upBtn);
-    chat.appendChild(downBtn);
-  }
-
-  const toggle = () => {
-    const canScroll = msgs.scrollHeight > msgs.clientHeight + 4;
-    const atTop = msgs.scrollTop < 20;
-    const atBottom =
-      msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 20;
-    if (upBtn) upBtn.classList.toggle("visible", canScroll && !atTop);
-    if (downBtn) downBtn.classList.toggle("visible", canScroll && !atBottom);
-  };
-
-  msgs.addEventListener("scroll", toggle);
-  if (upBtn)
-    upBtn.addEventListener("click", () => {
-      msgs.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  if (downBtn)
-    downBtn.addEventListener("click", () => {
-      msgs.scrollTo({ top: msgs.scrollHeight, behavior: "smooth" });
-    });
-  // 初始检测 + 内容变化时更新
-  toggle();
-  const observer = new MutationObserver(toggle);
-  observer.observe(msgs, { childList: true, subtree: true });
 }
 
 function appendProgress(messagesEl, kind, html) {
@@ -1880,7 +1840,21 @@ function saveSessions() {
 }
 
 function applySessionToMemory(s) {
-  conversation = Array.isArray(s.conversation) ? s.conversation : [];
+  var raw = Array.isArray(s.conversation) ? s.conversation : [];
+  // 迁移旧版会话（用户消息在末尾 → 用户消息在对应回复前方）
+  var migrated = [];
+  var buffer = [];
+  for (var i = 0; i < raw.length; i++) {
+    if (raw[i].role === "user") {
+      migrated.push(raw[i]);
+      migrated.push.apply(migrated, buffer);
+      buffer = [];
+    } else {
+      buffer.push(raw[i]);
+    }
+  }
+  migrated.push.apply(migrated, buffer);
+  conversation = migrated;
   generatedFiles = { ...(s.generatedFiles || {}) };
   phase = s.phase === "generate" ? "generate" : "plan";
   finalized = !!s.finalized;
@@ -1925,6 +1899,7 @@ function switchSession(id) {
   if (!s) return;
   activeSessionId = id;
   applySessionToMemory(s);
+  s.conversation = conversation; // 保留迁移结果
   saveSessions();
   const messagesEl = $("builder-messages");
   activeMessagesEl = messagesEl;
@@ -2091,7 +2066,6 @@ export function setupBuilder() {
   updateFileList();
   updatePhaseToggle();
   autoLoadDocs();
-  bindScrollButtons();
 }
 
 export {
