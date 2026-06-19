@@ -406,8 +406,9 @@ function docIndexSection() {
 
 const CODE_CONVENTIONS = `【代码规范】
 - from ErisPulse import sdk 获取全局 SDK 实例
-- from ErisPulse.Core.Bases import BaseModule 作为基类
-- 命令使用 @command(["名称"], aliases=[], help="说明") 装饰器
+- from ErisPulse.Core.Bases import BaseModule 作为模块基类
+- from ErisPulse.Core.Bases import BaseAdapter 作为适配器基类（适配器专用）
+- 命令使用 @command(["名称"], aliases=[], help="说明") 装饰器（仅模块）
 - 事件使用 @message.on_message() / @message.on_private_message() 等
 - 在 on_load 中注册命令/事件处理器；直接嵌套 async def（闭包，SDK 会正确绑定）
 - 配置：config = sdk.config.getConfig("模块名")
@@ -416,15 +417,21 @@ const CODE_CONVENTIONS = `【代码规范】
 - Dashboard：try: sdk.Dashboard.register_view(...) except: pass
 - 路由：sdk.router.register_http_route(...)
 - 加载策略：from ErisPulse.loaders import ModuleLoadStrategy
-- 回复：await event.reply("文本") 或 await event.reply("文本", method="Markdown")`;
+- 回复：await event.reply("文本") 或 await event.reply("文本", method="Markdown")
+
+【模块与适配器】
+- 模块（module）：面向“业务逻辑”，注册命令/事件处理器、提供功能。入口点为 [project.entry-points."erispulse.module"]
+- 适配器（adapter）：面向“平台对接”，继承 BaseAdapter，连接外部平台（如 OneBot/TG/Discord）并转换事件为 OneBot12 标准格式。入口点为 [project.entry-points."erispulse.adapter"]，键名通常为平台名（如 "telegram"）
+- 适配器需实现 call_api / 平台事件转换、会话类型映射、可选的 Event 平台扩展方法注册（参考文档「适配器：注册平台扩展方法」）
+- 根据用户需求判断是模块还是适配器；两者也可同时开发（同一包可同时声明 module 和 adapter 入口点）`;
 
 
 
 
 function buildPlanSystemPrompt() {
-  return `你是「小eris」——ErisPulse 框架的官方看板娘，同时也是模块代码生成专家。
+  return `你是「小eris」——ErisPulse 框架的官方看板娘，同时也是模块/适配器代码生成专家。
 
-ErisPulse 是基于 Python 的高性能异步机器人开发框架。当前任务：根据用户描述的需求，查阅 ErisPulse 官方文档，与用户一起规划要生成的模块。
+ErisPulse 是基于 Python 的高性能异步机器人开发框架。当前任务：根据用户描述的需求，查阅 ErisPulse 官方文档，与用户一起规划要生成的「模块」或「适配器」。
 
 【当前阶段：规划】
 你**没有写入文件的权限**。专注于理解需求和查阅文档，给出清晰的实现方案。
@@ -433,13 +440,14 @@ ErisPulse 是基于 Python 的高性能异步机器人开发框架。当前任�
 - search_docs(query, top_k)：关键词检索官方文档（${langName()} 版本，本地 BM25）。一次可覆盖多个关键词，例如一次搜索"命令注册 事件监听 配置 存储"。
 - read_document(doc_path)：读取某篇文档完整内容。
 - list_documents()：列出所有文档标题与路径。
-- ask_question(questions)：向用户提问。questions 是数组，每项含 question（问题）和 options（选项）。可一次问多个相关问题。系统会自动为每个问题追加「自定义答案」。澄清需求时优先用它，不要把多个问题堆在一段文字里。
+- ask_question(questions)：向用户提问。questions 是数组，每项含 question（问题）、options（选项）和可选的 multi（true 时为多选）。可一次问多个相关问题。系统会自动为每个问题追加「自定义答案」。澄清需求时优先用它，不要把多个问题堆在一段文字里。
 
 【职责】
-1. 收到用户需求后，调用 search_docs 检索相关 SDK API，确认正确用法。
-2. 填写模块元信息时，如果用户没有特别说明，作者为 erisQvQ 邮箱为 erisQvQ@erisdev.com
-3. 需要澄清时，用 ask_question 一次性提出相关问题（每个问题附带选项）。
-4. 信息齐全后给出清晰的实现方案概述：要生成哪些文件、每个文件的职责。
+1. 收到用户需求后，先判断是「模块」（业务逻辑）还是「适配器」（平台对接），不确定时用 ask_question 询问。
+2. 调用 search_docs 检索相关 SDK API，确认正确用法。适配器务必检索 "适配器 BaseAdapter" "会话类型" "平台扩展方法" 等关键词。
+3. 填写模块/适配器元信息时，如果用户没有特别说明，作者为 erisQvQ 邮箱为 erisQvQ@erisdev.com
+4. 需要澄清时，用 ask_question 一次性提出相关问题（每个问题附带选项；需多选时设 multi:true）。
+5. 信息齐全后给出清晰的实现方案概述：要生成哪些文件、每个文件的职责、是模块还是适配器（或二者）。
 
 ${CODE_CONVENTIONS}
 
@@ -458,33 +466,46 @@ ${docIndexSection()}`;
 
 
 function buildGenerateSystemPrompt() {
-  return `你是「小eris」——ErisPulse 框架的官方看板娘，同时也是模块代码生成专家。
+  return `你是「小eris」——ErisPulse 框架的官方看板娘，同时也是模块/适配器代码生成专家。
 
 【当前阶段：生成】
-用户已确认「开始」。根据之前规划的需求与方案，生成一个完整可用的 ErisPulse 模块代码。
+用户已确认「开始」。根据之前规划的需求与方案，生成一个完整可用的 ErisPulse 模块/适配器代码。
 
 你可以调用以下工具来查阅 ErisPulse 官方文档（${langName()} 版本）：
 - search_docs(query, top_k)：关键词检索官方文档（本地 BM25），返回最相关的片段。优先用它定位内容。
 - read_document(doc_path)：读取某篇文档的完整内容。当你已从检索结果或索引中确定要看哪篇文档时使用。
 - list_documents()：列出所有可用文档的标题与路径。
-- write_file(path, content)：写入一个生成的模块文件。
+- write_file(path, content)：写入一个生成的文件（覆盖已存在）。适合创建新文件或大幅重写。
+- patch_file(path, old_text, new_text, replace_all)：在已有文件中模糊替换片段。适合小幅修改（改名、加一行、调整参数）。采用模糊匹配（忽略多余空白差异），old_text 须能唯一定位。
+- read_file(path)：读取一个已生成文件的当前完整内容。修改前建议先读取确认。
+- delete_file(path)：删除一个已生成文件。
 - get_manifest()：查看当前已生成的文件清单。
 - finalize()：标记生成完成。
 
 【严格要求 - 必须遵守】
 1. 收到用户需求后，第一轮必须立即调用 search_docs 检索相关 SDK API。一次 search_docs 可以覆盖多个关键词，例如一次搜索"命令注册 事件监听 配置 存储"，不要为每个关键词单独调用
 2. 第二轮根据检索结果决定下一步：信息足够则开始 write_file，不够则 read_document 补充
-3. 信息足够后立即生成所有必要文件：pyproject.toml、__init__.py、Core.py、config.py、README.md
-4. 所有文件写完后用 finalize 标记完成
-5. 每轮只输出 tool_call。如果某个步骤需要额外说明（如修正之前的文件、跳过某个功能等），可以用不超过20字的简短 Markdown 说明。简单检索/阅读/生成不需要说话
-6. 绝对禁止输出角色扮演文本，不要输出 emoji
+3. 信息足够后立即生成所有必要文件（见下方“文件要求”）
+4. 需要小幅修改已生成文件时优先用 patch_file（更省 token），仅大幅重写或新建文件才用 write_file
+5. 所有文件写完后用 finalize 标记完成
+6. 每轮只输出 tool_call。如果某个步骤需要额外说明（如修正之前的文件、跳过某个功能等），可以用不超过20字的简短 Markdown 说明。简单检索/阅读/生成不需要说话
+7. 绝对禁止输出角色扮演文本，不要输出 emoji
 
 【文件要求】
+模块（module）默认结构：
 - pyproject.toml：完整的项目配置，包含 [project.entry-points."erispulse.module"] 入口点
 - __init__.py：导出 Main 类
 - Core.py：继承 BaseModule，包含 __init__、get_load_strategy、on_load、on_unload
 - config.py：配置加载，读取 [模块名] 配置段
 - README.md：安装说明、配置说明、使用说明
+
+适配器（adapter）默认结构：
+- pyproject.toml：包含 [project.entry-points."erispulse.adapter"] 入口点，键名为平台名
+- __init__.py：导出 Main 类
+- Core.py：继承 BaseAdapter，实现平台连接、事件转换、call_api、会话类型映射
+- README.md：说明支持的平台、配置项、会话类型映射
+
+如果用户需求同时涉及模块与适配器，在同一包中同时声明两个入口点。
 
 ${CODE_CONVENTIONS}
 
@@ -552,7 +573,8 @@ const WRITE_TOOL_SCHEMAS = [
     type: "function",
     function: {
       name: "write_file",
-      description: "写入一个生成文件（覆盖已存在）",
+      description:
+        "写入一个生成文件（覆盖已存在）。适合创建新文件或大幅重写整份文件",
       parameters: {
         type: "object",
         properties: {
@@ -563,6 +585,70 @@ const WRITE_TOOL_SCHEMAS = [
           content: { type: "string", description: "完整文件内容" },
         },
         required: ["path", "content"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "patch_file",
+      description:
+        "模糊替换：在已生成文件中查找 old_text 并替换为 new_text。适合小幅修改（如改个名、加一行、调整参数）。采用模糊匹配（忽略首尾空白与多余空格差异），old_text 在文件中须能唯一定位",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "要修改的文件路径（必须已存在）",
+          },
+          old_text: {
+            type: "string",
+            description:
+              "要被替换的原文片段（足够具体以唯一定位，至少 10 字符）",
+          },
+          new_text: {
+            type: "string",
+            description: "替换后的新文本",
+          },
+          replace_all: {
+            type: "boolean",
+            description:
+              "可选，默认 false。true 时替换所有匹配位置（用于批量重命名等）",
+          },
+        },
+        required: ["path", "old_text", "new_text"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_file",
+      description:
+        "读取一个已生成文件的当前完整内容。修改文件前建议先读取确认现状",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "文件路径",
+          },
+        },
+        required: ["path"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "delete_file",
+      description: "删除一个已生成的文件",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "要删除的文件路径" },
+        },
+        required: ["path"],
       },
     },
   },
@@ -606,6 +692,11 @@ const ASK_QUESTION_SCHEMA = {
               question: {
                 type: "string",
                 description: "问题内容",
+              },
+              multi: {
+                type: "boolean",
+                description:
+                  "可选，是否允许多选。默认 false（单选）。多选时用户可勾选多个选项，结果以「、」分隔返回",
               },
               options: {
                 type: "array",
@@ -657,6 +748,34 @@ let conversation = [];
 let activeMessagesEl = null;  
 let docsHintShown = false;
 let sendMode = "enter";  
+let pendingUploads = [];  
+
+ 
+const UPLOAD_TEXT_EXTS = [
+  "md",
+  "markdown",
+  "txt",
+  "text",
+  "log",
+  "rst",
+  "csv",
+  "tsv",
+  "json",
+  "yaml",
+  "yml",
+  "toml",
+  "ini",
+  "conf",
+  "cfg",
+  "py",
+  "js",
+  "ts",
+  "html",
+  "css",
+  "xml",
+  "sql",
+];
+const UPLOAD_MAX_BYTES = 256 * 1024;  
 
 function resetGenerated() {
   generatedFiles = {};
@@ -674,6 +793,33 @@ function resetAll() {
 
 
 
+
+
+
+
+function buildFuzzyPattern(text) {
+  const escaped = String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return escaped.replace(/\s+/g, "\\s+");
+}
+
+
+
+
+function fuzzyFindAll(content, oldText) {
+  if (!String(oldText).trim()) return [];
+  try {
+    const re = new RegExp(buildFuzzyPattern(oldText), "g");
+    const results = [];
+    let m;
+    while ((m = re.exec(content)) !== null) {
+      results.push({ start: m.index, end: m.index + m[0].length });
+      if (m.index === re.lastIndex) re.lastIndex++;  
+    }
+    return results;
+  } catch (e) {
+    return [];
+  }
+}
 
 async function executeTool(name, args, ctx) {
   switch (name) {
@@ -709,6 +855,47 @@ async function executeTool(name, args, ctx) {
       generatedFiles[path] = args.content;
       return `已写入 ${path}（${args.content.length} 字符）`;
     }
+    case "patch_file": {
+      const path = String(args.path || "").trim();
+      if (!path) return "错误：缺少 path";
+      const oldText = String(args.old_text || "");
+      const newText = String(args.new_text || "");
+      const replaceAll = !!args.replace_all;
+      if (!generatedFiles.hasOwnProperty(path))
+        return `错误：文件 ${path} 不存在。请先 write_file 创建或用 get_manifest 查看已有文件。`;
+      if (oldText.trim().length < 4)
+        return "错误：old_text 太短（至少需要 4 个非空白字符）以保证唯一定位。";
+      const content = generatedFiles[path];
+      const matches = fuzzyFindAll(content, oldText);
+      if (matches.length === 0)
+        return `错误：在 ${path} 中未找到匹配片段。请用 read_file 查看当前内容后再试。`;
+      if (!replaceAll && matches.length > 1)
+        return `错误：在 ${path} 中找到 ${matches.length} 处匹配，无法唯一定位。请提供更具体的 old_text，或设置 replace_all=true 进行全部替换。`;
+       
+      const toReplace = replaceAll ? matches : matches.slice(0, 1);
+      let updated = content;
+      for (let i = toReplace.length - 1; i >= 0; i--) {
+        const m = toReplace[i];
+        updated = updated.slice(0, m.start) + newText + updated.slice(m.end);
+      }
+      generatedFiles[path] = updated;
+      return `已修改 ${path}：替换 ${toReplace.length} 处，现 ${updated.length} 字符。`;
+    }
+    case "read_file": {
+      const path = String(args.path || "").trim();
+      if (!path) return "错误：缺少 path";
+      if (!generatedFiles.hasOwnProperty(path))
+        return `错误：文件 ${path} 不存在。`;
+      return generatedFiles[path];
+    }
+    case "delete_file": {
+      const path = String(args.path || "").trim();
+      if (!path) return "错误：缺少 path";
+      if (!generatedFiles.hasOwnProperty(path))
+        return `错误：文件 ${path} 不存在。`;
+      delete generatedFiles[path];
+      return `已删除 ${path}。`;
+    }
     case "get_manifest": {
       const names = Object.keys(generatedFiles);
       if (names.length === 0) return "当前没有已生成文件。";
@@ -726,6 +913,7 @@ async function executeTool(name, args, ctx) {
       const normalized = qs.map((q, i) => ({
         key: String((q && q.key) || (q && q.question) || "Q" + (i + 1)),
         question: String((q && q.question) || ""),
+        multi: !!(q && q.multi),
         options: Array.isArray(q && q.options)
           ? q.options.map((o) => String(o)).filter((o) => o.trim())
           : [],
@@ -777,10 +965,17 @@ function isStartCommand(text) {
 
 
 
-async function runGeneration(requirement, onProgress, ctx) {
+
+
+
+
+async function runGeneration(requirement, onProgress, ctx, attachments) {
   const tools = phase === "generate" ? GENERATE_TOOLS : PLAN_TOOLS;
   const sysMsg = { role: "system", content: buildSystemPrompt() };
-  const userMsg = { role: "user", content: requirement };
+
+   
+  const messageContent = buildMessageWithAttachments(requirement, attachments);
+  const userMsg = { role: "user", content: messageContent };
 
   const messages = [sysMsg, ...conversation, userMsg];
    
@@ -910,11 +1105,70 @@ function renderMarkdown(text) {
   return escapeHtml(text || "");
 }
 
+ 
+const ICON_PAPERCLIP =
+  '<svg class="builder-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+ 
+const ICON_SQUARE =
+  '<svg class="builder-svg-icon builder-svg-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>';
+ 
+const ICON_CHECK_SQUARE =
+  '<svg class="builder-svg-icon builder-svg-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m9 12 2 2 4-4"/></svg>';
+ 
+const ICON_X =
+  '<svg class="builder-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+ 
+const ICON_CHEVRON_RIGHT =
+  '<svg class="builder-svg-icon builder-svg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+ 
+const ICON_CHEVRON_DOWN =
+  '<svg class="builder-svg-icon builder-svg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+
+ 
+const ATTACHMENT_HEADER =
+  "[以下是用户附带上传的文件内容，供你参考，不要在回复中原样重复：]";
+
+
+
+
+
+
+function parseStoredUserContent(content) {
+  content = String(content || "");
+  const idx = content.indexOf(ATTACHMENT_HEADER);
+  if (idx === -1) return { text: content, fileNames: [] };
+  const text = content.slice(0, idx).replace(/\s+$/, "").trim();
+  const fileNames = [];
+  const re = /-----\s*附带文件：(.+?)\s*----/g;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    const n = m[1].trim();
+    if (n) fileNames.push(n);
+  }
+  return { text, fileNames };
+}
+
+
+
+
+
+function buildMessageWithAttachments(requirement, attachments) {
+  const text = String(requirement || "");
+  if (!Array.isArray(attachments) || attachments.length === 0) return text;
+  const fileBlocks = attachments
+    .map(
+      (f) =>
+        `----- 附带文件：${f.name} ----\n${f.content}\n----- 文件结束 ----`,
+    )
+    .join("\n\n");
+  return `${text}\n\n${ATTACHMENT_HEADER}\n\n${fileBlocks}`;
+}
+
 function scrollToBottom(messagesEl) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-function appendMessage(messagesEl, role, text) {
+function appendMessage(messagesEl, role, text, attachments) {
   const wrap = document.createElement("div");
   wrap.className =
     "builder-msg " + (role === "user" ? "builder-msg-user" : "builder-msg-bot");
@@ -930,7 +1184,43 @@ function appendMessage(messagesEl, role, text) {
   const content = document.createElement("div");
   content.className = "builder-msg-content";
   if (role === "user") {
-    content.textContent = text;
+     
+     
+     
+    let displayText = String(text || "");
+    let fileNames = [];
+    if (Array.isArray(attachments) && attachments.length > 0) {
+      fileNames = attachments.map((f) => f.name);
+    } else {
+      const parsed = parseStoredUserContent(displayText);
+      displayText = parsed.text;
+      fileNames = parsed.fileNames;
+    }
+    if (fileNames.length > 0) {
+      const trimmed = displayText.trim();
+      if (trimmed) {
+        const textEl = document.createElement("div");
+        textEl.className = "builder-msg-user-text";
+        textEl.textContent = trimmed;
+        content.appendChild(textEl);
+      }
+       
+      const list = document.createElement("div");
+      list.className = "builder-msg-attachments";
+      for (const name of fileNames) {
+        const item = document.createElement("div");
+        item.className = "builder-msg-attachment";
+        item.innerHTML =
+          ICON_PAPERCLIP +
+          '<span class="builder-msg-attachment-name">' +
+          escapeHtml(name) +
+          "</span>";
+        list.appendChild(item);
+      }
+      content.appendChild(list);
+    } else {
+      content.textContent = displayText;
+    }
   } else {
     content.innerHTML = renderMarkdown(text);
   }
@@ -952,6 +1242,7 @@ function appendSystemMessage(messagesEl, text) {
 
 
 
+
 function renderQuestionForm(messagesEl, questions) {
   return new Promise((resolve) => {
     hideTyping(messagesEl);
@@ -960,6 +1251,7 @@ function renderQuestionForm(messagesEl, questions) {
     card.className = "builder-question";
 
     const answers = {};
+    const multiAnswers = {};  
     let answeredCount = 0;
 
     const submitAll = document.createElement("button");
@@ -975,10 +1267,16 @@ function renderQuestionForm(messagesEl, questions) {
     questions.forEach((q, idx) => {
       const block = document.createElement("div");
       block.className = "builder-question-block";
+      if (q.multi) block.classList.add("builder-question-block-multi");
 
       const label = document.createElement("div");
       label.className = "builder-question-text";
-      label.innerHTML = idx + 1 + ". " + renderMarkdown(q.question);
+      const multiTag = q.multi
+        ? ' <span class="builder-question-multi-tag">' +
+          escapeHtml(I18n.t("builder.question.multi")) +
+          "</span>"
+        : "";
+      label.innerHTML = idx + 1 + ". " + renderMarkdown(q.question) + multiTag;
       block.appendChild(label);
 
       const optWrap = document.createElement("div");
@@ -1009,6 +1307,122 @@ function renderQuestionForm(messagesEl, questions) {
           .forEach((b) => b.classList.remove("selected"));
       };
 
+       
+      if (q.multi) {
+        multiAnswers[q.key] = new Set();
+        let customValue = null;  
+
+         
+        const customBtn = document.createElement("button");
+        customBtn.type = "button";
+        customBtn.className = "builder-question-opt builder-question-custom";
+        customBtn.textContent = I18n.t("builder.question.custom");
+
+         
+        const refresh = () => {
+          const had = q.key in answers;
+          let newVal = null;
+          if (customValue) {
+            newVal = customValue;
+          } else {
+            const selected = Array.from(multiAnswers[q.key]);
+            if (selected.length > 0) newVal = selected.join("、");
+          }
+          if (newVal != null) {
+            if (!had) answeredCount++;
+            answers[q.key] = newVal;
+          } else if (had) {
+            delete answers[q.key];
+            answeredCount--;
+          }
+          updateSubmit();
+        };
+
+        const resetMultiOptions = () => {
+          optWrap
+            .querySelectorAll(".builder-question-opt-multi")
+            .forEach((b) => {
+              b.classList.remove("selected");
+              b.innerHTML = ICON_SQUARE + escapeHtml(b.dataset.opt || "");
+            });
+          multiAnswers[q.key].clear();
+        };
+
+        const resetCustomVisual = () => {
+          customValue = null;
+          customBtn.classList.remove("selected");
+          customBtn.textContent = I18n.t("builder.question.custom");
+          customBtn.style.fontStyle = "";
+          inputWrap.style.display = "none";
+        };
+
+        q.options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "builder-question-opt builder-question-opt-multi";
+          btn.dataset.opt = opt;
+          btn.innerHTML = ICON_SQUARE + escapeHtml(opt);
+          btn.addEventListener("click", () => {
+            if (multiAnswers[q.key].has(opt)) {
+              multiAnswers[q.key].delete(opt);
+              btn.classList.remove("selected");
+              btn.innerHTML = ICON_SQUARE + escapeHtml(opt);
+            } else {
+              multiAnswers[q.key].add(opt);
+              btn.classList.add("selected");
+              btn.innerHTML = ICON_CHECK_SQUARE + escapeHtml(opt);
+            }
+             
+            resetCustomVisual();
+            refresh();
+          });
+          optWrap.appendChild(btn);
+        });
+
+        customBtn.addEventListener("click", () => {
+           
+          resetMultiOptions();
+          customBtn.classList.add("selected");
+          inputWrap.style.display = "flex";
+          input.value = customValue || "";
+          input.disabled = false;
+          ok.disabled = false;
+          input.focus();
+          refresh();
+        });
+         
+        ok.addEventListener("mousedown", (e) => e.preventDefault());
+        optWrap.appendChild(customBtn);
+
+        ok.addEventListener("click", () => {
+          const val = input.value.trim();
+          if (!val) {
+            input.focus();
+            return;
+          }
+          customValue = val;
+          customBtn.textContent =
+            val.slice(0, 16) + (val.length > 16 ? "…" : "");
+          customBtn.style.fontStyle = "normal";
+          input.disabled = true;
+          ok.disabled = true;
+          refresh();
+        });
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            ok.click();
+          }
+        });
+
+        block.appendChild(optWrap);
+        block.appendChild(inputWrap);
+        card.appendChild(block);
+        return;
+      }
+
+       
+      let customValue = null;  
       q.options.forEach((opt) => {
         const btn = document.createElement("button");
         btn.type = "button";
@@ -1018,6 +1432,7 @@ function renderQuestionForm(messagesEl, questions) {
           clearSelected();
           btn.classList.add("selected");
           inputWrap.style.display = "none";
+          customValue = null;  
           setAnswer(opt);
         });
         optWrap.appendChild(btn);
@@ -1032,8 +1447,14 @@ function renderQuestionForm(messagesEl, questions) {
         clearSelected();
         customBtn.classList.add("selected");
         inputWrap.style.display = "flex";
+         
+        input.value = customValue || "";
+        input.disabled = false;
+        ok.disabled = false;
         input.focus();
       });
+       
+      ok.addEventListener("mousedown", (e) => e.preventDefault());
       optWrap.appendChild(customBtn);
 
       ok.addEventListener("click", () => {
@@ -1042,6 +1463,7 @@ function renderQuestionForm(messagesEl, questions) {
           input.focus();
           return;
         }
+        customValue = val;
         setAnswer(val);
          
         customBtn.textContent = val.slice(0, 16) + (val.length > 16 ? "…" : "");
@@ -1057,15 +1479,15 @@ function renderQuestionForm(messagesEl, questions) {
       });
        
       input.addEventListener("blur", () => {
+        if (input.disabled) return;
         const val = input.value.trim();
-        if (val && !(q.key in answers)) {
-          setAnswer(val);
-          customBtn.textContent =
-            val.slice(0, 16) + (val.length > 16 ? "…" : "");
-          customBtn.style.fontStyle = "normal";
-          input.disabled = true;
-          ok.disabled = true;
-        }
+        if (!val) return;
+        customValue = val;
+        setAnswer(val);
+        customBtn.textContent = val.slice(0, 16) + (val.length > 16 ? "…" : "");
+        customBtn.style.fontStyle = "normal";
+        input.disabled = true;
+        ok.disabled = true;
       });
 
       block.appendChild(optWrap);
@@ -1148,6 +1570,126 @@ function appendProgress(messagesEl, kind, html) {
   return wrap;
 }
 
+
+
+
+
+
+
+
+function makeProgressExpandable(wrap, args, fullResult) {
+  if (!wrap) return;
+  if (wrap.dataset.expandable) return;
+  const result = String(fullResult || "");
+  const hasArgs =
+    args &&
+    typeof args === "object" &&
+    !(
+      Object.keys(args).length === 1 &&
+      args.path &&
+      args.content !== undefined
+    );
+   
+  if (result.trim().length <= 50 && !hasArgs) return;
+  wrap.dataset.expandable = "1";
+  wrap.classList.add("builder-progress-expandable");
+
+  const item = wrap.querySelector(".builder-progress-item");
+  if (!item) return;
+
+   
+  const chevron = document.createElement("span");
+  chevron.className = "builder-progress-chevron";
+  chevron.innerHTML = ICON_CHEVRON_RIGHT;
+  item.appendChild(chevron);
+
+   
+  let detailHtml = "";
+
+   
+  if (hasArgs) {
+    detailHtml += `<div class="builder-progress-detail-section">
+      <div class="builder-progress-detail-title">${escapeHtml(I18n.t("builder.progress.request"))}</div>
+      <div class="builder-progress-detail-content">${formatRequestDetail(args)}</div>
+    </div>`;
+  }
+
+   
+  if (result.trim().length > 0) {
+    detailHtml += `<div class="builder-progress-detail-section">
+      <div class="builder-progress-detail-title">${escapeHtml(I18n.t("builder.progress.result"))}</div>`;
+     
+    detailHtml += `<pre class="builder-progress-detail-pre">${escapeHtml(result)}</pre>`;
+    detailHtml += `</div>`;
+  }
+
+   
+  const detail = document.createElement("div");
+  detail.className = "builder-progress-detail";
+  detail.innerHTML = detailHtml;
+  detail.style.display = "none";
+  wrap.appendChild(detail);
+
+   
+  item.addEventListener("click", () => {
+    const open = detail.style.display !== "none";
+    detail.style.display = open ? "none" : "block";
+    chevron.innerHTML = open ? ICON_CHEVRON_RIGHT : ICON_CHEVRON_DOWN;
+    wrap.classList.toggle("expanded", !open);
+  });
+}
+
+
+
+
+
+function formatRequestDetail(args) {
+  if (!args || typeof args !== "object") return escapeHtml(String(args || ""));
+  const lines = [];
+  for (const [key, val] of Object.entries(args)) {
+    const label = escapeHtml(key);
+    let display;
+    if (Array.isArray(val)) {
+       
+      const items = val
+        .map((v, i) => {
+          if (typeof v === "object" && v !== null) {
+             
+            const parts = [];
+            if (v.key) parts.push(`key: ${escapeHtml(String(v.key))}`);
+            if (v.question) parts.push(`${escapeHtml(String(v.question))}`);
+            if (Array.isArray(v.options) && v.options.length > 0)
+              parts.push(
+                `[${v.options.map((o) => escapeHtml(String(o))).join(", ")}]`,
+              );
+            if (v.multi)
+              parts.push(
+                "[" + escapeHtml(I18n.t("builder.question.multi")) + "]",
+              );
+            return parts.length > 0 ? i + 1 + ". " + parts.join("  ") : "";
+          }
+          return escapeHtml(String(v));
+        })
+        .filter((l) => l);
+      if (items.length === 0) display = "[]";
+      else display = items.join("<br>");
+    } else if (typeof val === "object" && val !== null) {
+      display = escapeHtml(JSON.stringify(val));
+    } else if (typeof val === "boolean") {
+      display = val ? "true" : "false";
+    } else {
+      let str = String(val || "");
+       
+      if (str.length > 300) str = str.slice(0, 300) + "…";
+      display = escapeHtml(str);
+    }
+    lines.push(
+      `<div class="builder-progress-detail-row"><span class="builder-progress-detail-key">${label}</span><span class="builder-progress-detail-val">${display}</span></div>`,
+    );
+  }
+  return lines.join("");
+}
+
 function iconForTool(tool) {
   switch (tool) {
     case "search_docs":
@@ -1156,6 +1698,12 @@ function iconForTool(tool) {
       return '<i class="fas fa-book-open"></i>';
     case "write_file":
       return '<i class="fas fa-file-pen"></i>';
+    case "patch_file":
+      return '<i class="fas fa-wand-magic-sparkles"></i>';
+    case "read_file":
+      return '<i class="fas fa-file-lines"></i>';
+    case "delete_file":
+      return '<i class="fas fa-trash-can"></i>';
     case "list_documents":
       return '<i class="fas fa-list"></i>';
     case "get_manifest":
@@ -1173,6 +1721,9 @@ function kindForTool(tool) {
   if (tool === "search_docs") return "search";
   if (tool === "read_document") return "read";
   if (tool === "write_file") return "write";
+  if (tool === "patch_file") return "write";
+  if (tool === "delete_file") return "write";
+  if (tool === "read_file") return "read";
   if (tool === "finalize") return "done";
   return "read";
 }
@@ -1186,8 +1737,12 @@ function toolLabel(tool) {
 
 function formatToolDetail(tool, args) {
   try {
-    if (tool === "write_file")
+    if (tool === "write_file" || tool === "read_file" || tool === "delete_file")
       return args && args.path ? "path: " + args.path : "";
+    if (tool === "patch_file")
+      return args && args.path
+        ? "path: " + args.path + (args.replace_all ? " (全部)" : "")
+        : "";
     if (tool === "read_document")
       return args && args.doc_path ? "doc: " + args.doc_path : "";
     if (tool === "search_docs")
@@ -1276,6 +1831,7 @@ function renderFilesModalList() {
   if (title) title.textContent = I18n.t("builder.generatedFiles");
   if (back) back.style.display = "none";
   body.innerHTML = "";
+  body.classList.remove("builder-ide-body");
   const names = Object.keys(generatedFiles);
   if (names.length === 0) {
     const p = document.createElement("p");
@@ -1652,7 +2208,9 @@ function bindChatActions() {
   const send = async () => {
     if (sending) return;
     const text = ((input && input.value) || "").trim();
-    if (!text) return;
+     
+    const hasUploads = pendingUploads.length > 0;
+    if (!text && !hasUploads) return;
 
     const b = settings();
     if (!b.api_url || !b.model) {
@@ -1686,12 +2244,18 @@ function bindChatActions() {
       sessions[activeSessionId] &&
       sessions[activeSessionId].title === I18n.t("builder.newSession")
     ) {
+      const titleBase = text || pendingUploads.map((f) => f.name).join("、");
       sessions[activeSessionId].title =
-        text.slice(0, 24) + (text.length > 24 ? "…" : "");
+        titleBase.slice(0, 24) + (titleBase.length > 24 ? "…" : "");
       renderSessionList();
     }
 
-    appendMessage(messagesEl, "user", text);
+     
+    const attachments = pendingUploads.slice();
+    clearPendingUploads();
+
+     
+    appendMessage(messagesEl, "user", text, attachments);
     input.value = "";
     if (input.style) input.style.height = "";
     setSending(true);
@@ -1701,6 +2265,7 @@ function bindChatActions() {
       const ctx = {
         askQuestions: (qs) => renderQuestionForm(messagesEl, qs),
       };
+      let currentProgressWrap = null;  
       await runGeneration(
         text,
         (event) => {
@@ -1727,7 +2292,7 @@ function bindChatActions() {
                   escapeHtml(I18n.t("builder.writing")) +
                   "</span>";
               }
-              appendProgress(
+              currentProgressWrap = appendProgress(
                 messagesEl,
                 kindForTool(event.tool),
                 iconForTool(event.tool) +
@@ -1736,6 +2301,14 @@ function bindChatActions() {
                   (detail ? " <code>" + detail + "</code>" : "") +
                   extraHtml,
               );
+               
+              if (
+                event.tool !== "write_file" &&
+                event.args &&
+                typeof event.args === "object"
+              ) {
+                currentProgressWrap.storedArgs = event.args;
+              }
               showTyping(messagesEl);
             }
           } else if (event.type === "tool_result") {
@@ -1743,9 +2316,8 @@ function bindChatActions() {
                
               showTyping(messagesEl);
             } else {
-              const last = messagesEl.querySelector(
-                ".builder-progress:last-child .builder-progress-item",
-              );
+              const wrap = currentProgressWrap;
+              const last = wrap && wrap.querySelector(".builder-progress-item");
               if (last) {
                 if (event.tool === "write_file") {
                    
@@ -1766,15 +2338,15 @@ function bindChatActions() {
                       "</span>";
                   }
                   last.classList.add("done");
-                } else {
-                  const summary = String(event.result || "")
-                    .slice(0, 80)
-                    .replace(/\n/g, " ");
-                  last.innerHTML +=
-                    ' <span class="builder-progress-result">' +
-                    escapeHtml(summary) +
-                    "</span>";
                 }
+              }
+               
+              if (wrap) {
+                makeProgressExpandable(
+                  wrap,
+                  wrap.storedArgs || null,
+                  event.result,
+                );
               }
             }
             if (event.tool === "write_file" || event.tool === "finalize") {
@@ -1783,6 +2355,7 @@ function bindChatActions() {
           }
         },
         ctx,
+        attachments,
       );
       hideTyping(messagesEl);
       if (finalized) {
@@ -1862,6 +2435,7 @@ function bindChatActions() {
       messagesEl.appendChild(welcomeMsg);
       renderWelcome();
       resetAll();
+      clearPendingUploads();
       updateFileList();
     });
   }
@@ -1870,6 +2444,7 @@ function bindChatActions() {
   if (dlBtn) dlBtn.addEventListener("click", downloadZip);
 
   bindFilesModal();
+  bindUploadButton();
 }
 
 
@@ -2134,6 +2709,8 @@ function switchSession(id) {
   updateFileList();
   updatePhaseToggle();
   renderSessionList();
+   
+  clearPendingUploads();
 }
 
 function deleteSession(id) {
@@ -2239,14 +2816,17 @@ function renderHistory(messagesEl) {
               toolLabel(fn) +
               (detail ? " <code>" + detail + "</code>" : ""),
           );
-          progressMap[call.id || ""] = wrap.querySelector(
-            ".builder-progress-item",
-          );
+           
+          if (fn !== "write_file" && Object.keys(args).length > 0) {
+            wrap.storedArgs = args;
+          }
+          progressMap[call.id || ""] = wrap;
         }
       }
     } else if (msg.role === "tool") {
-      const target =
+      const wrap =
         progressMap[msg.tool_call_id || ""] || Object.values(progressMap)[0];
+      const target = wrap && wrap.querySelector(".builder-progress-item");
       if (target) {
         if (target.classList.contains("write")) {
            
@@ -2262,15 +2842,11 @@ function renderHistory(messagesEl) {
               escapeHtml(sizeText || String(msg.content || "").slice(0, 60)) +
               "</span>";
           }
-        } else {
-          const summary = String(msg.content || "")
-            .slice(0, 80)
-            .replace(/\n/g, " ");
-          target.innerHTML +=
-            ' <span class="builder-progress-result">' +
-            escapeHtml(summary) +
-            "</span>";
         }
+      }
+       
+      if (wrap) {
+        makeProgressExpandable(wrap, wrap.storedArgs || null, msg.content);
       }
     }
   }
@@ -2282,6 +2858,182 @@ function renderHistory(messagesEl) {
     );
   }
   scrollToBottom(messagesEl);
+}
+
+
+
+
+
+
+
+
+function isTextUpload(file) {
+  const name = (file.name || "").toLowerCase();
+  const ext = name.split(".").pop() || "";
+  if (UPLOAD_TEXT_EXTS.includes(ext)) return true;
+   
+  const mime = (file.type || "").toLowerCase();
+  if (
+    mime.startsWith("text/") ||
+    mime === "application/json" ||
+    mime === "application/xml" ||
+    mime === "application/x-yaml"
+  ) {
+    return true;
+  }
+  return false;
+}
+
+
+
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result || ""));
+    r.onerror = () => reject(r.error || new Error("read error"));
+    r.readAsText(file);
+  });
+}
+
+
+
+
+async function handleUploadFiles(fileList) {
+  const files = Array.from(fileList || []);
+  if (files.length === 0) return;
+  let added = 0;
+  for (const file of files) {
+    if (!isTextUpload(file)) {
+      showMessage(
+        I18n.t("builder.upload.unsupported").replace("{name}", file.name),
+        "warning",
+      );
+      continue;
+    }
+    if (file.size > UPLOAD_MAX_BYTES) {
+      showMessage(
+        I18n.t("builder.upload.tooLarge")
+          .replace("{name}", file.name)
+          .replace("{max}", Math.round(UPLOAD_MAX_BYTES / 1024) + "KB"),
+        "warning",
+      );
+      continue;
+    }
+    try {
+      const content = await readFileAsText(file);
+      pendingUploads.push({
+        name: file.name,
+        content,
+        size: file.size,
+      });
+      added++;
+    } catch (e) {
+      showMessage(
+        I18n.t("builder.upload.readFail").replace("{name}", file.name),
+        "error",
+      );
+    }
+  }
+  if (added > 0) renderUploadChips();
+}
+
+
+
+
+function renderUploadChips() {
+  const wrap = $("builder-upload-chips");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  if (pendingUploads.length === 0) {
+    wrap.style.display = "none";
+    return;
+  }
+  wrap.style.display = "flex";
+  pendingUploads.forEach((f, idx) => {
+    const chip = document.createElement("div");
+    chip.className = "builder-upload-chip";
+    chip.innerHTML =
+      ICON_PAPERCLIP +
+      '<span class="builder-upload-chip-name">' +
+      escapeHtml(f.name) +
+      "</span>" +
+      '<span class="builder-upload-chip-size">' +
+      formatSize(f.size) +
+      "</span>" +
+      '<button type="button" class="builder-upload-chip-remove" aria-label="remove">' +
+      ICON_X +
+      "</button>";
+    chip
+      .querySelector(".builder-upload-chip-remove")
+      .addEventListener("click", () => {
+        pendingUploads.splice(idx, 1);
+        renderUploadChips();
+      });
+    wrap.appendChild(chip);
+  });
+}
+
+function clearPendingUploads() {
+  pendingUploads = [];
+  renderUploadChips();
+}
+
+
+
+
+function bindUploadButton() {
+  const btn = $("builder-upload-btn");
+  const fileInput = $("builder-upload-input");
+  if (!btn || !fileInput) return;
+  btn.addEventListener("click", () => {
+    fileInput.value = "";
+    fileInput.click();
+  });
+  fileInput.addEventListener("change", async () => {
+    if (!fileInput.files || fileInput.files.length === 0) return;
+    await handleUploadFiles(fileInput.files);
+    fileInput.value = "";
+  });
+   
+  const inputBar = document.querySelector(".builder-input-bar");
+  if (inputBar && !inputBar.dataset.uploadBound) {
+    inputBar.dataset.uploadBound = "1";
+    inputBar.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      inputBar.classList.add("builder-drag-over");
+    });
+    inputBar.addEventListener("dragleave", () => {
+      inputBar.classList.remove("builder-drag-over");
+    });
+    inputBar.addEventListener("drop", async (e) => {
+      e.preventDefault();
+      inputBar.classList.remove("builder-drag-over");
+      if (e.dataTransfer && e.dataTransfer.files) {
+        await handleUploadFiles(e.dataTransfer.files);
+      }
+    });
+  }
+   
+  const inputEl = $("builder-input");
+  if (inputEl && !inputEl.dataset.pasteBound) {
+    inputEl.dataset.pasteBound = "1";
+    inputEl.addEventListener("paste", (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      const files = [];
+      for (const it of items) {
+        if (it.kind === "file") {
+          const f = it.getAsFile();
+          if (f) files.push(f);
+        }
+      }
+      if (files.length > 0) {
+        e.preventDefault();
+        handleUploadFiles(files);
+      }
+    });
+  }
 }
 
 
@@ -2312,6 +3064,7 @@ export function setupBuilder() {
 
   updateFileList();
   updatePhaseToggle();
+  renderUploadChips();
   autoLoadDocs();
 }
 
