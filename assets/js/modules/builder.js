@@ -1581,6 +1581,47 @@ function updateSendModeUI() {
   }
 }
 
+function bindSessionIO() {
+  const exportBtn = $("builder-export-session");
+  const exportMenu = $("builder-export-menu");
+  const importBtn = $("builder-import-session");
+  const importFile = $("builder-import-file");
+
+  // 导出下拉
+  if (exportBtn && exportMenu) {
+    exportBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      exportMenu.classList.toggle("open");
+    });
+    exportMenu.querySelectorAll(".builder-export-opt").forEach((opt) => {
+      opt.addEventListener("click", () => {
+        const scope = opt.getAttribute("data-scope");
+        exportMenu.classList.remove("open");
+        exportSessions(scope);
+      });
+    });
+    // 点击外部关闭
+    document.addEventListener("click", (e) => {
+      if (!exportMenu.classList.contains("open")) return;
+      if (exportBtn.contains(e.target) || exportMenu.contains(e.target)) return;
+      exportMenu.classList.remove("open");
+    });
+  }
+
+  // 导入文件选择
+  if (importBtn && importFile) {
+    importBtn.addEventListener("click", () => {
+      importFile.value = "";
+      importFile.click();
+    });
+    importFile.addEventListener("change", async () => {
+      const file = importFile.files && importFile.files[0];
+      if (!file) return;
+      await importSessionsFromFile(file);
+    });
+  }
+}
+
 function bindMobileDrawer() {
   const menuBtn = $("builder-mobile-menu");
   const overlay = $("builder-mobile-overlay");
@@ -1677,13 +1718,23 @@ function bindChatActions() {
               const detail = escapeHtml(
                 formatToolDetail(event.tool, event.args),
               );
+              const isWrite = event.tool === "write_file";
+              // 写入文件：添加实时动画标记
+              let extraHtml = "";
+              if (isWrite) {
+                extraHtml =
+                  '<span class="builder-progress-writing"><i class="fas fa-circle"></i> ' +
+                  escapeHtml(I18n.t("builder.writing")) +
+                  "</span>";
+              }
               appendProgress(
                 messagesEl,
                 kindForTool(event.tool),
                 iconForTool(event.tool) +
                   " " +
                   label +
-                  (detail ? " <code>" + detail + "</code>" : ""),
+                  (detail ? " <code>" + detail + "</code>" : "") +
+                  extraHtml,
               );
               showTyping(messagesEl);
             }
@@ -1696,13 +1747,34 @@ function bindChatActions() {
                 ".builder-progress:last-child .builder-progress-item",
               );
               if (last) {
-                const summary = String(event.result || "")
-                  .slice(0, 80)
-                  .replace(/\n/g, " ");
-                last.innerHTML +=
-                  ' <span style="opacity:0.7">→ ' +
-                  escapeHtml(summary) +
-                  "</span>";
+                if (event.tool === "write_file") {
+                  // 写入完成：替换动画标记为完成状态 + 文件大小
+                  const writingEl = last.querySelector(
+                    ".builder-progress-writing",
+                  );
+                  if (writingEl) {
+                    const sizeMatch = String(event.result || "").match(
+                      /（(\d+) 字符）/,
+                    );
+                    const sizeText = sizeMatch ? sizeMatch[1] + " chars" : "";
+                    writingEl.outerHTML =
+                      '<span class="builder-progress-result">' +
+                      "\u2713 " +
+                      escapeHtml(
+                        sizeText || String(event.result || "").slice(0, 60),
+                      ) +
+                      "</span>";
+                  }
+                  last.classList.add("done");
+                } else {
+                  const summary = String(event.result || "")
+                    .slice(0, 80)
+                    .replace(/\n/g, " ");
+                  last.innerHTML +=
+                    ' <span class="builder-progress-result">' +
+                    escapeHtml(summary) +
+                    "</span>";
+                }
               }
             }
             if (event.tool === "write_file" || event.tool === "finalize") {
@@ -1893,6 +1965,139 @@ function persistCurrentSession() {
   saveSessions();
 }
 
+/**
+ * 导出会话为 JSON 文件
+ * @param {"current"|"all"} scope
+ */
+function exportSessions(scope) {
+  // 先同步当前会话到 sessions 对象
+  persistCurrentSession();
+
+  let out = {};
+  if (scope === "current") {
+    if (!activeSessionId || !sessions[activeSessionId]) {
+      showMessage(I18n.t("builder.error.noActiveSession"), "warning");
+      return;
+    }
+    out[activeSessionId] = sessions[activeSessionId];
+  } else {
+    out = { ...sessions };
+  }
+
+  const keys = Object.keys(out);
+  if (keys.length === 0) {
+    showMessage(I18n.t("builder.noSessions"), "warning");
+    return;
+  }
+
+  const payload = {
+    type: "erispulse-builder-sessions",
+    version: 1,
+    exportedAt: Date.now(),
+    sessions: out,
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const ts = new Date();
+  const stamp =
+    ts.getFullYear() +
+    String(ts.getMonth() + 1).padStart(2, "0") +
+    String(ts.getDate()).padStart(2, "0") +
+    "-" +
+    String(ts.getHours()).padStart(2, "0") +
+    String(ts.getMinutes()).padStart(2, "0");
+  a.download =
+    (scope === "current" ? "erispulse-session" : "erispulse-sessions") +
+    "-" +
+    stamp +
+    ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * 从文件导入会话（合并不覆盖已有数据）
+ * @param {File} file
+ */
+async function importSessionsFromFile(file) {
+  if (!file) return;
+  let text;
+  try {
+    text = await file.text();
+  } catch (e) {
+    showMessage(I18n.t("builder.error.importRead"), "error");
+    return;
+  }
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    showMessage(I18n.t("builder.error.importParse"), "error");
+    return;
+  }
+
+  // 兼容两种结构：带信封 / 裸 sessions 对象 / 单个 session
+  let incoming = {};
+  if (data && data.type === "erispulse-builder-sessions" && data.sessions) {
+    incoming = data.sessions;
+  } else if (data && typeof data === "object" && data.conversation) {
+    // 单个会话对象
+    incoming = { [data.id || "imported"]: data };
+  } else if (
+    data &&
+    typeof data === "object" &&
+    data.sessions &&
+    typeof data.sessions === "object"
+  ) {
+    incoming = data.sessions;
+  } else {
+    showMessage(I18n.t("builder.error.importFormat"), "error");
+    return;
+  }
+
+  const now = Date.now();
+  let added = 0;
+  for (const [oldId, raw] of Object.entries(incoming)) {
+    if (!raw || typeof raw !== "object") continue;
+    const newId =
+      "s_" + now + "_" + added + "_" + Math.random().toString(36).slice(2, 7);
+    const s = {
+      id: newId,
+      title: raw.title || I18n.t("builder.newSession"),
+      conversation: Array.isArray(raw.conversation) ? raw.conversation : [],
+      generatedFiles: raw.generatedFiles || {},
+      phase: raw.phase === "generate" ? "generate" : "plan",
+      finalized: !!raw.finalized,
+      createdAt: raw.createdAt || now,
+      updatedAt: now,
+    };
+    sessions[newId] = s;
+    added++;
+  }
+
+  if (added === 0) {
+    showMessage(I18n.t("builder.error.importEmpty"), "warning");
+    return;
+  }
+
+  // 切换到最近导入的会话
+  saveSessions();
+  renderSessionList();
+  const lastImportedId = Object.keys(sessions)
+    .filter((id) => sessions[id].updatedAt === now)
+    .sort((a, b) => (sessions[a].createdAt || 0) - (sessions[b].createdAt || 0))
+    .pop();
+  if (lastImportedId) switchSession(lastImportedId);
+  showMessage(I18n.t("builder.importSuccess", { n: added }), "success");
+}
+
 function newSession() {
   const id = "s_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
   const s = {
@@ -2043,11 +2248,29 @@ function renderHistory(messagesEl) {
       const target =
         progressMap[msg.tool_call_id || ""] || Object.values(progressMap)[0];
       if (target) {
-        const summary = String(msg.content || "")
-          .slice(0, 80)
-          .replace(/\n/g, " ");
-        target.innerHTML +=
-          ' <span style="opacity:0.7">→ ' + escapeHtml(summary) + "</span>";
+        if (target.classList.contains("write")) {
+          // 写入类工具：显示完成标记
+          target.classList.add("done");
+          const writingEl = target.querySelector(".builder-progress-writing");
+          if (writingEl) {
+            const sizeMatch = String(msg.content || "").match(/（(\d+) 字符）/);
+            const sizeText = sizeMatch
+              ? "\u2713 " + sizeMatch[1] + " chars"
+              : "";
+            writingEl.outerHTML =
+              '<span class="builder-progress-result">' +
+              escapeHtml(sizeText || String(msg.content || "").slice(0, 60)) +
+              "</span>";
+          }
+        } else {
+          const summary = String(msg.content || "")
+            .slice(0, 80)
+            .replace(/\n/g, " ");
+          target.innerHTML +=
+            ' <span class="builder-progress-result">' +
+            escapeHtml(summary) +
+            "</span>";
+        }
       }
     }
   }
@@ -2070,6 +2293,7 @@ export function setupBuilder() {
   bindConfigInputs();
   bindChatActions();
   bindMobileDrawer();
+  bindSessionIO();
   renderWelcome();
 
   // 会话初始化

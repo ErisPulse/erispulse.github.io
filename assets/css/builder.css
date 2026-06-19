@@ -24,7 +24,6 @@
 }
 
 .builder-icon-btn {
-    margin-left: auto;
     width: 26px;
     height: 26px;
     border: none;
@@ -37,10 +36,70 @@
     align-items: center;
     justify-content: center;
     transition: var(--transition);
+    flex-shrink: 0;
 }
 
 .builder-icon-btn:hover {
     background: rgba(var(--primary-rgb), 0.22);
+}
+
+/* 标题右侧操作按钮组 */
+.builder-config-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* 导出下拉 */
+.builder-export-wrap {
+    position: relative;
+}
+
+.builder-export-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 170px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-hover);
+    padding: 0.3rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.15rem;
+    z-index: 50;
+}
+
+.builder-export-menu.open {
+    display: flex;
+}
+
+.builder-export-opt {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.15s;
+}
+
+.builder-export-opt:hover {
+    background: var(--bg);
+}
+
+.builder-export-opt i {
+    font-size: 0.7rem;
+    color: var(--primary);
+    visibility: hidden;
 }
 
 .builder-sessions-list {
@@ -749,11 +808,13 @@
     gap: 1rem;
     scroll-behavior: smooth;
     background-color: var(--bg);
-    background-image: url("../img/eris_bg.png");
-    background-repeat: repeat-y;
-    background-size: 100% auto;
-    background-position: top center;
+    /* 背景图暂时关闭（资源保留）
+    background-image: url("../img/9998218143800301-b0c5468e-dea6-4806-9218-d201afdfe2b3-gpt_image_2_codex_image_599f78e1-8590-4ebd-b98e-d68b3df9c802_0.png");
+    background-repeat: repeat;
+    background-size: 360px;
+    background-position: top left;
     background-attachment: scroll;
+    */
 }
 
 /* 系统提示消息（阶段切换等） */
@@ -825,8 +886,9 @@
 }
 
 .builder-msg-bot .builder-msg-content {
-    background: var(--bg);
+    background: var(--card-bg);
     color: var(--text);
+    border: 1px solid var(--border);
     border-top-left-radius: 4px;
 }
 
@@ -880,12 +942,12 @@
     color: var(--primary);
 }
 
-/* 进度项 */
+/* 进度项 — 与消息气泡统一风格 */
 .builder-progress {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    margin: 0.3rem 0;
+    gap: 0.2rem;
+    margin: 0.1rem 0;
     align-self: flex-start;
     max-width: 85%;
 }
@@ -894,37 +956,101 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    font-family: "SF Mono", "Fira Code", Consolas, monospace;
-    padding: 0.4rem 0.7rem;
-    background: var(--bg);
-    border-radius: 8px;
-    border-left: 3px solid var(--text-secondary);
+    font-size: 0.82rem;
+    color: var(--text);
+    font-family: inherit;
+    padding: 0.45rem 0.8rem;
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--text-secondary);
+    box-shadow: var(--shadow-sm);
+    line-height: 1.5;
+    transition:
+        border-color 0.25s,
+        background 0.25s;
 }
 
 .builder-progress-item i {
-    font-size: 0.7rem;
-    width: 14px;
+    font-size: 0.72rem;
+    width: 16px;
     text-align: center;
+    flex-shrink: 0;
 }
 
+/* 工具类型标签（代码色块） */
+.builder-progress-item code {
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.78em;
+    background: rgba(var(--primary-rgb), 0.08);
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    color: var(--text-secondary);
+    border: 1px solid rgba(var(--border-rgb), 0.5);
+}
+
+/* 工具结果文字 */
+.builder-progress-result {
+    color: var(--text-secondary);
+    font-size: 0.78em;
+    margin-left: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 240px;
+}
+
+/* 写入中动画 */
+.builder-progress-item.write .builder-progress-writing {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+    font-size: 0.78em;
+}
+
+.builder-progress-item.write .builder-progress-writing i {
+    animation: builderWritePulse 1s ease-in-out infinite;
+    color: var(--primary);
+}
+
+@keyframes builderWritePulse {
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(0.9);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+}
+
+/* 写入完成状态 */
+.builder-progress-item.write.done {
+    border-left-color: var(--accent);
+}
+.builder-progress-item.write.done > i {
+    color: var(--accent);
+}
+
+/* 各类型配色 */
 .builder-progress-item.search {
     border-left-color: #f59e0b;
 }
-.builder-progress-item.search i {
+.builder-progress-item.search > i {
     color: #f59e0b;
 }
 .builder-progress-item.read {
     border-left-color: var(--accent);
 }
-.builder-progress-item.read i {
+.builder-progress-item.read > i {
     color: var(--accent);
 }
 .builder-progress-item.write {
     border-left-color: var(--primary);
 }
-.builder-progress-item.write i {
+.builder-progress-item.write > i {
     color: var(--primary);
 }
 .builder-progress-item.done {
@@ -932,7 +1058,16 @@
     color: var(--accent);
     font-weight: 600;
 }
-.builder-progress-item.done i {
+.builder-progress-item.done > i {
+    color: var(--accent);
+}
+
+/* 完成标记（覆盖已有状态） */
+.builder-progress-item.final-done {
+    border-left-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.06);
+}
+.builder-progress-item.final-done i {
     color: var(--accent);
 }
 
