@@ -98,15 +98,29 @@ export function setupViewSwitching() {
       if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
       e.preventDefault();
       const view = this.getAttribute("data-view");
-      updateView(view);
+      updateView(view, true);  
     });
   });
 
-  switchViewByHash();
+   
+  if (window.__INITIAL_VIEW__) {
+    updateView(window.__INITIAL_VIEW__, false);  
+  } else {
+    switchViewByHash();
+  }
 }
 
 function switchViewByHash() {
   if (_hashProgrammatic) return;
+
+   
+  if (window.__INITIAL_VIEW__) {
+    const view = window.__INITIAL_VIEW__;
+    window.__INITIAL_VIEW__ = null;  
+    updateView(view);
+    return;
+  }
+
   const hash = window.location.hash.substring(1);
   let view = "home";
 
@@ -156,7 +170,7 @@ function switchViewByHash() {
   updateView(view);
 }
 
-export function updateView(view) {
+export function updateView(view, updateHash = false) {
   document
     .querySelectorAll("[data-view]")
     .forEach((link) => link.classList.remove("active"));
@@ -170,20 +184,23 @@ export function updateView(view) {
   var targetView = document.getElementById(`${view}-view`);
   if (targetView) targetView.classList.add("active");
 
-  _hashProgrammatic = true;
-  var currentHash = window.location.hash.substring(1);
-  if (view === "home") {
-    if (currentHash !== "") {
-      history.pushState(null, null, window.location.pathname);
+   
+  if (updateHash) {
+    _hashProgrammatic = true;
+    var currentHash = window.location.hash.substring(1);
+    if (view === "home") {
+      if (currentHash !== "") {
+        history.pushState(null, null, window.location.pathname);
+      }
+    } else if (view === "docs" && currentHash.startsWith("docs/")) {
+       
+    } else if (currentHash !== view && !currentHash.startsWith(view + "/")) {
+      window.location.hash = view;
     }
-  } else if (view === "docs" && currentHash.startsWith("docs/")) {
-     
-  } else if (currentHash !== view && !currentHash.startsWith(view + "/")) {
-    window.location.hash = view;
+    setTimeout(function () {
+      _hashProgrammatic = false;
+    }, 50);
   }
-  setTimeout(function () {
-    _hashProgrammatic = false;
-  }, 50);
 
   window.scrollTo({
     top: 0,
