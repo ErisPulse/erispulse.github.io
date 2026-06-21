@@ -313,6 +313,11 @@ export const I18n = (function () {
           link: "#docs/ai-support/README.md",
         },
         {
+          icon: "fa-plug",
+          text: "新增：接入 MCP 服务器，让 Claude / Cursor 在写代码时直接查 ErisPulse 文档",
+          link: "#docs/ai-support/mcp.md",
+        },
+        {
           icon: "fa-exchange-alt",
           text: "基于 OneBot12 标准的统一事件格式，一份代码在所有平台运行",
           link: "#docs/getting-started/basic-concepts.md",
@@ -416,6 +421,10 @@ export const I18n = (function () {
         "配置构建器使用的 OpenAI 兼容 API（地址可填域名，会自动补 /chat/completions）。前往「构建器」页面开始对话。",
       "builder.settingsPrivacy":
         "所有数据（配置、会话、生成文件）保存在浏览器本地，不上传任何服务器。本站开源：github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsPrivacyHtml":
+        '所有数据（配置、会话、生成文件）保存在浏览器本地，不上传任何服务器。本站开源：<a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
+      "builder.settingsPrivacyShortHtml":
+        '所有数据保存在浏览器本地，不上传任何服务器。本站开源：<a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
       "builder.settingsConfigBtn": "配置模型",
       "builder.sendMode.enter": "Enter",
       "builder.sendMode.ctrlEnter": "Ctrl+Enter",
@@ -750,6 +759,11 @@ export const I18n = (function () {
           link: "#docs/ai-support/README.md",
         },
         {
+          icon: "fa-plug",
+          text: "New: connect the MCP server so Claude / Cursor can look up ErisPulse docs directly while coding",
+          link: "#docs/ai-support/mcp.md",
+        },
+        {
           icon: "fa-exchange-alt",
           text: "Unified OneBot12 event format — one codebase runs on every platform",
           link: "#docs/getting-started/basic-concepts.md",
@@ -856,6 +870,10 @@ export const I18n = (function () {
         "Configure the OpenAI-compatible API used by the builder (a bare domain is fine; /chat/completions is appended automatically). Go to the “Builder” page to start.",
       "builder.settingsPrivacy":
         "All data (config, sessions, generated files) is stored locally in your browser and never uploaded. Open source: github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsPrivacyHtml":
+        'All data (config, sessions, generated files) is stored locally in your browser and never uploaded. Open source: <a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
+      "builder.settingsPrivacyShortHtml":
+        'All data is stored locally in your browser and never uploaded. Open source: <a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
       "builder.settingsConfigBtn": "Configure model",
       "builder.sendMode.enter": "Enter",
       "builder.sendMode.ctrlEnter": "Ctrl+Enter",
@@ -951,6 +969,10 @@ export const I18n = (function () {
         "配置構建器使用的 OpenAI 相容 API。前往「構建器」頁面開始對話。",
       "builder.settingsPrivacy":
         "所有資料（配置、會話、生成檔案）保存在瀏覽器本機，不上傳任何伺服器。開源：github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsPrivacyHtml":
+        '所有資料（配置、會話、生成檔案）保存在瀏覽器本機，不上傳任何伺服器。開源：<a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
+      "builder.settingsPrivacyShortHtml":
+        '所有資料保存在瀏覽器本機，不上傳任何伺服器。開源：<a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
       "builder.settingsConfigBtn": "配置模型",
       "builder.tool.search_docs": "檢索文檔",
       "builder.tool.read_document": "讀取文檔",
@@ -1251,6 +1273,11 @@ export const I18n = (function () {
           link: "#docs/ai-support/README.md",
         },
         {
+          icon: "fa-plug",
+          text: "新增：接入 MCP 伺服器，讓 Claude / Cursor 在寫程式時直接查 ErisPulse 文檔",
+          link: "#docs/ai-support/mcp.md",
+        },
+        {
           icon: "fa-exchange-alt",
           text: "基於 OneBot12 標準的統一事件格式，一份程式碼在所有平台執行",
           link: "#docs/getting-started/basic-concepts.md",
@@ -1350,6 +1377,10 @@ export const I18n = (function () {
         "ビルダーが使用する OpenAI 互換 API を設定します。「ビルダー」ページで会話を開始してください。",
       "builder.settingsPrivacy":
         "すべてのデータ（設定、セッション、生成ファイル）はブラウザに保存され、サーバーには送信されません。オープンソース：github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsPrivacyHtml":
+        'すべてのデータ（設定、セッション、生成ファイル）はブラウザに保存され、サーバーには送信されません。オープンソース：<a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
+      "builder.settingsPrivacyShortHtml":
+        'すべてのデータはブラウザに保存され、サーバーには送信されません。オープンソース：<a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
       "builder.settingsConfigBtn": "モデルを設定",
       "builder.tool.search_docs": "ドキュメント検索",
       "builder.tool.read_document": "ドキュメント読込",
@@ -1665,6 +1696,11 @@ export const I18n = (function () {
           link: "#docs/ai-support/README.md",
         },
         {
+          icon: "fa-plug",
+          text: "新機能：MCP サーバーを接続して、Claude / Cursor がコーディング中に ErisPulse ドキュメントを直接参照可能に",
+          link: "#docs/ai-support/mcp.md",
+        },
+        {
           icon: "fa-exchange-alt",
           text: "OneBot12 標準の統一イベントフォーマット — ひとつのコードで全プラットフォーム対応",
           link: "#docs/getting-started/basic-concepts.md",
@@ -1761,6 +1797,10 @@ export const I18n = (function () {
         "Настройте OpenAI-совместимый API для конструктора. Перейдите на страницу «Конструктор», чтобы начать.",
       "builder.settingsPrivacy":
         "Все данные (настройки, сессии, сгенерированные файлы) хранятся локально в браузере и не передаются на сервер. Открытый исходный код: github.com/ErisPulse/erispulse.github.io",
+      "builder.settingsPrivacyHtml":
+        'Все данные (настройки, сессии, сгенерированные файлы) хранятся локально в браузере и не передаются на сервер. Открытый исходный код: <a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
+      "builder.settingsPrivacyShortHtml":
+        'Все данные хранятся локально в браузере и не передаются на сервер. Открытый исходный код: <a href="https://github.com/ErisPulse/erispulse.github.io" target="_blank" rel="noopener">GitHub</a>',
       "builder.settingsConfigBtn": "Настроить модель",
       "builder.tool.search_docs": "Поиск в док.",
       "builder.tool.read_document": "Чтение док.",
@@ -2072,6 +2112,11 @@ export const I18n = (function () {
           icon: "fa-wand-magic-sparkles",
           text: "ErisPulse поддерживает полный рабочий процесс Vibe Coding — ИИ генерирует готовые модули",
           link: "#docs/ai-support/README.md",
+        },
+        {
+          icon: "fa-plug",
+          text: "Новое: подключите MCP-сервер, чтобы Claude / Cursor могли обращаться к документации ErisPulse прямо во время кодинга",
+          link: "#docs/ai-support/mcp.md",
         },
         {
           icon: "fa-exchange-alt",
