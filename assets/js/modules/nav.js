@@ -132,8 +132,6 @@ function switchViewByHash() {
         docs.navigateToDocument(docMatch[1]);
       }, 500);
     }
-  } else if (hash === "builder" || hash.startsWith("builder/")) {
-    view = "builder";
   } else if (hash.startsWith("market")) {
     view = "market";
     const categoryMatch = hash.match(/market\/(.+)/);
@@ -223,15 +221,5 @@ export function updateView(view, updateHash = false) {
   if (view === "settings") {
     docs.updateDocsCacheStatus();
     docs.checkDocsVersionUpdate();
-  }
-
-   
-  const footer = document.querySelector("footer");
-  if (footer) {
-    if (view === "builder") {
-      footer.style.display = "none";
-    } else {
-      footer.style.display = "";
-    }
   }
 }

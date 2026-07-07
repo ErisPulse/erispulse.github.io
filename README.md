@@ -13,7 +13,7 @@ ErisPulse 高性能异步机器人开发框架官方网站
 | 官方网站 | [www.erisdev.com](https://www.erisdev.com) | 首页 |
 | 文档中心 | [docs.html](https://www.erisdev.com/docs.html) | 完整的开发文档 |
 | 模块市场 | [market.html](https://www.erisdev.com/market.html) | 发现和分享模块 |
-| 模块构建器 | [builder.html](https://www.erisdev.com/builder.html) | 可视化创建模块 |
+| 模块构建器 | [builder.erisdev.com](https://builder.erisdev.com) | 可视化创建模块（独立站点） |
 | 关于我们 | [about.html](https://www.erisdev.com/about.html) | 团队和贡献者 |
 
 ## 快速开始
@@ -65,7 +65,7 @@ erispulse.github.io/
 ├── index.html             # 首页
 ├── docs.html              # 文档中心（SEO 占位符）
 ├── market.html            # 模块市场（SEO 占位符）
-├── builder.html           # 模块构建器（SEO 占位符）
+├── builder.html           # 模块构建器（重定向至 builder.erisdev.com）
 ├── about.html             # 关于我们（SEO 占位符）
 ├── settings.html          # 设置页面（SEO 占位符）
 ├── legacy_mods.html       # 旧版模块页面
