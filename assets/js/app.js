@@ -15,7 +15,6 @@ import * as settings from "./modules/settings.js";
 import * as nav from "./modules/nav.js";
 import * as market from "./modules/marketplace.js";
 import * as docs from "./modules/docs.js";
-import * as builder from "./modules/builder.js";
 import { renderFriendLinks } from "./modules/about.js";
 import * as home from "./modules/home.js";
 import { SubmitModuleManager } from "./modules/submit.js";
@@ -36,7 +35,6 @@ function runInit() {
   settings.setupGlobalLangSwitcher();
   market.setupMarketplace();
   docs.setupDocumentation();
-  builder.setupBuilder();
   market.setupModals();
   settings.setupSettings();
   renderFriendLinks();

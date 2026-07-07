@@ -17,7 +17,6 @@ const FRAGMENTS = [
   "home",
   "market",
   "docs",
-  "builder",
   "settings",
   "about",
   "modals",

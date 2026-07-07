@@ -95,15 +95,6 @@ export const CONFIG = {
     gh_proxy: "https://cdn.gh-proxy.org/",
     disableOnlineCacheRefresh: true,
     docsLocalized: {},
-    // AI 模块构建器配置
-    builder: {
-      api_url: "https://api.openai.com/v1",
-      api_key: "",
-      model: "gpt-4o",
-      useDocsCache: false,
-      persistKey: true,
-      sendMode: "enter",
-    },
   },
 
   // API 端点
