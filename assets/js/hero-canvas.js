@@ -15,7 +15,8 @@ let HeroCanvas;
         mouseRadius: 200,
         gravityStrength: 25,
         particleSpeed: 1.2,
-        maxParticles: 100,
+        maxParticles: 40,
+        maxParticleGen: 3,
         trailLength: 6,
         pulseSpeed: 2.5,
         pulseMaxRadius: 400,
@@ -28,7 +29,7 @@ let HeroCanvas;
     let canvas, ctx, W, H;
     let nodes = [], particles = [], pulses = [], nebulae = [], snippets = [];
     let mouse = { x: -9999, y: -9999, active: false };
-    let rafId = null, noAnim = false;
+    let rafId = null, noAnim = false, paused = false, io = null;
     let pRGB = [74, 156, 216], aRGB = [124, 196, 168];
     let bgRGB = [249, 248, 244], textRGB = [44, 62, 80];
     let hoveredNode = null, selectedNode = null;
@@ -275,13 +276,13 @@ let HeroCanvas;
         return result;
     }
 
-    function spawnParticle(edge, fromNode) {
+    function spawnParticle(edge, fromNode, gen) {
         if (particles.length >= CFG.maxParticles) return;
         const trail = [];
         particles.push({
             edge, t: fromNode ? 0 : 1, dir: fromNode ? 1 : -1,
             speed: CFG.particleSpeed * (0.7 + Math.random() * 0.5),
-            alpha: 0, trail,
+            alpha: 0, trail, gen: gen || 0,
         });
     }
 
@@ -300,13 +301,14 @@ let HeroCanvas;
 
             if (p.t > 1 || p.t < 0) {
                 const target = p.t > 1 ? p.edge.to : p.edge.from;
-                if (target.energy < 0.3) {
+                // 事件传播最多 maxParticleGen 跳后自然消亡（被"处理完毕"）
+                if (target.energy < 0.3 && p.gen < CFG.maxParticleGen) {
                     const edges = getConnectedEdges(target);
                     const filtered = edges.filter(e => e !== p.edge);
                     for (const ne of filtered) {
-                        if (Math.random() < 0.25) {
+                        if (Math.random() < 0.15) {
                             const isFrom = ne.from === target;
-                            spawnParticle(ne, isFrom);
+                            spawnParticle(ne, isFrom, p.gen + 1);
                         }
                     }
                 }
@@ -350,6 +352,7 @@ let HeroCanvas;
 
     /* ===== 脉冲 ===== */
     function spawnPulse(x, y) {
+        if (pulses.length >= 12) return;
         pulses.push({ x, y, radius: 0, alpha: 0.5, hitNodes: new Set() });
     }
 
@@ -365,9 +368,9 @@ let HeroCanvas;
                     n.energy = Math.min(1, n.energy + 0.6);
                     const edges = getConnectedEdges(n);
                     for (const e of edges) {
-                        if (Math.random() > 0.4) continue;
+                        if (Math.random() > 0.6) continue;
                         const isFrom = e.from === n;
-                        spawnParticle(e, isFrom);
+                        spawnParticle(e, isFrom, 0);
                     }
                 }
             }
@@ -553,24 +556,45 @@ let HeroCanvas;
     }
 
     function loop(time) {
+        rafId = null;
+        // Hero 滚出视口或标签页隐藏时暂停，避免后台空转烧性能
+        if (paused || document.hidden) return;
         if (!noAnim) update(time);
         draw();
         rafId = requestAnimationFrame(loop);
+    }
+
+    function kick() {
+        if (rafId == null && !paused && !document.hidden) {
+            rafId = requestAnimationFrame(loop);
+        }
     }
 
     /* ===== Resize ===== */
     function resize() {
         const section = canvas.parentElement;
         const rect = section.getBoundingClientRect();
-        W = rect.width; H = rect.height;
-        canvas.width = W * DPR;
-        canvas.height = H * DPR;
-        canvas.style.width = W + 'px';
-        canvas.style.height = H + 'px';
+        const newW = rect.width, newH = rect.height;
+        canvas.width = newW * DPR;
+        canvas.height = newH * DPR;
+        canvas.style.width = newW + 'px';
+        canvas.style.height = newH + 'px';
         ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-        createNodes();
-        createNebulae();
-        createSnippets();
+
+        if (nodes.length && W && H) {
+            // 按比例缩放已有节点位置，避免缩放窗口时整个网络重置
+            const sx = newW / W, sy = newH / H;
+            const sm = (sx + sy) / 2;
+            for (const n of nodes) { n.x *= sx; n.y *= sy; n.ox *= sx; n.oy *= sy; }
+            for (const nb of nebulae) { nb.x *= sx; nb.y *= sy; nb.radius *= sm; }
+            for (const s of snippets) { s.x *= sx; s.y *= sy; }
+        } else {
+            W = newW; H = newH;
+            createNodes();
+            createNebulae();
+            createSnippets();
+        }
+        W = newW; H = newH;
         particles = [];
         pulses = [];
     }
@@ -636,7 +660,7 @@ let HeroCanvas;
     function spawnBurst(node) {
         const edges = getConnectedEdges(node);
         for (const e of edges) {
-            if (Math.random() < 0.65) spawnParticle(e, e.from === node);
+            if (Math.random() < 0.5) spawnParticle(e, e.from === node, 0);
         }
     }
 
@@ -661,12 +685,27 @@ let HeroCanvas;
         new MutationObserver(readColors).observe(document.documentElement, {
             attributes: true, attributeFilter: ['data-theme', 'class', 'style']
         });
-        rafId = requestAnimationFrame(loop);
+
+        // Hero 滚出视口时暂停渲染，避免后台持续占用性能
+        const heroSection = canvas.parentElement;
+        if (heroSection && 'IntersectionObserver' in window) {
+            io = new IntersectionObserver(function (entries) {
+                paused = !entries[0].isIntersecting;
+                if (!paused) kick();
+            }, { threshold: 0 });
+            io.observe(heroSection);
+        }
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) kick();
+        });
+
+        kick();
     }
 
     function destroy() {
         if (rafId) cancelAnimationFrame(rafId);
         rafId = null;
+        if (io) { io.disconnect(); io = null; }
         window.removeEventListener('resize', debResize);
     }
 

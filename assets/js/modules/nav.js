@@ -108,6 +108,22 @@ export function setupViewSwitching() {
   } else {
     switchViewByHash();
   }
+
+  // 滚动进度条
+  const progressBar = document.getElementById("scroll-progress");
+  if (progressBar) {
+    window.addEventListener(
+      "scroll",
+      () => {
+        const docHeight =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const progress =
+          docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
+        progressBar.style.width = progress + "%";
+      },
+      { passive: true },
+    );
+  }
 }
 
 function switchViewByHash() {
@@ -176,11 +192,41 @@ export function updateView(view, updateHash = false) {
     document.querySelector(`[data-view="${view}"]`).classList.add("active");
   }
 
-  document.querySelectorAll(".view-container").forEach((container) => {
-    container.classList.remove("active");
-  });
   var targetView = document.getElementById(`${view}-view`);
-  if (targetView) targetView.classList.add("active");
+
+  // 优雅切换：先瞬移到顶部，旧视图原位冻结淡出，新视图上浮入场
+  window.scrollTo(0, 0);
+
+  document.querySelectorAll(".view-container.active").forEach((container) => {
+    if (container === targetView) return;
+    var rect = container.getBoundingClientRect();
+    container.style.position = "fixed";
+    container.style.top = rect.top + "px";
+    container.style.left = rect.left + "px";
+    container.style.width = rect.width + "px";
+    container.style.zIndex = "5";
+    container.style.pointerEvents = "none";
+    container.classList.remove("active");
+    container.classList.add("view-leaving");
+    setTimeout(() => {
+      container.classList.remove("view-leaving");
+      container.style.position = "";
+      container.style.top = "";
+      container.style.left = "";
+      container.style.width = "";
+      container.style.zIndex = "";
+      container.style.pointerEvents = "";
+    }, 250);
+  });
+
+  document.querySelectorAll(".view-container").forEach((container) => {
+    if (container !== targetView && !container.classList.contains("view-leaving")) {
+      container.classList.remove("active");
+    }
+  });
+  if (targetView && !targetView.classList.contains("active")) {
+    targetView.classList.add("active");
+  }
 
   // 只在用户点击导航时更新 hash，避免 SEO 页面二次跳转
   if (updateHash) {
@@ -199,11 +245,6 @@ export function updateView(view, updateHash = false) {
       _hashProgrammatic = false;
     }, 50);
   }
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
 
   if (view === "market") {
     market.loadModuleData();

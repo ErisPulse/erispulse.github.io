@@ -240,17 +240,83 @@ a {
     visibility: hidden;
 }
 
+.loader-logo-wrap {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Logo 文字占位：图片未加载完时立刻可见 */
+.loader-logo-text {
+    position: absolute;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -2px;
+    z-index: 0;
+    user-select: none;
+    animation: subtlePulse 2s ease-in-out infinite;
+}
+
+/* 纯 CSS 旋转环：Logo 未加载时也能立刻看到加载状态 */
+.loader-ring {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 3px solid rgba(var(--primary-rgb), 0.1);
+    border-top-color: rgba(var(--primary-rgb), 0.7);
+    animation: loaderSpin 0.8s linear infinite;
+}
+
+@keyframes loaderSpin {
+    to { transform: rotate(360deg); }
+}
+
 .loader-icon {
+    position: relative;
+    z-index: 1;
     height: 100px;
     width: 100px;
     border-radius: 50%;
     object-fit: contain;
-    animation: 
-        fadeIn 0.5s ease-out forwards,
-        subtlePulse 2s ease-in-out 0.5s infinite;
+    opacity: 0;
+    transition: opacity 0.4s ease;
     filter: 
         drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.3));
     transform-origin: center;
+}
+
+/* 图片加载完成后淡入，无缝覆盖文字占位 */
+.loader-icon.loaded {
+    opacity: 1;
+    animation: subtlePulse 2s ease-in-out 0.4s infinite;
+}
+
+/* ==================== 加载完成：波浪退潮揭幕（SVG 路径动画） ==================== */
+.reveal-tide {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10001;
+    pointer-events: none;
+}
+
+/* ==================== 滚动进度条 ==================== */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    z-index: 101;
+    transition: width 0.1s ease-out;
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.4);
 }
 
 /* 导航栏 */
@@ -330,11 +396,39 @@ a {
 
 .view-container {
     display: none;
-    animation: fadeIn 0.4s ease-out;
 }
 
 .view-container.active {
     display: block;
+    animation: viewEnter 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.view-container.view-leaving {
+    display: block;
+    animation: viewLeave 0.25s cubic-bezier(0.55, 0, 0.45, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes viewEnter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes viewLeave {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
 }
 
 .container {
