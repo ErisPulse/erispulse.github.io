@@ -333,7 +333,7 @@ async function verifyUser(provider, accessToken) {
         return null;
     }
 
-    const headers = { 'Accept': 'application/json' };
+    const headers = { 'Accept': 'application/json', 'User-Agent': 'ErisPulse-Worker' };
     if (providerKey === 'yunhu') {
         headers['Authorization'] = 'Bearer ' + accessToken;
     } else {
@@ -384,7 +384,7 @@ async function handleUserInfo(request) {
             return jsonResponse({ error: `Unknown provider: ${providerKey}` }, 400);
         }
 
-        const headers = { 'Accept': 'application/json' };
+        const headers = { 'Accept': 'application/json', 'User-Agent': 'ErisPulse-Worker' };
         if (providerKey === 'yunhu') {
             headers['Authorization'] = 'Bearer ' + access_token;
         } else {
