@@ -6,6 +6,13 @@ const ALLOWED_ORIGIN = 'https://www.erisdev.com';
 const SUBMIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const MAX_DAILY_SUBMISSIONS = 3;
 
+ 
+const INJECTION_RE = /[\x00-\x1f"'\\`$&;|<>]/;                  
+const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;                
+const REPO_URL_RE = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;   
+const SEMVER_RE = /^\d+\.\d+\.\d+$/;                               
+const SDK_CONSTRAINT_RE = /^[><=!]+\s*\d+\.\d+\.\d+$/;           
+
 function corsHeaders(methods = 'GET, POST, OPTIONS') {
     return {
         'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
@@ -424,13 +431,55 @@ async function handleSubmitModule(request) {
             return jsonResponse({ error: `Invalid type: ${submission.type}` }, 400);
         }
 
-        const repoPattern = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;
-        if (!repoPattern.test(submission.repository)) {
-            return jsonResponse({ error: 'Invalid repository URL' }, 400);
+         
+
+        const name = submission.name.trim();
+        if (!SAFE_NAME_RE.test(name) || name.length > 100) {
+            return jsonResponse({ error: 'Invalid module name. Use only letters, numbers, hyphens, underscores, and dots.' }, 400);
         }
 
-        if (submission.description.length < 10) {
-            return jsonResponse({ error: 'Description too short (minimum 10 characters)' }, 400);
+        const pkg = submission.package.trim();
+        if (!SAFE_NAME_RE.test(pkg) || pkg.length > 200) {
+            return jsonResponse({ error: 'Invalid package name. Use only letters, numbers, hyphens, underscores, and dots.' }, 400);
+        }
+
+        const description = submission.description.trim();
+        if (description.length < 10 || description.length > 1000) {
+            return jsonResponse({ error: 'Description must be between 10 and 1000 characters.' }, 400);
+        }
+        if (INJECTION_RE.test(description)) {
+            return jsonResponse({ error: 'Description contains invalid characters.' }, 400);
+        }
+
+        const author = submission.author.trim();
+        if (author.length > 100 || INJECTION_RE.test(author)) {
+            return jsonResponse({ error: 'Author name contains invalid characters or is too long.' }, 400);
+        }
+
+        const tags = (submission.tags || [])
+            .map(t => String(t).trim())
+            .filter(Boolean);
+        if (tags.length > 20) {
+            return jsonResponse({ error: 'Too many tags. Maximum is 20.' }, 400);
+        }
+        for (const tag of tags) {
+            if (!SAFE_NAME_RE.test(tag) || tag.length > 50) {
+                return jsonResponse({ error: `Invalid tag: "${tag}". Use only letters, numbers, hyphens, underscores, and dots.` }, 400);
+            }
+        }
+
+        const versionRaw = submission.version || '';
+        if (versionRaw && !SEMVER_RE.test(versionRaw)) {
+            return jsonResponse({ error: 'Invalid version format. Expected semver (e.g. 1.0.0).' }, 400);
+        }
+
+        const minSdk = submission.min_sdk_version || '';
+        if (minSdk && !SDK_CONSTRAINT_RE.test(minSdk)) {
+            return jsonResponse({ error: 'Invalid min_sdk_version format. Expected constraint like >=2.0.0.' }, 400);
+        }
+
+        if (!REPO_URL_RE.test(submission.repository)) {
+            return jsonResponse({ error: 'Invalid repository URL. Only GitHub and Codeberg URLs are allowed.' }, 400);
         }
 
         const pypiResult = await checkPyPI(submission.package);
@@ -466,14 +515,14 @@ async function handleSubmitModule(request) {
                 event_type: 'submit_module',
                 client_payload: {
                     type: submission.type,
-                    name: submission.name,
-                    package: submission.package,
-                    version: pypiResult.version || submission.version || '0.0.0',
-                    description: submission.description,
-                    author: submission.author,
+                    name: name,
+                    package: pkg,
+                    version: pypiResult.version || versionRaw || '0.0.0',
+                    description: description,
+                    author: author,
                     repository: submission.repository,
-                    min_sdk_version: submission.min_sdk_version || '',
-                    tags: JSON.stringify(submission.tags || []),
+                    min_sdk_version: minSdk,
+                    tags: JSON.stringify(tags),
                     submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
                 },
             }),
@@ -562,7 +611,51 @@ async function handleManageModule(request) {
         let payload;
         if (action === 'edit') {
             const editData = body_data.edit_data || {};
-            const pypiResult = await checkPyPI(editData.package || '');
+
+             
+
+            const editPkg = (editData.package || '').trim();
+            if (editPkg && (!SAFE_NAME_RE.test(editPkg) || editPkg.length > 200)) {
+                return jsonResponse({ error: 'Invalid package name in edit data.' }, 400);
+            }
+
+            const editDesc = (editData.description || '').trim();
+            if (editDesc && (editDesc.length > 1000 || INJECTION_RE.test(editDesc))) {
+                return jsonResponse({ error: 'Description contains invalid characters.' }, 400);
+            }
+
+            const editAuthor = (editData.author || '').trim();
+            if (editAuthor && (editAuthor.length > 100 || INJECTION_RE.test(editAuthor))) {
+                return jsonResponse({ error: 'Author name contains invalid characters or is too long.' }, 400);
+            }
+
+            const editTags = (editData.tags || [])
+                .map(t => String(t).trim())
+                .filter(Boolean);
+            if (editTags.length > 20) {
+                return jsonResponse({ error: 'Too many tags. Maximum is 20.' }, 400);
+            }
+            for (const tag of editTags) {
+                if (!SAFE_NAME_RE.test(tag) || tag.length > 50) {
+                    return jsonResponse({ error: `Invalid tag: "${tag}".` }, 400);
+                }
+            }
+
+            const editVersion = editData.version || '';
+            if (editVersion && !SEMVER_RE.test(editVersion)) {
+                return jsonResponse({ error: 'Invalid version format. Expected semver (e.g. 1.0.0).' }, 400);
+            }
+
+            const editMinSdk = editData.min_sdk_version || '';
+            if (editMinSdk && !SDK_CONSTRAINT_RE.test(editMinSdk)) {
+                return jsonResponse({ error: 'Invalid min_sdk_version format.' }, 400);
+            }
+
+            if (editData.repository && !REPO_URL_RE.test(editData.repository)) {
+                return jsonResponse({ error: 'Invalid repository URL in edit data.' }, 400);
+            }
+
+            const pypiResult = await checkPyPI(editPkg || '');
             payload = {
                 event_type: 'manage_module',
                 client_payload: {
@@ -571,13 +664,13 @@ async function handleManageModule(request) {
                     type: type,
                     uid: verifiedUser.uid,
                     edit_data: JSON.stringify({
-                        package: editData.package || '',
-                        description: editData.description || '',
-                        author: editData.author || '',
+                        package: editPkg,
+                        description: editDesc,
+                        author: editAuthor,
                         repository: editData.repository || '',
-                        min_sdk_version: editData.min_sdk_version || '',
-                        tags: JSON.stringify(editData.tags || []),
-                        version: pypiResult.exists ? pypiResult.version : (editData.version || '0.0.0'),
+                        min_sdk_version: editMinSdk,
+                        tags: JSON.stringify(editTags),
+                        version: pypiResult.exists ? pypiResult.version : (editVersion || '0.0.0'),
                         submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
                     }),
                 },
