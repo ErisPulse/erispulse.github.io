@@ -60,46 +60,6 @@ function runInit() {
 
 
 
-function smoothWaveSegment(x1, y1, x2, y2) {
-  const amp = 6, cycles = 2.5, N = 20;
-  const dx = x2 - x1, dy = y2 - y1;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  if (len < 0.5) return ` L ${x2.toFixed(2)},${y2.toFixed(2)}`;
-  const px = -dy / len, py = dx / len;
-  const pts = [];
-  for (let i = 0; i <= N; i++) {
-    const t = i / N;
-    const w = Math.sin(t * Math.PI * 2 * cycles) * amp;
-    pts.push([x1 + dx * t + px * w, y1 + dy * t + py * w]);
-  }
-  let d = "";
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[Math.max(0, i - 1)];
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
-    const p3 = pts[Math.min(pts.length - 1, i + 2)];
-    d += ` C ${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(2)},${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(2)}` +
-         ` ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(2)},${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(2)}` +
-         ` ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
-  }
-  return d;
-}
-
-function buildTidePath(progress) {
-   
-  const C = 200 * (1 - progress);
-  if (C <= 0.5) return "M 0,0 Z";
-  let d = "M 0,0";
-  if (C >= 100) {
-    d += ` L 100,0 L 100,${(C - 100).toFixed(2)}`;
-    d += smoothWaveSegment(100, C - 100, C - 100, 100);
-    d += " L 0,100";
-  } else {
-    d += ` L ${C.toFixed(2)},0`;
-    d += smoothWaveSegment(C, 0, 0, C);
-  }
-  return d + " Z";
-}
 
 function hideLoader() {
   const loader = document.getElementById("page-loader");
@@ -112,43 +72,107 @@ function hideLoader() {
     return;
   }
 
-   
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  const canvas = document.createElement("canvas");
+  canvas.className = "reveal-bubble";
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  document.body.appendChild(canvas);
+
   const css = getComputedStyle(document.documentElement);
+  const bgRGB = css.getPropertyValue("--bg-rgb").trim();
   const pRGB = css.getPropertyValue("--primary-rgb").trim();
 
-   
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("class", "reveal-tide");
-  svg.setAttribute("viewBox", "0 0 100 100");
-  svg.setAttribute("preserveAspectRatio", "none");
-  svg.setAttribute("aria-hidden", "true");
-
-   
-  const path1 = document.createElementNS(svgNS, "path");
-  path1.setAttribute("fill", `rgba(${pRGB}, 0.10)`);
-  svg.appendChild(path1);
-  const path2 = document.createElementNS(svgNS, "path");
-  path2.setAttribute("fill", `rgba(${pRGB}, 0.22)`);
-  svg.appendChild(path2);
-
-  document.body.appendChild(svg);
-   
   loader.style.display = "none";
 
    
-  const duration = 850;
-  const start = performance.now();
+  const bandH = 120;
+  const softEdge = 45;
+  const bubbles = [];
+  for (let i = 0; i < 70; i++) {
+    bubbles.push({
+      x: Math.random() * W,
+      yOff: (Math.random() - 0.5) * bandH,
+      r: 2 + Math.random() * 16,
+      wobble: Math.random() * Math.PI * 2,
+      wSpeed: 0.001 + Math.random() * 0.002,
+      alpha: 0.5 + Math.random() * 0.5,
+    });
+  }
+
+  const duration = 750;
+  const startT = performance.now();
+
   function frame(now) {
-    const t = Math.min(1, (now - start) / duration);
-    const eased = 1 - Math.pow(1 - t, 3);
-    const d1 = buildTidePath(eased);
+    const t = Math.min(1, (now - startT) / duration);
      
-    const d2 = buildTidePath(Math.min(1, eased * 1.05));
-    path1.setAttribute("d", d1);
-    path2.setAttribute("d", d2);
-    if (t < 1) requestAnimationFrame(frame);
-    else svg.remove();
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+     
+    const sweepY = H + bandH - eased * (H + bandH * 2);
+
+     
+    const converge = Math.max(0, (t - 0.7) / 0.3);
+
+    ctx.clearRect(0, 0, W, H);
+
+     
+    const opaqueEnd = sweepY - softEdge;
+    if (opaqueEnd > 0) {
+      ctx.fillStyle = `rgb(${bgRGB})`;
+      ctx.fillRect(0, 0, W, Math.min(H, opaqueEnd));
+    }
+
+     
+    if (sweepY > -softEdge && opaqueEnd < H) {
+      const gTop = Math.max(0, sweepY - softEdge);
+      const gBot = Math.min(H, sweepY + softEdge);
+      if (gBot > gTop) {
+        const grad = ctx.createLinearGradient(0, sweepY - softEdge, 0, sweepY + softEdge);
+        grad.addColorStop(0, `rgba(${bgRGB}, 1)`);
+        grad.addColorStop(1, `rgba(${bgRGB}, 0)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, gTop, W, gBot - gTop);
+      }
+    }
+
+     
+    for (const b of bubbles) {
+      const yOff = b.yOff * (1 - converge * 0.7);
+      const r = b.r * (1 - converge * 0.5);
+      if (r < 2) continue;
+      const bx = b.x + Math.sin(now * b.wSpeed + b.wobble) * 6;
+      const by = sweepY + yOff + Math.cos(now * b.wSpeed + b.wobble) * 4;
+      if (by + r < 0 || by - r > H) continue;
+
+       
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.03 * b.alpha})`;
+      ctx.beginPath();
+      ctx.arc(bx, by, r, 0, Math.PI * 2);
+      ctx.fill();
+
+       
+      ctx.strokeStyle = `rgba(${pRGB}, ${0.12 * b.alpha})`;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+       
+      if (r > 4) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.2 * b.alpha})`;
+        ctx.beginPath();
+        ctx.arc(bx - r * 0.3, by - r * 0.3, Math.max(1, r * 0.15), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      canvas.remove();
+    }
   }
   requestAnimationFrame(frame);
 }
