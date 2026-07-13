@@ -109,20 +109,32 @@ export function setupViewSwitching() {
     switchViewByHash();
   }
 
-  // 滚动进度条
+  // 滚动进度条 + 返回顶部
   const progressBar = document.getElementById("scroll-progress");
-  if (progressBar) {
+  const backToTop = document.getElementById("back-to-top");
+  if (progressBar || backToTop) {
     window.addEventListener(
       "scroll",
       () => {
         const docHeight =
           document.documentElement.scrollHeight - window.innerHeight;
-        const progress =
-          docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
-        progressBar.style.width = progress + "%";
+        const scrolled = window.scrollY;
+        if (progressBar) {
+          const progress =
+            docHeight > 0 ? (scrolled / docHeight) * 100 : 0;
+          progressBar.style.width = progress + "%";
+        }
+        if (backToTop) {
+          backToTop.classList.toggle("visible", scrolled > 400);
+        }
       },
       { passive: true },
     );
+  }
+  if (backToTop) {
+    backToTop.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
 }
 
