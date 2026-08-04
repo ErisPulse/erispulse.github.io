@@ -7,7 +7,7 @@ const SUBMIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const MAX_DAILY_SUBMISSIONS = 3;
 
  
-const INJECTION_RE = /[\x00-\x1f"'\\`$&;|<>]/;                  
+const INJECTION_RE = /[\x00-\x1f<>`\\]/;                          
 const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;                
 const TAG_RE = /^[\p{L}\p{N}][\p{L}\p{N}_.\-]{0,49}$/u;            
 const REPO_URL_RE = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;   
