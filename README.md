@@ -1,10 +1,21 @@
+<div align="center">
+
+<img src=".github/assets/ErisPulseLogo.png" width="180" alt="ErisPulse" />
+
 # ErisPulse 官网
 
-[![GitHub license](https://img.shields.io/github/license/ErisPulse/erispulse.github.io?color=blue)](https://github.com/ErisPulse/erispulse.github.io/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/ErisPulse/erispulse.github.io?style=social)](https://github.com/ErisPulse/erispulse.github.io)
-[![GitHub forks](https://img.shields.io/github/forks/ErisPulse/erispulse.github.io?style=social)](https://github.com/ErisPulse/erispulse.github.io/network/members)
+**ErisPulse 官方网站与文档中心 · 高性能异步机器人开发框架**
 
-ErisPulse 高性能异步机器人开发框架官方网站
+<p>
+  <a href="https://github.com/ErisPulse/erispulse.github.io"><img src="https://img.shields.io/github/stars/ErisPulse/erispulse.github.io?style=for-the-badge&logo=github&color=brightgreen" alt="Stars"></a>
+  <a href="https://www.erisdev.com"><img src="https://img.shields.io/badge/官网-erisdev.com-FF6B9D?style=for-the-badge&logo=bookstack&logoColor=white" alt="官网"></a>
+  <a href="https://www.erisdev.com/docs.html"><img src="https://img.shields.io/badge/文档-erisdev.com-8A2BE2?style=for-the-badge&logo=readthedocs&logoColor=white" alt="文档"></a>
+  <a href="https://github.com/ErisPulse/ErisPulse"><img src="https://img.shields.io/badge/Powered_by-ErisPulse-FF6B9D?style=for-the-badge&logo=bookstack&logoColor=white" alt="ErisPulse"></a>
+</p>
+
+</div>
+
+---
 
 ## 在线访问
 
