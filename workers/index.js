@@ -8,10 +8,40 @@ const MAX_DAILY_SUBMISSIONS = 3;
 
 // ── 输入校验常量 ──
 const INJECTION_RE = /[\x00-\x1f"'\\`$&;|<>]/;                 // 阻止注入：控制字符、引号、反斜杠、反引号、dollar、管道等
-const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;               // 安全标识符：字母/数字开头 + 字母/数字/下划线/点/短横
+const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;               // 安全标识符：字母/数字开头 + 字母/数字/下划线/点/短横（模块/包名）
+const TAG_RE = /^[\p{L}\p{N}][\p{L}\p{N}_.\-]{0,49}$/u;           // 标签：Unicode 字母（含中文）/数字开头 + 字母/数字/下划线/点/短横，≤50
 const REPO_URL_RE = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;  // 仓库 URL
-const SEMVER_RE = /^\d+\.\d+\.\d+$/;                              // 语义化版本
-const SDK_CONSTRAINT_RE = /^[><=!]+\s*\d+\.\d+\.\d+$/;          // SDK 版本约束（如 >=2.0.0）
+// ErisPulse 版本规则：x.x.x（正式版）或 x.x.x-dev.N / -alpha.N（开发/预发布版）
+const VERSION_RE = /^\d+\.\d+\.\d+(?:-(?:[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?$/;
+// 最低 SDK 版本：可选约束符（>=、<=、==、!=、>、<）+ 合法版本（含开发版）
+const SDK_CONSTRAINT_RE = /^(?:[><=!]{1,2})?\s*\d+\.\d+\.\d+(?:-(?:[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?$/;
+
+// ── 校验辅助函数 ──
+function validateTags(tags) {
+    if (tags.length > 20) {
+        return 'Too many tags. Maximum is 20.';
+    }
+    for (const tag of tags) {
+        if (!TAG_RE.test(tag)) {
+            return `Invalid tag: "${tag}". Tags may contain letters (incl. Chinese), numbers, hyphens, underscores, and dots (max 50).`;
+        }
+    }
+    return null;
+}
+
+function validateVersion(version) {
+    if (version && !VERSION_RE.test(version)) {
+        return 'Invalid version format. Expected x.x.x (release) or x.x.x-dev.N / -alpha.N (pre-release).';
+    }
+    return null;
+}
+
+function validateMinSdk(minSdk) {
+    if (minSdk && !SDK_CONSTRAINT_RE.test(minSdk)) {
+        return 'Invalid min_sdk_version format. Expected a version like 2.7.0 or 2.7.0-dev.3, optionally with a constraint like >=2.7.0.';
+    }
+    return null;
+}
 
 function corsHeaders(methods = 'GET, POST, OPTIONS') {
     return {
@@ -459,23 +489,21 @@ async function handleSubmitModule(request) {
         const tags = (submission.tags || [])
             .map(t => String(t).trim())
             .filter(Boolean);
-        if (tags.length > 20) {
-            return jsonResponse({ error: 'Too many tags. Maximum is 20.' }, 400);
-        }
-        for (const tag of tags) {
-            if (!SAFE_NAME_RE.test(tag) || tag.length > 50) {
-                return jsonResponse({ error: `Invalid tag: "${tag}". Use only letters, numbers, hyphens, underscores, and dots.` }, 400);
-            }
+        const tagError = validateTags(tags);
+        if (tagError) {
+            return jsonResponse({ error: tagError }, 400);
         }
 
         const versionRaw = submission.version || '';
-        if (versionRaw && !SEMVER_RE.test(versionRaw)) {
-            return jsonResponse({ error: 'Invalid version format. Expected semver (e.g. 1.0.0).' }, 400);
+        const versionError = validateVersion(versionRaw);
+        if (versionError) {
+            return jsonResponse({ error: versionError }, 400);
         }
 
         const minSdk = submission.min_sdk_version || '';
-        if (minSdk && !SDK_CONSTRAINT_RE.test(minSdk)) {
-            return jsonResponse({ error: 'Invalid min_sdk_version format. Expected constraint like >=2.0.0.' }, 400);
+        const minSdkError = validateMinSdk(minSdk);
+        if (minSdkError) {
+            return jsonResponse({ error: minSdkError }, 400);
         }
 
         if (!REPO_URL_RE.test(submission.repository)) {
@@ -632,23 +660,21 @@ async function handleManageModule(request) {
             const editTags = (editData.tags || [])
                 .map(t => String(t).trim())
                 .filter(Boolean);
-            if (editTags.length > 20) {
-                return jsonResponse({ error: 'Too many tags. Maximum is 20.' }, 400);
-            }
-            for (const tag of editTags) {
-                if (!SAFE_NAME_RE.test(tag) || tag.length > 50) {
-                    return jsonResponse({ error: `Invalid tag: "${tag}".` }, 400);
-                }
+            const tagError = validateTags(editTags);
+            if (tagError) {
+                return jsonResponse({ error: tagError }, 400);
             }
 
             const editVersion = editData.version || '';
-            if (editVersion && !SEMVER_RE.test(editVersion)) {
-                return jsonResponse({ error: 'Invalid version format. Expected semver (e.g. 1.0.0).' }, 400);
+            const versionError = validateVersion(editVersion);
+            if (versionError) {
+                return jsonResponse({ error: versionError }, 400);
             }
 
             const editMinSdk = editData.min_sdk_version || '';
-            if (editMinSdk && !SDK_CONSTRAINT_RE.test(editMinSdk)) {
-                return jsonResponse({ error: 'Invalid min_sdk_version format.' }, 400);
+            const minSdkError = validateMinSdk(editMinSdk);
+            if (minSdkError) {
+                return jsonResponse({ error: minSdkError }, 400);
             }
 
             if (editData.repository && !REPO_URL_RE.test(editData.repository)) {
