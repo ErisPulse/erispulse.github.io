@@ -7,7 +7,7 @@ const SUBMIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const MAX_DAILY_SUBMISSIONS = 3;
 
 // ── 输入校验常量 ──
-const INJECTION_RE = /[\x00-\x1f"'\\`$&;|<>]/;                 // 阻止注入：控制字符、引号、反斜杠、反引号、dollar、管道等
+const INJECTION_RE = /[\x00-\x1f<>`\\]/;                         // 阻止注入/HTML：控制字符、尖括号、反引号、反斜杠（描述/作者允许 | & 引号等正常文本）
 const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;               // 安全标识符：字母/数字开头 + 字母/数字/下划线/点/短横（模块/包名）
 const TAG_RE = /^[\p{L}\p{N}][\p{L}\p{N}_.\-]{0,49}$/u;           // 标签：Unicode 字母（含中文）/数字开头 + 字母/数字/下划线/点/短横，≤50
 const REPO_URL_RE = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;  // 仓库 URL
