@@ -542,14 +542,12 @@ function showChapterToc(docPath) {
                 <div class="chapter-group" data-level="${node.level}">
                     <div class="chapter-item level-${node.level}" data-target="${node.id}">
                         <i class="fas fa-chevron-down chapter-toggle"></i>
-                        <span class="chapter-dot"></span>
                         <span class="chapter-text">${node.text}</span>
                     </div>
                     <div class="chapter-children">`;
             node.children.forEach(child => {
                 navHtml += `
                     <div class="chapter-item level-${child.level}" data-target="${child.id}">
-                        <span class="chapter-dot"></span>
                         <span class="chapter-text">${child.text}</span>
                     </div>`;
             });
@@ -557,7 +555,6 @@ function showChapterToc(docPath) {
         } else {
             navHtml += `
                 <div class="chapter-item level-${node.level}" data-target="${node.id}">
-                    <span class="chapter-dot"></span>
                     <span class="chapter-text">${node.text}</span>
                 </div>`;
         }
