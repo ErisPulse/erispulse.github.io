@@ -507,20 +507,6 @@ function showChapterToc(docPath) {
         return;
     }
 
-    // 将扁平 toc 按 H1/H2 分组建树，H3-H6 归到最近的上级
-    const tree = [];
-    let currentGroup = null;
-    currentChapterToc.forEach(item => {
-        if (item.level <= 2) {
-            currentGroup = { ...item, children: [] };
-            tree.push(currentGroup);
-        } else if (currentGroup) {
-            currentGroup.children.push(item);
-        } else {
-            tree.push({ ...item, children: [] });
-        }
-    });
-
     let navHtml = '<div class="docs-nav-view">';
 
     navHtml += `
@@ -535,29 +521,14 @@ function showChapterToc(docPath) {
 
     navHtml += '<div class="chapter-toc">';
 
-    tree.forEach(node => {
-        const hasChildren = node.children && node.children.length > 0;
-        if (hasChildren) {
-            navHtml += `
-                <div class="chapter-group" data-level="${node.level}">
-                    <div class="chapter-item level-${node.level}" data-target="${node.id}">
-                        <i class="fas fa-chevron-down chapter-toggle"></i>
-                        <span class="chapter-text">${node.text}</span>
-                    </div>
-                    <div class="chapter-children">`;
-            node.children.forEach(child => {
-                navHtml += `
-                    <div class="chapter-item level-${child.level}" data-target="${child.id}">
-                        <span class="chapter-text">${child.text}</span>
-                    </div>`;
-            });
-            navHtml += `</div></div>`;
-        } else {
-            navHtml += `
-                <div class="chapter-item level-${node.level}" data-target="${node.id}">
-                    <span class="chapter-text">${node.text}</span>
-                </div>`;
-        }
+    // 扁平渲染：每项独立卡片，前缀 H1/H2/H3 徽章，按层级缩进
+    currentChapterToc.forEach(item => {
+        navHtml += `
+            <div class="chapter-item level-${item.level}" data-target="${item.id}">
+                <span class="chapter-badge">${item.level}</span>
+                <span class="chapter-text">${item.text}</span>
+            </div>
+        `;
     });
 
     navHtml += '</div></div>';
@@ -572,24 +543,7 @@ function showChapterToc(docPath) {
         }
     });
 
-    setupChapterCollapse();
     updateActiveChapter();
-}
-
-function setupChapterCollapse() {
-    document.querySelectorAll('.chapter-group').forEach(group => {
-        group.classList.add('collapsed');
-    });
-
-    document.querySelectorAll('.chapter-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const group = this.closest('.chapter-group');
-            if (group) {
-                group.classList.toggle('collapsed');
-            }
-        });
-    });
 }
 
 function updateActiveChapter() {
@@ -606,10 +560,6 @@ function updateActiveChapter() {
                     item.classList.remove('active');
                     if (item.getAttribute('data-target') === id) {
                         item.classList.add('active');
-                        const parentGroup = item.closest('.chapter-group');
-                        if (parentGroup) {
-                            parentGroup.classList.remove('collapsed');
-                        }
                     }
                 });
             }
