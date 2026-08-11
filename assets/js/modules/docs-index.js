@@ -10,8 +10,12 @@ import { I18n } from '../i18n.js';
 export const DocsIndexManager = (function () {
     let mappingCache = null;
     let searchIndexCache = null;
+    let autoApiMappingCache = null;
+    let autoApiSearchCache = null;
+    let autoApiMerged = false;
     let isLoadingMapping = false;
     let isLoadingSearchIndex = false;
+    let isLoadingAutoApiMapping = false;
     let loadCallbacks = [];
 
     /**
@@ -153,15 +157,168 @@ export const DocsIndexManager = (function () {
     }
 
     /**
+     * 加载 auto_api 独立映射索引（懒加载）
+     * 仅在用户首次展开"自动生成 API"分组时调用。
+     * 注意：auto_api 仅在 zh-CN 生成（其它语言为中文副本），始终从 zh-CN/ 加载。
+     * 加载成功后合并到主 mapping 的"API 参考"分类下作为虚拟子分组。
+     */
+    async function loadAutoApiMapping() {
+        if (autoApiMappingCache) return autoApiMappingCache;
+        if (isLoadingAutoApiMapping) {
+            // 等待已经在进行的加载
+            while (isLoadingAutoApiMapping) {
+                await new Promise(r => setTimeout(r, 50));
+            }
+            return autoApiMappingCache;
+        }
+
+        isLoadingAutoApiMapping = true;
+        try {
+            console.log('尝试从CDN加载 auto_api 映射索引（zh-CN）...');
+            // auto_api 仅在 zh-CN 生成，固定从 zh-CN/ 加载
+            const fixedFilename = `zh-CN/${CONFIG.DOCS.index.autoApiMappingFile}`;
+            const data = await loadFromCDN(fixedFilename);
+            autoApiMappingCache = data;
+            saveToCache(CONFIG.DOCS.index.storageKeys.autoApiMapping, data);
+            console.log('✓ 从CDN成功加载 auto_api 映射索引');
+            mergeAutoApiIntoMapping();
+            return data;
+        } catch (cdnError) {
+            console.warn('CDN加载 auto_api 失败，尝试 GitHub...', cdnError);
+            try {
+                const data = await loadFromGitHub(`zh-CN/${CONFIG.DOCS.index.autoApiMappingFile}`);
+                autoApiMappingCache = data;
+                saveToCache(CONFIG.DOCS.index.storageKeys.autoApiMapping, data);
+                console.log('✓ 从GitHub成功加载 auto_api 映射索引');
+                mergeAutoApiIntoMapping();
+                return data;
+            } catch (ghError) {
+                console.warn('GitHub加载 auto_api 失败，尝试缓存...', ghError);
+                try {
+                    const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.autoApiMapping);
+                    autoApiMappingCache = data;
+                    console.log('✓ 从缓存加载 auto_api 映射索引');
+                    mergeAutoApiIntoMapping();
+                    return data;
+                } catch (cacheError) {
+                    console.error('auto_api 索引所有加载方式均失败', cacheError);
+                    throw cacheError;
+                }
+            }
+        } finally {
+            isLoadingAutoApiMapping = false;
+        }
+    }
+
+    /**
+     * 加载 auto_api 独立搜索索引（懒加载）
+     * auto_api 仅在 zh-CN 生成，始终从 zh-CN/ 加载。
+     */
+    async function loadAutoApiSearchIndex() {
+        if (autoApiSearchCache) return autoApiSearchCache;
+
+        try {
+            const fixedFilename = `zh-CN/${CONFIG.DOCS.index.autoApiSearchIndexFile}`;
+            const data = await loadFromCDN(fixedFilename);
+            autoApiSearchCache = data;
+            saveToCache(CONFIG.DOCS.index.storageKeys.autoApiSearchIndex, data);
+            // 合并到主搜索索引，使全局搜索能命中 auto_api 内容
+            mergeAutoApiIntoSearchIndex();
+            return data;
+        } catch (cdnError) {
+            console.warn('CDN加载 auto_api 搜索索引失败，尝试 GitHub...', cdnError);
+            try {
+                const data = await loadFromGitHub(`zh-CN/${CONFIG.DOCS.index.autoApiSearchIndexFile}`);
+                autoApiSearchCache = data;
+                saveToCache(CONFIG.DOCS.index.storageKeys.autoApiSearchIndex, data);
+                mergeAutoApiIntoSearchIndex();
+                return data;
+            } catch (ghError) {
+                console.warn('GitHub加载 auto_api 搜索索引失败', ghError);
+                return null;
+            }
+        }
+    }
+
+    /**
+     * 把 auto_api mapping 合并到主 mapping 的"API 参考"分类下，
+     * 作为额外的虚拟子分组 "__auto_api__"。
+     */
+    function mergeAutoApiIntoMapping() {
+        if (!mappingCache || !autoApiMappingCache || autoApiMerged) return;
+        const apiCat = findApiReferenceCategory(mappingCache);
+        if (!apiCat) {
+            console.warn('未找到 API 参考分类，无法合并 auto_api');
+            return;
+        }
+        const autoCat = Object.values(autoApiMappingCache.categories || {})[0];
+        if (!autoCat) return;
+
+        if (!apiCat.subgroups) apiCat.subgroups = {};
+        // 使用稳定 key 避免冲突
+        apiCat.subgroups['__auto_api__'] = {
+            name: getAutoApiSubgroupDisplayName(),
+            icon: 'fa-microchip',
+            documents: autoCat.documents || [],
+            // 嵌套：auto_api 自身的子分组作为二级分组数据
+            _auto_subgroups: autoCat.subgroups || {},
+            isAutoApi: true,
+        };
+        apiCat.count = (apiCat.count || 0) + (autoCat.count || 0);
+        autoApiMerged = true;
+        console.log('✓ auto_api 已合并到 API 参考分类');
+    }
+
+    /**
+     * 把 auto_api 搜索索引的关键词合并到主搜索索引。
+     */
+    function mergeAutoApiIntoSearchIndex() {
+        if (!searchIndexCache || !autoApiSearchCache) return;
+        if (!searchIndexCache.keywords) searchIndexCache.keywords = {};
+        const autoKw = autoApiSearchCache.keywords || {};
+        for (const [kw, occs] of Object.entries(autoKw)) {
+            if (!searchIndexCache.keywords[kw]) {
+                searchIndexCache.keywords[kw] = [];
+            }
+            searchIndexCache.keywords[kw].push(...occs);
+        }
+        console.log('✓ auto_api 搜索索引已合并');
+    }
+
+    function findApiReferenceCategory(mapping) {
+        if (!mapping || !mapping.categories) return null;
+        // 按目录名 "api-reference" 反查本地化分类名
+        const candidates = Object.values(mapping.categories).filter(c => c.icon === 'fa-book');
+        // 进一步通过子分组/文档路径判断
+        for (const [name, cat] of Object.entries(mapping.categories)) {
+            const docs = cat.documents || [];
+            const sample = docs[0];
+            if (sample && sample.path && sample.path.startsWith('api-reference/')) {
+                return cat;
+            }
+        }
+        // 回退：返回第一个 icon=fa-book 的分类
+        return candidates[0] || null;
+    }
+
+    function getAutoApiSubgroupDisplayName() {
+        // 简单本地化（主 i18n.js 没有对应 key 时回退）
+        const map = {
+            'zh-CN': '自动生成 API',
+            'en': 'Auto-generated API',
+            'zh-TW': '自動生成 API',
+            'ja': '自動生成 API',
+            'ru': 'Авто-API',
+        };
+        return map[I18n.getLang()] || 'Auto-generated API';
+    }
+
+    /**
      * 注册加载完成回调
      */
     function onLoad(callback) {
         loadCallbacks.push(callback);
     }
-
-    /**
-     * 通知所有回调
-     */
     function notifyLoadCallbacks(type, success, data, error = null) {
         loadCallbacks.forEach(callback => {
             try {
@@ -377,16 +534,32 @@ export const DocsIndexManager = (function () {
         try {
             localStorage.removeItem(CONFIG.DOCS.index.storageKeys.mapping);
             localStorage.removeItem(CONFIG.DOCS.index.storageKeys.searchIndex);
+            localStorage.removeItem(CONFIG.DOCS.index.storageKeys.autoApiMapping);
+            localStorage.removeItem(CONFIG.DOCS.index.storageKeys.autoApiSearchIndex);
+            autoApiMappingCache = null;
+            autoApiSearchCache = null;
+            autoApiMerged = false;
             console.log('缓存已清除');
         } catch (error) {
             console.warn('清除缓存失败:', error);
         }
     }
 
+    /**
+     * 重置 auto_api 状态（语言切换时调用，强制重新合并）
+     */
+    function resetAutoApiState() {
+        autoApiMappingCache = null;
+        autoApiSearchCache = null;
+        autoApiMerged = false;
+    }
+
     // 公共API
     return {
         loadMapping,
         loadSearchIndex,
+        loadAutoApiMapping,
+        loadAutoApiSearchIndex,
         onLoad,
         isLoaded,
         getDocumentPath,
@@ -395,7 +568,10 @@ export const DocsIndexManager = (function () {
         getAllDocuments,
         searchDocuments,
         clearCache,
+        resetAutoApiState,
         get mapping() { return mappingCache; },
-        get searchIndex() { return searchIndexCache; }
+        get searchIndex() { return searchIndexCache; },
+        get autoApiMapping() { return autoApiMappingCache; },
+        get autoApiMerged() { return autoApiMerged; }
     };
 })();

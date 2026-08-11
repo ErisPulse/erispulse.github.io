@@ -1758,12 +1758,6 @@ export const I18n = (function () {
       select.value = lang;
     });
 
-    // 更新文档侧边栏语言切换器
-    const docsLangSelect = document.getElementById("lang-select");
-    if (docsLangSelect) {
-      docsLangSelect.value = lang;
-    }
-
     // 同步文档语言
     if (syncDocs) {
       localStorage.setItem("erispulse-docs-lang", lang);

@@ -204,20 +204,6 @@ export async function runBackgroundVersionCheck() {
 
 // ==================== 文档模块初始化 ====================
 
-function setupLanguageSwitcher() {
-    const langSelect = document.getElementById('lang-select');
-    if (!langSelect) return;
-
-    langSelect.value = I18n.getLang();
-
-    langSelect.addEventListener('change', function () {
-        const newLang = this.value;
-        if (newLang !== I18n.getLang()) {
-            handleLanguageSwitch(newLang);
-        }
-    });
-}
-
 export function loadDocsLibs() {
     if (_docsLibsLoaded) return;
     _docsLibsLoaded = true;
@@ -248,7 +234,6 @@ export function loadDocsIndexes() {
 }
 
 export function setupDocumentation() {
-    setupLanguageSwitcher();
     renderDocsNavigation();
     setupDocumentationSearch();
     setupBreadcrumbNavigation();
@@ -325,7 +310,7 @@ export function showCategoryLevel() {
     navHtml += '<div class="category-list">';
 
     for (const [categoryId, category] of Object.entries(mapping.categories)) {
-        const icon = getCategoryIcon(categoryId);
+        const icon = getCategoryIcon(categoryId, category);
         navHtml += `
             <div class="category-item" data-category="${categoryId}">
                 <i class="category-icon fas ${icon}"></i>
@@ -350,7 +335,7 @@ export function showCategoryLevel() {
 
 function renderDocItemHtml(doc) {
     const isActive = doc.path === currentDocPath ? 'active' : '';
-    const icon = getDocIcon(doc.path);
+    const icon = getDocIcon(doc);
     return `
         <a href="#docs/${doc.path}" class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
             <i class="fas ${icon}"></i>
@@ -394,10 +379,12 @@ function showDocumentList(categoryId) {
 
         subGroupKeys.forEach(subKey => {
             const sg = subgroups[subKey];
+            const sgIcon = getSubgroupIcon(sg);
+            const isAutoApi = sg.isAutoApi === true || subKey === '__auto_api__';
             navHtml += `
-                <div class="doc-subgroup">
+                <div class="doc-subgroup${isAutoApi ? ' auto-api-subgroup' : ''}" data-subgroup-key="${subKey}">
                     <div class="doc-subgroup-header" data-subgroup="${subKey}">
-                        <i class="fas fa-folder-open"></i>
+                        <i class="fas ${sgIcon}"></i>
                         <span>${sg.name}</span>
                         <span class="subgroup-count">${sg.documents.length}</span>
                         <i class="fas fa-chevron-down subgroup-chevron"></i>
@@ -405,12 +392,53 @@ function showDocumentList(categoryId) {
                     <div class="doc-list subgroup-docs">
             `;
             sg.documents.forEach(doc => { navHtml += renderDocItemHtml(doc); });
+            // auto_api 嵌套二级子分组（CLI / Core / runtime 等）
+            if (sg._auto_subgroups) {
+                for (const [childKey, childSg] of Object.entries(sg._auto_subgroups)) {
+                    const childIcon = getSubgroupIcon(childSg);
+                    navHtml += `
+                        <div class="doc-subgroup doc-subgroup-nested">
+                            <div class="doc-subgroup-header" data-subgroup="${subKey}/${childKey}">
+                                <i class="fas ${childIcon}"></i>
+                                <span>${childSg.name}</span>
+                                <span class="subgroup-count">${childSg.documents.length}</span>
+                                <i class="fas fa-chevron-down subgroup-chevron"></i>
+                            </div>
+                            <div class="doc-list subgroup-docs">
+                    `;
+                    childSg.documents.forEach(doc => { navHtml += renderDocItemHtml(doc); });
+                    navHtml += '</div></div>';
+                }
+            }
             navHtml += '</div></div>';
         });
     } else {
         navHtml += '<div class="doc-list">';
         rootDocs.forEach(doc => { navHtml += renderDocItemHtml(doc); });
         navHtml += '</div>';
+    }
+
+    // 如果是 API 参考分类且 auto_api 未合并，追加虚拟占位子分组
+    const isApiReference = isApiReferenceCategory(category, categoryId);
+    if (isApiReference && !DocsIndexManager.autoApiMerged) {
+        // 在最后插入虚拟子分组（默认折叠）
+        const autoApiName = getAutoApiSubgroupDisplayName();
+        navHtml += `
+            <div class="doc-subgroup auto-api-subgroup is-placeholder collapsed" data-auto-api="1">
+                <div class="doc-subgroup-header" data-subgroup="__auto_api__">
+                    <i class="fas fa-microchip"></i>
+                    <span>${autoApiName}</span>
+                    <span class="subgroup-count subgroup-count-loading">…</span>
+                    <i class="fas fa-chevron-down subgroup-chevron"></i>
+                </div>
+                <div class="doc-list subgroup-docs">
+                    <div class="auto-api-loading-hint">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <span>${I18n.t('docs.loading') || 'Loading...'}</span>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     navHtml += '</div>';
@@ -422,9 +450,50 @@ function showDocumentList(categoryId) {
         header.addEventListener('click', function (e) {
             e.stopPropagation();
             const subgroup = this.closest('.doc-subgroup');
+            // 首次展开 auto_api 占位子分组 → 触发懒加载
+            if (subgroup && subgroup.classList.contains('is-placeholder') && subgroup.classList.contains('collapsed')) {
+                handleAutoApiLazyLoad(subgroup, categoryId);
+            }
             subgroup.classList.toggle('collapsed');
         });
     });
+}
+
+function isApiReferenceCategory(category, categoryId) {
+    if (!category) return false;
+    const docs = category.documents || [];
+    if (docs.length > 0 && docs[0].path && docs[0].path.startsWith('api-reference/')) {
+        return true;
+    }
+    // 多语言键名兜底
+    const apiNames = ['API 参考', 'API Reference', 'API 參考', 'API リファレンス', 'Справочник API'];
+    return apiNames.includes(categoryId);
+}
+
+function getAutoApiSubgroupDisplayName() {
+    const map = {
+        'zh-CN': '自动生成 API',
+        'en': 'Auto-generated API',
+        'zh-TW': '自動生成 API',
+        'ja': '自動生成 API',
+        'ru': 'Авто-API',
+    };
+    return map[I18n.getLang()] || 'Auto-generated API';
+}
+
+async function handleAutoApiLazyLoad(subgroupEl, categoryId) {
+    if (subgroupEl.dataset.autoApiLoading === '1') return;
+    subgroupEl.dataset.autoApiLoading = '1';
+    try {
+        await DocsIndexManager.loadAutoApiMapping();
+        // 合并完成后，重新渲染当前文档列表
+        if (currentNavState === 'documents' && currentCategory === categoryId) {
+            showDocumentList(categoryId);
+        }
+    } catch (e) {
+        console.error('auto_api 加载失败:', e);
+        subgroupEl.dataset.autoApiLoading = '';
+    }
 }
 
 function showChapterToc(docPath) {
@@ -437,6 +506,20 @@ function showChapterToc(docPath) {
     if (!currentChapterToc || currentChapterToc.length === 0) {
         return;
     }
+
+    // 将扁平 toc 按 H1/H2 分组建树，H3-H6 归到最近的上级
+    const tree = [];
+    let currentGroup = null;
+    currentChapterToc.forEach(item => {
+        if (item.level <= 2) {
+            currentGroup = { ...item, children: [] };
+            tree.push(currentGroup);
+        } else if (currentGroup) {
+            currentGroup.children.push(item);
+        } else {
+            tree.push({ ...item, children: [] });
+        }
+    });
 
     let navHtml = '<div class="docs-nav-view">';
 
@@ -452,14 +535,32 @@ function showChapterToc(docPath) {
 
     navHtml += '<div class="chapter-toc">';
 
-    currentChapterToc.forEach(item => {
-        const levelIcon = getChapterLevelIcon(item.level);
-        navHtml += `
-            <div class="chapter-item" data-target="${item.id}">
-                <span class="chapter-level">${levelIcon}</span>
-                <span class="chapter-text">${item.text}</span>
-            </div>
-        `;
+    tree.forEach(node => {
+        const hasChildren = node.children && node.children.length > 0;
+        if (hasChildren) {
+            navHtml += `
+                <div class="chapter-group" data-level="${node.level}">
+                    <div class="chapter-item level-${node.level}" data-target="${node.id}">
+                        <i class="fas fa-chevron-down chapter-toggle"></i>
+                        <span class="chapter-dot"></span>
+                        <span class="chapter-text">${node.text}</span>
+                    </div>
+                    <div class="chapter-children">`;
+            node.children.forEach(child => {
+                navHtml += `
+                    <div class="chapter-item level-${child.level}" data-target="${child.id}">
+                        <span class="chapter-dot"></span>
+                        <span class="chapter-text">${child.text}</span>
+                    </div>`;
+            });
+            navHtml += `</div></div>`;
+        } else {
+            navHtml += `
+                <div class="chapter-item level-${node.level}" data-target="${node.id}">
+                    <span class="chapter-dot"></span>
+                    <span class="chapter-text">${node.text}</span>
+                </div>`;
+        }
     });
 
     navHtml += '</div></div>';
@@ -474,7 +575,24 @@ function showChapterToc(docPath) {
         }
     });
 
+    setupChapterCollapse();
     updateActiveChapter();
+}
+
+function setupChapterCollapse() {
+    document.querySelectorAll('.chapter-group').forEach(group => {
+        group.classList.add('collapsed');
+    });
+
+    document.querySelectorAll('.chapter-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const group = this.closest('.chapter-group');
+            if (group) {
+                group.classList.toggle('collapsed');
+            }
+        });
+    });
 }
 
 function updateActiveChapter() {
@@ -491,6 +609,10 @@ function updateActiveChapter() {
                     item.classList.remove('active');
                     if (item.getAttribute('data-target') === id) {
                         item.classList.add('active');
+                        const parentGroup = item.closest('.chapter-group');
+                        if (parentGroup) {
+                            parentGroup.classList.remove('collapsed');
+                        }
                     }
                 });
             }
@@ -540,18 +662,14 @@ export function navigateToDocument(docPath, targetLine = null, keyword = null) {
     });
 }
 
-function getCategoryIcon(categoryId) {
-    const iconMap = {
-        '快速开始': 'fa-rocket',
-        '开发指南': 'fa-code',
-        'API参考': 'fa-book',
-        '配置': 'fa-cog',
-        '部署': 'fa-server'
-    };
-    return iconMap[categoryId] || 'fa-folder';
+function getCategoryIcon(categoryId, category) {
+    if (category && category.icon) return category.icon;
+    return 'fa-folder';
 }
 
-function getDocIcon(docPath) {
+function getDocIcon(doc) {
+    if (doc && doc.icon) return doc.icon;
+    const docPath = typeof doc === 'string' ? doc : (doc && doc.path) || '';
     if (docPath.endsWith('.md')) {
         return 'fa-file-alt';
     }
@@ -567,8 +685,9 @@ function getDocIcon(docPath) {
     return iconMap[ext] || 'fa-file-alt';
 }
 
-function getChapterLevelIcon(level) {
-    return `H${level}`;
+function getSubgroupIcon(subgroup) {
+    if (subgroup && subgroup.icon) return subgroup.icon;
+    return 'fa-folder-open';
 }
 
 function setupGlobalNavigationEvents() {

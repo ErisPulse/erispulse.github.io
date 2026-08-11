@@ -63,10 +63,15 @@ export const CONFIG = {
         "https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/",
       mappingFile: "docs-mapping.json",
       searchIndexFile: "docs-search-index.json",
+      // auto_api 独立索引（懒加载，不污染主索引）
+      autoApiMappingFile: "docs-auto-api-mapping.json",
+      autoApiSearchIndexFile: "docs-auto-api-search-index.json",
       cacheExpiry: 24 * 60 * 60 * 1000, // 24小时
       storageKeys: {
         mapping: "erispulse-docs-mapping",
         searchIndex: "erispulse-docs-search-index",
+        autoApiMapping: "erispulse-docs-auto-api-mapping",
+        autoApiSearchIndex: "erispulse-docs-auto-api-search-index",
         searchHistory: "erispulse-search-history",
       },
     },
