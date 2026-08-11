@@ -552,16 +552,26 @@ function updateActiveChapter() {
 
     if (headers.length === 0 || chapterItems.length === 0) return;
 
+    let lastActiveId = null;
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const id = entry.target.id;
+                if (id === lastActiveId) return;
+                lastActiveId = id;
+                let activeItem = null;
                 chapterItems.forEach(item => {
                     item.classList.remove('active');
                     if (item.getAttribute('data-target') === id) {
                         item.classList.add('active');
+                        activeItem = item;
                     }
                 });
+                 
+                if (activeItem) {
+                    scrollChapterIntoView(activeItem);
+                }
             }
         });
     }, {
@@ -569,6 +579,39 @@ function updateActiveChapter() {
     });
 
     headers.forEach(header => observer.observe(header));
+}
+
+
+
+
+
+function scrollChapterIntoView(activeItem) {
+    const sidebar = document.querySelector('.docs-sidebar');
+    if (!sidebar || !activeItem) return;
+
+    const sidebarRect = sidebar.getBoundingClientRect();
+    const itemRect = activeItem.getBoundingClientRect();
+
+     
+    const margin = 60;
+    const itemTopRelativeToSidebar = itemRect.top - sidebarRect.top;
+    const itemBottomRelativeToSidebar = itemRect.bottom - sidebarRect.top;
+
+    if (itemTopRelativeToSidebar < margin) {
+         
+        const delta = itemTopRelativeToSidebar - margin;
+        sidebar.scrollTo({
+            top: sidebar.scrollTop + delta,
+            behavior: 'smooth'
+        });
+    } else if (itemBottomRelativeToSidebar > sidebarRect.height - margin) {
+         
+        const delta = itemBottomRelativeToSidebar - (sidebarRect.height - margin);
+        sidebar.scrollTo({
+            top: sidebar.scrollTop + delta,
+            behavior: 'smooth'
+        });
+    }
 }
 
 function syncNavigationState(docPath) {
