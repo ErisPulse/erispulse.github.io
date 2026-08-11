@@ -37,7 +37,7 @@ export const I18n = (function () {
       "nav.about": "我们",
 
       // 首页 Hero
-      "hero.subtitle": "事件驱动 · 多平台 · 一个框架搞定一切",
+      "hero.subtitle": "可扩展的多平台消息处理框架",
       "hero.start": "开始使用",
       "hero.docs": "文档中心",
       "hero.browse": "模块市场",
@@ -169,10 +169,11 @@ export const I18n = (function () {
       // 文档中心
       "docs.title": "文档中心",
       "docs.welcome": "欢迎使用 ErisPulse",
+      "docs.welcomeShort": "欢迎使用",
       "docs.welcome.desc":
-        "ErisPulse 是一个开源的 Python 库，目标是提供一个简单、易于使用的框架，用于构建异步、非阻塞的机器人程序。",
+        "ErisPulse 是一个可扩展的多平台消息处理框架，通过适配器对接云湖、Telegram、QQ 等平台，并通过灵活的模块系统扩展功能。",
       "docs.welcome.hint":
-        "点击文档导航中的链接，开始探索 ErisPulse 的功能和用法吧。",
+        "从左侧导航选择分类开始探索，或查看「快速开始」5 分钟跑起你的第一个机器人。",
       "docs.edit": "编辑此页",
       "docs.share": "分享",
       "docs.loading": "正在加载文档...",
@@ -189,6 +190,7 @@ export const I18n = (function () {
       "docs.backToDocs": "返回文档",
       "docs.toc": "目录",
       "docs.linkCopied": "链接已复制到剪贴板",
+      "docs.linkCopyFailed": "复制失败，请手动复制链接",
       "docs.linkWarning":
         '文档链接提示：点击的链接 "{link}" 暂未适配站内跳转，请使用左侧导航栏手动查找相关文档内容。',
       "docs.docLoaded": "文档已加载",
@@ -269,7 +271,7 @@ export const I18n = (function () {
       "settings.docsCacheGoUpdate": "去更新",
 
       // 关于页
-      "about.contributors": "我们的贡献者",
+      "about.contributors": "感谢我们的贡献者",
       "about.contributorsDesc": "感谢这些优秀的开发者为项目做出的贡献",
       "about.friendLinks": "友情链接",
       "about.friendLinksDesc": "推荐一些优秀的技术和开发资源",
@@ -369,7 +371,7 @@ export const I18n = (function () {
       "nav.about": "About",
 
       // 首页 Hero
-      "hero.subtitle": "Event-Driven · Multi-Platform · One Framework.",
+      "hero.subtitle": "Extensible multi-platform messaging framework",
       "hero.start": "Get Started",
       "hero.docs": "Docs",
       "hero.browse": "Market",
@@ -503,10 +505,11 @@ export const I18n = (function () {
       // 文档中心
       "docs.title": "Documentation",
       "docs.welcome": "Welcome to ErisPulse",
+      "docs.welcomeShort": "Welcome",
       "docs.welcome.desc":
-        "ErisPulse is an open-source Python library that provides a simple and easy-to-use framework for building async, non-blocking bot programs.",
+        "ErisPulse is an extensible multi-platform messaging framework — connect to Yunhu, Telegram, QQ and more via adapters, and extend functionality through its flexible module system.",
       "docs.welcome.hint":
-        "Click on the links in the doc navigation to explore ErisPulse features and usage.",
+        "Pick a category from the sidebar to start, or check the Quick Start to run your first bot in 5 minutes.",
       "docs.edit": "Edit this page",
       "docs.share": "Share",
       "docs.loading": "Loading document...",
@@ -524,6 +527,7 @@ export const I18n = (function () {
       "docs.backToDocs": "Back to Docs",
       "docs.toc": "Table of Contents",
       "docs.linkCopied": "Link copied to clipboard",
+      "docs.linkCopyFailed": "Copy failed, please copy the link manually",
       "docs.linkWarning":
         'Link hint: The clicked link "{link}" is not yet adapted for in-site navigation. Please use the sidebar to find related content.',
       "docs.docLoaded": "Document loaded",
@@ -609,7 +613,7 @@ export const I18n = (function () {
       "settings.docsCacheGoUpdate": "Update",
 
       // 关于页
-      "about.contributors": "Our Contributors",
+      "about.contributors": "Thanks to Our Contributors",
       "about.contributorsDesc":
         "Thanks to these excellent developers for their contributions",
       "about.friendLinks": "Friend Links",
@@ -712,7 +716,7 @@ export const I18n = (function () {
       "footer.builder": "構建器",
 
       // 首页 Hero
-      "hero.subtitle": "事件驅動 · 多平台 · 一個框架搞定一切",
+      "hero.subtitle": "可擴展的多平台訊息處理框架",
       "hero.start": "開始使用",
       "hero.docs": "文檔中心",
       "hero.browse": "模組市場",
@@ -841,10 +845,11 @@ export const I18n = (function () {
       // 文档中心
       "docs.title": "文檔中心",
       "docs.welcome": "歡迎使用 ErisPulse",
+      "docs.welcomeShort": "歡迎使用",
       "docs.welcome.desc":
-        "ErisPulse 是一個開源的 Python 函式庫，目標是提供一個簡單、易於使用的框架，用於建構非同步、非阻塞的機器人程式。",
+        "ErisPulse 是一個可擴展的多平台訊息處理框架，透過介面卡對接雲湖、Telegram、QQ 等平台，並透過靈活的模組系統擴展功能。",
       "docs.welcome.hint":
-        "點擊文檔導航中的連結，開始探索 ErisPulse 的功能和用法吧。",
+        "從左側導航選擇分類開始探索，或查看「快速開始」5 分鐘跑起你的第一個機器人。",
       "docs.edit": "編輯此頁",
       "docs.share": "分享",
       "docs.loading": "正在載入文檔...",
@@ -861,6 +866,7 @@ export const I18n = (function () {
       "docs.backToDocs": "返回文檔",
       "docs.toc": "目錄",
       "docs.linkCopied": "連結已複製到剪貼簿",
+      "docs.linkCopyFailed": "複製失敗，請手動複製連結",
       "docs.linkWarning":
         '文檔連結提示：點擊的連結 "{link}" 暫未適配站內跳轉，請使用左側導航欄手動查找相關文檔內容。',
       "docs.docLoaded": "文檔已載入",
@@ -937,7 +943,7 @@ export const I18n = (function () {
       "settings.docsCacheNoVersion": "未記錄版本",
 
       // 关于页
-      "about.contributors": "我們的貢獻者",
+      "about.contributors": "感謝我們的貢獻者",
       "about.contributorsDesc": "感謝這些優秀的開發者為專案做出的貢獻",
       "about.friendLinks": "友情連結",
       "about.friendLinksDesc": "推薦一些優秀的技術和開發資源",
@@ -1036,7 +1042,7 @@ export const I18n = (function () {
       "footer.builder": "ビルダー",
 
       "hero.subtitle":
-        "イベント駆動 · マルチプラットフォーム · これ一つで完璧に",
+        "拡張可能なマルチプラットフォームメッセージフレームワーク",
       "hero.start": "始めましょう",
       "hero.docs": "ドキュメント",
       "hero.browse": "マーケット",
@@ -1168,10 +1174,11 @@ export const I18n = (function () {
 
       "docs.title": "ドキュメント",
       "docs.welcome": "ErisPulse へようこそ",
+      "docs.welcomeShort": "ようこそ",
       "docs.welcome.desc":
-        "ErisPulse はオープンソースの Python ライブラリで、非同期・ノンブロッキングのボットプログラムを構築するためのシンプルで使いやすいフレームワークを提供します。",
+        "ErisPulse は拡張可能なマルチプラットフォームメッセージフレームワークです。アダプターで雲湖・Telegram・QQ などに接続し、柔軟なモジュールシステムで機能を拡張できます。",
       "docs.welcome.hint":
-        "ドキュメントナビゲーションのリンクをクリックして、ErisPulse の機能と使い方を探索しましょう。",
+        "左のナビゲーションからカテゴリを選んで探索を始めるか、「クイックスタート」で 5 分で最初のボットを動かしましょう。",
       "docs.edit": "このページを編集",
       "docs.share": "共有",
       "docs.loading": "ドキュメントを読み込み中...",
@@ -1189,6 +1196,7 @@ export const I18n = (function () {
       "docs.backToDocs": "ドキュメントに戻る",
       "docs.toc": "目次",
       "docs.linkCopied": "リンクがクリップボードにコピーされました",
+      "docs.linkCopyFailed": "コピーに失敗しました。リンクを手動でコピーしてください",
       "docs.linkWarning":
         'リンクのヒント：クリックしたリンク "{link}" はサイト内ナビゲーションにまだ対応していません。サイドバーを使用して関連コンテンツを探してください。',
       "docs.docLoaded": "ドキュメントが読み込まれました",
@@ -1275,7 +1283,7 @@ export const I18n = (function () {
         "ドキュメントが更新されました（{old} → {new}）。再ダウンロードをお勧めします。",
       "settings.docsCacheGoUpdate": "更新",
 
-      "about.contributors": "コントリビューター",
+      "about.contributors": "コントリビューターの皆さんへ",
       "about.contributorsDesc":
         "プロジェクトに貢献した素晴らしい開発者の皆さんに感謝します",
       "about.friendLinks": "フレンドリンク",
@@ -1371,7 +1379,7 @@ export const I18n = (function () {
       "footer.builder": "Конструктор",
 
       "hero.subtitle":
-        "Событийно-ориентированный · Мультиплатформенный · Один фреймворк для всего",
+        "Расширяемый мультиплатформенный фреймворк обработки сообщений",
       "hero.start": "Начать",
       "hero.docs": "Документация",
       "hero.browse": "Маркет",
@@ -1502,10 +1510,11 @@ export const I18n = (function () {
 
       "docs.title": "Документация",
       "docs.welcome": "Добро пожаловать в ErisPulse",
+      "docs.welcomeShort": "Добро пожаловать",
       "docs.welcome.desc":
-        "ErisPulse — это библиотека Python с открытым исходным кодом, предоставляющая простой и удобный фреймворк для создания асинхронных неблокирующих бот-программ.",
+        "ErisPulse — расширяемый мультиплатформенный фреймворк обработки сообщений. Подключайтесь к Yunhu, Telegram, QQ через адаптеры и расширяйте возможности через гибкую модульную систему.",
       "docs.welcome.hint":
-        "Нажмите на ссылки в навигации документации, чтобы изучить возможности ErisPulse.",
+        "Выберите категорию в боковой панели или начните с «Быстрого старта», чтобы запустить первого бота за 5 минут.",
       "docs.edit": "Редактировать страницу",
       "docs.share": "Поделиться",
       "docs.loading": "Загрузка документа...",
@@ -1522,6 +1531,7 @@ export const I18n = (function () {
       "docs.backToDocs": "К документации",
       "docs.toc": "Содержание",
       "docs.linkCopied": "Ссылка скопирована в буфер обмена",
+      "docs.linkCopyFailed": "Не удалось скопировать. Скопируйте ссылку вручную",
       "docs.linkWarning":
         'Подсказка: ссылка "{link}" ещё не адаптирована для навигации по сайту. Используйте боковую панель.',
       "docs.docLoaded": "Документ загружен",
@@ -1607,7 +1617,7 @@ export const I18n = (function () {
         "Документы обновлены ({old} → {new}). Рекомендуется загрузить заново.",
       "settings.docsCacheGoUpdate": "Обновить",
 
-      "about.contributors": "Наши контрибьюторы",
+      "about.contributors": "Спасибо нашим контрибьюторам",
       "about.contributorsDesc":
         "Благодарим этих прекрасных разработчиков за их вклад в проект",
       "about.friendLinks": "Дружественные ссылки",

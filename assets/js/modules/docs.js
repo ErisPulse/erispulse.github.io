@@ -311,10 +311,11 @@ export function showCategoryLevel() {
 
     for (const [categoryId, category] of Object.entries(mapping.categories)) {
         const icon = getCategoryIcon(categoryId, category);
+        const safeId = escapeHtml(categoryId);
         navHtml += `
-            <div class="category-item" data-category="${categoryId}">
+            <div class="category-item" data-category="${safeId}">
                 <i class="category-icon fas ${icon}"></i>
-                <span class="category-name">${categoryId}</span>
+                <span class="category-name">${safeId}</span>
                 <span class="doc-count">${category.count || 0}</span>
                 <i class="chevron fas fa-chevron-right"></i>
             </div>
@@ -336,10 +337,12 @@ export function showCategoryLevel() {
 function renderDocItemHtml(doc) {
     const isActive = doc.path === currentDocPath ? 'active' : '';
     const icon = getDocIcon(doc);
+    const safePath = escapeHtml(doc.path);
+    const safeTitle = escapeHtml(doc.title);
     return `
-        <a href="#docs/${doc.path}" class="doc-item ${isActive}" data-doc="${doc.path}" data-title="${doc.title}">
+        <a href="#docs/${safePath}" class="doc-item ${isActive}" data-doc="${safePath}" data-title="${safeTitle}">
             <i class="fas ${icon}"></i>
-            <span>${doc.title}</span>
+            <span>${safeTitle}</span>
         </a>
     `;
 }
@@ -366,7 +369,7 @@ function showDocumentList(categoryId) {
                 <i class="fas fa-arrow-left"></i>
                 <span>${I18n.t('docs.backToCategories')}</span>
             </a>
-            <span class="breadcrumb-title">${categoryId}</span>
+            <span class="breadcrumb-title">${escapeHtml(categoryId)}</span>
         </div>
     `;
 
@@ -381,11 +384,13 @@ function showDocumentList(categoryId) {
             const sg = subgroups[subKey];
             const sgIcon = getSubgroupIcon(sg);
             const isAutoApi = sg.isAutoApi === true || subKey === '__auto_api__';
+            const safeKey = escapeHtml(subKey);
+            const safeSgName = escapeHtml(sg.name);
             navHtml += `
-                <div class="doc-subgroup${isAutoApi ? ' auto-api-subgroup' : ''}" data-subgroup-key="${subKey}">
-                    <div class="doc-subgroup-header" data-subgroup="${subKey}">
+                <div class="doc-subgroup${isAutoApi ? ' auto-api-subgroup' : ''}" data-subgroup-key="${safeKey}">
+                    <div class="doc-subgroup-header" data-subgroup="${safeKey}">
                         <i class="fas ${sgIcon}"></i>
-                        <span>${sg.name}</span>
+                        <span>${safeSgName}</span>
                         <span class="subgroup-count">${sg.documents.length}</span>
                         <i class="fas fa-chevron-down subgroup-chevron"></i>
                     </div>
@@ -396,11 +401,13 @@ function showDocumentList(categoryId) {
             if (sg._auto_subgroups) {
                 for (const [childKey, childSg] of Object.entries(sg._auto_subgroups)) {
                     const childIcon = getSubgroupIcon(childSg);
+                    const safeChildKey = escapeHtml(subKey) + '/' + escapeHtml(childKey);
+                    const safeChildName = escapeHtml(childSg.name);
                     navHtml += `
                         <div class="doc-subgroup doc-subgroup-nested">
-                            <div class="doc-subgroup-header" data-subgroup="${subKey}/${childKey}">
+                            <div class="doc-subgroup-header" data-subgroup="${safeChildKey}">
                                 <i class="fas ${childIcon}"></i>
-                                <span>${childSg.name}</span>
+                                <span>${safeChildName}</span>
                                 <span class="subgroup-count">${childSg.documents.length}</span>
                                 <i class="fas fa-chevron-down subgroup-chevron"></i>
                             </div>
@@ -521,12 +528,14 @@ function showChapterToc(docPath) {
 
     navHtml += '<div class="chapter-toc">';
 
-    // 扁平渲染：每项独立卡片，前缀 H1/H2/H3 徽章，按层级缩进
-    currentChapterToc.forEach(item => {
+    // 扁平渲染：跳过 H1（文档通常只有一个 H1 标题），从 H2 开始展示，
+    // 让长标题有更多显示空间；前缀 H1/H2/H3 徽章，按层级缩进
+    const tocItems = currentChapterToc.filter(item => item.level > 1);
+    tocItems.forEach(item => {
         navHtml += `
-            <div class="chapter-item level-${item.level}" data-target="${item.id}">
+            <div class="chapter-item level-${item.level}" data-target="${escapeHtml(item.id)}">
                 <span class="chapter-badge">${item.level}</span>
-                <span class="chapter-text">${item.text}</span>
+                <span class="chapter-text">${escapeHtml(item.text)}</span>
             </div>
         `;
     });
@@ -918,13 +927,13 @@ function displayOverlaySearchResults(results, query) {
         </div>
         <div class="search-results-list">
             ${results.map((result, index) => `
-                <div class="search-result-item" data-doc="${result.document}" data-line="${result.line}" data-keyword="${result.keyword}" tabindex="${index}">
-                    <div class="result-title">${result.title}</div>
+                <div class="search-result-item" data-doc="${escapeHtml(result.document)}" data-line="${result.line}" data-keyword="${escapeHtml(result.keyword)}" tabindex="${index}">
+                    <div class="result-title">${escapeHtml(result.title)}</div>
                     <div class="result-meta">
-                        <span class="result-doc">${result.document}</span>
+                        <span class="result-doc">${escapeHtml(result.document)}</span>
                         <span class="result-level">H${result.level}</span>
                     </div>
-                    <div class="result-snippet">...${result.keyword}...</div>
+                    <div class="result-snippet">...${escapeHtml(result.keyword)}...</div>
                 </div>
             `).join('')}
         </div>
@@ -986,9 +995,9 @@ export function updateBreadcrumb(docPath) {
                 <span>${I18n.t('docs.title')}</span>
             </a>
             <span class="separator">/</span>
-            <span class="breadcrumb-category">${category.name}</span>
+            <span class="breadcrumb-category">${escapeHtml(category.name)}</span>
             <span class="separator">/</span>
-            <span class="current">${docTitle || docPath}</span>
+            <span class="current">${escapeHtml(docTitle || docPath)}</span>
         `;
     } else {
         breadcrumb.innerHTML = `
@@ -997,7 +1006,7 @@ export function updateBreadcrumb(docPath) {
                 <span>${I18n.t('docs.title')}</span>
             </a>
             <span class="separator">/</span>
-            <span class="current">${docTitle || docPath}</span>
+            <span class="current">${escapeHtml(docTitle || docPath)}</span>
         `;
     }
 }
@@ -1055,17 +1064,38 @@ function shareDocument() {
             url: currentUrl
         });
     } else {
-        navigator.clipboard.writeText(currentUrl).then(() => {
-            showMessage(I18n.t('docs.linkCopied'), 'success');
-        }).catch(() => {
-            const tempInput = document.createElement('input');
-            tempInput.value = currentUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showMessage(I18n.t('docs.linkCopied'), 'success');
+        copyToClipboard(currentUrl);
+    }
+}
+
+function copyToClipboard(text) {
+    const showCopied = () => showMessage(I18n.t('docs.linkCopied'), 'success');
+
+    // 优先使用 Clipboard API（需安全上下文 HTTPS）；不可用时走 fallback
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(showCopied).catch(() => {
+            fallbackCopy(text, showCopied);
         });
+    } else {
+        fallbackCopy(text, showCopied);
+    }
+}
+
+function fallbackCopy(text, onDone) {
+    try {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = text;
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        document.body.appendChild(tempInput);
+        tempInput.focus();
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        onDone();
+    } catch (e) {
+        console.error('复制失败:', e);
+        showMessage(I18n.t('docs.linkCopyFailed'), 'error');
     }
 }
 

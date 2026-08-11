@@ -6,25 +6,46 @@ let HeroCanvas;
 (function () {
     'use strict';
 
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
     const CFG = {
-        nodeCount: 55,
+        nodeCount: 32,
         hubRadius: 6,
         nodeRadius: 2.8,
-        edgeMaxDist: 180,
-        mouseRadius: 200,
-        gravityStrength: 25,
+        edgeMaxDist: 160,
+        mouseRadius: 180,
+        gravityStrength: 22,
         particleSpeed: 1.2,
-        maxParticles: 40,
-        maxParticleGen: 3,
+        maxParticles: 22,
+        maxParticleGen: 2,
         trailLength: 6,
         pulseSpeed: 2.5,
         pulseMaxRadius: 400,
         breathSpeed: 0.002,
         breathAmp: 0.35,
-        nebulaCount: 4,
-        snippetCount: 7,
+        nebulaCount: 2,
+        snippetCount: 3,
     };
+
+    // 响应式降级：小屏 / 低性能设备 / 用户偏好减少动效
+    const _reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (_reducedMotion) {
+        CFG.nodeCount = 14;
+        CFG.nebulaCount = 1;
+        CFG.snippetCount = 0;
+        CFG.maxParticles = 8;
+        CFG.edgeMaxDist = 120;
+    } else if (window.innerWidth < 768) {
+        CFG.nodeCount = 18;
+        CFG.nebulaCount = 1;
+        CFG.snippetCount = 1;
+        CFG.maxParticles = 12;
+        CFG.edgeMaxDist = 130;
+    } else if (window.innerWidth < 1280) {
+        CFG.nodeCount = 24;
+        CFG.nebulaCount = 2;
+        CFG.snippetCount = 2;
+        CFG.maxParticles = 16;
+    }
 
     let canvas, ctx, W, H;
     let nodes = [], particles = [], pulses = [], nebulae = [], snippets = [];

@@ -412,6 +412,13 @@ export const DocsIndexManager = (function () {
                 for (const sg of Object.values(category.subgroups)) {
                     const doc = sg.documents.find(predicate);
                     if (doc) return { doc, categoryName, category };
+                    // auto_api 嵌套二级子分组（CLI/Core 等）
+                    if (sg._auto_subgroups) {
+                        for (const childSg of Object.values(sg._auto_subgroups)) {
+                            const childDoc = childSg.documents.find(predicate);
+                            if (childDoc) return { doc: childDoc, categoryName, category };
+                        }
+                    }
                 }
             }
         }
@@ -464,6 +471,14 @@ export const DocsIndexManager = (function () {
                     sg.documents.forEach(doc => {
                         docs.push({ path: doc.path, title: doc.title, level: doc.level, category: categoryName });
                     });
+                    // auto_api 嵌套二级子分组（CLI/Core 等）
+                    if (sg._auto_subgroups) {
+                        for (const childSg of Object.values(sg._auto_subgroups)) {
+                            childSg.documents.forEach(doc => {
+                                docs.push({ path: doc.path, title: doc.title, level: doc.level, category: categoryName });
+                            });
+                        }
+                    }
                 }
             }
         }
