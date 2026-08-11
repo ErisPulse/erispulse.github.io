@@ -1759,12 +1759,6 @@ export const I18n = (function () {
     });
 
      
-    const docsLangSelect = document.getElementById("lang-select");
-    if (docsLangSelect) {
-      docsLangSelect.value = lang;
-    }
-
-     
     if (syncDocs) {
       localStorage.setItem("erispulse-docs-lang", lang);
     }
