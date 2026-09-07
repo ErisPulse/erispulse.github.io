@@ -26,6 +26,11 @@ var _docsLibsLoaded = false;
 var _docsIndexesLoaded = false;
 
  
+let suppressSectionHashSyncUntil = 0;
+ 
+let _sectionHashSyncTimer = null;
+
+ 
 
 
 
@@ -581,6 +586,8 @@ function updateActiveChapter() {
                 if (activeItem) {
                     scrollChapterIntoView(activeItem);
                 }
+                 
+                syncSectionHash(id);
             }
         });
     }, {
@@ -647,12 +654,13 @@ function syncNavigationState(docPath) {
     }
 }
 
-export function navigateToDocument(docPath, targetLine = null, keyword = null) {
-    history.pushState(null, null, `#docs/${docPath}`);
+export function navigateToDocument(docPath, targetLine = null, keyword = null, section = null) {
+    const sectionSuffix = section ? '#' + String(section).replace(/^#+/, '') : '';
+    history.pushState(null, null, `#docs/${docPath}${sectionSuffix}`);
 
     syncNavigationState(docPath);
 
-    loadDocument(docPath, targetLine, keyword);
+    loadDocument(docPath, targetLine, keyword, section);
     updateBreadcrumb(docPath);
 
     window.scrollTo({
@@ -723,9 +731,10 @@ function setupGlobalNavigationEvents() {
             const targetId = chapterItem.getAttribute('data-target');
             e.preventDefault();
             e.stopPropagation();
-            const targetElement = document.getElementById(targetId);
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (scrollToSection(targetId)) {
+                if (currentDocPath) {
+                    history.replaceState(null, null, `#docs/${currentDocPath}#${targetId}`);
+                }
                 document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
                 chapterItem.classList.add('active');
             }
@@ -1366,7 +1375,7 @@ export async function checkDocsVersionUpdate() {
 
  
 
-export async function loadDocument(docPath, targetLine = null, keyword = null) {
+export async function loadDocument(docPath, targetLine = null, keyword = null, section = null) {
     const docsContent = document.getElementById('docs-content');
     docsContent.innerHTML = `
         <div style="text-align: center; padding: 3rem 0;">
@@ -1383,7 +1392,7 @@ export async function loadDocument(docPath, targetLine = null, keyword = null) {
     const cached = DocsContentCache.getRaw(lang, docPath);
 
     if (cached && (offline || refreshDisabled || DocsContentCache.isFresh(cached))) {
-        _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword);
+        _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword, section);
         return;
     }
 
@@ -1417,19 +1426,19 @@ export async function loadDocument(docPath, targetLine = null, keyword = null) {
 
         DocsContentCache.set(lang, docPath, docContent, commitInfo);
 
-        _renderDocContent(docPath, docContent, commitInfo, targetLine, keyword);
+        _renderDocContent(docPath, docContent, commitInfo, targetLine, keyword, section);
 
     } catch (error) {
         console.error('加载文档失败:', error);
         if (cached) {
-            _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword);
+            _renderDocContent(docPath, cached.content, cached.commitInfo, targetLine, keyword, section);
         } else {
             showDocumentError(docsContent, error);
         }
     }
 }
 
-function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, keyword) {
+function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, keyword, section = null) {
     const docsContent = document.getElementById('docs-content');
     let htmlContent = marked.parse(markdownContent);
 
@@ -1443,6 +1452,11 @@ function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, key
         injectAiMaterialDownloads(docsContent);
     }
 
+    addHeadingAnchors(docsContent, docPath);
+
+     
+    suppressSectionHashSyncUntil = Date.now() + 2500;
+
     setTimeout(() => {
         if (currentChapterToc.length > 0) {
             showChapterToc(docPath);
@@ -1454,27 +1468,30 @@ function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, key
         else if (targetLine) {
             setTimeout(() => scrollToLine(targetLine), 300);
         }
+        else if (section) {
+            scrollToSection(section);
+        }
 
         document.querySelectorAll('#docs-content a[href^="#"]').forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 const targetId = this.getAttribute('href').substring(1);
-                const targetElement = document.getElementById(targetId);
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (!targetId) return;
+                if (scrollToSection(targetId) && currentDocPath) {
+                    history.replaceState(null, null, `#docs/${currentDocPath}#${targetId}`);
                 }
             });
         });
 
         document.querySelectorAll('#docs-content a[href]').forEach(link => {
             const href = link.getAttribute('href');
-            if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#')) {
+            if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('#') && !href.startsWith('mailto:')) {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
-                    const targetDocId = getDocIdFromPath(href);
-                    if (targetDocId) {
-                        navigateToDocument(targetDocId);
+                    const target = getDocIdFromPath(href);
+                    if (target && target.path) {
+                        navigateToDocument(target.path, null, null, target.section);
                     } else {
                         showDocumentLinkWarning(href);
                     }
@@ -1563,15 +1580,36 @@ function scrollToLine(lineNumber) {
     showMessage(I18n.t('docs.docLoaded'), 'success');
 }
 
-function getDocIdFromPath(filePath) {
-    let normalizedPath = filePath.replace(/\\/g, '/');
 
-    normalizedPath = normalizedPath.replace(/\.md$/, '');
+
+
+
+
+function getDocIdFromPath(filePath) {
+    let raw = String(filePath || '').replace(/\\/g, '/');
+
+     
+    let section = null;
+    const anchorIndex = raw.search(/#|%23/i);
+    if (anchorIndex !== -1) {
+        section = raw.slice(anchorIndex).replace(/^#|%23/gi, '');
+        raw = raw.slice(0, anchorIndex);
+    }
+    raw = raw.split('?')[0].trim();
+    if (!raw) {
+         
+        return section ? { path: currentDocPath, section } : null;
+    }
+
+    let normalizedPath = raw.replace(/\.md$/i, '');
 
     if (normalizedPath.startsWith('../') || normalizedPath.startsWith('./') || !normalizedPath.includes('/')) {
-        const currentDoc = window.location.hash.split('/')[1];
+         
+        const currentDoc = currentDocPath
+            || (window.location.hash.match(/docs\/([^#?]+)/) || [])[1]
+            || '';
         if (currentDoc) {
-            const resolvedPath = resolveRelativePath(currentDoc.replace(/\.md$/, ''), normalizedPath);
+            const resolvedPath = resolveRelativePath(currentDoc.replace(/\.md$/i, ''), normalizedPath);
             if (resolvedPath) {
                 normalizedPath = resolvedPath;
             }
@@ -1585,7 +1623,7 @@ function getDocIdFromPath(filePath) {
     const allDocs = DocsIndexManager.getAllDocuments();
 
     let doc = allDocs.find(d => {
-        const docPath = d.path.replace(/\\/g, '/').replace(/\.md$/, '').replace(/^docs\//, '');
+        const docPath = d.path.replace(/\\/g, '/').replace(/\.md$/i, '').replace(/^docs\//, '');
         return docPath === normalizedPath;
     });
 
@@ -1593,7 +1631,7 @@ function getDocIdFromPath(filePath) {
         doc = fuzzyMatchDocument(normalizedPath, allDocs);
     }
 
-    return doc ? doc.path : null;
+    return doc ? { path: doc.path, section: section || null } : null;
 }
 
 function fuzzyMatchDocument(targetPath, allDocs) {
@@ -1659,16 +1697,125 @@ function clearToc() {
     }
 }
 
+
+
+
+
+function syncSectionHash(sectionId) {
+    if (!currentDocPath) return;
+    if (Date.now() < suppressSectionHashSyncUntil) return;
+    if (!window.location.hash.startsWith(`#docs/${currentDocPath}`)) return;
+
+    clearTimeout(_sectionHashSyncTimer);
+    _sectionHashSyncTimer = setTimeout(() => {
+        const target = sectionId
+            ? `#docs/${currentDocPath}#${sectionId}`
+            : `#docs/${currentDocPath}`;
+        if (window.location.hash !== target) {
+            history.replaceState(null, null, target);
+        }
+    }, 400);
+}
+
+
+
+
+
+
+function scrollToSection(section) {
+    if (!section) return false;
+
+    let target = String(section).replace(/^#+/, '');
+    try { target = decodeURIComponent(target); } catch (e) {   }
+    if (!target) return false;
+
+    const docsContent = document.getElementById('docs-content');
+    if (!docsContent) return false;
+
+    const headers = Array.from(
+        docsContent.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]')
+    );
+
+    const slug = githubSlug(target);
+    const compact = s => githubSlug(s).replace(/-/g, '');
+
+    let el = document.getElementById(target);
+    if (!el || !docsContent.contains(el)) {
+        el = headers.find(h => h.id === target && target !== '')
+            || headers.find(h => slug && h.id === slug)
+            || headers.find(h => compact(h.textContent) === compact(target));
+    }
+
+    if (!el) return false;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    flashSection(el);
+    return true;
+}
+
+
+
+
+function flashSection(el) {
+    if (!el) return;
+    suppressSectionHashSyncUntil = Math.max(suppressSectionHashSyncUntil, Date.now() + 2000);
+    el.classList.remove('section-flash');
+     
+    void el.offsetWidth;
+    el.classList.add('section-flash');
+    setTimeout(() => el.classList.remove('section-flash'), 2000);
+}
+
+
+
+
+function addHeadingAnchors(docsContent, docPath) {
+    docsContent.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').forEach(h => {
+        if (h.querySelector('.heading-anchor')) return;
+
+        const anchor = document.createElement('a');
+        anchor.className = 'heading-anchor';
+        anchor.href = `#docs/${docPath}#${h.id}`;
+        anchor.setAttribute('aria-label', 'Copy section link');
+        anchor.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i>';
+        anchor.addEventListener('click', function (e) {
+             
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            const fullUrl = location.origin + location.pathname + `#docs/${docPath}#${h.id}`;
+            const onDone = () => showMessage(I18n.t('docs.linkCopied'), 'success');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fullUrl).then(onDone).catch(() => fallbackCopy(fullUrl, onDone));
+            } else {
+                fallbackCopy(fullUrl, onDone);
+            }
+
+            history.replaceState(null, null, `#docs/${docPath}#${h.id}`);
+            flashSection(h);
+        });
+        h.appendChild(anchor);
+    });
+}
+
 function addTableOfContents(htmlContent) {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
 
     const headers = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
     const tocItems = [];
+    const usedSlugs = new Set();
 
     headers.forEach((header, index) => {
         const headerText = header.textContent.trim();
-        const id = `section-${index}-${headerText.toLowerCase().replace(/\s+/g, '-')}`;
+         
+        const baseSlug = githubSlug(headerText) || `section-${index}`;
+        let id = baseSlug;
+        let counter = 2;
+        while (usedSlugs.has(id)) {
+            id = `${baseSlug}-${counter++}`;
+        }
+        usedSlugs.add(id);
         header.id = id;
 
         tocItems.push({
@@ -1681,6 +1828,18 @@ function addTableOfContents(htmlContent) {
     currentChapterToc = tocItems;
 
     return tempDiv.innerHTML;
+}
+
+
+
+
+
+function githubSlug(text) {
+    return String(text || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\p{M}\s_-]/gu, '')
+        .replace(/\s+/g, '-');
 }
 
 function wrapTables(htmlContent) {

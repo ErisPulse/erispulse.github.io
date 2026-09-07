@@ -247,6 +247,12 @@ async function handleRequest(request) {
                 status: 401, headers: { 'Content-Type': 'application/json' }
             });
         }
+    } else if (/\.(md|markdown)$/i.test(path)) {
+         
+         
+         
+         
+        response = Response.redirect(ALLOWED_ORIGIN + '/?md=' + path.substring(1), 302);
     } else {
         response = new Response(JSON.stringify({ error: 'Not Found' }), {
             status: 404, headers: { 'Content-Type': 'application/json' }

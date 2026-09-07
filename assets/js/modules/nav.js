@@ -138,28 +138,41 @@ export function setupViewSwitching() {
   }
 }
 
+
+
+
+
+function parseDocsHash(hash) {
+  const match = hash.match(/docs\/(.+)/);
+  if (!match || !match[1]) return null;
+
+  let rest = match[1];
+  let section = null;
+
+   
+  const sepIndex = rest.search(/#|%23/i);
+  if (sepIndex !== -1) {
+    section = rest.slice(sepIndex).replace(/^#|%23/gi, "");
+    rest = rest.slice(0, sepIndex);
+  }
+
+  return { docPath: rest, section: section || null };
+}
+
 function switchViewByHash() {
   if (_hashProgrammatic) return;
 
    
-  if (window.__INITIAL_VIEW__) {
-    const view = window.__INITIAL_VIEW__;
-    window.__INITIAL_VIEW__ = null;  
-    updateView(view);
-    return;
-  }
+  const initialView = window.__INITIAL_VIEW__ || null;
+  window.__INITIAL_VIEW__ = null;
 
   const hash = window.location.hash.substring(1);
   let view = "home";
+  let docsTarget = null;
 
   if (hash.startsWith("docs")) {
     view = "docs";
-    const docMatch = hash.match(/docs\/(.+)/);
-    if (docMatch && docMatch[1]) {
-      setTimeout(() => {
-        docs.navigateToDocument(docMatch[1]);
-      }, 500);
-    }
+    docsTarget = parseDocsHash(hash);
   } else if (hash.startsWith("market")) {
     view = "market";
     const categoryMatch = hash.match(/market\/(.+)/);
@@ -184,13 +197,26 @@ function switchViewByHash() {
   ) {
     view = "docs";
     const docPath = hash === "changelog" ? "changelog" : hash;
-    setTimeout(() => {
-      docs.navigateToDocument(docPath);
-    }, 500);
+    docsTarget = parseDocsHash("docs/" + docPath);
   } else if (hash === "about") {
     view = "about";
   } else if (hash === "settings") {
     view = "settings";
+  }
+
+  if (initialView) {
+    view = initialView;
+  }
+
+  if (docsTarget && docsTarget.docPath) {
+    setTimeout(() => {
+      docs.navigateToDocument(
+        docsTarget.docPath,
+        null,
+        null,
+        docsTarget.section,
+      );
+    }, 500);
   }
 
   updateView(view);

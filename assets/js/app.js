@@ -22,6 +22,40 @@ import { SubmitModuleManager } from "./modules/submit.js";
 
 
 
+
+
+
+
+
+(function normalizeDocDeepLink() {
+  try {
+    let mdPath = null;
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has("md")) {
+      mdPath = (params.get("md") || "").replace(/^\/+/, "");
+      params.delete("md");
+    } else if (/\.md$/i.test(window.location.pathname)) {
+      mdPath = window.location.pathname.replace(/^\/+/, "");
+    }
+
+    if (!mdPath) return;
+
+    const query = params.toString();
+    const frag = window.location.hash.replace(/^#+/, "");
+    let target = "/#docs/" + mdPath;
+    if (frag && !frag.startsWith("docs")) {
+      target += "#" + frag;
+    }
+    history.replaceState(null, "", "/" + (query ? "?" + query : "") + target);
+  } catch (e) {
+    console.warn("文档深链归一化失败:", e);
+  }
+})();
+
+
+
+
 (function setupLoaderLogo() {
   const img = document.querySelector(".loader-icon");
   if (!img) return;
