@@ -247,6 +247,12 @@ async function handleRequest(request) {
                 status: 401, headers: { 'Content-Type': 'application/json' }
             });
         }
+    } else if (/\.(md|markdown)$/i.test(path)) {
+        // GitHub 风格文档深链（如 /api-reference/event-system.md#章节）→ 站内文档路由
+        // Location 不携带 fragment，浏览器会自动保留原始 fragment，
+        // 最终 URL 形如 /?md=api-reference/event-system.md#章节，
+        // 由前端 app.js 归一化为 #docs/api-reference/event-system.md#章节
+        response = Response.redirect(ALLOWED_ORIGIN + '/?md=' + path.substring(1), 302);
     } else {
         response = new Response(JSON.stringify({ error: 'Not Found' }), {
             status: 404, headers: { 'Content-Type': 'application/json' }

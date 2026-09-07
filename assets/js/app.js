@@ -20,6 +20,40 @@ import * as home from "./modules/home.js";
 import { SubmitModuleManager } from "./modules/submit.js";
 
 /**
+ * GitHub 风格 .md 深链归一化：
+ *  - https://www.erisdev.com/?md=api-reference/xxx.md
+ *    （Worker / 404.html 重定向落点，浏览器会自动保留原始 fragment）
+ *  - https://www.erisdev.com/api-reference/xxx.md#章节
+ *    （SPA 直接服务该路径时的兜底）
+ * 统一转换为站内路由 #docs/<path>#<section>。
+ */
+(function normalizeDocDeepLink() {
+  try {
+    let mdPath = null;
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has("md")) {
+      mdPath = (params.get("md") || "").replace(/^\/+/, "");
+      params.delete("md");
+    } else if (/\.md$/i.test(window.location.pathname)) {
+      mdPath = window.location.pathname.replace(/^\/+/, "");
+    }
+
+    if (!mdPath) return;
+
+    const query = params.toString();
+    const frag = window.location.hash.replace(/^#+/, "");
+    let target = "/#docs/" + mdPath;
+    if (frag && !frag.startsWith("docs")) {
+      target += "#" + frag;
+    }
+    history.replaceState(null, "", "/" + (query ? "?" + query : "") + target);
+  } catch (e) {
+    console.warn("文档深链归一化失败:", e);
+  }
+})();
+
+/**
  * Logo 图片加载检测：加载完成后淡入，加载中显示文字占位
  */
 (function setupLoaderLogo() {
