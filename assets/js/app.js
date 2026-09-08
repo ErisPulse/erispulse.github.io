@@ -15,7 +15,7 @@ import * as settings from "./modules/settings.js";
 import * as nav from "./modules/nav.js";
 import * as market from "./modules/marketplace.js";
 import * as docs from "./modules/docs.js";
-import { renderFriendLinks } from "./modules/about.js";
+import { renderFriendLinks, renderDependencies } from "./modules/about.js";
 import * as home from "./modules/home.js";
 import { SubmitModuleManager } from "./modules/submit.js";
 
@@ -83,6 +83,7 @@ function runInit() {
   market.setupModals();
   settings.setupSettings();
   renderFriendLinks();
+  renderDependencies();
   home.setupHomeAnimations();
   home.initBannerCarousel();
   home.initInstallOverlay();

@@ -42,6 +42,52 @@ export const CONFIG = {
     },
   ],
 
+  // 核心依赖（与 pyproject.toml 保持一致，用于关于页致谢）
+  DEPENDENCIES: [
+    {
+      name: "rich",
+      version: ">=13.0.0",
+      url: "https://github.com/Textualize/rich",
+      description: "优雅的终端富文本与格式化输出",
+      icon: "fas fa-terminal",
+    },
+    {
+      name: "toml",
+      version: ">=0.10.2",
+      url: "https://github.com/uiri/toml",
+      description: "TOML 配置文件解析",
+      icon: "fas fa-file-code",
+    },
+    {
+      name: "websockets",
+      version: ">=12.0",
+      url: "https://github.com/python-websockets/websockets",
+      description: "高性能异步 WebSocket 通信",
+      icon: "fas fa-network-wired",
+    },
+    {
+      name: "aiohttp",
+      version: ">=3.9.0",
+      url: "https://github.com/aio-libs/aiohttp",
+      description: "异步 HTTP 客户端 / 服务端",
+      icon: "fas fa-cloud",
+    },
+    {
+      name: "fastapi",
+      version: ">=0.116.1",
+      url: "https://github.com/fastapi/fastapi",
+      description: "高性能异步 Web 框架",
+      icon: "fas fa-bolt",
+    },
+    {
+      name: "uvicorn",
+      version: ">=0.30.0",
+      url: "https://github.com/encode/uvicorn",
+      description: "轻量极速的 ASGI 服务器",
+      icon: "fas fa-server",
+    },
+  ],
+
   // 文档配置
   DOCS: {
     baseUrl:

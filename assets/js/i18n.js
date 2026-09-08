@@ -59,14 +59,14 @@ export const I18n = (function () {
         "提供完整的开发文档与规范，让 AI 直接生成可用模块，支持 Vibe Coding 工作流",
       "features.aicoding.code":
         '# 将 ErisPulse 物料投喂给 AI\n# 即可直接生成可用模块\n\nclass AIModule(BaseModule):\n    async def on_load(self):\n        self.logger.info("AI 生成就绪")',
-      "features.senddsl.title": "SendDSL 链式发送",
+      "features.senddsl.title": "SendDSL 规则与批量发送",
       "features.senddsl.desc":
-        "Send.To().At().Reply().Text() 风格的链式消息发送接口，简洁而表达力强",
+        "Send.To().Text() 链式发送，内置 Hook、Retry、Timeout、Priority 等规则，Build 模式批量构建统一执行",
       "features.modular.title": "模块化与懒加载",
       "features.modular.desc":
-        "模块以独立 PyPI 包分发，支持懒加载、热更新、依赖拓扑排序与优先级控制",
+        "模块以独立 PyPI 包分发，支持懒加载、activate_on 事件驱动懒激活、热更新与依赖拓扑排序",
       "features.modular.code":
-        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # 首次访问时才初始化\n            priority=10        # 数值越大越先加载\n        )\n\n    async def on_load(self, event):\n        self.logger.info("模块已就绪")',
+        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # 首次访问时才初始化\n            priority=10,      # 数值越大越先加载\n            # 首个匹配命令/事件到达时自动激活\n            activate_on=[{"command": {"name": "hello"}}],\n        )\n\n    async def on_load(self, event):\n        self.logger.info("模块已就绪")',
       "features.middleware.title": "事件中间件",
       "features.middleware.desc":
         "可组合的中间件管道，在事件分发前进行过滤、转换、日志记录等处理",
@@ -77,7 +77,7 @@ export const I18n = (function () {
       "features.parallel.desc":
         "同优先级处理器并行执行，不同优先级串行调度，Copy-On-Write 零开销，支持中断控制",
       "features.parallel.code":
-        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.mark_processed()  # 中断后续\n\n# 同优先级 → 并行执行，零拷贝\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
+        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.done(claim=False)  # 仅阻断\n\n# 同优先级 → 并行执行，零拷贝\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
       "features.dashboard.title": "仪表盘",
       "features.dashboard.desc":
         "实时监控适配器状态、模块加载进度与 Bot 在线情况，全局运行状态一目了然",
@@ -91,6 +91,26 @@ export const I18n = (function () {
         "一套代码同时对接云湖、Telegram、OneBot11/12、邮件等平台，适配器自动处理协议差异",
       "features.multiplatform.code":
         '@command("hello")\nasync def hello(event):\n    # 云湖 · Telegram · QQ · 邮件...\n    # 同一份代码，所有平台运行\n    platform = event.get_platform()\n    await event.reply(f"Hello from {platform}!")',
+      "features.overrides.title": "链路控制与事件覆写",
+      "features.overrides.desc":
+        "done(claim, stop) 正交解耦认领与阻断，无需修改代码即可覆写任意模块的事件行为",
+      "features.overrides.code":
+        '# done()：认领(claim) × 阻断(stop) 正交控制\n@command("help")\nasync def help_cmd(event):\n    event.done()                # 认领 + 阻断\n\n@message.on_message(priority=50)\nasync def observer(event):\n    event.done(stop=False)      # 仅认领：观察者仍可见\n\n@message.on_message(priority=100)\nasync def firewall(event):\n    if denied(event):\n        event.done(claim=False) # 仅阻断：不破坏去重\n\n# 不改代码，覆写任意模块行为\noverrides.command.set("MyModule", "restart", master=True)\noverrides.message.set("ChatModule", pattern="闲聊*")',
+      "features.declarative.title": "声明式配置与元信息",
+      "features.declarative.desc":
+        "ConfigClass 声明式配置实时热读，get_meta 元信息接入 help 与仪表盘，activate_on 事件驱动懒激活",
+      "features.declarative.code":
+        'class Main(BaseModule):\n    @staticmethod\n    def get_meta() -> ModuleMeta:\n        return ModuleMeta(\n            name="天气", description="查询城市天气",\n            version="1.0.0", group="工具",\n            tags=["天气", "查询"],\n        )\n\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,\n            # 首个匹配命令/事件到达时自动激活\n            activate_on=[{"command": {"name": "weather"}}],\n        )',
+      "features.ownership.title": "归属权自动清理",
+      "features.ownership.desc":
+        "在 on_load 内注册的资源自动记名归属，模块卸载时一键回收命令、处理器与后台任务，无需手动注销",
+      "features.ownership.code":
+        'class Main(BaseModule):\n    async def on_load(self, event):\n        # 后台任务自动归属，卸载时自动取消\n        self.task = self.spawn(self.polling())\n        # 在 on_load 内注册才能被正确归属\n        sdk.router.register_home_entry("我的模块", "/my")\n\n    async def on_unload(self, event):\n        ...  # 框架资源已被自动回收',
+      "features.scope.title": "统一作用域系统",
+      "features.scope.desc":
+        "从模块、身份、出站三个维度统一控制可用范围：配置即生效，支持热更新与 glob / 正则匹配",
+      "features.scope.code":
+        '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # 白名单：精确/glob/正则\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # 全禁发送\napi  = { allow = ["get_*"] }   # 仅允许查询类 API',
 
       // 模块市场
       "market.title": "模块市场",
@@ -275,6 +295,8 @@ export const I18n = (function () {
       "about.contributorsDesc": "感谢这些优秀的开发者为项目做出的贡献",
       "about.friendLinks": "友情链接",
       "about.friendLinksDesc": "推荐一些优秀的技术和开发资源",
+      "about.deps": "依赖致谢",
+      "about.depsDesc": "ErisPulse 站在这些优秀开源项目的肩膀上",
       "about.copyright": "版权声明",
       "about.copyrightText":
         "ErisPulse 使用 MIT 开源协议，允许自由分发和修改。",
@@ -316,27 +338,32 @@ export const I18n = (function () {
         },
         {
           icon: "fa-plug",
-          text: "新增：接入 MCP 服务器，让 Claude / Cursor 在写代码时直接查 ErisPulse 文档",
+          text: "接入 MCP 服务器，让 Claude / Cursor 在写代码时直接查 ErisPulse 文档",
           link: "#docs/ai-support/mcp.md",
         },
         {
-          icon: "fa-exchange-alt",
-          text: "基于 OneBot12 标准的统一事件格式，一份代码在所有平台运行",
-          link: "#docs/getting-started/basic-concepts.md",
+          icon: "fa-paper-plane",
+          text: "SendDSL 发送规则升级：Hook、Retry、Timeout、Priority，支持 Build 模式批量发送",
+          link: "#docs/developer-guide/adapters/send-dsl.md",
         },
         {
           icon: "fa-puzzle-piece",
-          text: "模块通过 PyPI 独立分发，支持懒加载、热重载和完整生命周期管理",
+          text: "模块开发更简单：ConfigClass 声明式配置、get_meta 元信息、activate_on 事件激活",
           link: "#docs/developer-guide/modules/getting-started.md",
         },
         {
           icon: "fa-comments",
-          text: "内置确认对话、选择菜单、表单收集和多轮对话等丰富交互原语",
+          text: "事件处理更精细：统一事件覆写、认领与阻断控制、wait_reply 支持正则匹配",
           link: "#docs/getting-started/event-handling.md",
         },
         {
+          icon: "fa-shield-halved",
+          text: "统一作用域（Scope）系统：从模块、身份、出站三个维度精细控制可用范围",
+          link: "#docs/advanced/scope.md",
+        },
+        {
           icon: "fa-globe",
-          text: "同时对接云湖、Telegram、OneBot11/12、邮件等平台，适配器自动处理差异",
+          text: "基于 OneBot12 统一事件格式，一份代码在云湖、Telegram、QQ 等所有平台运行",
           link: "#docs/platform-guide/README.md",
         },
       ],
@@ -393,14 +420,14 @@ export const I18n = (function () {
         "Comprehensive docs and specs let AI generate ready-to-use modules, supporting Vibe Coding workflows",
       "features.aicoding.code":
         '# Feed ErisPulse docs to AI\n# It generates ready-to-use modules\n\nclass AIModule(BaseModule):\n    async def on_load(self):\n        self.logger.info("AI module ready")',
-      "features.senddsl.title": "SendDSL Chain API",
+      "features.senddsl.title": "SendDSL Rules & Batch",
       "features.senddsl.desc":
-        "Send.To().At().Reply().Text() chain-call messaging interface, concise yet expressive",
+        "Chainable Send.To().Text() with built-in Hook, Retry, Timeout and Priority rules, plus Build mode for batch dispatch",
       "features.modular.title": "Modular & Lazy Loading",
       "features.modular.desc":
-        "Modules distributed as independent PyPI packages with lazy loading, hot updates, dependency topological sort, and priority control",
+        "Modules ship as independent PyPI packages with lazy loading, activate_on event-driven activation, hot updates, and dependency topological sort",
       "features.modular.code":
-        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # Init on first access\n            priority=10        # Higher = loads first\n        )\n\n    async def on_load(self, event):\n        self.logger.info("Module ready")',
+        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # Init on first access\n            priority=10,      # Higher = loads first\n            # Auto-activate on first matching command/event\n            activate_on=[{"command": {"name": "hello"}}],\n        )\n\n    async def on_load(self, event):\n        self.logger.info("Module ready")',
       "features.middleware.title": "Event Middleware",
       "features.middleware.desc":
         "Composable middleware pipeline for filtering, transforming, and logging before event dispatch",
@@ -411,7 +438,7 @@ export const I18n = (function () {
       "features.parallel.desc":
         "Same-priority handlers run in parallel, different priorities run serially, Copy-On-Write zero overhead, with interrupt support",
       "features.parallel.code":
-        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.mark_processed()  # Interrupt lower priority\n\n# Same priority → parallel, zero-copy\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
+        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.done(claim=False)  # Stop only\n\n# Same priority → parallel, zero-copy\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
       "features.dashboard.title": "Dashboard",
       "features.dashboard.desc":
         "Real-time monitoring of adapter status, module loading progress, and bot online state — global visibility at a glance",
@@ -425,6 +452,26 @@ export const I18n = (function () {
         "One codebase for Yunhu, Telegram, OneBot11/12, Email and more — adapters handle protocol differences automatically",
       "features.multiplatform.code":
         '@command("hello")\nasync def hello(event):\n    # Yunhu · Telegram · QQ · Email...\n    # One codebase, all platforms\n    platform = event.get_platform()\n    await event.reply(f"Hello from {platform}!")',
+      "features.overrides.title": "Flow Control & Overrides",
+      "features.overrides.desc":
+        "done(claim, stop) decouples claiming from blocking — override any module's event behavior via config without touching code",
+      "features.overrides.code":
+        '# done(): claim x stop, orthogonal control\n@command("help")\nasync def help_cmd(event):\n    event.done()                # claim + stop\n\n@message.on_message(priority=50)\nasync def observer(event):\n    event.done(stop=False)      # claim only: observers still see it\n\n@message.on_message(priority=100)\nasync def firewall(event):\n    if denied(event):\n        event.done(claim=False) # stop only: dedup untouched\n\n# Override any module without code changes\noverrides.command.set("MyModule", "restart", master=True)\noverrides.message.set("ChatModule", pattern="chat*")',
+      "features.declarative.title": "Declarative Config & Meta",
+      "features.declarative.desc":
+        "ConfigClass declarative config with live reload, get_meta feeds help & dashboard, activate_on loads modules on first matching event",
+      "features.declarative.code":
+        'class Main(BaseModule):\n    @staticmethod\n    def get_meta() -> ModuleMeta:\n        return ModuleMeta(\n            name="Weather", description="City weather lookup",\n            version="1.0.0", group="Tools",\n            tags=["weather", "query"],\n        )\n\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,\n            # Auto-activate on first matching command/event\n            activate_on=[{"command": {"name": "weather"}}],\n        )',
+      "features.ownership.title": "Ownership Auto-Cleanup",
+      "features.ownership.desc":
+        "Resources registered inside on_load are auto-attributed; commands, handlers and background tasks are recycled on unload — no manual unregistration",
+      "features.ownership.code":
+        'class Main(BaseModule):\n    async def on_load(self, event):\n        # Background task auto-attributed, cancelled on unload\n        self.task = self.spawn(self.polling())\n        # Register inside on_load for correct attribution\n        sdk.router.register_home_entry("My Module", "/my")\n\n    async def on_unload(self, event):\n        ...  # framework resources already recycled',
+      "features.scope.title": "Unified Scope System",
+      "features.scope.desc":
+        "Control availability across module, identity and outbound dimensions — config-driven, hot-reloadable, with glob & regex matching",
+      "features.scope.code":
+        '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # allowlist: exact/glob/regex\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # block all sends\napi  = { allow = ["get_*"] }   # query APIs only',
 
       // 模块市场
       "market.title": "Module Market",
@@ -618,6 +665,9 @@ export const I18n = (function () {
         "Thanks to these excellent developers for their contributions",
       "about.friendLinks": "Friend Links",
       "about.friendLinksDesc": "Recommended tech and development resources",
+      "about.deps": "Powered by Dependencies",
+      "about.depsDesc":
+        "ErisPulse stands on the shoulders of these amazing open-source projects",
       "about.copyright": "Copyright",
       "about.copyrightText":
         "ErisPulse is licensed under MIT, allowing free distribution and modification.",
@@ -660,27 +710,32 @@ export const I18n = (function () {
         },
         {
           icon: "fa-plug",
-          text: "New: connect the MCP server so Claude / Cursor can look up ErisPulse docs directly while coding",
+          text: "Connect the MCP server so Claude / Cursor can look up ErisPulse docs directly while coding",
           link: "#docs/ai-support/mcp.md",
         },
         {
-          icon: "fa-exchange-alt",
-          text: "Unified OneBot12 event format — one codebase runs on every platform",
-          link: "#docs/getting-started/basic-concepts.md",
+          icon: "fa-paper-plane",
+          text: "SendDSL upgraded: Hook, Retry, Timeout and Priority rules, plus Build mode for batch sending",
+          link: "#docs/developer-guide/adapters/send-dsl.md",
         },
         {
           icon: "fa-puzzle-piece",
-          text: "Modules distributed via PyPI with lazy loading, hot reload, and full lifecycle management",
+          text: "Simpler module development: ConfigClass declarative config, get_meta info, and activate_on triggers",
           link: "#docs/developer-guide/modules/getting-started.md",
         },
         {
           icon: "fa-comments",
-          text: "Built-in confirm, choice menus, form collection, and multi-turn conversation primitives",
+          text: "Fine-grained event control: unified event overrides, claim & stop semantics, regex wait_reply",
           link: "#docs/getting-started/event-handling.md",
         },
         {
+          icon: "fa-shield-halved",
+          text: "Unified scope system: control availability per module, identity, and outbound actions",
+          link: "#docs/advanced/scope.md",
+        },
+        {
           icon: "fa-globe",
-          text: "Connect to Yunhu, Telegram, OneBot11/12, Email and more — adapters handle protocol differences",
+          text: "Unified OneBot12 event format — one codebase runs on Yunhu, Telegram, QQ and more",
           link: "#docs/platform-guide/README.md",
         },
       ],
@@ -738,14 +793,14 @@ export const I18n = (function () {
         "提供完整的開發文件與規範，讓 AI 直接生成可用模組，支援 Vibe Coding 工作流",
       "features.aicoding.code":
         '# 將 ErisPulse 物料投餵給 AI\n# 即可直接生成可用模組\n\nclass AIModule(BaseModule):\n    async def on_load(self):\n        self.logger.info("AI 生成就緒")',
-      "features.senddsl.title": "SendDSL 鏈式發送",
+      "features.senddsl.title": "SendDSL 規則與批次傳送",
       "features.senddsl.desc":
-        "Send.To().At().Reply().Text() 風格的鏈式訊息發送介面，簡潔而表達力強",
+        "Send.To().Text() 鏈式發送，內建 Hook、Retry、Timeout、Priority 等規則，Build 模式批次建構統一執行",
       "features.modular.title": "模組化與懶載入",
       "features.modular.desc":
-        "模組以獨立 PyPI 套件分發，支援懶載入、熱更新、依賴拓撲排序與優先級控制",
+        "模組以獨立 PyPI 套件分發，支援懶載入、activate_on 事件驅動懶啟用、熱更新與依賴拓撲排序",
       "features.modular.code":
-        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # 首次存取時才初始化\n            priority=10        # 數值越大越先載入\n        )\n\n    async def on_load(self, event):\n        self.logger.info("模組已就緒")',
+        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # 首次存取時才初始化\n            priority=10,      # 數值越大越先載入\n            # 首個匹配命令/事件到達時自動啟用\n            activate_on=[{"command": {"name": "hello"}}],\n        )\n\n    async def on_load(self, event):\n        self.logger.info("模組已就緒")',
       "features.middleware.title": "事件中介層",
       "features.middleware.desc":
         "可組合的中介層管道，在事件分發前進行過濾、轉換、日誌記錄等處理",
@@ -756,7 +811,7 @@ export const I18n = (function () {
       "features.parallel.desc":
         "同優先級處理器並行執行，不同優先級串行排程，Copy-On-Write 零開銷，支援中斷控制",
       "features.parallel.code":
-        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.mark_processed()  # 中斷後續\n\n# 同優先級 → 並行執行，零拷貝\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
+        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.done(claim=False)  # 僅阻斷\n\n# 同優先級 → 並行執行，零拷貝\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
       "features.dashboard.title": "儀表盤",
       "features.dashboard.desc":
         "即時監控適配器狀態、模組載入進度與 Bot 上線情況，全域執行狀態一目瞭然",
@@ -770,6 +825,26 @@ export const I18n = (function () {
         "一套程式碼同時對接雲湖、Telegram、OneBot11/12、郵件等平台，適配器自動處理協議差異",
       "features.multiplatform.code":
         '@command("hello")\nasync def hello(event):\n    # 雲湖 · Telegram · QQ · 郵件...\n    # 同一份程式碼，所有平台執行\n    platform = event.get_platform()\n    await event.reply(f"Hello from {platform}!")',
+      "features.overrides.title": "鏈路控制與事件覆寫",
+      "features.overrides.desc":
+        "done(claim, stop) 正交解耦認領與阻斷，無需修改程式碼即可覆寫任意模組的事件行為",
+      "features.overrides.code":
+        '# done()：認領(claim) × 阻斷(stop) 正交控制\n@command("help")\nasync def help_cmd(event):\n    event.done()                # 認領 + 阻斷\n\n@message.on_message(priority=50)\nasync def observer(event):\n    event.done(stop=False)      # 僅認領：觀察者仍可見\n\n@message.on_message(priority=100)\nasync def firewall(event):\n    if denied(event):\n        event.done(claim=False) # 僅阻斷：不破壞去重\n\n# 不改程式碼，覆寫任意模組行為\noverrides.command.set("MyModule", "restart", master=True)\noverrides.message.set("ChatModule", pattern="閒聊*")',
+      "features.declarative.title": "宣告式設定與元資訊",
+      "features.declarative.desc":
+        "ConfigClass 宣告式設定即時熱讀，get_meta 元資訊接入 help 與儀表盤，activate_on 事件驅動懶啟用",
+      "features.declarative.code":
+        'class Main(BaseModule):\n    @staticmethod\n    def get_meta() -> ModuleMeta:\n        return ModuleMeta(\n            name="天氣", description="查詢城市天氣",\n            version="1.0.0", group="工具",\n            tags=["天氣", "查詢"],\n        )\n\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,\n            # 首個匹配命令/事件到達時自動啟用\n            activate_on=[{"command": {"name": "weather"}}],\n        )',
+      "features.ownership.title": "歸屬權自動清理",
+      "features.ownership.desc":
+        "在 on_load 內註冊的資源自動記名歸屬，模組卸載時一鍵回收命令、處理器與背景任務，無需手動註銷",
+      "features.ownership.code":
+        'class Main(BaseModule):\n    async def on_load(self, event):\n        # 背景任務自動歸屬，卸載時自動取消\n        self.task = self.spawn(self.polling())\n        # 在 on_load 內註冊才能被正確歸屬\n        sdk.router.register_home_entry("我的模組", "/my")\n\n    async def on_unload(self, event):\n        ...  # 框架資源已被自動回收',
+      "features.scope.title": "統一作用域系統",
+      "features.scope.desc":
+        "從模組、身分、出站三個維度統一控制可用範圍：設定即生效，支援熱更新與 glob / 正規表示式匹配",
+      "features.scope.code":
+        '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # 白名單：精確/glob/正規\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # 全禁發送\napi  = { allow = ["get_*"] }   # 僅允許查詢類 API',
 
       // 模块市场
       "market.title": "模組市場",
@@ -947,6 +1022,8 @@ export const I18n = (function () {
       "about.contributorsDesc": "感謝這些優秀的開發者為專案做出的貢獻",
       "about.friendLinks": "友情連結",
       "about.friendLinksDesc": "推薦一些優秀的技術和開發資源",
+      "about.deps": "依賴致謝",
+      "about.depsDesc": "ErisPulse 站在這些優秀開源專案的肩膀上",
       "about.copyright": "版權聲明",
       "about.copyrightText":
         "ErisPulse 使用 MIT 開源協議，允許自由分發和修改。",
@@ -988,27 +1065,32 @@ export const I18n = (function () {
         },
         {
           icon: "fa-plug",
-          text: "新增：接入 MCP 伺服器，讓 Claude / Cursor 在寫程式時直接查 ErisPulse 文檔",
+          text: "接入 MCP 伺服器，讓 Claude / Cursor 在寫程式時直接查 ErisPulse 文檔",
           link: "#docs/ai-support/mcp.md",
         },
         {
-          icon: "fa-exchange-alt",
-          text: "基於 OneBot12 標準的統一事件格式，一份程式碼在所有平台執行",
-          link: "#docs/getting-started/basic-concepts.md",
+          icon: "fa-paper-plane",
+          text: "SendDSL 傳送規則升級：Hook、Retry、Timeout、Priority，支援 Build 模式批次傳送",
+          link: "#docs/developer-guide/adapters/send-dsl.md",
         },
         {
           icon: "fa-puzzle-piece",
-          text: "模組透過 PyPI 獨立分發，支援懶載入、熱重載和完整生命週期管理",
+          text: "模組開發更簡單：ConfigClass 宣告式設定、get_meta 元資訊、activate_on 事件觸發",
           link: "#docs/developer-guide/modules/getting-started.md",
         },
         {
           icon: "fa-comments",
-          text: "內建確認對話、選擇選單、表單收集和多輪對話等豐富互動原語",
+          text: "事件處理更精細：統一事件覆寫、認領與阻斷控制、wait_reply 支援正規表示式匹配",
           link: "#docs/getting-started/event-handling.md",
         },
         {
+          icon: "fa-shield-halved",
+          text: "統一作用域（Scope）系統：從模組、身分、出站三個維度精細控制可用範圍",
+          link: "#docs/advanced/scope.md",
+        },
+        {
           icon: "fa-globe",
-          text: "同時對接雲湖、Telegram、OneBot11/12、郵件等平台，適配器自動處理差異",
+          text: "基於 OneBot12 統一事件格式，一份程式碼在雲湖、Telegram、QQ 等所有平台執行",
           link: "#docs/platform-guide/README.md",
         },
       ],
@@ -1063,14 +1145,14 @@ export const I18n = (function () {
         "完全な開発ドキュメントと仕様を提供し、AI がすぐに使えるモジュールを直接生成できる Vibe Coding ワークフローをサポートします",
       "features.aicoding.code":
         '# ErisPulse のドキュメントを AI に読み込ませる\n# すぐに使えるモジュールを生成\n\nclass AIModule(BaseModule):\n    async def on_load(self):\n        self.logger.info("AI モジュール準備完了")',
-      "features.senddsl.title": "SendDSL チェーン API",
+      "features.senddsl.title": "SendDSL ルール & 一括送信",
       "features.senddsl.desc":
-        "Send.To().At().Reply().Text() スタイルのチェーンメッセージ送信インターフェース、簡潔で表現力豊か",
+        "Send.To().Text() チェーン送信に Hook、Retry、Timeout、Priority ルールを内蔵、Build モードで一括送信も可能",
       "features.modular.title": "モジュラー & 遅延読み込み",
       "features.modular.desc":
-        "モジュールは独立 PyPI パッケージとして配布され、遅延読み込み、ホットアップデート、依存関係トポロジカルソート、優先度制御をサポート",
+        "モジュールは独立 PyPI パッケージとして配布され、遅延読み込み、activate_on によるイベント駆動起動、ホットアップデート、依存関係トポロジカルソートをサポート",
       "features.modular.code":
-        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # 初回アクセス時に初期化\n            priority=10        # 値が大きいほど先に読み込み\n        )\n\n    async def on_load(self, event):\n        self.logger.info("モジュール準備完了")',
+        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # 初回アクセス時に初期化\n            priority=10,      # 値が大きいほど先に読み込み\n            # 最初に一致したコマンド/イベントで自動起動\n            activate_on=[{"command": {"name": "hello"}}],\n        )\n\n    async def on_load(self, event):\n        self.logger.info("モジュール準備完了")',
       "features.middleware.title": "イベントミドルウェア",
       "features.middleware.desc":
         "イベント配信前のフィルタリング、変換、ログ記録などを行うコンポーザブルなミドルウェアパイプライン",
@@ -1081,7 +1163,7 @@ export const I18n = (function () {
       "features.parallel.desc":
         "同じ優先度のハンドラーは並列実行、異なる優先度は直列スケジューリング、Copy-On-Write でゼロオーバーヘッド、中断制御をサポート",
       "features.parallel.code":
-        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.mark_processed()  # 低優先度を中断\n\n# 同優先度 → 並列実行、ゼロコピー\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
+        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.done(claim=False)  # block のみ\n\n# 同優先度 → 並列実行、ゼロコピー\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
       "features.dashboard.title": "ダッシュボード",
       "features.dashboard.desc":
         "アダプター状態、モジュール読み込み進捗、Bot のオンライン状況をリアルタイム監視 — グローバル状態を一目で把握",
@@ -1095,6 +1177,26 @@ export const I18n = (function () {
         "雲湖、Telegram、OneBot11/12、メールなど複数のプラットフォームに対応 — アダプターがプロトコルの違いを自動処理します",
       "features.multiplatform.code":
         '@command("hello")\nasync def hello(event):\n    # 雲湖 · Telegram · QQ · メール...\n    # 同じコード、全プラットフォームで実行\n    platform = event.get_platform()\n    await event.reply(f"Hello from {platform}!")',
+      "features.overrides.title": "フロー制御とイベントオーバーライド",
+      "features.overrides.desc":
+        "done(claim, stop) で claim と block を直交制御 — コードを変更せずに任意のモジュールのイベント動作を上書き",
+      "features.overrides.code":
+        '# done()：claim × stop の直交制御\n@command("help")\nasync def help_cmd(event):\n    event.done()                # claim + block\n\n@message.on_message(priority=50)\nasync def observer(event):\n    event.done(stop=False)      # claim のみ：監視ハンドラも受信\n\n@message.on_message(priority=100)\nasync def firewall(event):\n    if denied(event):\n        event.done(claim=False) # block のみ：重複排除に影響なし\n\n# コード変更なしでモジュール動作を上書き\noverrides.command.set("MyModule", "restart", master=True)\noverrides.message.set("ChatModule", pattern="雑談*")',
+      "features.declarative.title": "宣言的設定とメタ情報",
+      "features.declarative.desc":
+        "ConfigClass 宣言的設定はライブ反映、get_meta メタ情報は help とダッシュボードへ、activate_on でイベント駆動の遅延起動",
+      "features.declarative.code":
+        'class Main(BaseModule):\n    @staticmethod\n    def get_meta() -> ModuleMeta:\n        return ModuleMeta(\n            name="天気", description="都市の天気を検索",\n            version="1.0.0", group="ツール",\n            tags=["天気", "検索"],\n        )\n\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,\n            # 最初に一致したコマンド/イベントで自動起動\n            activate_on=[{"command": {"name": "weather"}}],\n        )',
+      "features.ownership.title": "オーナーシップ自動クリーンアップ",
+      "features.ownership.desc":
+        "on_load 内で登録したリソースは自動で帰属記録され、アンロード時にコマンド・ハンドラ・バックグラウンドタスクを一括回収 — 手動解除は不要",
+      "features.ownership.code":
+        'class Main(BaseModule):\n    async def on_load(self, event):\n        # バックグラウンドタスクは自動帰属、アンロード時にキャンセル\n        self.task = self.spawn(self.polling())\n        # on_load 内での登録が正しく帰属されます\n        sdk.router.register_home_entry("マイモジュール", "/my")\n\n    async def on_unload(self, event):\n        ...  # フレームワークリソースは自動回収済み',
+      "features.scope.title": "統一スコープシステム",
+      "features.scope.desc":
+        "モジュール・アイデンティティ・送信の 3 次元で利用範囲を統制 — 設定即反映、ホットリロード、glob / 正規表現マッチに対応",
+      "features.scope.code":
+        '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # 許可リスト：完全一致/glob/正規表現\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # 送信を全禁止\napi  = { allow = ["get_*"] }   # 検索系 API のみ許可',
 
       "market.title": "モジュールマーケット",
       "market.submit": "モジュールを提出",
@@ -1288,6 +1390,9 @@ export const I18n = (function () {
         "プロジェクトに貢献した素晴らしい開発者の皆さんに感謝します",
       "about.friendLinks": "フレンドリンク",
       "about.friendLinksDesc": "おすすめの技術・開発リソース",
+      "about.deps": "依存関係への感謝",
+      "about.depsDesc":
+        "ErisPulse はこれらの優れたオープンソースプロジェクトの上に成り立っています",
       "about.copyright": "著作権",
       "about.copyrightText":
         "ErisPulse は MIT オープンソースライセンスの下で提供されており、自由な配布と改変が可能です。",
@@ -1327,27 +1432,32 @@ export const I18n = (function () {
         },
         {
           icon: "fa-plug",
-          text: "新機能：MCP サーバーを接続して、Claude / Cursor がコーディング中に ErisPulse ドキュメントを直接参照可能に",
+          text: "MCP サーバーを接続して、Claude / Cursor がコーディング中に ErisPulse ドキュメントを直接参照可能に",
           link: "#docs/ai-support/mcp.md",
         },
         {
-          icon: "fa-exchange-alt",
-          text: "OneBot12 標準の統一イベントフォーマット — ひとつのコードで全プラットフォーム対応",
-          link: "#docs/getting-started/basic-concepts.md",
+          icon: "fa-paper-plane",
+          text: "SendDSL 送信ルールが強化：Hook、Retry、Timeout、Priority に対応、Build モードで一括送信",
+          link: "#docs/developer-guide/adapters/send-dsl.md",
         },
         {
           icon: "fa-puzzle-piece",
-          text: "PyPI でモジュールを配布、遅延読み込み、ホットリロード、完全なライフサイクル管理をサポート",
+          text: "モジュール開発がさらに簡単に：ConfigClass 宣言的設定、get_meta メタ情報、activate_on イベント起動",
           link: "#docs/developer-guide/modules/getting-started.md",
         },
         {
           icon: "fa-comments",
-          text: "確認、選択メニュー、フォーム収集、マルチターン会話などのプリミティブを内蔵",
+          text: "きめ細かなイベント制御：統一イベントオーバーライド、claim / stop セマンティクス、wait_reply の正規表現マッチ",
           link: "#docs/getting-started/event-handling.md",
         },
         {
+          icon: "fa-shield-halved",
+          text: "統一スコープ（Scope）システム：モジュール・アイデンティティ・送信の 3 次元で利用範囲を精细に制御",
+          link: "#docs/advanced/scope.md",
+        },
+        {
           icon: "fa-globe",
-          text: "雲湖、Telegram、OneBot11/12、メールなどに同時対応 — アダプターがプロトコルの違いを自動処理",
+          text: "OneBot12 標準の統一イベントフォーマット — ひとつのコードで雲湖、Telegram、QQ など全プラットフォーム対応",
           link: "#docs/platform-guide/README.md",
         },
       ],
@@ -1400,14 +1510,14 @@ export const I18n = (function () {
         "Полная документация и спецификации позволяют ИИ напрямую генерировать готовые модули, поддерживая рабочий процесс Vibe Coding",
       "features.aicoding.code":
         '# Загрузите документацию ErisPulse в ИИ\n# Он сгенерирует готовые модули\n\nclass AIModule(BaseModule):\n    async def on_load(self):\n        self.logger.info("AI модуль готов")',
-      "features.senddsl.title": "SendDSL Chain API",
+      "features.senddsl.title": "SendDSL: правила и массовая отправка",
       "features.senddsl.desc":
-        "Стиль Send.To().At().Reply().Text() цепочечный интерфейс отправки сообщений — лаконичный и выразительный",
+        "Цепочки Send.To().Text() со встроенными правилами Hook, Retry, Timeout, Priority и режимом Build для массовой отправки",
       "features.modular.title": "Модульность и ленивая загрузка",
       "features.modular.desc":
-        "Модули распространяются как независимые PyPI-пакеты с поддержкой ленивой загрузки, горячих обновлений, топологической сортировки зависимостей и управления приоритетами",
+        "Модули распространяются как независимые PyPI-пакеты с ленивой загрузкой, событийной активацией activate_on, горячими обновлениями и топологической сортировкой зависимостей",
       "features.modular.code":
-        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # Инициализация при первом доступе\n            priority=10        # Больше значение = загружается раньше\n        )\n\n    async def on_load(self, event):\n        self.logger.info("Модуль готов")',
+        '# pip install ErisPulse-MyModule\n# or: epsdk install MyModule\n\nclass Main(BaseModule):\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,   # Инициализация при первом доступе\n            priority=10,      # Больше значение = загружается раньше\n            # Автоактивация при первом совпавшем событии/команде\n            activate_on=[{"command": {"name": "hello"}}],\n        )\n\n    async def on_load(self, event):\n        self.logger.info("Модуль готов")',
       "features.middleware.title": "Посредники событий",
       "features.middleware.desc":
         "Компонуемый конвейер посредников для фильтрации, преобразования и логирования перед диспетчеризацией событий",
@@ -1418,7 +1528,7 @@ export const I18n = (function () {
       "features.parallel.desc":
         "Обработчики с одинаковым приоритетом выполняются параллельно, разные приоритеты — последовательно, Copy-On-Write с нулевыми накладными расходами, поддержка прерываний",
       "features.parallel.code":
-        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.mark_processed()  # Прервать низший приоритет\n\n# Одинаковый приоритет → параллельно, zero-copy\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
+        "@message.on_message(priority=10)\nasync def spam_filter(event):\n    if is_spam(event.get_text()):\n        event.done(claim=False)  # только блокировка: без дедупликации\n\n# Одинаковый приоритет → параллельно, zero-copy\n@message.on_message(priority=0)\nasync def handler_a(event):\n    event['result_a'] = await process_a()\n\n@message.on_message(priority=0)\nasync def handler_b(event):\n    event['result_b'] = await process_b()",
       "features.dashboard.title": "Панель управления",
       "features.dashboard.desc":
         "Мониторинг в реальном времени состояния адаптеров, прогресса загрузки модулей и статуса ботов — полная видимость работы системы",
@@ -1432,6 +1542,26 @@ export const I18n = (function () {
         "Единая кодовая база для Yunhu, Telegram, OneBot11/12, Email и других платформ — адаптеры автоматически обрабатывают различия протоколов",
       "features.multiplatform.code":
         '@command("hello")\nasync def hello(event):\n    # Yunhu · Telegram · QQ · Email...\n    # Одна кодовая база, все платформы\n    platform = event.get_platform()\n    await event.reply(f"Hello from {platform}!")',
+      "features.overrides.title": "Управление потоком и переопределения",
+      "features.overrides.desc":
+        "done(claim, stop) разделяет захват и блокировку — переопределяйте поведение любого модуля через конфиг, не меняя код",
+      "features.overrides.code":
+        '# done(): claim × stop — ортогональное управление\n@command("help")\nasync def help_cmd(event):\n    event.done()                # захват + блокировка\n\n@message.on_message(priority=50)\nasync def observer(event):\n    event.done(stop=False)      # только захват: наблюдатели видят событие\n\n@message.on_message(priority=100)\nasync def firewall(event):\n    if denied(event):\n        event.done(claim=False) # только блокировка: без дедупликации\n\n# Переопределение модулей без изменения кода\noverrides.command.set("MyModule", "restart", master=True)\noverrides.message.set("ChatModule", pattern="болтать*")',
+      "features.declarative.title": "Декларативная конфигурация и метаданные",
+      "features.declarative.desc":
+        "Декларативная конфигурация ConfigClass с живым обновлением, метаданные get_meta для help и дашборда, событийная активация activate_on",
+      "features.declarative.code":
+        'class Main(BaseModule):\n    @staticmethod\n    def get_meta() -> ModuleMeta:\n        return ModuleMeta(\n            name="Погода", description="Погода в городе",\n            version="1.0.0", group="Инструменты",\n            tags=["погода", "поиск"],\n        )\n\n    @staticmethod\n    def get_load_strategy():\n        return ModuleLoadStrategy(\n            lazy_load=True,\n            # Автоактивация при первом совпавшем событии/команде\n            activate_on=[{"command": {"name": "weather"}}],\n        )',
+      "features.ownership.title": "Автоочистка по владению",
+      "features.ownership.desc":
+        "Ресурсы, зарегистрированные в on_load, автоматически атрибутируются; при выгрузке модуля команды, обработчики и фоновые задачи освобождаются автоматически",
+      "features.ownership.code":
+        'class Main(BaseModule):\n    async def on_load(self, event):\n        # Фоновая задача атрибутируется автоматически\n        self.task = self.spawn(self.polling())\n        # Регистрируйте в on_load для корректной атрибуции\n        sdk.router.register_home_entry("Мой модуль", "/my")\n\n    async def on_unload(self, event):\n        ...  # ресурсы фреймворка уже освобождены',
+      "features.scope.title": "Единая система scope",
+      "features.scope.desc":
+        "Единое управление доступностью по модулям, идентификаторам и исходящим действиям — конфигурацией, с горячим обновлением, glob и regex",
+      "features.scope.code":
+        '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # белый список: точный/glob/regex\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # запретить все отправки\napi  = { allow = ["get_*"] }   # только API запросов',
 
       "market.title": "Маркет модулей",
       "market.submit": "Добавить модуль",
@@ -1623,6 +1753,9 @@ export const I18n = (function () {
       "about.friendLinks": "Дружественные ссылки",
       "about.friendLinksDesc":
         "Рекомендуемые технические ресурсы и материалы для разработки",
+      "about.deps": "Благодарность зависимостям",
+      "about.depsDesc":
+        "ErisPulse стоит на плечах этих прекрасных open-source проектов",
       "about.copyright": "Авторские права",
       "about.copyrightText":
         "ErisPulse распространяется под лицензией MIT, разрешающей свободное распространение и модификацию.",
@@ -1662,27 +1795,32 @@ export const I18n = (function () {
         },
         {
           icon: "fa-plug",
-          text: "Новое: подключите MCP-сервер, чтобы Claude / Cursor могли обращаться к документации ErisPulse прямо во время кодинга",
+          text: "Подключите MCP-сервер, чтобы Claude / Cursor могли обращаться к документации ErisPulse прямо во время кодинга",
           link: "#docs/ai-support/mcp.md",
         },
         {
-          icon: "fa-exchange-alt",
-          text: "Единый формат событий OneBot12 — одна кодовая база работает на всех платформах",
-          link: "#docs/getting-started/basic-concepts.md",
+          icon: "fa-paper-plane",
+          text: "SendDSL стал мощнее: правила Hook, Retry, Timeout, Priority и режим Build для массовой отправки",
+          link: "#docs/developer-guide/adapters/send-dsl.md",
         },
         {
           icon: "fa-puzzle-piece",
-          text: "Модули распространяются через PyPI с ленивой загрузкой, горячей перезагрузкой и полным управлением жизненным циклом",
+          text: "Проще разрабатывать модули: декларативная конфигурация ConfigClass, метаданные get_meta и триггеры activate_on",
           link: "#docs/developer-guide/modules/getting-started.md",
         },
         {
           icon: "fa-comments",
-          text: "Встроенные примитивы: подтверждение, меню выбора, сбор форм и многоходовые диалоги",
+          text: "Тонкий контроль событий: единые переопределения, семантика claim / stop и regex в wait_reply",
           link: "#docs/getting-started/event-handling.md",
         },
         {
+          icon: "fa-shield-halved",
+          text: "Единая система scope: гибкое управление доступностью по модулям, идентификаторам и исходящим действиям",
+          link: "#docs/advanced/scope.md",
+        },
+        {
           icon: "fa-globe",
-          text: "Подключение к Yunhu, Telegram, OneBot11/12, Email и другим платформам — адаптеры обрабатывают различия",
+          text: "Единый формат событий OneBot12 — одна кодовая база для Yunhu, Telegram, QQ и других платформ",
           link: "#docs/platform-guide/README.md",
         },
       ],
