@@ -145,10 +145,18 @@ async def hello(event):
                                         <div class="code-window-dots"><span></span><span></span><span></span></div>
                                         <span class="code-window-title">send.py</span>
                                     </div>
-                                    <pre class="code-window-body"><code class="language-python">adapter.Send.To("group", "G1001") \
-    .At("U2001") \
-    .Reply("msg123") \
-    .Text("Hello World")</code></pre>
+                                    <pre class="code-window-body"><code class="language-python"># 规则组合：重试 + 超时 + 回调
+await (adapter.Send.To("user", "123")
+       .Retry(3).Timeout(10)
+       .Hook(on_success)
+       .OnError(on_error)
+       .Text("可靠发送"))
+
+# Build 批量构建：统一执行
+await (adapter.Send.To("group", "G001")
+       .Build()
+       .Text("第一句").Image("pic.jpg")
+       .send_all())</code></pre>
                                 </div>
                             </div>
                         </div>
@@ -169,7 +177,7 @@ async def hello(event):
                                     <pre class="code-window-body"><code class="language-python" data-i18n="features.parallel.code">@message.on_message(priority=10)
 async def spam_filter(event):
     if is_spam(event.get_text()):
-        event.mark_processed()  # 中断后续
+        event.done(claim=False)  # 仅阻断：低优先级不再执行
 
 # 同优先级 → 并行执行，零拷贝
 @message.on_message(priority=0)
@@ -184,6 +192,40 @@ async def handler_b(event):
                         </div>
                     </div>
                     <div class="feature-immersive" data-feature="5">
+                        <div class="feature-immersive-inner">
+                            <div class="feature-immersive-text">
+                                <span class="feature-immersive-eyebrow">Flow Control</span>
+                                <h2 class="feature-immersive-title" data-i18n="features.overrides.title">链路控制与事件覆写</h2>
+                                <p class="feature-immersive-desc" data-i18n="features.overrides.desc">done(claim, stop) 正交解耦认领与阻断，无需修改代码即可覆写任意模块的事件行为</p>
+                            </div>
+                            <div class="feature-immersive-code">
+                                <div class="code-window">
+                                    <div class="code-window-bar">
+                                        <div class="code-window-dots"><span></span><span></span><span></span></div>
+                                        <span class="code-window-title">overrides.py</span>
+                                    </div>
+                                    <pre class="code-window-body"><code class="language-python" data-i18n="features.overrides.code"># done()：认领(claim) × 阻断(stop) 正交控制
+@command("help")
+async def help_cmd(event):
+    event.done()                # 认领 + 阻断
+
+@message.on_message(priority=50)
+async def observer(event):
+    event.done(stop=False)      # 仅认领：观察者仍可见
+
+@message.on_message(priority=100)
+async def firewall(event):
+    if denied(event):
+        event.done(claim=False) # 仅阻断：不破坏去重
+
+# 不改代码，覆写任意模块行为
+overrides.command.set("MyModule", "restart", master=True)
+overrides.message.set("ChatModule", pattern="闲聊*")</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-immersive" data-feature="6">
                         <div class="feature-immersive-inner">
                             <div class="feature-immersive-text">
                                 <span class="feature-immersive-eyebrow">Interactive</span>
@@ -226,7 +268,7 @@ async def handler_b(event):
                             </div>
                         </div>
                     </div>
-                    <div class="feature-immersive" data-feature="6">
+                    <div class="feature-immersive" data-feature="7">
                         <div class="feature-immersive-inner">
                             <div class="feature-immersive-text">
                                 <span class="feature-immersive-eyebrow">Modular</span>
@@ -256,7 +298,66 @@ class Main(BaseModule):
                             </div>
                         </div>
                     </div>
-                    <div class="feature-immersive" data-feature="7">
+                    <div class="feature-immersive" data-feature="8">
+                        <div class="feature-immersive-inner">
+                            <div class="feature-immersive-text">
+                                <span class="feature-immersive-eyebrow">Declarative</span>
+                                <h2 class="feature-immersive-title" data-i18n="features.declarative.title">声明式配置与元信息</h2>
+                                <p class="feature-immersive-desc" data-i18n="features.declarative.desc">ConfigClass 声明式配置实时热读，get_meta 元信息接入 help 与仪表盘，activate_on 事件驱动懒激活</p>
+                            </div>
+                            <div class="feature-immersive-code">
+                                <div class="code-window">
+                                    <div class="code-window-bar">
+                                        <div class="code-window-dots"><span></span><span></span><span></span></div>
+                                        <span class="code-window-title">module.py</span>
+                                    </div>
+                                    <pre class="code-window-body"><code class="language-python" data-i18n="features.declarative.code">class Main(BaseModule):
+    @staticmethod
+    def get_meta() -> ModuleMeta:
+        return ModuleMeta(
+            name="天气", description="查询城市天气",
+            version="1.0.0", group="工具",
+            tags=["天气", "查询"],
+        )
+
+    @staticmethod
+    def get_load_strategy():
+        return ModuleLoadStrategy(
+            lazy_load=True,
+            # 首个匹配命令/事件到达时自动激活
+            activate_on=[{"command": {"name": "weather"}}],
+        )</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-immersive" data-feature="9">
+                        <div class="feature-immersive-inner">
+                            <div class="feature-immersive-text">
+                                <span class="feature-immersive-eyebrow">Ownership</span>
+                                <h2 class="feature-immersive-title" data-i18n="features.ownership.title">归属权自动清理</h2>
+                                <p class="feature-immersive-desc" data-i18n="features.ownership.desc">在 on_load 内注册的资源自动记名归属，模块卸载时一键回收命令、处理器与后台任务，无需手动注销</p>
+                            </div>
+                            <div class="feature-immersive-code">
+                                <div class="code-window">
+                                    <div class="code-window-bar">
+                                        <div class="code-window-dots"><span></span><span></span><span></span></div>
+                                        <span class="code-window-title">lifecycle.py</span>
+                                    </div>
+                                    <pre class="code-window-body"><code class="language-python" data-i18n="features.ownership.code">class Main(BaseModule):
+    async def on_load(self, event):
+        # 后台任务自动归属，卸载时自动取消
+        self.task = self.spawn(self.polling())
+        # 在 on_load 内注册才能被正确归属
+        sdk.router.register_home_entry("我的模块", "/my")
+
+    async def on_unload(self, event):
+        ...  # 框架资源已被自动回收</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-immersive" data-feature="10">
                         <div class="feature-immersive-inner">
                             <div class="feature-immersive-text">
                                 <span class="feature-immersive-eyebrow">Dashboard</span>
@@ -315,7 +416,35 @@ class Main(BaseModule):
                             </div>
                         </div>
                     </div>
-                    <div class="feature-immersive" data-feature="8">
+                    <div class="feature-immersive" data-feature="11">
+                        <div class="feature-immersive-inner">
+                            <div class="feature-immersive-text">
+                                <span class="feature-immersive-eyebrow">Scope</span>
+                                <h2 class="feature-immersive-title" data-i18n="features.scope.title">统一作用域系统</h2>
+                                <p class="feature-immersive-desc" data-i18n="features.scope.desc">从模块、身份、出站三个维度统一控制可用范围：配置即生效，支持热更新与 glob / 正则匹配</p>
+                            </div>
+                            <div class="feature-immersive-code">
+                                <div class="code-window">
+                                    <div class="code-window-bar">
+                                        <div class="code-window-dots"><span></span><span></span><span></span></div>
+                                        <span class="code-window-title">config.toml</span>
+                                    </div>
+                                    <pre class="code-window-body"><code class="language-toml" data-i18n="features.scope.code">[ErisPulse.scope.platforms.onebot11]
+modules = ["Chat", "Tool*"]   # 白名单：精确/glob/正则
+blocked = ["re:^Danger"]
+
+[ErisPulse.scope.identity.users.onebot11]
+allow = ["u_admin"]
+deny = ["spam_*"]
+
+[ErisPulse.scope.actions.MyModule]
+send = { deny = true }        # 全禁发送
+api  = { allow = ["get_*"] }   # 仅允许查询类 API</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-immersive" data-feature="12">
                         <div class="feature-immersive-inner">
                             <div class="feature-immersive-text">
                                 <span class="feature-immersive-eyebrow">Lifecycle Hooks</span>
@@ -379,7 +508,7 @@ async def on_stop(data):
                             </div>
                         </div>
                     </div>
-                    <div class="feature-immersive" data-feature="9">
+                    <div class="feature-immersive" data-feature="13">
                         <div class="feature-immersive-inner">
                             <div class="feature-immersive-text">
                                 <span class="feature-immersive-eyebrow">AI Powered</span>
