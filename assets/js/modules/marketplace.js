@@ -260,6 +260,10 @@ export function updateStats() {
     setText('total-modules', modules.length);
     setText('adapter-count', adapters.length);
     setText('cli-count', cliExtensions.length);
+     
+    setText('category-count-all', modules.length + adapters.length + cliExtensions.length);
+    setText('category-count-modules', modules.length);
+    setText('category-count-adapters', adapters.length);
     setText('contributors-count', '--');
 
      
