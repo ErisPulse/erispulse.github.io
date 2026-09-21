@@ -149,6 +149,24 @@ export const CONFIG = {
   },
 
    
+   
+   
+   
+  MODULE_CATEGORIES: [
+    { id: 1, key: "tool" },
+    { id: 2, key: "fun" },
+    { id: 3, key: "admin" },
+    { id: 4, key: "notify" },
+    { id: 5, key: "ai" },
+    { id: 6, key: "platform" },
+    { id: 7, key: "analytics" },
+  ],
+
+   
+   
+  SDK_PACKAGE: "ErisPulse",
+
+   
   API: {
     contributors:
       "https://api.github.com/repos/ErisPulse/ErisPulse/contributors",
@@ -159,6 +177,7 @@ export const CONFIG = {
     manageModule: "https://erisdev.com/api/manage-module",
     submitModule: "https://erisdev.com/api/submit-module",
     checkPyPI: "https://erisdev.com/api/check-pypi",
+    pypiVersions: "https://erisdev.com/api/pypi-versions",
   },
 
   OAUTH_PROVIDERS: {

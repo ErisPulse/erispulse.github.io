@@ -6,10 +6,53 @@ import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
 import { state } from '../core/state.js';
 import { showMessage } from '../core/notify.js';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js';
+
+ 
+const TAG_PREVIEW_LIMIT = 18;
+
+ 
+ 
+const CARD_TAG_LIMIT = 5;
+
+ 
+const EXCLUSIVE_FLAGS = { verified: 'unverified', unverified: 'verified' };
+
+const SORT_MODES = ['default', 'name', 'newest'];
+
+ 
+ 
+const CATEGORY_KEYS = new Map(CONFIG.MODULE_CATEGORIES.map(item => [item.id, item.key]));
+
+function categoryKey(id) {
+    return CATEGORY_KEYS.get(Number(id)) || '';
+}
+
+function categoryLabel(id) {
+    const key = categoryKey(id);
+    return key ? I18n.t('category.' + key) : '';
+}
+
+ 
+const CATEGORY_SOURCE = {
+    all: () => [...state.allModules, ...state.allAdapters, ...state.allCliExtensions],
+    modules: () => state.allModules,
+    adapters: () => state.allAdapters,
+    cli_extensions: () => state.allCliExtensions
+};
 
  
 let activeCategory = 'all';
 let searchQuery = '';
+let activeFlags = new Set();
+let activeCategories = new Set();
+let activeTags = new Set();
+let sdkCeiling = '';         
+let sdkVersionOptions = getCachedSdkVersions();   
+let sortMode = 'default';
+let tagsExpanded = false;
+let allTags = [];            
+let allCategories = [];      
 
 export function setupMarketplace() {
     document.querySelectorAll('.category-btn').forEach(btn => {
@@ -28,6 +71,88 @@ export function setupMarketplace() {
         });
     });
 
+     
+    const flagBox = document.getElementById('market-flag-filters');
+    if (flagBox) {
+        flagBox.addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-chip');
+            if (!chip) return;
+            toggleFlag(chip.dataset.flag);
+            renderModules();
+        });
+    }
+
+     
+    const tagBox = document.getElementById('market-tag-filters');
+    if (tagBox) {
+        tagBox.addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-tag');
+            if (!chip) return;
+
+            if (chip.dataset.action === 'toggle-all') {
+                tagsExpanded = !tagsExpanded;
+                renderTags();
+                return;
+            }
+
+            const tag = chip.dataset.tag;
+            if (activeTags.has(tag)) activeTags.delete(tag);
+            else activeTags.add(tag);
+
+            renderTags();
+            renderModules();
+        });
+    }
+
+     
+    const categoryBox = document.getElementById('market-category-filters');
+    if (categoryBox) {
+        categoryBox.addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-tag');
+            if (!chip) return;
+
+            const id = Number(chip.dataset.category);
+            if (activeCategories.has(id)) activeCategories.delete(id);
+            else activeCategories.add(id);
+
+            renderCategories();
+            renderModules();
+        });
+    }
+
+     
+    document.addEventListener('click', (e) => {
+        if (!tagPopoverState) return;
+        if (tagPopoverState.panel.contains(e.target) || tagPopoverState.anchor.contains(e.target)) return;
+        hideTagPopover();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideTagPopover();
+    });
+    window.addEventListener('scroll', hideTagPopover, true);
+    window.addEventListener('resize', hideTagPopover);
+
+    const sdkSelect = document.getElementById('market-sdk-select');
+    if (sdkSelect) {
+        sdkSelect.addEventListener('change', function () {
+            sdkCeiling = this.value;
+            renderModules();
+        });
+    }
+
+    const sortSelect = document.getElementById('market-sort-select');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function () {
+            sortMode = this.value;
+            renderModules();
+        });
+    }
+
+    const resetBtn = document.getElementById('market-filter-reset');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetFilters);
+    }
+
     const searchInput = document.getElementById('module-search');
     if (!searchInput) return;
     var _searchTimer = null;
@@ -38,41 +163,58 @@ export function setupMarketplace() {
     });
 }
 
+
+
+
+
+function toggleFlag(flag) {
+    if (!flag) return;
+
+    if (activeFlags.has(flag)) {
+        activeFlags.delete(flag);
+    } else {
+        activeFlags.add(flag);
+        const exclusive = EXCLUSIVE_FLAGS[flag];
+        if (exclusive) activeFlags.delete(exclusive);
+    }
+}
+
+
+
+
+function resetFilters() {
+    activeFlags.clear();
+    activeCategories.clear();
+    activeTags.clear();
+    sdkCeiling = '';
+    sortMode = 'default';
+    searchQuery = '';
+    tagsExpanded = false;
+
+    const searchInput = document.getElementById('module-search');
+    if (searchInput) searchInput.value = '';
+    const sdkSelect = document.getElementById('market-sdk-select');
+    if (sdkSelect) sdkSelect.value = '';
+    const sortSelect = document.getElementById('market-sort-select');
+    if (sortSelect) sortSelect.value = 'default';
+
+    renderCategories();
+    renderTags();
+    renderModules();
+}
+
 export async function loadModuleData() {
     try {
         const response = await fetch(CONFIG.API.packages);
         if (!response.ok) throw new Error('模块API请求失败');
         const data = await response.json();
 
-        state.allModules = Object.entries(data.modules || {}).map(([name, info]) => ({
-            name,
-            package: info.package,
-            version: info.version,
-            author: info.author,
-            description: info.description,
-            repository: info.repository,
-            official: info.official || false,
-            verified: info.verified !== false,
-            submitted_by: info.submitted_by || '',
-            tags: info.tags || [],
-            type: 'module'
-        }));
-
-        state.allAdapters = Object.entries(data.adapters || {}).map(([name, info]) => ({
-            name,
-            package: info.package,
-            version: info.version,
-            author: info.author || 'Unknown',
-            description: info.description,
-            repository: info.repository,
-            official: info.official || false,
-            verified: info.verified !== false,
-            submitted_by: info.submitted_by || '',
-            tags: info.tags || [],
-            type: 'adapter'
-        }));
+        state.allModules = mapCategory(data.modules, 'module');
+        state.allAdapters = mapCategory(data.adapters, 'adapter');
+        state.allCliExtensions = mapCategory(data.cli_extensions, 'cli');
 
         updateStats();
+        buildFilterUI();
         renderModules();
 
     } catch (error) {
@@ -81,88 +223,222 @@ export async function loadModuleData() {
     }
 }
 
+
+
+
+
+
+
+function mapCategory(source, type) {
+    return Object.entries(source || {}).map(([name, info]) => ({
+        name,
+        package: info.package,
+        version: info.version,
+        author: info.author || 'Unknown',
+        description: info.description || '',
+        repository: info.repository || '',
+        min_sdk_version: info.min_sdk_version || '',
+        submitted_at: info.submitted_at || '',
+        submitted_by: info.submitted_by || '',
+        official: info.official === true,
+        verified: info.verified !== false,
+        featured: info.featured === true,
+        hidden: info.hidden === true,
+         
+        category: Number(info.category) || 0,
+        tags: Array.isArray(info.tags) ? info.tags.map(String) : [],
+        type
+    }));
+}
+
 export function updateStats() {
-    const totalCount = state.allModules.length + state.allAdapters.length;
-    document.getElementById('total-all-modules').textContent = totalCount;
-    document.getElementById('total-modules').textContent = state.allModules.length;
-    document.getElementById('adapter-count').textContent = state.allAdapters.length;
-    document.getElementById('contributors-count').textContent = '--';
+    const modules = state.allModules.filter(pkg => !pkg.hidden);
+    const adapters = state.allAdapters.filter(pkg => !pkg.hidden);
+    const cliExtensions = state.allCliExtensions.filter(pkg => !pkg.hidden);
+
+    setText('total-all-modules', modules.length + adapters.length + cliExtensions.length);
+    setText('total-modules', modules.length);
+    setText('adapter-count', adapters.length);
+    setText('cli-count', cliExtensions.length);
+    setText('contributors-count', '--');
+
+     
+    toggleHidden('cli-stat-card', cliExtensions.length === 0);
+    toggleHidden('category-cli-btn', cliExtensions.length === 0);
+
+    if (cliExtensions.length === 0 && activeCategory === 'cli_extensions') {
+        activeCategory = 'all';
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === 'all');
+        });
+    }
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function toggleHidden(id, hidden) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('is-hidden', hidden);
+}
+
+
+
+
+
+function buildFilterUI() {
+    const sortLabels = {
+        default: 'market.sort.default',
+        name: 'market.sort.name',
+        newest: 'market.sort.newest'
+    };
+    const sortSelect = document.getElementById('market-sort-select');
+    if (sortSelect) {
+        sortSelect.innerHTML = SORT_MODES.map(mode =>
+            `<option value="${mode}" data-i18n="${sortLabels[mode]}">${I18n.t(sortLabels[mode])}</option>`
+        ).join('');
+        sortSelect.value = sortMode;
+    }
+
+    renderSdkOptions();
+    refreshSdkVersions();
+
+     
+    const counter = new Map();
+    collectAll().forEach(pkg => {
+        if (pkg.hidden) return;
+        pkg.tags.forEach(tag => counter.set(tag, (counter.get(tag) || 0) + 1));
+    });
+    allTags = [...counter.entries()]
+        .map(([tag, count]) => ({ tag, count }))
+        .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+
+     
+    const known = new Set(allTags.map(item => item.tag));
+    activeTags = new Set([...activeTags].filter(tag => known.has(tag)));
+
+    toggleHidden('market-tag-row', allTags.length === 0);
+
+     
+    const categoryCounter = new Map();
+    collectAll().forEach(pkg => {
+        if (pkg.hidden || !CATEGORY_KEYS.has(pkg.category)) return;
+        categoryCounter.set(pkg.category, (categoryCounter.get(pkg.category) || 0) + 1);
+    });
+    allCategories = CONFIG.MODULE_CATEGORIES
+        .filter(item => categoryCounter.has(item.id))
+        .map(item => ({ id: item.id, count: categoryCounter.get(item.id) }));
+
+     
+    const knownCategories = new Set(allCategories.map(item => item.id));
+    activeCategories = new Set([...activeCategories].filter(id => knownCategories.has(id)));
+
+    toggleHidden('market-category-row', allCategories.length === 0);
+
+    renderTags();
+    renderCategories();
+}
+
+
+
+
+
+function renderSdkOptions() {
+    const sdkSelect = document.getElementById('market-sdk-select');
+    if (!sdkSelect) return;
+
+    const versions = sdkVersionOptions.length > 0 ? sdkVersionOptions : collectSdkVersions();
+     
+    const selected = sdkCeiling && !versions.includes(sdkCeiling) ? [sdkCeiling] : [];
+
+    sdkSelect.innerHTML = `<option value="" data-i18n="market.filter.sdk.any">${I18n.t('market.filter.sdk.any')}</option>` +
+        [...versions, ...selected].map(version => `<option value="${escapeHtml(version)}">${escapeHtml(version)}</option>`).join('');
+    sdkSelect.value = sdkCeiling;
+}
+
+
+
+
+async function refreshSdkVersions() {
+    const versions = await fetchSdkVersions();
+    if (versions.length === 0) return;
+
+    sdkVersionOptions = versions;
+    renderSdkOptions();
+}
+
+
+
+
+function renderTags() {
+    const box = document.getElementById('market-tag-filters');
+    if (!box) return;
+
+    const selected = allTags.filter(item => activeTags.has(item.tag));
+    const rest = allTags.filter(item => !activeTags.has(item.tag));
+    const limit = Math.max(0, TAG_PREVIEW_LIMIT - selected.length);
+    const shown = tagsExpanded ? rest : rest.slice(0, limit);
+    const collapsible = rest.length > shown.length || tagsExpanded;
+
+    box.innerHTML = [
+        ...selected.map(item => tagChipHtml(item, true)),
+        ...shown.map(item => tagChipHtml(item, false)),
+        collapsible
+            ? `<button type="button" class="filter-tag filter-tag-more" data-action="toggle-all">
+                <i class="fas fa-chevron-${tagsExpanded ? 'up' : 'down'}"></i>
+                <span data-i18n="${tagsExpanded ? 'market.filter.tagsLess' : 'market.filter.tagsMore'}">${I18n.t(tagsExpanded ? 'market.filter.tagsLess' : 'market.filter.tagsMore')}</span>
+            </button>`
+            : ''
+    ].join('');
+
+    I18n.applyTranslations();
+}
+
+function tagChipHtml(item, isActive) {
+    return `<button type="button" class="filter-tag${isActive ? ' active' : ''}" data-tag="${escapeHtml(item.tag)}">
+        ${escapeHtml(item.tag)}<span class="filter-tag-count">${item.count}</span>
+    </button>`;
+}
+
+
+
+
+
+function renderCategories() {
+    const box = document.getElementById('market-category-filters');
+    if (!box) return;
+
+    box.innerHTML = allCategories.map(item => {
+        const active = activeCategories.has(item.id);
+        const key = categoryKey(item.id);
+        return `<button type="button" class="filter-tag${active ? ' active' : ''}" data-category="${item.id}">
+            <span data-i18n="category.${key}">${escapeHtml(categoryLabel(item.id))}</span><span class="filter-tag-count">${item.count}</span>
+        </button>`;
+    }).join('');
+
+    I18n.applyTranslations();
 }
 
 export function renderModules() {
     const modulesGrid = document.getElementById('modules-grid');
     if (!modulesGrid) return;
-    modulesGrid.innerHTML = '';
 
-    let packagesToShow = [];
+     
+    hideTagPopover();
 
-    if (activeCategory === 'all') {
-        packagesToShow = [...state.allModules, ...state.allAdapters];
-    } else if (activeCategory === 'modules') {
-        packagesToShow = state.allModules;
-    } else if (activeCategory === 'adapters') {
-        packagesToShow = state.allAdapters;
-    }
-
-    if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        packagesToShow = packagesToShow.filter(pkg =>
-            pkg.name.toLowerCase().includes(query) ||
-            pkg.description.toLowerCase().includes(query)
-        );
-    }
+    const packagesToShow = applyFilters();
+    updateFilterSummary(packagesToShow.length);
 
     if (packagesToShow.length === 0) {
-        modulesGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
-                <h3>${I18n.t('market.empty')}</h3>
-                <p>${I18n.t('market.empty.hint')}</p>
-            </div>
-        `;
+        modulesGrid.innerHTML = emptyStateHtml();
+        const clearBtn = modulesGrid.querySelector('[data-action="clear-filters"]');
+        if (clearBtn) clearBtn.addEventListener('click', resetFilters);
         return;
     }
 
-    packagesToShow.forEach((pkg, index) => {
-        const card = document.createElement('div');
-        card.className = 'module-card';
-        card.style.animationDelay = `${index * 0.1}s`;
-
-        card.innerHTML = `
-            <div class="module-header">
-                <div class="module-icon">
-                    ${getIconByType(pkg.type)}
-                </div>
-                <div>
-                    <h3 class="module-name">${pkg.name}</h3>
-                    <div style="display:flex;gap:0.4rem;align-items:center;">
-                        <div class="module-version">v${pkg.version}</div>
-                        ${pkg.official ? '<span class="module-badge badge-official"><i class="fas fa-check-circle"></i> Official</span>' : ''}
-                        ${!pkg.verified ? '<span class="module-badge badge-unverified"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="market.unverified">未验证</span></span>' : ''}
-                    </div>
-                </div>
-            </div>
-            <p class="module-desc">${pkg.description}</p>
-            ${pkg.tags.length > 0 ? `
-            <div class="module-tags">
-                ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
-            </div>
-            ` : ''}
-            <div class="module-footer">
-                <div class="module-author">${pkg.author}</div>
-                <div class="module-actions">
-                    <button class="module-btn" data-action="install" data-package="${pkg.package}">
-                        <i class="fas fa-download"></i> ${I18n.t('market.install')}
-                    </button>
-                    ${pkg.repository ? `<button class="module-btn" data-action="docs" data-package="${pkg.package}" data-repo="${pkg.repository}">
-                        <i class="fas fa-book"></i> ${I18n.t('market.docs')}
-                    </button>` : ''}
-                </div>
-            </div>
-        `;
-
-        modulesGrid.appendChild(card);
-    });
+    modulesGrid.innerHTML = packagesToShow.map(cardHtml).join('');
 
     document.querySelectorAll('[data-action="install"]').forEach(btn => {
         btn.addEventListener('click', () => showInstallModal(btn.dataset.package));
@@ -171,12 +447,260 @@ export function renderModules() {
     document.querySelectorAll('[data-action="docs"]').forEach(btn => {
         btn.addEventListener('click', () => showDocsModal(btn.dataset.package, btn.dataset.repo));
     });
+
+    document.querySelectorAll('[data-action="all-tags"]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleTagPopover(btn);
+        });
+    });
+
+     
+    I18n.applyTranslations();
+}
+
+function cardHtml(pkg, index) {
+    const pkgCategoryKey = categoryKey(pkg.category);
+    const badges = [
+         
+        pkgCategoryKey
+            ? `<span class="module-badge badge-category"><i class="fas fa-layer-group"></i> <span data-i18n="category.${pkgCategoryKey}">${escapeHtml(categoryLabel(pkg.category))}</span></span>`
+            : '',
+        pkg.featured
+            ? `<span class="module-badge badge-featured"><i class="fas fa-star"></i> <span data-i18n="market.filter.featured">${I18n.t('market.filter.featured')}</span></span>`
+            : '',
+        pkg.official
+            ? `<span class="module-badge badge-official"><i class="fas fa-check-circle"></i> <span data-i18n="market.filter.official">${I18n.t('market.filter.official')}</span></span>`
+            : '',
+        pkg.verified
+            ? ''
+            : `<span class="module-badge badge-unverified"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="market.unverified">${I18n.t('market.unverified')}</span></span>`
+    ].join('');
+
+    return `
+        <div class="module-card${pkg.featured ? ' is-featured' : ''}" data-package="${escapeHtml(pkg.package)}" style="animation-delay: ${index * 0.05}s">
+            <div class="module-header">
+                <div class="module-icon">
+                    ${getIconByType(pkg.type)}
+                </div>
+                <div>
+                    <h3 class="module-name">${escapeHtml(pkg.name)}</h3>
+                    <div class="module-meta-row">
+                        <div class="module-version">v${escapeHtml(pkg.version)}</div>
+                        ${badges}
+                    </div>
+                </div>
+            </div>
+            <p class="module-desc">${escapeHtml(pkg.description)}</p>
+            ${cardTagsHtml(pkg.tags)}
+            <div class="module-footer">
+                <div class="module-footer-info">
+                    <div class="module-author">${escapeHtml(pkg.author)}</div>
+                    ${pkg.min_sdk_version ? `<div class="module-sdk"><i class="fas fa-code-branch"></i> SDK ≥ ${escapeHtml(pkg.min_sdk_version)}</div>` : ''}
+                </div>
+                <div class="module-actions">
+                    <button class="module-btn" data-action="install" data-package="${escapeHtml(pkg.package)}">
+                        <i class="fas fa-download"></i> ${I18n.t('market.install')}
+                    </button>
+                    ${pkg.repository ? `<button class="module-btn" data-action="docs" data-package="${escapeHtml(pkg.package)}" data-repo="${escapeHtml(pkg.repository)}">
+                        <i class="fas fa-book"></i> ${I18n.t('market.docs')}
+                    </button>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+function cardTagsHtml(tags) {
+    const overflow = tags.length > CARD_TAG_LIMIT;
+    const visible = tags.slice(0, overflow ? CARD_TAG_LIMIT - 1 : CARD_TAG_LIMIT);
+    const rest = tags.length - visible.length;
+
+    return `
+            <div class="module-tags">
+                <div class="module-tags-list">
+                    ${visible.map(tag => `<span class="module-tag">${escapeHtml(tag)}</span>`).join('')}
+                </div>
+                ${rest > 0
+                    ? `<button type="button" class="module-tag module-tag-more" data-action="all-tags" title="${escapeHtml(tags.join(', '))}" aria-label="${escapeHtml(I18n.t('market.tags.more', { count: rest }))}">+${rest}</button>`
+                    : ''}
+            </div>
+            `;
+}
+
+function emptyStateHtml() {
+    const filtered = hasActiveFilters();
+    return `
+        <div class="empty-state">
+            <i class="fas fa-box-open empty-state-icon"></i>
+            <h3 class="empty-state-title">${I18n.t(filtered ? 'market.empty.filtered' : 'market.empty')}</h3>
+            <p class="empty-state-desc">${I18n.t('market.empty.hint')}</p>
+            ${filtered ? `<button type="button" class="filter-reset empty-state-action" data-action="clear-filters">
+                <i class="fas fa-times-circle"></i> ${I18n.t('market.filter.reset')}
+            </button>` : ''}
+        </div>
+    `;
+}
+
+
+
+
+
+function applyFilters() {
+    const source = CATEGORY_SOURCE[activeCategory] || CATEGORY_SOURCE.all;
+    let packages = source().filter(pkg => !pkg.hidden);
+
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        packages = packages.filter(pkg => matchesQuery(pkg, query));
+    }
+
+    if (activeFlags.size > 0) {
+        packages = packages.filter(pkg => {
+            for (const flag of activeFlags) {
+                if (flag === 'featured' && !pkg.featured) return false;
+                if (flag === 'official' && !pkg.official) return false;
+                if (flag === 'verified' && !pkg.verified) return false;
+                if (flag === 'unverified' && pkg.verified) return false;
+            }
+            return true;
+        });
+    }
+
+     
+    if (activeCategories.size > 0) {
+        packages = packages.filter(pkg => activeCategories.has(pkg.category));
+    }
+
+     
+    if (activeTags.size > 0) {
+        packages = packages.filter(pkg => pkg.tags.some(tag => activeTags.has(tag)));
+    }
+
+     
+    const ceiling = parseVersion(sdkCeiling);
+    if (ceiling) {
+        packages = packages.filter(pkg => {
+            const required = parseVersion(pkg.min_sdk_version);
+            return required === null || compareVersion(required, ceiling) <= 0;
+        });
+    }
+
+    return sortPackages(packages);
+}
+
+
+
+
+function matchesQuery(pkg, query) {
+    return [
+        pkg.name,
+        pkg.description,
+        pkg.author,
+        pkg.package,
+        pkg.submitted_by,
+        pkg.tags.join(' ')
+    ].some(field => String(field || '').toLowerCase().includes(query));
+}
+
+function sortPackages(packages) {
+    const sorted = [...packages];
+
+    if (sortMode === 'name') {
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortMode === 'newest') {
+        sorted.sort((a, b) => (Date.parse(b.submitted_at) || 0) - (Date.parse(a.submitted_at) || 0));
+    } else {
+         
+        sorted.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    }
+
+    return sorted;
+}
+
+function updateFilterSummary(count) {
+    document.querySelectorAll('#market-flag-filters .filter-chip').forEach(chip => {
+        chip.classList.toggle('active', activeFlags.has(chip.dataset.flag));
+    });
+
+    const filtered = hasActiveFilters();
+    toggleHidden('market-filter-reset', !filtered);
+
+    const summary = document.getElementById('market-summary');
+    if (summary) {
+        summary.textContent = I18n.t(filtered ? 'market.summary.filtered' : 'market.summary', { count });
+    }
+}
+
+function hasActiveFilters() {
+    return activeFlags.size > 0 || activeCategories.size > 0 || activeTags.size > 0 ||
+        Boolean(sdkCeiling) || Boolean(searchQuery);
+}
+
+function collectAll() {
+    return CATEGORY_SOURCE.all();
+}
+
+
+
+
+function collectSdkVersions() {
+    const versions = new Set();
+    collectAll().forEach(pkg => {
+        if (pkg.hidden) return;
+        const raw = String(pkg.min_sdk_version || '').trim();
+        if (/^\d+(?:\.\d+)+$/.test(raw)) versions.add(raw);
+    });
+
+    return [...versions].sort((a, b) => compareVersion(parseVersion(b), parseVersion(a)));
+}
+
+
+
+
+
+function parseVersion(value) {
+    const match = String(value || '').trim().match(/^\d+(?:\.\d+)*/);
+    return match ? match[0].split('.').map(Number) : null;
+}
+
+function compareVersion(a, b) {
+    const length = Math.max(a.length, b.length);
+    for (let i = 0; i < length; i++) {
+        const left = a[i] || 0;
+        const right = b[i] || 0;
+        if (left !== right) return left < right ? -1 : 1;
+    }
+    return 0;
+}
+
+function escapeHtml(value) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return String(value ?? '').replace(/[&<>"']/g, char => map[char]);
 }
 
 function getIconByType(type) {
     const icons = {
         'module': '<i class="fas fa-puzzle-piece"></i>',
-        'adapter': '<i class="fas fa-plug"></i>'
+        'adapter': '<i class="fas fa-plug"></i>',
+        'cli': '<i class="fas fa-terminal"></i>'
     };
     return icons[type] || '<i class="fas fa-box"></i>';
 }
@@ -192,6 +716,65 @@ function showError(message) {
             </button>
         </div>
     `;
+}
+
+ 
+
+let tagPopoverState = null;    
+
+
+
+
+
+function toggleTagPopover(anchor) {
+    if (tagPopoverState && tagPopoverState.anchor === anchor) {
+        hideTagPopover();
+        return;
+    }
+    hideTagPopover();
+
+    const card = anchor.closest('.module-card');
+    const pkg = card ? findPackage(card.dataset.package) : null;
+    if (!pkg || pkg.tags.length === 0) return;
+
+    const panel = document.createElement('div');
+    panel.className = 'tag-popover';
+    panel.innerHTML = `
+        <div class="tag-popover-title">${escapeHtml(I18n.t('market.tags.all'))}</div>
+        <div class="tag-popover-tags">${pkg.tags.map(tag => `<span class="module-tag">${escapeHtml(tag)}</span>`).join('')}</div>
+    `;
+
+    document.body.appendChild(panel);
+    positionTagPopover(panel, anchor);
+
+    anchor.classList.add('is-active');
+    tagPopoverState = { panel, anchor };
+}
+
+
+
+
+function positionTagPopover(panel, anchor) {
+    const rect = anchor.getBoundingClientRect();
+    const gap = 8;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const left = Math.max(gap, Math.min(rect.left, viewportWidth - panel.offsetWidth - gap));
+    let top = rect.bottom + gap;
+    if (top + panel.offsetHeight > viewportHeight - gap) {
+        top = Math.max(gap, rect.top - panel.offsetHeight - gap);
+    }
+
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+}
+
+function hideTagPopover() {
+    if (!tagPopoverState) return;
+    tagPopoverState.panel.remove();
+    tagPopoverState.anchor.classList.remove('is-active');
+    tagPopoverState = null;
 }
 
  
@@ -223,37 +806,56 @@ export function setupModals() {
 }
 
 export function showInstallModal(packageName) {
-    const pkg = [...state.allModules, ...state.allAdapters].find(m => m.package === packageName);
+    const pkg = findPackage(packageName);
     if (!pkg) return;
 
     const modal = document.getElementById('module-modal');
     const modalContent = document.getElementById('module-modal-content');
 
     modalContent.innerHTML = `
-        <h3>${pkg.name} v${pkg.version}</h3>
-        <p>${pkg.description}</p>
+        <h3>${escapeHtml(pkg.name)} v${escapeHtml(pkg.version)}</h3>
+        <p>${escapeHtml(pkg.description)}</p>
 
         <h4 style="margin-top: 1.5rem;">${I18n.t('market.installCmd')}</h4>
-        <pre style="background: var(--bg); padding: 1rem; border-radius: var(--radius);"><code>epsdk install ${pkg.package}</code></pre>
+        <pre style="background: var(--bg); padding: 1rem; border-radius: var(--radius);"><code>epsdk install ${escapeHtml(pkg.package)}</code></pre>
+
+        ${pkg.min_sdk_version ? `
+        <h4 style="margin-top: 1.5rem;">${I18n.t('market.minSdkVersion')}</h4>
+        <p>≥ ${escapeHtml(pkg.min_sdk_version)}</p>
+        ` : ''}
+
+        ${pkg.submitted_at ? `
+        <h4 style="margin-top: 1.5rem;">${I18n.t('market.submittedAt')}</h4>
+        <p>${escapeHtml(String(pkg.submitted_at).slice(0, 10))}</p>
+        ` : ''}
 
         ${pkg.tags.length > 0 ? `
         <h4 style="margin-top: 1.5rem;">${I18n.t('modal.tags')}</h4>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            ${pkg.tags.map(tag => `<span class="module-tag">${tag}</span>`).join('')}
+            ${pkg.tags.map(tag => `<span class="module-tag">${escapeHtml(tag)}</span>`).join('')}
         </div>
         ` : ''}
-        
+
         ${pkg.repository ? `
         <h4 style="margin-top: 1.5rem;">${I18n.t('modal.repoInfo')}</h4>
-        <p><a href="${pkg.repository}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
+        <p><a href="${escapeHtml(pkg.repository)}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
         ` : ''}
     `;
 
     modal.classList.add('active');
 }
 
+
+
+
+
+
+function findPackage(packageName) {
+    return collectAll().find(pkg => pkg.package === packageName);
+}
+
 export function showDocsModal(packageName, repoUrl) {
-    const pkg = [...state.allModules, ...state.allAdapters].find(m => m.package === packageName);
+    const pkg = findPackage(packageName);
     if (!pkg || !repoUrl) return;
 
     const modal = document.getElementById('module-modal');
@@ -273,7 +875,7 @@ export function showDocsModal(packageName, repoUrl) {
 
         modalContent.innerHTML = `
             <div class="markdown-content">
-                <h3>${pkg.name} v${pkg.version}</h3>
+                <h3>${escapeHtml(pkg.name)} v${escapeHtml(pkg.version)}</h3>
                 ${htmlContent}
             </div>
         `;
