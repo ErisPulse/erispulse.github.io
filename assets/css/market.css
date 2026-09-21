@@ -71,13 +71,12 @@
 .search-input {
     width: 100%;
     padding: 0.9rem 1.2rem 0.9rem 3.5rem;
-    border-radius: 50px;
+    border-radius: 12px;
     border: 1px solid var(--border);
     background: var(--card-bg);
     color: var(--text);
     font-size: 1rem;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: var(--shadow-sm);
 }
 
 .search-input:focus {
@@ -135,8 +134,7 @@
     text-align: center;
     padding: 1.8rem;
     transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border-radius: 22px;
-    box-shadow: var(--shadow-card);
+    border-radius: 16px;
     border: 1px solid var(--border);
     position: relative;
     overflow: hidden;
@@ -197,39 +195,76 @@
 }
 
 
-/* ==================== 分类按钮 ==================== */
-.module-categories {
+/* ==================== 分类工具栏（分段控制器） ==================== */
+.market-toolbar {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
     gap: 0.8rem;
     margin-bottom: 2rem;
 }
 
-.category-btn {
-    padding: 0.6rem 1.3rem;
-    border-radius: 50px;
-    background: var(--card-bg);
+.category-segmented {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.3rem;
+    background: var(--bg);
     border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.category-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.05rem;
+    border-radius: 9px;
+    background: transparent;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    font-size: 0.95rem;
+    transition: all 0.25s cubic-bezier(0.34, 1.22, 0.5, 1);
+    font-size: 0.92rem;
     font-weight: 500;
-    color: var(--text);
+    color: var(--text-secondary);
     letter-spacing: 0.01em;
+    font-family: inherit;
+}
+
+.category-btn i {
+    font-size: 0.82rem;
+    opacity: 0.85;
 }
 
 .category-btn:hover {
-    background: rgba(var(--primary-rgb), 0.04);
-    border-color: rgba(var(--primary-rgb), 0.3);
-    color: var(--primary);
-    transform: translateY(-1px);
+    color: var(--text);
+    background: rgba(var(--primary-rgb), 0.06);
 }
 
 .category-btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.18), 0 0 0 0.5px rgba(var(--primary-rgb), 0.1);
+    background: var(--card-bg);
+    color: var(--primary);
+    border-color: rgba(var(--primary-rgb), 0.25);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.category-count {
+    min-width: 1.5rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 99px;
+    background: rgba(var(--text-secondary-rgb), 0.1);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.45;
+    transition: all 0.25s ease;
+}
+
+.category-btn.active .category-count {
+    background: rgba(var(--primary-rgb), 0.12);
+    color: var(--primary);
 }
 
 /* ==================== 模块网格 ==================== */
@@ -242,9 +277,8 @@
 /* ==================== 模块卡片 ==================== */
 .module-card {
     background: var(--card-bg);
-    border-radius: 22px;
+    border-radius: 16px;
     padding: 1.8rem;
-    box-shadow: var(--shadow-card);
     transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 1px solid var(--border);
     position: relative;
@@ -573,13 +607,28 @@
         font-size: 2rem;
     }
     
-    .module-categories {
-        gap: 0.6rem;
+    .market-toolbar {
+        align-items: stretch;
+        flex-direction: column;
     }
-    
+
+    .category-segmented {
+        width: 100%;
+    }
+
     .category-btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
+        flex: 1;
+        justify-content: center;
+        padding: 0.5rem 0.7rem;
+        font-size: 0.85rem;
+    }
+
+    .category-btn .category-count {
+        display: none;
+    }
+
+    .submit-module-link {
+        justify-content: center;
     }
     
     .module-grid {
@@ -1097,9 +1146,9 @@
 }
 
 .badge-verified {
-    background: rgba(34, 197, 94, 0.1);
-    color: #16a34a;
-    border: 1px solid rgba(34, 197, 94, 0.2);
+    background: var(--chip-tl-bg);
+    color: var(--chip-tl-c);
+    border: 1px solid var(--chip-tl-bd);
 }
 
 .badge-pending {
@@ -1109,7 +1158,9 @@
 }
 
 [data-theme="dark"] .badge-verified {
-    color: #4ade80;
+    background: var(--chip-tl-bg);
+    color: var(--chip-tl-c);
+    border-color: var(--chip-tl-bd);
 }
 
 [data-theme="dark"] .badge-pending {
@@ -1159,16 +1210,41 @@
 }
 
 /* ==================== 市场筛选面板 ==================== */
+
+/* 语义芯片配色（浅底 + 深字 + 同色边框，对齐 Dashboard 芯片体系） */
+:root {
+    --chip-ok-bg: #E9F8EF;
+    --chip-ok-c: #178A52;
+    --chip-ok-bd: #BCE8CD;
+    --chip-wr-bg: #FDF3E7;
+    --chip-wr-c: #B26A00;
+    --chip-wr-bd: #F5DEB8;
+    --chip-tl-bg: #E6F6F6;
+    --chip-tl-c: #0F8F8F;
+    --chip-tl-bd: #BFE5E5;
+}
+
+[data-theme="dark"] {
+    --chip-ok-bg: rgba(78, 203, 129, 0.12);
+    --chip-ok-c: #4ECB81;
+    --chip-ok-bd: rgba(78, 203, 129, 0.28);
+    --chip-wr-bg: rgba(240, 163, 94, 0.12);
+    --chip-wr-c: #F0A35E;
+    --chip-wr-bd: rgba(240, 163, 94, 0.28);
+    --chip-tl-bg: rgba(69, 196, 196, 0.12);
+    --chip-tl-c: #45C4C4;
+    --chip-tl-bd: rgba(69, 196, 196, 0.28);
+}
+
 .market-filters {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
-    padding: 1.1rem 1.25rem;
+    gap: 0.9rem;
+    padding: 1.15rem 1.3rem;
     margin-bottom: 1.25rem;
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
 }
 
 .filter-row {
@@ -1178,12 +1254,20 @@
     gap: 0.6rem;
 }
 
+.filter-row + .filter-row {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+}
+
 .filter-label {
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     font-weight: 600;
     color: var(--text-secondary);
-    letter-spacing: 0.02em;
+    opacity: 0.85;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     flex-shrink: 0;
+    min-width: 4.5rem;
 }
 
 .filter-chips {
@@ -1192,11 +1276,28 @@
     gap: 0.45rem;
 }
 
+/* 右对齐工具簇：SDK 版本 / 排序 / 清除筛选，与快速筛选同行，避免大片空白 */
+.filter-tools {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.filter-label-inline {
+    min-width: 0;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 0.78rem;
+    opacity: 0.75;
+}
+
 .filter-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.35rem 0.85rem;
+    padding: 0.38rem 0.9rem;
     font-size: 0.82rem;
     font-weight: 500;
     font-family: inherit;
@@ -1210,14 +1311,36 @@
 
 .filter-chip:hover {
     color: var(--text);
-    border-color: rgba(var(--primary-rgb), 0.3);
+    border-color: rgba(var(--primary-rgb), 0.35);
+    background: rgba(var(--primary-rgb), 0.04);
 }
 
 .filter-chip.active {
-    color: var(--primary);
-    background: rgba(var(--primary-rgb), 0.08);
-    border-color: rgba(var(--primary-rgb), 0.35);
     font-weight: 600;
+}
+
+.filter-chip.active[data-flag="featured"] {
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.1);
+    border-color: rgba(var(--primary-rgb), 0.35);
+}
+
+.filter-chip.active[data-flag="official"] {
+    color: var(--chip-ok-c);
+    background: var(--chip-ok-bg);
+    border-color: var(--chip-ok-bd);
+}
+
+.filter-chip.active[data-flag="verified"] {
+    color: var(--chip-tl-c);
+    background: var(--chip-tl-bg);
+    border-color: var(--chip-tl-bd);
+}
+
+.filter-chip.active[data-flag="unverified"] {
+    color: var(--chip-wr-c);
+    background: var(--chip-wr-bg);
+    border-color: var(--chip-wr-bd);
 }
 
 .filter-chip i {
@@ -1275,11 +1398,16 @@
 
 .filter-tag-count {
     font-size: 0.68rem;
-    opacity: 0.65;
+    font-weight: 600;
+    padding: 0.02rem 0.38rem;
+    border-radius: 99px;
+    background: rgba(var(--text-secondary-rgb), 0.12);
+    line-height: 1.5;
+    transition: all 0.2s ease;
 }
 
 .filter-tag.active .filter-tag-count {
-    opacity: 0.85;
+    background: rgba(255, 255, 255, 0.22);
 }
 
 .filter-tag-more {
@@ -1313,13 +1441,13 @@
 
 /* 下拉与重置 */
 .filter-select {
-    padding: 0.4rem 0.75rem;
+    padding: 0.42rem 0.75rem;
     font-size: 0.82rem;
     font-family: inherit;
     color: var(--text);
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.22s ease;
     max-width: 11rem;
@@ -1427,6 +1555,15 @@
         width: 100%;
     }
 
+    .filter-label-inline {
+        width: auto;
+    }
+
+    .filter-tools {
+        margin-left: 0;
+        width: 100%;
+    }
+
     .filter-select {
         flex: 1;
         max-width: none;
@@ -1434,7 +1571,7 @@
 
     .filter-reset {
         margin-left: 0;
-        width: 100%;
+        flex: 1;
         justify-content: center;
     }
 

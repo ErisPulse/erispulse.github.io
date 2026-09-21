@@ -221,6 +221,9 @@ export function initInstallOverlay() {
     var codeText = document.getElementById('install-code-text');
     var codePrefix = document.getElementById('install-code-prefix');
     var tabs = overlay ? overlay.querySelectorAll('.install-tab') : [];
+    var codeBlock = document.getElementById('install-code-block');
+    var androidBlock = document.getElementById('install-android-block');
+    var hint = document.getElementById('install-hint');
 
     if (!overlay || !installBtn) return;
 
@@ -230,7 +233,12 @@ export function initInstallOverlay() {
     };
 
     function updateCommand(platform) {
-        if (!codeText || !codePrefix) return;
+        var isAndroid = platform === 'android';
+        // Android 走启动器下载而非命令行
+        if (codeBlock) codeBlock.classList.toggle('is-hidden', isAndroid);
+        if (androidBlock) androidBlock.classList.toggle('is-hidden', !isAndroid);
+        if (hint) hint.classList.toggle('is-hidden', isAndroid);
+        if (isAndroid || !codeText || !codePrefix) return;
         codeText.textContent = commands[platform]();
         codeText.title = commands[platform]();
         codePrefix.textContent = platform === 'windows' ? 'PS>' : '$';
@@ -267,8 +275,16 @@ export function initInstallOverlay() {
         });
     });
 
-    var isWin = navigator.platform && navigator.platform.indexOf('Win') !== -1;
-    if (isWin) {
+    var isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+        || (navigator.userAgentData && navigator.userAgentData.mobile);
+    var isWin = !isMobileUA && navigator.platform && navigator.platform.indexOf('Win') !== -1;
+    if (isMobileUA) {
+        // 移动设备默认展示启动器下载
+        tabs[0].classList.remove('active');
+        var androidTab = overlay.querySelector('.install-tab[data-platform="android"]');
+        if (androidTab) androidTab.classList.add('active');
+        updateCommand('android');
+    } else if (isWin) {
         updateCommand('windows');
     } else {
         tabs[0].classList.remove('active');

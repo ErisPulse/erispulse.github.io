@@ -260,6 +260,10 @@ export function updateStats() {
     setText('total-modules', modules.length);
     setText('adapter-count', adapters.length);
     setText('cli-count', cliExtensions.length);
+    // 分段控制器各分类的计数徽标
+    setText('category-count-all', modules.length + adapters.length + cliExtensions.length);
+    setText('category-count-modules', modules.length);
+    setText('category-count-adapters', adapters.length);
     setText('contributors-count', '--');
 
     // cli_extensions 为预留分类，为空时不展示对应的标签页与统计卡

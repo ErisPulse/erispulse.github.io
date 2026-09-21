@@ -151,8 +151,11 @@ function _doLanguageSwitch(lang) {
                     <h1>${I18n.t('docs.welcome')}</h1>
                     <p>${I18n.t('docs.welcome.desc')}</p>
                     <p>${I18n.t('docs.welcome.hint')}</p>
+                    ${docsGuideCardsHtml()}
                 </div>
             `;
+            // 引导卡文案带 data-i18n 属性，注入后统一翻译
+            I18n.applyTranslations();
         }
     }
 
@@ -166,6 +169,29 @@ function _doLanguageSwitch(lang) {
     resetBanner();
 
     showMessage(I18n.t('common.langSwitched', { name: I18n.getLanguageName(lang) }), 'success');
+}
+
+/**
+ * 文档欢迎页的「你想做什么」引导卡（紧凑版，与首页引导区共用 guide.* 文案）
+ */
+function docsGuideCardsHtml() {
+    const cards = [
+        { icon: 'fa-rocket', href: '#docs/quick-start.md', key: 'quickstart' },
+        { icon: 'fa-robot', href: '#docs/getting-started/first-bot.md', key: 'firstbot' },
+        { icon: 'fa-puzzle-piece', href: '#docs/developer-guide/modules/getting-started.md', key: 'module' },
+        { icon: 'fa-plug', href: '#docs/platform-guide/README.md', key: 'platform' },
+        { icon: 'fa-wand-magic-sparkles', href: '#docs/ai-support/README.md', key: 'ai' },
+        { icon: 'fa-mobile-screen', href: '#docs/ecosystem/app.md', key: 'app' }
+    ];
+    return `<div class="docs-guide-grid">${cards.map(c => `
+        <a href="${c.href}" class="guide-card">
+            <div class="guide-card-icon"><i class="fas ${c.icon}"></i></div>
+            <div class="guide-card-body">
+                <h3 class="guide-card-title" data-i18n="guide.${c.key}.title">${I18n.t('guide.' + c.key + '.title')}</h3>
+                <p class="guide-card-desc" data-i18n="guide.${c.key}.desc">${I18n.t('guide.' + c.key + '.desc')}</p>
+            </div>
+            <i class="fas fa-arrow-right guide-card-arrow"></i>
+        </a>`).join('')}</div>`;
 }
 
 // ==================== 文档版本更新检测 ====================

@@ -42,6 +42,24 @@ export const I18n = (function () {
       "hero.docs": "文档中心",
       "hero.browse": "模块市场",
 
+      // 首页引导区（你想做什么）
+      "guide.hint": "从这里开始",
+      "guide.title": "你想做什么？",
+      "guide.subtitle": "选择你的目标，直达对应的文档",
+      "guide.quickstart.title": "快速上手",
+      "guide.quickstart.desc": "5 分钟安装并跑起你的第一个机器人",
+      "guide.firstbot.title": "创建第一个机器人",
+      "guide.firstbot.desc": "从零搭建你的 Bot，理解事件与模块",
+      "guide.module.title": "开发功能模块",
+      "guide.module.desc": "把想法做成可分发、可热加载的模块",
+      "guide.platform.title": "接入消息平台",
+      "guide.platform.desc": "云湖 / Telegram / QQ 等平台的接入指南",
+      "guide.ai.title": "AI 辅助开发",
+      "guide.ai.desc": "把开发物料投喂给 AI，直接生成可用模块",
+      "guide.app.title": "在手机上运行",
+      "guide.app.desc": "免 root、免电脑，一个 App 管理多个实例",
+
+
       // 首页特性区
       "features.title": "核心特性",
       "features.eventdriven.code":
@@ -422,6 +440,8 @@ export const I18n = (function () {
       "install.title": "一键安装",
       "install.desc": "自动检测环境，引导选择最适合的安装方式",
       "install.hint": "支持 Docker、Python、uv 等多种安装方式",
+      "install.android.download": "下载 Android 启动器",
+      "install.android.note": "ErisPulse App 启动器：免 root、免 Termux，自带完整运行时，手机上直接跑机器人",
       "install.copied": "已复制!",
       "install.winCmd":
         "irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1",
@@ -443,6 +463,24 @@ export const I18n = (function () {
       "hero.start": "Get Started",
       "hero.docs": "Docs",
       "hero.browse": "Market",
+
+      // Getting-started guide (homepage)
+      "guide.hint": "Start Here",
+      "guide.title": "What do you want to do?",
+      "guide.subtitle": "Pick your goal and jump straight to the right docs",
+      "guide.quickstart.title": "Quick Start",
+      "guide.quickstart.desc": "Install and get your first bot running in 5 minutes",
+      "guide.firstbot.title": "Create Your First Bot",
+      "guide.firstbot.desc": "Build your bot from scratch and learn events & modules",
+      "guide.module.title": "Build a Module",
+      "guide.module.desc": "Turn your idea into a distributable, hot-loadable module",
+      "guide.platform.title": "Connect a Platform",
+      "guide.platform.desc": "Guides for Yunhu, Telegram, QQ and more",
+      "guide.ai.title": "AI-Assisted Development",
+      "guide.ai.desc": "Feed ErisPulse docs to AI and get working modules",
+      "guide.app.title": "Run on Your Phone",
+      "guide.app.desc": "No root, no PC — manage multiple instances from one app",
+
 
       // 首页特性区
       "features.title": "Core Features",
@@ -834,6 +872,8 @@ export const I18n = (function () {
       "install.desc":
         "Auto-detect your environment and guide you to the best install method",
       "install.hint": "Supports Docker, Python, uv and more",
+      "install.android.download": "Get the Android Launcher",
+      "install.android.note": "ErisPulse App launcher: no root, no Termux, complete runtime bundled — run your bot right on the phone",
       "install.copied": "Copied!",
       "install.winCmd":
         "irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1",
@@ -855,6 +895,24 @@ export const I18n = (function () {
       "hero.start": "開始使用",
       "hero.docs": "文檔中心",
       "hero.browse": "模組市場",
+
+      // 首頁引導區（你想做什麼）
+      "guide.hint": "從這裡開始",
+      "guide.title": "你想做什麼？",
+      "guide.subtitle": "選擇你的目標，直達對應的文件",
+      "guide.quickstart.title": "快速上手",
+      "guide.quickstart.desc": "5 分鐘安裝並跑起你的第一個機器人",
+      "guide.firstbot.title": "建立第一個機器人",
+      "guide.firstbot.desc": "從零搭建你的 Bot，理解事件與模組",
+      "guide.module.title": "開發功能模組",
+      "guide.module.desc": "把想法做成可分發、可熱載入的模組",
+      "guide.platform.title": "接入訊息平台",
+      "guide.platform.desc": "雲湖 / Telegram / QQ 等平台的接入指南",
+      "guide.ai.title": "AI 輔助開發",
+      "guide.ai.desc": "把開發物料餵給 AI，直接生成可用模組",
+      "guide.app.title": "在手機上執行",
+      "guide.app.desc": "免 root、免電腦，一個 App 管理多個實例",
+
 
       // 首页特性区
       "features.title": "核心特性",
@@ -1227,6 +1285,8 @@ export const I18n = (function () {
       "install.title": "一鍵安裝",
       "install.desc": "自動偵測環境，引導選擇最適合的安裝方式",
       "install.hint": "支援 Docker、Python、uv 等多種安裝方式",
+      "install.android.download": "下載 Android 啟動器",
+      "install.android.note": "ErisPulse App 啟動器：免 root、免 Termux，自帶完整執行環境，手機上直接跑機器人",
       "install.copied": "已複製!",
       "install.winCmd":
         "irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1",
@@ -1247,6 +1307,24 @@ export const I18n = (function () {
       "hero.start": "始めましょう",
       "hero.docs": "ドキュメント",
       "hero.browse": "マーケット",
+
+      // ホーム・ガイドエリア（何をしたいですか）
+      "guide.hint": "ここから始める",
+      "guide.title": "何をしたいですか？",
+      "guide.subtitle": "目的を選んで、対応するドキュメントへすぐ移動",
+      "guide.quickstart.title": "クイックスタート",
+      "guide.quickstart.desc": "5 分でインストールして最初のボットを動かす",
+      "guide.firstbot.title": "最初のボットを作る",
+      "guide.firstbot.desc": "ゼロから Bot を構築し、イベントとモジュールを理解",
+      "guide.module.title": "機能モジュールを開発",
+      "guide.module.desc": "アイデアを配布可能なホットロード対応モジュールに",
+      "guide.platform.title": "メッセージプラットフォームに接続",
+      "guide.platform.desc": "雲湖 / Telegram / QQ などの接続ガイド",
+      "guide.ai.title": "AI 支援開発",
+      "guide.ai.desc": "開発資料を AI に与えて、そのまま使えるモジュールを生成",
+      "guide.app.title": "スマホで実行",
+      "guide.app.desc": "root 不要・PC 不要、1 つのアプリで複数インスタンスを管理",
+
 
       "features.title": "コア機能",
       "features.eventdriven.code":
@@ -1631,6 +1709,8 @@ export const I18n = (function () {
       "install.title": "クイックインストール",
       "install.desc": "環境を自動検出し、最適なインストール方法をご案内します",
       "install.hint": "Docker、Python、uv など多数のインストール方法をサポート",
+      "install.android.download": "Android ランチャーを入手",
+      "install.android.note": "ErisPulse App ランチャー：root 不要・Termux 不要、完全なランタイム同梱でスマホから直接ボットを動かせます",
       "install.copied": "コピーしました！",
       "install.winCmd":
         "irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1",
@@ -1651,6 +1731,24 @@ export const I18n = (function () {
       "hero.start": "Начать",
       "hero.docs": "Документация",
       "hero.browse": "Маркет",
+
+      // Гид на главной (с чего начать)
+      "guide.hint": "Начните здесь",
+      "guide.title": "Что вы хотите сделать?",
+      "guide.subtitle": "Выберите цель — и сразу переходите к нужной документации",
+      "guide.quickstart.title": "Быстрый старт",
+      "guide.quickstart.desc": "Установка и первый бот за 5 минут",
+      "guide.firstbot.title": "Создайте первого бота",
+      "guide.firstbot.desc": "Соберите бота с нуля, разберитесь в событиях и модулях",
+      "guide.module.title": "Разработка модулей",
+      "guide.module.desc": "Превратите идею в распространяемый модуль с горячей загрузкой",
+      "guide.platform.title": "Подключение платформ",
+      "guide.platform.desc": "Руководства по Yunhu, Telegram, QQ и другим платформам",
+      "guide.ai.title": "Разработка с ИИ",
+      "guide.ai.desc": "Скармливайте материалы ИИ — получайте готовые модули",
+      "guide.app.title": "Запуск на телефоне",
+      "guide.app.desc": "Без root и ПК — одно приложение для нескольких инстансов",
+
 
       "features.title": "Ключевые возможности",
       "features.eventdriven.code":
@@ -2035,6 +2133,9 @@ export const I18n = (function () {
         "Автоматическое определение среды и выбор лучшего способа установки",
       "install.hint":
         "Поддержка Docker, Python, uv и других способов установки",
+      "install.android.download": "Скачать Android-лаунчер",
+      "install.android.note":
+        "Лаунчер ErisPulse App: без root и Termux, полноценный runtime на борту — запускайте бота прямо на телефоне",
       "install.copied": "Скопировано!",
       "install.winCmd":
         "irm https://get.erisdev.com/install.ps1 -OutFile install.ps1; powershell -ExecutionPolicy Bypass -File install.ps1",
