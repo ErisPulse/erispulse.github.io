@@ -7,10 +7,12 @@ import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
 import { showMessage } from '../core/notify.js';
 import { state } from '../core/state.js';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js';
 
 export const SubmitModuleManager = (function () {
     const STORAGE_KEY = 'erispulse-oauth-auth';
     let authState = null;
+    let pendingMinSdk = null;    // 需要强制选中的最低 SDK 版本（编辑时置入，渲染后清空）
 
     function init() {
         loadAuthState();
@@ -150,13 +152,23 @@ export const SubmitModuleManager = (function () {
         }
         if (anotherBtn) {
             anotherBtn.addEventListener('click', function () {
-                showFormState();
                 document.getElementById('submit-module-form').reset();
+                pendingMinSdk = '';
+                showFormState();
             });
         }
         if (retryBtn) {
             retryBtn.addEventListener('click', function () {
                 showFormState();
+            });
+        }
+
+        // 常用标签建议：点击追加到输入框（标签本身不限制输入内容）
+        var suggestions = document.getElementById('submit-tag-suggestions');
+        if (suggestions) {
+            suggestions.addEventListener('click', function (e) {
+                var chip = e.target.closest('[data-suggest-tag]');
+                if (chip) appendSuggestedTag(chip.getAttribute('data-suggest-tag'));
             });
         }
     }
@@ -166,6 +178,110 @@ export const SubmitModuleManager = (function () {
         if (form) {
             form.addEventListener('submit', handleSubmit);
         }
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+        });
+    }
+
+    /**
+     * 分类下拉：后端只存编号，选项文字按当前语言渲染
+     * （带 data-i18n，切换语言时由 applyTranslations 就地更新）
+     */
+    function renderCategoryOptions() {
+        var select = document.getElementById('submit-category');
+        if (!select) return;
+
+        var current = select.value;
+        var options = ['<option value="" disabled data-i18n="submit.categoryPlaceholder">' +
+            escapeHtml(I18n.t('submit.categoryPlaceholder')) + '</option>'];
+
+        CONFIG.MODULE_CATEGORIES.forEach(function (item) {
+            var key = 'category.' + item.key;
+            options.push('<option value="' + item.id + '" data-i18n="' + key + '">' +
+                escapeHtml(I18n.t(key)) + '</option>');
+        });
+
+        select.innerHTML = options.join('');
+        select.value = current || '';
+    }
+
+    /**
+     * 最低 SDK 版本下拉：候选是 PyPI 上 SDK 的实时版本（不预设版本表）
+     * 编辑既有模块时原值可能不在列表里（如带 >= 约束或已被撤下的版本），
+     * 单独补一个选项保留，避免保存时静默改掉用户原来填的值
+     */
+    function renderMinSdkOptions() {
+        var select = document.getElementById('submit-min-sdk');
+        if (!select) return;
+
+        var versions = getCachedSdkVersions();
+        // 编辑时由 pendingMinSdk 指定目标值，其余情况沿用用户当前选择
+        var desired = pendingMinSdk !== null ? pendingMinSdk : select.value;
+        var options = ['<option value="" data-i18n="submit.minSdkVersionAny">' +
+            escapeHtml(I18n.t('submit.minSdkVersionAny')) + '</option>'];
+
+        versions.forEach(function (version) {
+            options.push('<option value="' + escapeHtml(version) + '">' + escapeHtml(version) + '</option>');
+        });
+
+        if (desired && versions.indexOf(desired) === -1) {
+            options.push('<option value="' + escapeHtml(desired) + '">' + escapeHtml(desired) + '</option>');
+        }
+
+        select.innerHTML = options.join('');
+        select.value = desired || '';
+        pendingMinSdk = null;
+    }
+
+    /**
+     * 先用已缓存的版本渲染，取到 PyPI 实时版本后再补全选项
+     */
+    async function loadMinSdkOptions() {
+        renderMinSdkOptions();
+        await fetchSdkVersions();
+        renderMinSdkOptions();
+    }
+
+    /**
+     * 常用标签建议：取自索引里已有的标签，点击追加到输入框
+     * 仅作建议，不限制用户自行填写任何标签（中英文均可）
+     */
+    function renderTagSuggestions() {
+        var box = document.getElementById('submit-tag-suggestions');
+        if (!box) return;
+
+        var counter = new Map();
+        (state.allModules || []).concat(state.allAdapters || []).forEach(function (pkg) {
+            (pkg.tags || []).forEach(function (tag) {
+                counter.set(tag, (counter.get(tag) || 0) + 1);
+            });
+        });
+
+        var tags = Array.from(counter.entries())
+            .sort(function (a, b) { return b[1] - a[1] || a[0].localeCompare(b[0]); })
+            .slice(0, 12)
+            .map(function (entry) { return entry[0]; });
+
+        box.innerHTML = tags.length === 0 ? '' : '<span class="form-tag-suggestions-label">' +
+            escapeHtml(I18n.t('submit.tagsCommon')) + '</span>' +
+            tags.map(function (tag) {
+                return '<button type="button" class="filter-tag" data-suggest-tag="' + escapeHtml(tag) + '">' +
+                    escapeHtml(tag) + '</button>';
+            }).join('');
+    }
+
+    function appendSuggestedTag(tag) {
+        var input = document.getElementById('submit-tags');
+        if (!input || !tag) return;
+
+        var current = input.value.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+        if (current.indexOf(tag) !== -1) return;
+
+        current.push(tag);
+        input.value = current.join(', ');
     }
 
     function startOAuthLogin(provider) {
@@ -223,6 +339,10 @@ export const SubmitModuleManager = (function () {
         document.getElementById('submit-error-state').style.display = 'none';
 
         I18n.applyTranslations();
+        renderCategoryOptions();
+        renderTagSuggestions();
+        // 最低 SDK 版本选项来自 PyPI 实时版本：先渲染已知值，取到后再补全
+        loadMinSdkOptions();
 
         if (authState && authState.user) {
             var avatarEl = document.getElementById('submit-user-avatar');
@@ -268,6 +388,9 @@ export const SubmitModuleManager = (function () {
             author: document.getElementById('submit-author').value.trim(),
             repository: document.getElementById('submit-repository').value.trim(),
             min_sdk_version: document.getElementById('submit-min-sdk').value.trim(),
+            // 分类：受控字段（编号）；未选择时由表单必填校验拦下
+            category: Number(document.getElementById('submit-category').value) || 0,
+            // 标签：自由文本，前端不做任何内容限制
             tags: document.getElementById('submit-tags').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean),
             access_token: authState ? authState.accessToken : '',
             oauth_provider: authState ? authState.provider || '' : ''
@@ -333,6 +456,7 @@ export const SubmitModuleManager = (function () {
                             author: formData.author,
                             repository: formData.repository,
                             min_sdk_version: formData.min_sdk_version,
+                            category: formData.category,
                             tags: formData.tags,
                         }
                     })
@@ -455,7 +579,10 @@ export const SubmitModuleManager = (function () {
         document.getElementById('submit-description').value = mod.description || '';
         document.getElementById('submit-author').value = mod.author || '';
         document.getElementById('submit-repository').value = mod.repository || '';
-        document.getElementById('submit-min-sdk').value = mod.min_sdk_version || '';
+        // 最低 SDK 版本：下拉选项来自 PyPI 实时版本，先记录待选中值再渲染
+        pendingMinSdk = mod.min_sdk_version || '';
+        loadMinSdkOptions();
+        document.getElementById('submit-category').value = mod.category ? String(mod.category) : '';
         document.getElementById('submit-tags').value = (mod.tags || []).join(',');
 
         var submitBtn = document.getElementById('submit-confirm-btn');

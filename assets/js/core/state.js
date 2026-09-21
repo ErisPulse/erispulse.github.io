@@ -15,6 +15,7 @@ export const state = {
     // 模块市场数据（marketplace 渲染 + submit 去重校验共享）
     allModules: [],
     allAdapters: [],
+    allCliExtensions: [],
     // 文档版本更新提示节流（nav 在线恢复时重置，docs 后台检查时置位）
     versionNotified: false,
 };

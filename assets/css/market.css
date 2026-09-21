@@ -312,12 +312,13 @@
     font-weight: 500;
 }
 
-/* 模块描述 */
+/* 模块描述：固定 3 行高度，短描述也占满，保证卡片等高 */
 .module-desc {
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
     line-height: 1.6;
     font-size: 0.95rem;
+    min-height: calc(1.6em * 3);
     flex-grow: 1;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -325,23 +326,40 @@
     overflow: hidden;
 }
 
-/* 模块标签 */
+/* 模块标签：固定单行高度（卡片等高）
+   卡片只展示一行概览，超出的标签折叠成「+N」按钮，点开弹出悬浮面板查看全部；
+   标签列表用 overflow 裁切，「+N」不参与收缩，保证任何标签宽度下都可见 */
 .module-tags {
+    /* 单枚标签的实际高度：字号 × 行高 + 上下内边距 + 上下边框 */
+    --tag-chip-height: calc(0.75rem * 1.4 + 0.6rem + 2px);
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
+    height: var(--tag-chip-height);
     margin-bottom: 1.5rem;
     flex-shrink: 0;
 }
 
+.module-tags-list {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
 .module-tag {
+    flex: 0 0 auto;
     font-size: 0.75rem;
+    line-height: 1.4;
     padding: 0.3rem 0.8rem;
     border-radius: 50px;
     background: rgba(var(--primary-rgb), 0.06);
     color: var(--primary);
     font-weight: 500;
     border: 1px solid rgba(var(--primary-rgb), 0.08);
+    white-space: nowrap;
     transition: all 0.25s ease;
 }
 
@@ -349,6 +367,57 @@
     background: rgba(var(--primary-rgb), 0.1);
     border-color: rgba(var(--primary-rgb), 0.15);
     transform: translateY(-1px);
+}
+
+/* 「+N」按钮：点开悬浮面板查看全部标签 */
+.module-tag-more {
+    font-family: inherit;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    border-style: dashed;
+    border-color: var(--border);
+}
+
+.module-tag-more:hover,
+.module-tag-more.is-active {
+    background: rgba(var(--primary-rgb), 0.08);
+    color: var(--primary);
+    border-color: rgba(var(--primary-rgb), 0.35);
+    transform: none;
+}
+
+/* 标签悬浮面板：卡片只放一行，完整标签在这里查看 */
+.tag-popover {
+    position: fixed;
+    z-index: 900;
+    max-width: 320px;
+    padding: 0.85rem 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    animation: tagPopoverIn 0.16s ease;
+}
+
+@keyframes tagPopoverIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tag-popover-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+}
+
+.tag-popover-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    max-height: 12rem;
+    overflow-y: auto;
 }
 
 /* 模块底部 */
@@ -601,6 +670,19 @@
     background: rgba(245, 158, 11, 0.1);
     color: #d97706;
     border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* 分类徽章：中性色，与推荐（主题色）、官方（绿）、未验证（橙）区分 */
+.badge-category {
+    background: rgba(100, 116, 139, 0.1);
+    color: #475569;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+[data-theme="dark"] .badge-category {
+    background: rgba(148, 163, 184, 0.14);
+    color: #cbd5e1;
+    border-color: rgba(148, 163, 184, 0.24);
 }
 
 [data-theme="dark"] .badge-official {
@@ -1068,5 +1150,295 @@
     .my-module-actions {
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+/* ==================== 通用工具类 ==================== */
+.is-hidden {
+    display: none !important;
+}
+
+/* ==================== 市场筛选面板 ==================== */
+.market-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.filter-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+}
+
+.filter-chip:hover {
+    color: var(--text);
+    border-color: rgba(var(--primary-rgb), 0.3);
+}
+
+.filter-chip.active {
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.08);
+    border-color: rgba(var(--primary-rgb), 0.35);
+    font-weight: 600;
+}
+
+.filter-chip i {
+    font-size: 0.75rem;
+}
+
+/* 标签云 */
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    flex: 1;
+    min-width: 0;
+    max-height: 9rem;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+}
+
+.filter-tags::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-tags::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+.filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.78rem;
+    font-family: inherit;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: rgba(var(--primary-rgb), 0.04);
+    border: 1px solid transparent;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-tag:hover {
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.09);
+}
+
+.filter-tag.active {
+    color: #fff;
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.filter-tag-count {
+    font-size: 0.68rem;
+    opacity: 0.65;
+}
+
+.filter-tag.active .filter-tag-count {
+    opacity: 0.85;
+}
+
+.filter-tag-more {
+    color: var(--primary);
+    background: transparent;
+    border: 1px dashed rgba(var(--primary-rgb), 0.35);
+}
+
+/* 提交表单的常用标签建议：点击追加到输入框，不限制用户自行填写 */
+.form-tag-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+}
+
+.form-tag-suggestions:empty {
+    display: none;
+}
+
+.form-tag-suggestions .filter-tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+}
+
+.form-tag-suggestions-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* 下拉与重置 */
+.filter-select {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    max-width: 11rem;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: rgba(var(--primary-rgb), 0.5);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.06);
+}
+
+.filter-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+    font-family: inherit;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+}
+
+.filter-reset:hover {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.06);
+}
+
+/* 结果计数 */
+.filter-summary {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.empty-state-action {
+    margin: 1.25rem auto 0;
+}
+
+/* ==================== 卡片补充信息 ==================== */
+.module-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.module-footer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.module-sdk {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.85;
+}
+
+.module-sdk i {
+    font-size: 0.7rem;
+    margin-right: 0.15rem;
+}
+
+/* 推荐位：使用主题色，与官方（绿）、未验证（橙）区分 */
+.badge-featured {
+    background: rgba(var(--primary-rgb), 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(var(--primary-rgb), 0.25);
+}
+
+.module-card.is-featured {
+    position: relative;
+    overflow: hidden;
+    border-color: rgba(var(--primary-rgb), 0.28);
+}
+
+.module-card.is-featured::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.7), rgba(var(--primary-rgb), 0.15));
+}
+
+/* ==================== 筛选面板响应式 ==================== */
+@media (max-width: 768px) {
+    .market-filters {
+        padding: 1rem;
+    }
+
+    .filter-row {
+        align-items: flex-start;
+    }
+
+    .filter-label {
+        width: 100%;
+    }
+
+    .filter-select {
+        flex: 1;
+        max-width: none;
+    }
+
+    .filter-reset {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .filter-tags {
+        max-height: 12rem;
     }
 }

@@ -148,6 +148,24 @@ export const CONFIG = {
     docsLocalized: {},
   },
 
+  // 模块分类：后端（packages.json）只存编号，展示名按当前语言取
+  // i18n 的 category.<key>（见 assets/js/i18n.js）。
+  // 编号是前后端契约，增删分类需同时迁移索引文件中已有的取值，
+  // 并同步 packages_lib.py 的 CATEGORY_TAXONOMY 与 Worker 的白名单。
+  MODULE_CATEGORIES: [
+    { id: 1, key: "tool" },
+    { id: 2, key: "fun" },
+    { id: 3, key: "admin" },
+    { id: 4, key: "notify" },
+    { id: 5, key: "ai" },
+    { id: 6, key: "platform" },
+    { id: 7, key: "analytics" },
+  ],
+
+  // SDK 包名：模块市场的版本筛选、提交表单的最低 SDK 版本选项
+  // 都取自这个包在 PyPI 上的实时发布版本（不预设版本列表）
+  SDK_PACKAGE: "ErisPulse",
+
   // API 端点
   API: {
     contributors:
@@ -159,6 +177,7 @@ export const CONFIG = {
     manageModule: "https://erisdev.com/api/manage-module",
     submitModule: "https://erisdev.com/api/submit-module",
     checkPyPI: "https://erisdev.com/api/check-pypi",
+    pypiVersions: "https://erisdev.com/api/pypi-versions",
   },
 
   OAUTH_PROVIDERS: {

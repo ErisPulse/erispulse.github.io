@@ -9,21 +9,27 @@ const MAX_DAILY_SUBMISSIONS = 3;
 // ── 输入校验常量 ──
 const INJECTION_RE = /[\x00-\x1f<>`\\]/;                         // 阻止注入/HTML：控制字符、尖括号、反引号、反斜杠（描述/作者允许 | & 引号等正常文本）
 const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;               // 安全标识符：字母/数字开头 + 字母/数字/下划线/点/短横（模块/包名）
-const TAG_RE = /^[\p{L}\p{N}][\p{L}\p{N}_.\-]{0,49}$/u;           // 标签：Unicode 字母（含中文）/数字开头 + 字母/数字/下划线/点/短横，≤50
+// 标签：自由文本（不限词表），这里只挡结构性非法输入 ——
+// Unicode 字母（含中文）/数字开头，可含字母/数字/下划线/点/短横/空格，单个 ≤50 字符
+const TAG_RE = /^[\p{L}\p{N}][\p{L}\p{N}_.\- ]{0,49}$/u;
+const TAG_MAX_COUNT = 20;                                          // 标签数量上限（卡片折叠展示，索引也不该被单条目塞满）
 const REPO_URL_RE = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;  // 仓库 URL
 // ErisPulse 版本规则：x.x.x（正式版）或 x.x.x-dev.N / -alpha.N（开发/预发布版）
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-(?:[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?$/;
 // 最低 SDK 版本：可选约束符（>=、<=、==、!=、>、<）+ 合法版本（含开发版）
-const SDK_CONSTRAINT_RE = /^(?:[><=!]{1,2})?\s*\d+\.\d+\.\d+(?:-(?:[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?$/;
+// 预发布段既可能是 `-dev.3`（仓库内写法），也可能是 PyPI 规范化后的 `.dev3`
+// （提交表单直接选 PyPI 上的版本），两种都接受
+const SDK_CONSTRAINT_RE = /^(?:[><=!]{1,2})?\s*\d+\.\d+\.\d+(?:[-+._]?[0-9A-Za-z][0-9A-Za-z.\-]*)?$/;
 
 // ── 校验辅助函数 ──
+// 标签是自由文本：不校验词表，只挡结构性非法输入与数量
 function validateTags(tags) {
-    if (tags.length > 20) {
-        return 'Too many tags. Maximum is 20.';
+    if (tags.length > TAG_MAX_COUNT) {
+        return `Too many tags. Maximum is ${TAG_MAX_COUNT}.`;
     }
     for (const tag of tags) {
         if (!TAG_RE.test(tag)) {
-            return `Invalid tag: "${tag}". Tags may contain letters (incl. Chinese), numbers, hyphens, underscores, and dots (max 50).`;
+            return `Invalid tag: "${tag}". Tags start with a letter or number and may contain letters (incl. Chinese), numbers, spaces, hyphens, underscores, and dots (max 50 chars).`;
         }
     }
     return null;
@@ -39,6 +45,19 @@ function validateVersion(version) {
 function validateMinSdk(minSdk) {
     if (minSdk && !SDK_CONSTRAINT_RE.test(minSdk)) {
         return 'Invalid min_sdk_version format. Expected a version like 2.7.0 or 2.7.0-dev.3, optionally with a constraint like >=2.7.0.';
+    }
+    return null;
+}
+
+// 模块分类：受控字段（编号），与自由标签相反 —— 编号是前后端契约，
+// 前端按当前语言渲染展示名（i18n 的 category.<key>），增删分类需同步
+// packages_lib.py 的 CATEGORY_TAXONOMY 与 assets/js/config.js 的 MODULE_CATEGORIES
+const CATEGORY_IDS = [1, 2, 3, 4, 5, 6, 7];
+
+function validateCategory(value) {
+    const id = Number(value);
+    if (!Number.isInteger(id) || !CATEGORY_IDS.includes(id)) {
+        return `Invalid category: "${value}". Expected one of ${CATEGORY_IDS.join(', ')}.`;
     }
     return null;
 }
@@ -155,6 +174,34 @@ async function checkPyPI(packageName) {
     }
 }
 
+// PyPI 上实际发布的版本串可能带预发布段（如 2.7.0.dev3 / 2.7.0-rc.1 / 2.7.0rc1），
+// 这里比 VERSION_RE 宽松，只挡住明显不是版本号的键
+const PYPI_VERSION_RE = /^\d+(?:\.\d+)+(?:[-+._]?[0-9A-Za-z][0-9A-Za-z.\-]*)?$/;
+
+// 版本列表：市场筛选与提交表单要的是「PyPI 上现在有哪些 SDK 版本」，
+// 直接读 releases，不落 KV —— 边缘缓存 10 分钟足够"实时"，也扛得住刷
+async function fetchPypiVersions(packageName) {
+    try {
+        const response = await fetch(`https://pypi.org/pypi/${encodeURIComponent(packageName)}/json`, {
+            headers: { 'User-Agent': 'ErisPulse-Worker' },
+            cf: { cacheEverything: true, cacheTtl: 600 },
+        });
+        if (!response.ok) {
+            return { exists: false, package: packageName, latest: null, versions: [] };
+        }
+        const data = await response.json();
+        const info = data.info || {};
+        return {
+            exists: true,
+            package: info.name || packageName,
+            latest: info.version || null,
+            versions: Object.keys(data.releases || {}).filter(v => PYPI_VERSION_RE.test(v)),
+        };
+    } catch (e) {
+        return { exists: false, package: packageName, latest: null, versions: [] };
+    }
+}
+
 async function handleRequest(request) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/^\/+/, '/');
@@ -182,6 +229,15 @@ async function handleRequest(request) {
         }
         const result = await checkPyPI(pkg);
         return jsonResponse(result);
+    }
+
+    if (path === '/api/pypi-versions' && request.method === 'GET') {
+        const pkg = url.searchParams.get('package');
+        if (!pkg || !SAFE_NAME_RE.test(pkg)) {
+            return jsonResponse({ error: 'Missing or invalid package parameter' }, 400);
+        }
+        const result = await fetchPypiVersions(pkg);
+        return jsonResponse(result, 200, { 'Cache-Control': 'public, max-age=600' });
     }
 
     if (path === '/api/submit-module' && request.method === 'POST') {
@@ -450,7 +506,7 @@ async function handleSubmitModule(request) {
     try {
         const submission = await request.json();
 
-        const requiredFields = ['type', 'name', 'package', 'description', 'author', 'repository'];
+        const requiredFields = ['type', 'name', 'package', 'description', 'author', 'repository', 'category'];
         for (const field of requiredFields) {
             if (!submission[field]) {
                 return jsonResponse({ error: `Missing required field: ${field}` }, 400);
@@ -512,6 +568,14 @@ async function handleSubmitModule(request) {
             return jsonResponse({ error: minSdkError }, 400);
         }
 
+        // 分类：受控字段（编号），必填 —— 标签自由，但分类必须落在词表内，
+        // 否则前端无法渲染本地化名称
+        const categoryError = validateCategory(submission.category);
+        if (categoryError) {
+            return jsonResponse({ error: categoryError }, 400);
+        }
+        const category = Number(submission.category);
+
         if (!REPO_URL_RE.test(submission.repository)) {
             return jsonResponse({ error: 'Invalid repository URL. Only GitHub and Codeberg URLs are allowed.' }, 400);
         }
@@ -556,6 +620,7 @@ async function handleSubmitModule(request) {
                     author: author,
                     repository: submission.repository,
                     min_sdk_version: minSdk,
+                    category: category,
                     tags: JSON.stringify(tags),
                     submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
                 },
@@ -607,6 +672,7 @@ async function handleMyModules(request) {
                         verified: info.verified || false,
                         official: info.official || false,
                         min_sdk_version: info.min_sdk_version || '',
+                        category: info.category || 0,
                         tags: info.tags || [],
                     });
                 }
@@ -683,6 +749,16 @@ async function handleManageModule(request) {
                 return jsonResponse({ error: minSdkError }, 400);
             }
 
+            // 分类：可选（缺省表示不改动），一旦提供必须是词表内的编号
+            let editCategory = null;
+            if (editData.category !== undefined && editData.category !== null && editData.category !== '') {
+                const categoryError = validateCategory(editData.category);
+                if (categoryError) {
+                    return jsonResponse({ error: categoryError }, 400);
+                }
+                editCategory = Number(editData.category);
+            }
+
             if (editData.repository && !REPO_URL_RE.test(editData.repository)) {
                 return jsonResponse({ error: 'Invalid repository URL in edit data.' }, 400);
             }
@@ -701,7 +777,10 @@ async function handleManageModule(request) {
                         author: editAuthor,
                         repository: editData.repository || '',
                         min_sdk_version: editMinSdk,
-                        tags: JSON.stringify(editTags),
+                        // 标签未提交时不写进 edit_data：仓库侧据此判定「不改动」，
+                        // 避免旧版前端因缺字段而把已有标签清空
+                        ...(editData.tags === undefined ? {} : { tags: JSON.stringify(editTags) }),
+                        category: editCategory,
                         version: pypiResult.exists ? pypiResult.version : (editVersion || '0.0.0'),
                         submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
                     }),
