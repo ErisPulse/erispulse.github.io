@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Discord 平台特性文档 - ErisPulse 文档中心</title>
+    <meta name="description" content="DiscordAdapter 是基于 Discord Gateway (WebSocket) 和 REST API v10 协议构建的适配器，整合了 Discord Bot 的核心功能，提供统一的事件处理和消息操作接口。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/platform-guide/discord.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/platform-guide/discord.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/platform-guide/discord.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/platform-guide/discord.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/platform-guide/discord.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/platform-guide/discord.html" />
+    <meta property="og:title" content="Discord 平台特性文档 - ErisPulse 文档中心" />
+    <meta property="og:description" content="DiscordAdapter 是基于 Discord Gateway (WebSocket) 和 REST API v10 协议构建的适配器，整合了 Discord Bot 的核心功能，提供统一的事件处理和消息操作接口。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/platform-guide/discord.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Discord 平台特性文档","description":"DiscordAdapter 是基于 Discord Gateway (WebSocket) 和 REST API v10 协议构建的适配器，整合了 Discord Bot 的核心功能，提供统一的事件处理和消息操作接口。","url":"https://www.erisdev.com/docs/platform-guide/discord.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 平台特性指南
+        <span class="doc-crumb-sep">/</span> <span>Discord 平台特性文档</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/platform-guide/discord.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/platform-guide/discord.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/platform-guide/discord.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/platform-guide/discord.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/platform-guide/discord.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/platform-guide/discord.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="discord-平台特性文档">Discord 平台特性文档</h1>
+<p>DiscordAdapter 是基于 Discord Gateway (WebSocket) 和 REST API v10 协议构建的适配器，整合了 Discord Bot 的核心功能，提供统一的事件处理和消息操作接口。</p>
+<hr>
+<h2 id="文档信息">文档信息</h2>
+<ul>
+<li>对应模块版本: 4.2.0</li>
+<li>维护者: ErisPulse</li>
+<li>Discord API 版本: v10</li>
+</ul>
+<h2 id="基本信息">基本信息</h2>
+<ul>
+<li>平台简介：Discord 是一款广受欢迎的社区通讯平台，支持服务器、频道、私信等多种会话形式，提供完善的 Bot 开发接口</li>
+<li>适配器名称：DiscordAdapter</li>
+<li>多账户支持：支持同时配置多个 Discord 机器人</li>
+<li>连接方式：Gateway WebSocket（接收事件）+ REST API（发送消息/调用接口）</li>
+<li>认证方式：Bot Token（HTTP 头 <code>Authorization: Bot {token}</code>，Gateway IDENTIFY payload 携带 token）</li>
+<li>链式修饰支持：支持 <code>.Reply()</code>、<code>.At()</code>、<code>.AtAll()</code> 等链式修饰方法</li>
+<li>OneBot12 兼容：支持发送 OneBot12 格式消息</li>
+</ul>
+<h2 id="配置说明">配置说明</h2>
+<p>DiscordAdapter 支持多账户配置，每个账户对应一个独立的 Discord Bot。</p>
+<pre><code class="language-toml"><span class="token comment"># config.toml</span>
+
+<span class="token comment"># 账户1</span>
+<span class="token punctuation">[</span><span class="token table class-name">DiscordAdapter.accounts.default</span><span class="token punctuation">]</span>
+<span class="token key property">token</span> <span class="token punctuation">=</span> <span class="token string">"YOUR_BOT_TOKEN"</span>       <span class="token comment"># Discord Bot Token（必填）</span>
+<span class="token key property">intents</span> <span class="token punctuation">=</span> <span class="token number">33281</span>                 <span class="token comment"># Gateway Intents（可选，默认 33281）</span>
+<span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>                  <span class="token comment"># 是否启用（可选，默认 true）</span>
+
+<span class="token comment"># 账户2</span>
+<span class="token punctuation">[</span><span class="token table class-name">DiscordAdapter.accounts.bot2</span><span class="token punctuation">]</span>
+<span class="token key property">token</span> <span class="token punctuation">=</span> <span class="token string">"ANOTHER_BOT_TOKEN"</span>
+<span class="token key property">intents</span> <span class="token punctuation">=</span> <span class="token number">33281</span>
+<span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+</code></pre>
+<p><strong>配置项说明（每个账户）：</strong></p>
+<ul>
+<li><code>token</code>：Discord Bot Token（必填），从 <a href="https://discord.com/developers/applications">Discord Developer Portal</a> 获取</li>
+<li><code>intents</code>：Gateway Intents 位掩码（可选，默认 <code>33281</code>），决定 Bot 订阅的事件类型</li>
+<li><code>bot_id</code>：Bot 的用户 ID（可选，运行时从 READY 事件自动获取，无需手动填写）</li>
+<li><code>enabled</code>：是否启用该账户（可选，默认 <code>true</code>）</li>
+</ul>
+<h3 id="gateway-intents">Gateway Intents</h3>
+<p>Intents 使用位掩码，计算方式为各 Intent 值按位或（<code>|</code>）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Intent</th>
+<th>位</th>
+<th>值</th>
+<th>说明</th>
+<th>Privileged</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GUILDS</td>
+<td><code>1 &lt;&lt; 0</code></td>
+<td>1</td>
+<td>服务器创建/删除/更新、频道、角色变更</td>
+<td>否</td>
+</tr>
+<tr>
+<td>GUILD_MEMBERS</td>
+<td><code>1 &lt;&lt; 1</code></td>
+<td>2</td>
+<td>成员加入/离开/更新</td>
+<td>是</td>
+</tr>
+<tr>
+<td>GUILD_MESSAGES</td>
+<td><code>1 &lt;&lt; 9</code></td>
+<td>512</td>
+<td>服务器消息收发</td>
+<td>否</td>
+</tr>
+<tr>
+<td>MESSAGE_CONTENT</td>
+<td><code>1 &lt;&lt; 15</code></td>
+<td>32768</td>
+<td>消息内容（无此 Intent 时 content 为空）</td>
+<td>是</td>
+</tr>
+</tbody></table></div>
+<p>默认值 <code>33281</code> = <code>GUILDS(1) | GUILD_MESSAGES(512) | MESSAGE_CONTENT(32768)</code>。</p>
+<blockquote>
+<p><strong>注意</strong>：Privileged Intents 需在 Discord Developer Portal → Bot → Privileged Gateway Intents 中开启。如果 Bot 在超过 100 个服务器中，还需通过 Discord 审核。</p>
+</blockquote>
+<p><strong>API 环境：</strong></p>
+<ul>
+<li>Discord REST API 基础地址：<code>https://discord.com/api/v10</code></li>
+<li>Gateway WebSocket 地址：通过 <code>GET /gateway/bot</code> 动态获取，通常为 <code>wss://gateway.discord.gg/?v=10&amp;encoding=json</code></li>
+</ul>
+<h2 id="v5-范式更新420">v5 范式更新（4.2.0）</h2>
+<p>本适配器已完成 v5 范式对齐（增量升级，API 兼容）：</p>
+<ul>
+<li><strong>BaseConverter 继承</strong>：转换器公共字段由框架 <code>build_base_event</code> 构建</li>
+<li><strong>Api DSL</strong>：标准Api动作映射（见下）</li>
+<li><strong>标准 keyboard 段</strong>：转换为 Discord components（action row + buttons）；.Keyboard(rows) 修饰器接受通用结构</li>
+<li><strong>交互回调标准字段</strong>：INTERACTION_CREATE 事件包含 interaction_id / utton_data</li>
+<li><strong>spawn_background 任务归属</strong>：连接任务改用 
+untime.spawn_background</li>
+<li><strong>框架软依赖</strong>：运行时检测 ErisPulse&gt;=2.7.1 并提示；启动输出版本日志</li>
+</ul>
+<h3 id="标准api动作">标准Api动作</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+discord <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"discord"</span><span class="token punctuation">)</span>
+
+result <span class="token operator">=</span> <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_self_info<span class="token punctuation">(</span><span class="token punctuation">)</span>                <span class="token comment"># GET /users/@me</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_user_info<span class="token punctuation">(</span>user_id<span class="token punctuation">)</span>         <span class="token comment"># GET /users/{id}</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_guild_info<span class="token punctuation">(</span>guild_id<span class="token punctuation">)</span>       <span class="token comment"># GET /guilds/{id}</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_guild_list<span class="token punctuation">(</span><span class="token punctuation">)</span>               <span class="token comment"># GET /users/@me/guilds</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_channel_list<span class="token punctuation">(</span>guild_id<span class="token punctuation">)</span>     <span class="token comment"># GET /guilds/{id}/channels</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_guild_member_info<span class="token punctuation">(</span>gid<span class="token punctuation">,</span> uid<span class="token punctuation">)</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>delete_message<span class="token punctuation">(</span>message_id<span class="token punctuation">)</span>              <span class="token comment"># 登记表自动补全 channel_id</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>leave_guild<span class="token punctuation">(</span>guild_id<span class="token punctuation">)</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"main"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get_self_info<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="按钮keyboard-components">按钮（keyboard / components）</h3>
+<pre><code class="language-python">rows <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"label"</span><span class="token punctuation">:</span> <span class="token string">"点击"</span><span class="token punctuation">,</span> <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"callback"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token string">"btn:1"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+         <span class="token punctuation">{</span><span class="token string">"label"</span><span class="token punctuation">:</span> <span class="token string">"官网"</span><span class="token punctuation">,</span>  <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"link"</span><span class="token punctuation">,</span>     <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com"</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"channel"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Keyboard<span class="token punctuation">(</span>rows<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"请选择"</span><span class="token punctuation">)</span>
+<span class="token comment"># 自动转换为 components: callback → custom_id / link → url</span>
+</code></pre>
+<hr>
+<h2 id="支持的消息发送类型">支持的消息发送类型</h2>
+<p>所有发送方法均通过链式语法实现，例如：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> adapter
+discord <span class="token operator">=</span> adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"discord"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello World!"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>支持的发送类型包括：</p>
+<ul>
+<li><code>.Text(text: str)</code>：发送纯文本消息。</li>
+<li><code>.Embed(embed: dict | list)</code>：发送 Embed 嵌入消息，支持单个或多个 Embed。</li>
+<li><code>.Image(file: bytes | str, filename: str = "image.png")</code>：发送图片，支持二进制数据或 URL。</li>
+<li><code>.File(file: bytes | str, filename: str = None)</code>：发送文件，支持二进制数据或 URL。</li>
+<li><code>.Reply(content: str, message_id: str)</code>：回复指定消息（便捷终端方法）。</li>
+<li><code>.Raw_ob12(message: List[Dict], **kwargs)</code>：发送 OneBot12 格式消息。</li>
+<li><code>.Raw_json(json_str: str)</code>：发送任意 Discord API 请求 JSON。</li>
+</ul>
+<h3 id="链式修饰方法可组合使用">链式修饰方法（可组合使用）</h3>
+<p>链式修饰方法返回 <code>self</code>，支持链式调用，必须在最终发送方法前调用：</p>
+<ul>
+<li><code>.Reply(message_id: str)</code>：回复（引用）指定消息，设置 <code>message_reference</code>。</li>
+<li><code>.At(user_id: str)</code>：@指定用户，转换为 <code>&lt;@user_id&gt;</code>，可多次调用。</li>
+<li><code>.AtAll()</code>：@所有人，转换为 <code>@everyone</code>。</li>
+</ul>
+<h3 id="链式调用示例">链式调用示例</h3>
+<pre><code class="language-python"><span class="token comment"># 基础发送</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 回复消息</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span>msg_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"回复消息"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 便捷回复（一步到位）</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"回复内容"</span><span class="token punctuation">,</span> msg_id<span class="token punctuation">)</span>
+
+<span class="token comment"># @用户</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># @多个用户</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"user1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"user2"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"多用户@"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># @全体</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>AtAll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"公告"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 组合使用</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span>msg_id<span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"复合消息"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Embed 嵌入消息</span>
+embed <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token string">"title"</span><span class="token punctuation">:</span> <span class="token string">"通知"</span><span class="token punctuation">,</span>
+    <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"这是一条嵌入消息"</span><span class="token punctuation">,</span>
+    <span class="token string">"color"</span><span class="token punctuation">:</span> <span class="token number">5814783</span><span class="token punctuation">,</span>
+    <span class="token string">"fields"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"字段"</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">:</span> <span class="token string">"值"</span><span class="token punctuation">,</span> <span class="token string">"inline"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Embed<span class="token punctuation">(</span>embed<span class="token punctuation">)</span>
+
+<span class="token comment"># 发送图片</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"https://example.com/image.png"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="私信发送">私信发送</h3>
+<p>私信发送时，适配器会自动创建 DM 频道：</p>
+<pre><code class="language-python"><span class="token comment"># 发送私信</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"私信内容"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Embed<span class="token punctuation">(</span>embed<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="消息操作">消息操作</h3>
+<pre><code class="language-python"><span class="token comment"># 撤回消息</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Recall<span class="token punctuation">(</span>msg_id<span class="token punctuation">)</span>
+
+<span class="token comment"># OneBot12 格式</span>
+ob12_msg <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello "</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"user_id"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>ob12_msg<span class="token punctuation">)</span>
+</code></pre>
+<h2 id="发送方法返回值">发送方法返回值</h2>
+<p>所有发送方法均返回一个 Task 对象，可以直接 await 获取发送结果。返回结果遵循 ErisPulse 适配器标准化返回规范：</p>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span>           <span class="token operator">//</span> 执行状态<span class="token punctuation">:</span> <span class="token string">"ok"</span> 或 <span class="token string">"failed"</span>
+    <span class="token string">"retcode"</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>             <span class="token operator">//</span> 返回码（<span class="token number">0</span> 为成功）
+    <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>            <span class="token operator">//</span> Discord API 原始响应
+    <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"xxx"</span><span class="token punctuation">,</span>      <span class="token operator">//</span> 消息ID（发送消息时）
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>            <span class="token operator">//</span> 错误信息
+    <span class="token string">"discord_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span>      <span class="token operator">//</span> 原始响应数据
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="错误码说明">错误码说明</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>retcode</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>成功</td>
+</tr>
+<tr>
+<td>33001</td>
+<td>网络错误（连接失败、超时等）</td>
+</tr>
+<tr>
+<td>34000</td>
+<td>Discord API 返回错误（权限不足、参数错误等）</td>
+</tr>
+</tbody></table></div>
+<h2 id="特有事件类型">特有事件类型</h2>
+<p>需要 <code>platform == "discord"</code> 检测再使用本平台特性。</p>
+<h3 id="核心差异点">核心差异点</h3>
+<ol>
+<li><strong>服务器/频道系统</strong>：Discord 使用服务器（Guild）和频道（Channel）两层结构，频道是消息的基本发送目标</li>
+<li><strong>Gateway 事件</strong>：所有事件通过 WebSocket Gateway 接收，使用 Opcode + Dispatch 机制</li>
+<li><strong>Intents 订阅</strong>：通过位掩码订阅事件类型，<code>MESSAGE_CONTENT</code> 需 Privileged 权限</li>
+<li><strong>消息段类型</strong>：支持文本、图片、文件、视频、音频、Embed、Sticker 等消息段</li>
+<li><strong>Mention 格式</strong>：Discord 使用 <code>&lt;@user_id&gt;</code> 格式表示用户提及</li>
+</ol>
+<h3 id="扩展字段">扩展字段</h3>
+<p>所有特有字段均以 <code>discord_</code> 前缀标识：</p>
+<ul>
+<li><code>discord_raw</code>：原始 Discord 事件数据</li>
+<li><code>discord_raw_type</code>：原始事件类型名（如 <code>MESSAGE_CREATE</code>）</li>
+<li><code>discord_guild_id</code>：服务器 ID</li>
+<li><code>discord_channel_id</code>：频道 ID</li>
+</ul>
+<h3 id="detail_type-映射">detail_type 映射</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Discord 场景</th>
+<th>detail_type</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>频道消息</td>
+<td><code>channel</code></td>
+<td>ErisPulse 扩展类型</td>
+</tr>
+<tr>
+<td>私信（DM）</td>
+<td><code>private</code></td>
+<td>OneBot12 标准类型</td>
+</tr>
+</tbody></table></div>
+<h3 id="事件类型映射">事件类型映射</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Discord 事件</th>
+<th>OneBot12 type</th>
+<th>detail_type</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MESSAGE_CREATE</td>
+<td>message</td>
+<td>channel/private</td>
+<td>消息创建</td>
+</tr>
+<tr>
+<td>MESSAGE_UPDATE</td>
+<td>message</td>
+<td>channel/private</td>
+<td>消息编辑</td>
+</tr>
+<tr>
+<td>MESSAGE_DELETE</td>
+<td>notice</td>
+<td>group_message_delete / private_message_delete</td>
+<td>消息删除</td>
+</tr>
+<tr>
+<td>GUILD_MEMBER_ADD</td>
+<td>notice</td>
+<td>group_member_increase</td>
+<td>成员加入</td>
+</tr>
+<tr>
+<td>GUILD_MEMBER_REMOVE</td>
+<td>notice</td>
+<td>group_member_decrease</td>
+<td>成员离开</td>
+</tr>
+<tr>
+<td>GUILD_MEMBER_UPDATE</td>
+<td>notice</td>
+<td>group_member_update</td>
+<td>成员信息更新</td>
+</tr>
+<tr>
+<td>GUILD_ROLE_CREATE</td>
+<td>notice</td>
+<td>group_role_create</td>
+<td>角色创建</td>
+</tr>
+<tr>
+<td>GUILD_ROLE_DELETE</td>
+<td>notice</td>
+<td>group_role_delete</td>
+<td>角色删除</td>
+</tr>
+<tr>
+<td>CHANNEL_CREATE</td>
+<td>notice</td>
+<td>channel_create</td>
+<td>频道创建</td>
+</tr>
+<tr>
+<td>CHANNEL_DELETE</td>
+<td>notice</td>
+<td>channel_delete</td>
+<td>频道删除</td>
+</tr>
+<tr>
+<td>INTERACTION_CREATE</td>
+<td>request</td>
+<td>interaction</td>
+<td>交互（按钮、命令等）</td>
+</tr>
+</tbody></table></div>
+<h3 id="特殊字段示例">特殊字段示例</h3>
+<pre><code class="language-python"><span class="token comment"># 频道文本消息</span>
+<span class="token punctuation">{</span>
+  <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"channel"</span><span class="token punctuation">,</span>
+  <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"发送者ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"user_nickname"</span><span class="token punctuation">:</span> <span class="token string">"用户名"</span><span class="token punctuation">,</span>
+  <span class="token string">"group_id"</span><span class="token punctuation">:</span> <span class="token string">"频道ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"消息ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"discord_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token string">"discord_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"MESSAGE_CREATE"</span><span class="token punctuation">,</span>
+  <span class="token string">"discord_guild_id"</span><span class="token punctuation">:</span> <span class="token string">"服务器ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"discord_channel_id"</span><span class="token punctuation">:</span> <span class="token string">"频道ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment"># 私信消息</span>
+<span class="token punctuation">{</span>
+  <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>
+  <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"发送者ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"user_nickname"</span><span class="token punctuation">:</span> <span class="token string">"用户名"</span><span class="token punctuation">,</span>
+  <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"消息ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"discord_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token string">"discord_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"MESSAGE_CREATE"</span><span class="token punctuation">,</span>
+  <span class="token string">"discord_channel_id"</span><span class="token punctuation">:</span> <span class="token string">"DM频道ID"</span><span class="token punctuation">,</span>
+  <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"私信内容"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"私信内容"</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment"># 带 Embed 的消息</span>
+<span class="token punctuation">{</span>
+  <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"channel"</span><span class="token punctuation">,</span>
+  <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"discord_embed"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"embed"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"[嵌入消息]"</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment"># 带附件的消息</span>
+<span class="token punctuation">{</span>
+  <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+  <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"channel"</span><span class="token punctuation">,</span>
+  <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"看这张图"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"图片URL"</span><span class="token punctuation">,</span> <span class="token string">"url"</span><span class="token punctuation">:</span> <span class="token string">"图片URL"</span><span class="token punctuation">,</span> <span class="token string">"file_name"</span><span class="token punctuation">:</span> <span class="token string">"image.png"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"看这张图[图片]"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="消息段类型">消息段类型</h3>
+<p>Discord 消息内容根据 <code>content</code>、<code>attachments</code>、<code>embeds</code> 字段自动转换为对应消息段：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>来源</th>
+<th>转换类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>content 文本</td>
+<td><code>text</code></td>
+<td>纯文本内容</td>
+</tr>
+<tr>
+<td>content <code>&lt;@id&gt;</code></td>
+<td><code>mention</code></td>
+<td>用户提及</td>
+</tr>
+<tr>
+<td>content <code>&lt;@&amp;id&gt;</code></td>
+<td><code>discord_role_mention</code></td>
+<td>角色提及</td>
+</tr>
+<tr>
+<td>content <code>&lt;#id&gt;</code></td>
+<td><code>discord_channel_mention</code></td>
+<td>频道提及</td>
+</tr>
+<tr>
+<td>attachments (image/*)</td>
+<td><code>image</code></td>
+<td>图片附件</td>
+</tr>
+<tr>
+<td>attachments (video/*)</td>
+<td><code>video</code></td>
+<td>视频附件</td>
+</tr>
+<tr>
+<td>attachments (audio/*)</td>
+<td><code>audio</code></td>
+<td>音频附件</td>
+</tr>
+<tr>
+<td>attachments (其他)</td>
+<td><code>file</code></td>
+<td>文件附件</td>
+</tr>
+<tr>
+<td>embeds</td>
+<td><code>discord_embed</code></td>
+<td>嵌入消息</td>
+</tr>
+<tr>
+<td>sticker_items</td>
+<td><code>discord_sticker</code></td>
+<td>贴纸</td>
+</tr>
+</tbody></table></div>
+<h3 id="discord_embed-消息段">discord_embed 消息段</h3>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"discord_embed"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"embed"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"title"</span><span class="token operator">:</span> <span class="token string">"标题"</span><span class="token punctuation">,</span>
+      <span class="token property">"description"</span><span class="token operator">:</span> <span class="token string">"描述"</span><span class="token punctuation">,</span>
+      <span class="token property">"color"</span><span class="token operator">:</span> <span class="token number">12345</span><span class="token punctuation">,</span>
+      <span class="token property">"fields"</span><span class="token operator">:</span> <span class="token punctuation">[</span>...<span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token property">"image"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"..."</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"thumbnail"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"..."</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token property">"footer"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"..."</span><span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="gateway-连接">Gateway 连接</h2>
+<h3 id="连接流程">连接流程</h3>
+<ol>
+<li>调用 <code>GET /gateway/bot</code> 获取 WebSocket 网关 URL</li>
+<li>连接到 <code>wss://gateway.discord.gg/?v=10&amp;encoding=json</code></li>
+<li>收到 opcode 10 HELLO：包含 <code>heartbeat_interval</code></li>
+<li>发送 opcode 2 IDENTIFY：携带 token、intents、properties</li>
+<li>开始心跳循环：按 <code>heartbeat_interval</code> 定时发送 opcode 1 Heartbeat</li>
+<li>收到 opcode 0 Dispatch：事件分发（<code>t</code>=事件名, <code>s</code>=序号, <code>d</code>=数据）</li>
+<li>收到 opcode 11 Heartbeat ACK：心跳确认</li>
+</ol>
+<h3 id="opcode-说明">Opcode 说明</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Opcode</th>
+<th>名称</th>
+<th>方向</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Dispatch</td>
+<td>接收</td>
+<td>事件分发（含 <code>t</code>、<code>s</code>、<code>d</code> 字段）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Heartbeat</td>
+<td>发送/接收</td>
+<td>心跳（携带最后 seq）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Identify</td>
+<td>发送</td>
+<td>身份认证</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Resume</td>
+<td>发送</td>
+<td>恢复会话</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Reconnect</td>
+<td>接收</td>
+<td>服务器要求重连</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Invalid Session</td>
+<td>接收</td>
+<td>无效会话</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Hello</td>
+<td>接收</td>
+<td>连接握手（含 heartbeat_interval）</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Heartbeat ACK</td>
+<td>接收</td>
+<td>心跳确认</td>
+</tr>
+</tbody></table></div>
+<h3 id="断线重连与-resume">断线重连与 RESUME</h3>
+<ul>
+<li>连接断开后，适配器自动重试连接</li>
+<li>如果之前有 <code>session_id</code>，优先尝试 RESUME（opcode 6）恢复会话</li>
+<li>RESUME 携带 <code>token</code>、<code>session_id</code>、最后 <code>seq</code>，恢复后补发遗漏事件</li>
+<li>收到 opcode 7（Reconnect）时，保持会话状态并重连</li>
+<li>收到 opcode 9（Invalid Session）且 <code>d=false</code> 时，清除会话并重新 IDENTIFY</li>
+</ul>
+<h3 id="心跳机制">心跳机制</h3>
+<ul>
+<li>收到 HELLO 后，等待 <code>heartbeat_interval * random()</code> 毫秒发送首次心跳</li>
+<li>此后每隔 <code>heartbeat_interval</code> 毫秒发送一次心跳</li>
+<li>心跳携带最后的 <code>seq</code> 值（opcode 1，<code>d: seq</code>）</li>
+<li>若发送心跳后 <code>heartbeat_interval</code> 内未收到 ACK（opcode 11），视为连接异常并重连</li>
+</ul>
+<h2 id="使用示例">使用示例</h2>
+<h3 id="处理频道消息">处理频道消息</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+discord <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"discord"</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_group_msg</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"discord"</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+
+    text <span class="token operator">=</span> event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    channel_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">if</span> text <span class="token operator">==</span> <span class="token string">"hello"</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello!"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="处理私信">处理私信</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_private_msg</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"discord"</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> event<span class="token punctuation">.</span>is_dm<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+
+    text <span class="token operator">=</span> event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"你说了: </span><span class="token interpolation"><span class="token punctuation">{</span>text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="发送-embed-消息">发送 Embed 消息</h3>
+<pre><code class="language-python">embed <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token string">"title"</span><span class="token punctuation">:</span> <span class="token string">"服务器公告"</span><span class="token punctuation">,</span>
+    <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"欢迎使用 ErisPulse Discord 适配器"</span><span class="token punctuation">,</span>
+    <span class="token string">"color"</span><span class="token punctuation">:</span> <span class="token number">3447003</span><span class="token punctuation">,</span>
+    <span class="token string">"fields"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"版本"</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">:</span> <span class="token string">"4.0.0"</span><span class="token punctuation">,</span> <span class="token string">"inline"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"框架"</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">:</span> <span class="token string">"ErisPulse"</span><span class="token punctuation">,</span> <span class="token string">"inline"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"footer"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Powered by ErisPulse"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"timestamp"</span><span class="token punctuation">:</span> <span class="token string">"2025-01-01T00:00:00.000Z"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Embed<span class="token punctuation">(</span>embed<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="使用-discord-特有方法">使用 Discord 特有方法</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"discord"</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+
+    channel_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_channel_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    guild_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_guild_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    is_dm <span class="token operator">=</span> event<span class="token punctuation">.</span>is_dm<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    embeds <span class="token operator">=</span> event<span class="token punctuation">.</span>get_embeds<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    attachments <span class="token operator">=</span> event<span class="token punctuation">.</span>get_attachments<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">if</span> embeds<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> discord<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> channel_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span>
+            <span class="token string-interpolation"><span class="token string">f"收到 </span><span class="token interpolation"><span class="token punctuation">{</span><span class="token builtin">len</span><span class="token punctuation">(</span>embeds<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string"> 个 Embed"</span></span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h3 id="处理交互事件">处理交互事件</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> request
+
+<span class="token decorator annotation punctuation">@request<span class="token punctuation">.</span>on_request</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_interaction</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"discord"</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+
+    interaction <span class="token operator">=</span> event<span class="token punctuation">.</span>get_interaction_data<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> interaction<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">3</span><span class="token punctuation">:</span>  <span class="token comment"># MESSAGE_COMPONENT</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"按钮已点击！"</span><span class="token punctuation">)</span>
+</code></pre>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/platform-guide/matrix.html"><small>上一篇</small><br>Matrix平台特性文档</a>
+        <a class="doc-pager-next" href="/docs/platform-guide/wechatmp.html"><small>下一篇</small><br>微信公众号（WechatMp）适配器 - 平台特性文档</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

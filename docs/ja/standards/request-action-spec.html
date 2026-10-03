@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse リクエスト操作規格 - ErisPulse 文档中心</title>
+    <meta name="description" content="本ドキュメントでは、ErisPulseアダプターにおけるリクエストイベント操作の標準化された規格を定義します。これには、リクエストイベントのフィールド要件、Request DSLの使用方法、アダプター実装要件が含まれます。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/standards/request-action-spec.html" />
+    <meta property="og:title" content="ErisPulse リクエスト操作規格 - ErisPulse 文档中心" />
+    <meta property="og:description" content="本ドキュメントでは、ErisPulseアダプターにおけるリクエストイベント操作の標準化された規格を定義します。これには、リクエストイベントのフィールド要件、Request DSLの使用方法、アダプター実装要件が含まれます。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/standards/request-action-spec.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse リクエスト操作規格","description":"本ドキュメントでは、ErisPulseアダプターにおけるリクエストイベント操作の標準化された規格を定義します。これには、リクエストイベントのフィールド要件、Request DSLの使用方法、アダプター実装要件が含まれます。","url":"https://www.erisdev.com/docs/ja/standards/request-action-spec.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 技術標準
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse リクエスト操作規格</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/standards/request-action-spec.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/standards/request-action-spec.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/standards/request-action-spec.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/standards/request-action-spec.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/standards/request-action-spec.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/standards/request-action-spec.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulse-リクエスト操作規格">ErisPulse リクエスト操作規格</h1>
+<p>本ドキュメントでは、ErisPulseアダプターにおけるリクエストイベント操作の標準化された規格を定義します。これには、リクエストイベントのフィールド要件、Request DSLの使用方法、アダプター実装要件が含まれます。</p>
+<h2 id="1-概要">1. 概要</h2>
+<p>リクエストイベント（<code>type: "request"</code>）は、OneBot12標準で定義された特殊なイベントタイプで、Botに意思決定を求めるリクエスト（友達申請、グループ招待など）を表します。</p>
+<p>メッセージイベントとは異なり、リクエストイベントは<strong>双方向のやり取り</strong>が必要です：</p>
+<ol>
+<li><strong>受信</strong>：アダプターがプラットフォームの原生リクエストを標準リクエストイベントに変換</li>
+<li><strong>応答</strong>：モジュールが<code>Request</code> DSLまたは<code>Event.approve()</code>/<code>Event.reject()</code>を使って操作を実行</li>
+</ol>
+<pre><code>プラットフォーム原生リクエストイベント
+    │
+    ▼
+Converter.convert()        ← アダプター実装（正方向変換）
+    │
+    ▼
+標準リクエストイベント (request_idを含む)
+    │
+    ├─→ モジュール処理器 @request.on_friend_request()
+    │       │
+    │       ├─→ event.approve()     ← 申請を承認
+    │       └─→ event.reject()      ← 申請を拒否
+    │               │
+    │               ▼
+    │       adapter.Request(request_id).accept()
+    │               │
+    │               ▼
+    │       BaseAdapter.Request.accept()  ← アダプターのオーバーライド
+    │               │
+    │               ▼
+    │       プラットフォームAPI呼び出し
+    │
+    └─→ または直接アダプター操作で実行
+            await adapter.Request("req_id").accept()
+</code></pre>
+<h2 id="2-リクエストイベントのフィールド要件">2. リクエストイベントのフィールド要件</h2>
+<h3 id="21-標準フィールド">2.1 標準フィールド</h3>
+<p>リクエストイベントには、OneBot12標準フィールドに加えて、以下のフィールドを含める必要があります：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>型</th>
+<th>必須</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>request_id</code></td>
+<td>string</td>
+<td><strong>強く推奨</strong></td>
+<td>操作用のリクエスト識別子</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>string</td>
+<td>はい</td>
+<td>リクエスト発起者のID</td>
+</tr>
+<tr>
+<td><code>user_nickname</code></td>
+<td>string</td>
+<td>いいえ</td>
+<td>リクエスト発起者のニックネーム</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td>string</td>
+<td>いいえ</td>
+<td>リクエストの備考</td>
+</tr>
+</tbody></table></div>
+<h3 id="22-request_id-フィールド">2.2 <code>request_id</code> フィールド</h3>
+<p><code>request_id</code>はリクエスト操作の中心となる識別子です：</p>
+<ul>
+<li><strong>用途</strong>：<code>Request</code> DSLで使用される、操作可能なリクエストを識別</li>
+<li><strong>生成ルール</strong>：<ul>
+<li>まず、プラットフォームの原生リクエスト識別子を使用（OneBot11の<code>flag</code>フィールド、Telegramの<code>chat_invite_link</code>など）</li>
+<li>プラットフォームに原生リクエストIDがない場合、ユニークな識別子を生成（推奨形式：<code>{platform}_{timestamp}_{user_id}</code>）</li>
+</ul>
+</li>
+<li><strong>一意性</strong>：同じプラットフォーム内では一意である</li>
+<li><strong>欠落時の動作</strong>：<code>request_id</code>が欠落している場合、<code>event.approve()</code> / <code>event.reject()</code>は<code>ValueError</code>を送出</li>
+</ul>
+<h3 id="23-リクエストイベントの例">2.3 リクエストイベントの例</h3>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"evt_123456"</span><span class="token punctuation">,</span>
+  <span class="token property">"time"</span><span class="token operator">:</span> <span class="token number">1752241225</span><span class="token punctuation">,</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"request"</span><span class="token punctuation">,</span>
+  <span class="token property">"detail_type"</span><span class="token operator">:</span> <span class="token string">"friend"</span><span class="token punctuation">,</span>
+  <span class="token property">"platform"</span><span class="token operator">:</span> <span class="token string">"onebot11"</span><span class="token punctuation">,</span>
+  <span class="token property">"self"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"platform"</span><span class="token operator">:</span> <span class="token string">"onebot11"</span><span class="token punctuation">,</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token string">"bot_123"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token string">"user_456"</span><span class="token punctuation">,</span>
+  <span class="token property">"user_nickname"</span><span class="token operator">:</span> <span class="token string">"YingXinche"</span><span class="token punctuation">,</span>
+  <span class="token property">"comment"</span><span class="token operator">:</span> <span class="token string">"友達申請してください"</span><span class="token punctuation">,</span>
+  <span class="token property">"request_id"</span><span class="token operator">:</span> <span class="token string">"flag_abc123"</span><span class="token punctuation">,</span>
+  <span class="token property">"onebot11_raw"</span><span class="token operator">:</span> <span class="token punctuation">{</span>...<span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"onebot11_raw_type"</span><span class="token operator">:</span> <span class="token string">"request"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="3-request-dsl">3. Request DSL</h2>
+<h3 id="31-チェーン呼び出し">3.1 チェーン呼び出し</h3>
+<p><code>Request</code>は<code>Send</code>と同様のチェーン呼び出しインターフェースを提供します：</p>
+<pre><code class="language-python"><span class="token comment"># 基本的な使い方</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>reject<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Botアカウントを指定</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 备考を指定（kwargsで）</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span>comment<span class="token operator">=</span><span class="token string">"ようこそ"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>reject<span class="token punctuation">(</span>comment<span class="token operator">=</span><span class="token string">"今は追加できません"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 組み合わせ</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span>comment<span class="token operator">=</span><span class="token string">"ようこそ"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="32-メソッド一覧">3.2 メソッド一覧</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>説明</th>
+<th>戻り値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Using(account_id)</code></td>
+<td>操作実行用のBotアカウントを指定</td>
+<td><code>RequestDSL</code>（チェーン呼び出し可能）</td>
+</tr>
+<tr>
+<td><code>accept(**kwargs)</code></td>
+<td>リクエストを承認</td>
+<td><code>asyncio.Task</code>（await後に標準レスポンスを返す）</td>
+</tr>
+<tr>
+<td><code>reject(**kwargs)</code></td>
+<td>リクエストを拒否</td>
+<td><code>asyncio.Task</code>（await後に標準レスポンスを返す）</td>
+</tr>
+</tbody></table></div>
+<h3 id="33-戻り値の形式">3.3 戻り値の形式</h3>
+<p>操作は標準APIレスポンス形式を返します：</p>
+<p><strong>成功時</strong>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span>
+    <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span>
+    <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">""</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>失敗時</strong>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+    <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">34001</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span>
+    <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"リクエストが期限切れまたは存在しません"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>未実装時</strong>（アダプターが<code>accept</code>/<code>reject</code>をオーバーライドしていない場合）：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+    <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">10002</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span>
+    <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"プラットフォーム MyAdapter はリクエスト操作 (accept) を実装していません"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="4-event-便利メソッド">4. Event 便利メソッド</h2>
+<p><code>Event</code>ラッパークラスには、リクエストイベントハンドラで使用する便利メソッドが用意されています：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> request
+
+<span class="token decorator annotation punctuation">@request<span class="token punctuation">.</span>on_friend_request</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_friend_request</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># リクエストIDを取得</span>
+    request_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_request_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> request_id<span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"警告：リクエストイベントに request_id がありません"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    <span class="token comment"># リクエストを承認</span>
+    result <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>approve<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># またはリクエストを拒否</span>
+    <span class="token comment"># result = await event.reject(comment="今は友達追加できません")</span>
+    
+    <span class="token comment"># 結果を確認</span>
+    <span class="token keyword">if</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"status"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"ok"</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"操作成功"</span><span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"操作失敗: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'message'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="41-event-メソッド一覧">4.1 Event メソッド一覧</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>説明</th>
+<th>戻り値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_request_id()</code></td>
+<td>リクエストIDを取得</td>
+<td><code>str</code></td>
+</tr>
+<tr>
+<td><code>approve(comment=None)</code></td>
+<td>現在のリクエストイベントを承認</td>
+<td>標準レスポンス形式</td>
+</tr>
+<tr>
+<td><code>reject(comment=None)</code></td>
+<td>現在のリクエストイベントを拒否</td>
+<td>標準レスポンス形式</td>
+</tr>
+</tbody></table></div>
+<h2 id="5-アダプター実装要件">5. アダプター実装要件</h2>
+<h3 id="51-転換器要件">5.1 転換器要件</h3>
+<p>アダプターの転換器は、リクエストイベントを転換する際に、<strong>必ず</strong><code>request_id</code>フィールドを正しく設定する必要があります：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">convert_request_event</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""プラットフォーム原生リクエストイベントを転換"""</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+        <span class="token string">"id"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_generate_event_id<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"request"</span><span class="token punctuation">,</span>
+        <span class="token string">"detail_type"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_map_request_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>  <span class="token comment"># "friend" または "group"</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">,</span>
+        <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+            <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">,</span>
+            <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>_bot_id<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"user_nickname"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"nickname"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"comment"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"request_id"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_extract_request_id<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>  <span class="token comment"># ← 重要なフィールド</span>
+        <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_raw"</span></span><span class="token punctuation">:</span> raw_event<span class="token punctuation">,</span>
+        <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_raw_type"</span></span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span>
+
+<span class="token keyword">def</span> <span class="token function">_extract_request_id</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    プラットフォーム原生イベントからリクエストIDを抽出
+    
+    まずプラットフォームの原生IDを使用し、ない場合はユニークIDを生成
+    """</span>
+    <span class="token comment"># まずプラットフォームの原生IDを使用</span>
+    <span class="token keyword">if</span> flag <span class="token operator">:=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"flag"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>flag<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> request_key <span class="token operator">:=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"request_key"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>request_key<span class="token punctuation">)</span>
+    
+    <span class="token comment"># デフォルト：ユニークIDを生成</span>
+    <span class="token keyword">import</span> hashlib
+    raw <span class="token operator">=</span> <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_</span><span class="token interpolation"><span class="token punctuation">{</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'user_id'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">_</span><span class="token interpolation"><span class="token punctuation">{</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'timestamp'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span>
+    <span class="token keyword">return</span> hashlib<span class="token punctuation">.</span>md5<span class="token punctuation">(</span>raw<span class="token punctuation">.</span>encode<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>hexdigest<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="52-request-内部クラス実装">5.2 Request 内部クラス実装</h3>
+<p>アダプターは<code>Request</code>内部クラスで<code>accept</code>と<code>reject</code>をオーバーライドするだけで実装できます：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> RequestDSL
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    
+    <span class="token keyword">class</span> <span class="token class-name">Request</span><span class="token punctuation">(</span>RequestDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""MyPlatform リクエスト操作実装"""</span>
+        
+        <span class="token keyword">def</span> <span class="token function">accept</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token triple-quoted-string string">"""
+            リクエストを承認
+            
+            :param kwargs: 扩張パラメータ、comment="備考"など
+            :return: asyncio.Task
+            """</span>
+            <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">try</span><span class="token punctuation">:</span>
+                    result <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                        endpoint<span class="token operator">=</span><span class="token string">"/set_request"</span><span class="token punctuation">,</span>
+                        request_id<span class="token operator">=</span>self<span class="token punctuation">.</span>_request_id<span class="token punctuation">,</span>
+                        approve<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+                        <span class="token operator">**</span>kwargs<span class="token punctuation">,</span>
+                    <span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span> <span class="token keyword">if</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token keyword">else</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+                <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> <span class="token number">34001</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"リクエスト操作失敗: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+            
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_create_task<span class="token punctuation">(</span>_do<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">def</span> <span class="token function">reject</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token triple-quoted-string string">"""リクエストを拒否"""</span>
+            <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">try</span><span class="token punctuation">:</span>
+                    result <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                        endpoint<span class="token operator">=</span><span class="token string">"/set_request"</span><span class="token punctuation">,</span>
+                        request_id<span class="token operator">=</span>self<span class="token punctuation">.</span>_request_id<span class="token punctuation">,</span>
+                        approve<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
+                        <span class="token operator">**</span>kwargs<span class="token punctuation">,</span>
+                    <span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span> <span class="token keyword">if</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token keyword">else</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+                <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> <span class="token number">34001</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"リクエスト操作失敗: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+            
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_create_task<span class="token punctuation">(</span>_do<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="53-プラットフォームがリクエスト操作をサポートしていない場合">5.3 プラットフォームがリクエスト操作をサポートしていない場合</h3>
+<p>プラットフォームが友達申請/グループ招待操作をサポートしていない場合（一部のプラットフォームでは申請を自動処理する場合）、アダプターは以下のように対応できます：</p>
+<ol>
+<li><strong><code>Request</code>内部クラスをオーバーライドしない</strong>：基底クラスのデフォルト実装を使用し、<code>accept()</code>/<code>reject()</code>を呼び出すと<code>retcode=10002</code>を返す</li>
+<li><strong><code>request_id</code>を生成しない</strong>：<code>request_id</code>を生成せず、<code>event.approve()</code>が<code>ValueError</code>を送出するようにする</li>
+<li><strong>ログを記録する</strong>：<code>accept</code>/<code>reject</code>で警告を記録し、適切なエラーコードを返す</li>
+</ol>
+<h3 id="54-まとめsend-と-request-は並列">5.4 まとめ：Send と Request は並列</h3>
+<p>アダプターには、それぞれ異なる役割を持つ2つのDSL内部クラスがあります：</p>
+<pre><code>BaseAdapter
+├── Send(SendDSL)     ← メッセージ送信
+│   ├── Raw_ob12()    ← 必須実装
+│   ├── Text()        ← 推奨実装
+│   └── Image()       ← 必要に応じて実装
+│
+└── Request(RequestDSL) ← リクエスト操作
+    ├── accept()        ← 必要に応じて実装
+    └── reject()        ← 必要に応じて実装
+</code></pre>
+<h3 id="55-アダプター-__init__-の注意事項">5.5 アダプター <code>__init__</code> の注意事項</h3>
+<p><code>Request</code>内部クラスの<code>__init__</code>をオーバーライドする際は、引数を透過的に渡し、<code>super().__init__()</code>を呼び出す必要があります。詳しくは<a href="/docs/ja/developer-guide/adapters/getting-started.html#init-%E3%81%AE%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85">アダプター開発入門 - <code>__init__</code>の注意事項</a>（<code>Request</code>も同様、引数は<code>adapter, request_id, account_id</code>）をご覧ください。</p>
+<h2 id="6-アダプター実装チェックリスト">6. アダプター実装チェックリスト</h2>
+<h3 id="基本要件">基本要件</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>__init__</code>をオーバーライドした場合、<code>super().__init__()</code>を呼び出しているか（Send / Requestファクトリーの初期化を確保）</li>
+</ul>
+<h3 id="リクエストイベントの転換">リクエストイベントの転換</h3>
+<ul>
+<li><input disabled type="checkbox"> リクエストイベントに<code>request_id</code>フィールドが含まれているか（強く推奨）</li>
+<li><input disabled type="checkbox"> <code>detail_type</code>が<code>"friend"</code>または<code>"group"</code>に正しくマッピングされているか</li>
+<li><input disabled type="checkbox"> プラットフォームの元データが<code>{platform}_raw</code>フィールドに保持されているか</li>
+<li><input disabled type="checkbox"> <code>request_id</code>の生成ルールがドキュメントに説明されているか</li>
+</ul>
+<h3 id="リクエスト操作">リクエスト操作</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>Request</code>内部クラスが実装されているか（プラットフォームがリクエスト操作をサポートしている場合）</li>
+<li><input disabled type="checkbox"> <code>accept()</code>メソッドが実装されているか</li>
+<li><input disabled type="checkbox"> <code>reject()</code>メソッドが実装されているか</li>
+<li><input disabled type="checkbox"> 操作が標準APIレスポンス形式を返しているか</li>
+<li><input disabled type="checkbox"> 対応していない操作は<code>retcode=10002</code>を返しているか</li>
+<li><input disabled type="checkbox"> ネットワークエラーは<code>retcode=33xxx</code>（APIレスポンス標準に従う）を返しているか</li>
+</ul>
+<h2 id="7-エラーコードの拡張">7. エラーコードの拡張</h2>
+<p>リクエスト操作に関連する<strong>アダプター実装層</strong>の推奨エラーコード（<a href="/docs/ja/standards/api-response.html">APIレスポンス標準</a> §3.2に従い、<code>34xxx</code>プラットフォームエラーセグメントの下3桁を独自に定義）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>エラーコード</th>
+<th>エラーネーム</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>34001</td>
+<td>Request Not Found</td>
+<td>リクエストが存在しない、または期限切れ</td>
+</tr>
+<tr>
+<td>34002</td>
+<td>Request Already Handled</td>
+<td>リクエストは既に処理済み</td>
+</tr>
+<tr>
+<td>34003</td>
+<td>Request Not Supported</td>
+<td>プラットフォームがこのタイプのリクエスト操作をサポートしていない</td>
+</tr>
+<tr>
+<td>34004</td>
+<td>Permission Denied</td>
+<td>Botがこのリクエストを処理する権限がない（プラットフォームが返す）</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>フレームワークコードとの境界</strong>：上記の<code>340xx</code>は<strong>プラットフォーム/アダプター</strong>が返すリクエスト処理失敗です。ErisPulseフレームワークが<code>scope.actions</code>で特定のモジュールのリクエスト操作を禁止した場合、<strong>アダプターを呼び出す前に</strong>直接<code>34601</code>（Action Denied、<a href="/docs/ja/standards/api-response.html#53-%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0%E3%83%AF%E3%83%BC%E3%82%AF%E6%8B%A1%E5%BC%B5%E8%BF%94%E5%8D%B4%E3%82%B3%E3%83%BC%E3%83%8934xxx-%E3%83%97%E3%83%A9%E3%83%83%E3%83%88%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0%E3%82%A8%E3%83%A9%E3%83%BC%E3%82%BB%E3%82%B0%E3%83%A1%E3%83%B3%E3%83%88%E3%81%AE%E4%B8%8B3%E6%A1%81%E3%82%92%E7%8B%AC%E8%87%AA%E3%81%AB%E5%AE%9A%E7%BE%A9">APIレスポンス標準 §5.3</a>）を返します。この2つは互いに補完するものであり、まず<code>34601</code>フレームワークのチェックを通過し、その後プラットフォーム層の<code>340xx</code>エラーに到達します。</p>
+</blockquote>
+<h2 id="8-関連ドキュメント">8. 関連ドキュメント</h2>
+<ul>
+<li><a href="/docs/ja/standards/event-conversion.html">イベント転換標準</a> - 完全なイベント転換規格</li>
+<li><a href="/docs/ja/standards/api-response.html">APIレスポンス標準</a> - アダプターAPIレスポンス形式の標準</li>
+<li><a href="/docs/ja/standards/send-method-spec.html">送信メソッド規格</a> - Sendクラスのメソッド命名と引数の規格</li>
+<li><a href="/docs/ja/standards/session-types.html">セッションタイプ標準</a> - セッションタイプの定義とマッピング関係</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/standards/send-method-spec.html"><small>Previous</small><br>ErisPulse 送信メソッド規格</a>
+        <a class="doc-pager-next" href="/docs/ja/standards/api-action-spec.html"><small>Next</small><br>ErisPulse API 動作標準</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

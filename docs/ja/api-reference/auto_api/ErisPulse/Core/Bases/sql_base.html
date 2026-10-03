@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse.Core.Bases.sql_base 模块 - ErisPulse 文档中心</title>
+    <meta name="description" content="提供 SQLite / MySQL / PostgreSQL 三种内置后端共享的通用 SQL 逻辑： 嵌套键 KV 存取、事务编排、DDL、查询构建与 ALTER TABLE。 方言差异（占位符、标识符引号、UPSERT、类型翻译等）收敛到 :class:SQLDialect 及其子类。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html" />
+    <meta property="og:title" content="ErisPulse.Core.Bases.sql_base 模块 - ErisPulse 文档中心" />
+    <meta property="og:description" content="提供 SQLite / MySQL / PostgreSQL 三种内置后端共享的通用 SQL 逻辑： 嵌套键 KV 存取、事务编排、DDL、查询构建与 ALTER TABLE。 方言差异（占位符、标识符引号、UPSERT、类型翻译等）收敛到 :class:SQLDialect 及其子类。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.Core.Bases.sql_base 模块","description":"提供 SQLite / MySQL / PostgreSQL 三种内置后端共享的通用 SQL 逻辑： 嵌套键 KV 存取、事务编排、DDL、查询构建与 ALTER TABLE。 方言差异（占位符、标识符引号、UPSERT、类型翻译等）收敛到 :class:SQLDialect 及其子类。","url":"https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> API <span class="doc-crumb-sep">/</span> 核心模块
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse.Core.Bases.sql_base 模块</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulsecorebasessql_base-模块"><code>ErisPulse.Core.Bases.sql_base</code> 模块</h1>
+<hr>
+<h2 id="模块概述">模块概述</h2>
+<p>ErisPulse SQL 存储共享基类</p>
+<p>提供 SQLite / MySQL / PostgreSQL 三种内置后端共享的通用 SQL 逻辑：
+嵌套键 KV 存取、事务编排、DDL、查询构建与 ALTER TABLE。
+方言差异（占位符、标识符引号、UPSERT、类型翻译等）收敛到
+:class:<code>SQLDialect</code> 及其子类。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li>新增 SQL 后端只需：定义 Dialect 子类 + 继承 SQLStorageBase 实现连接管理与执行漏斗</li>
+<li>KV 值统一以 JSON 文本存储，三种后端行为完全一致</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="_validate_identifiername-str-context-str-identifier"><code>_validate_identifier(name: str, context: str = 'identifier')</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+验证 SQL 标识符（表名/列名）是否安全</p>
+</blockquote>
+<ul>
+<li><strong>name</strong> (<code>标识符名称</code>): - <strong>context</strong>: 上下文描述（用于错误消息）
+<strong>异常</strong>: <code>ValueError</code> - 当标识符包含非法字符时</li>
+</ul>
+<hr>
+<h3 id="_validate_select_columnname-str-context-str-column"><code>_validate_select_column(name: str, context: str = 'column')</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+验证 SELECT/ORDER BY 列表达式是否安全</p>
+</blockquote>
+<p>采用黑名单模式：仅拦截 SQL 注入危险字符（; ' " -- /* */   换行），
+允许任意合法 SQL 列表达式，包括简单列名、聚合函数、别名、表达式等。</p>
+<ul>
+<li><strong>name</strong> (<code>列表达式</code>): - <strong>context</strong>: 上下文描述（用于错误消息）
+<strong>异常</strong>: <code>ValueError</code> - 当包含注入危险字符时</li>
+</ul>
+<hr>
+<h3 id="_validate_column_typecol_type-str"><code>_validate_column_type(col_type: str)</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+验证列类型定义是否安全（防止通过类型定义注入 SQL）</p>
+</blockquote>
+<ul>
+<li><strong>col_type</strong> (<code>列类型定义</code>): <strong>异常</strong>: <code>ValueError</code> - 当列类型包含潜在危险内容时</li>
+</ul>
+<hr>
+<h2 id="类列表">类列表</h2>
+<h3 id="class-_singletonmixin"><code>class _SingletonMixin</code></h3>
+<blockquote>
+<p><strong>内部方法</strong> 进程级单例混入（<code>__new__</code> 级去重，可 <code>__new__</code> 绕过用于测试）</p>
+</blockquote>
+<h3 id="class-sqldialect"><code>class SQLDialect</code></h3>
+<p>SQL 方言基类</p>
+<p>收敛三种内置后端的方言差异：占位符翻译、标识符引号、UPSERT 语法、
+列类型翻译（含 AUTOINCREMENT 自增主键）、表存在性查询等。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li>构建期统一使用 <code>?</code> 占位符记号，由 :meth:<code>translate_sql</code> 翻译为方言样式</li>
+<li>标识符一律经 :meth:<code>quote</code> 引用（列名/表名均先经合法性校验）</li>
+</ol>
+</blockquote>
+<h4 id="方法列表">方法列表</h4>
+<h5 id="translate_sqlsql-str"><code>translate_sql(sql: str)</code></h5>
+<p>将内部 <code>?</code> 占位符记号翻译为方言占位符</p>
+<ul>
+<li><strong>sql</strong> (<code>内部记号</code>): SQL
+<strong>返回值</strong> (<code>方言</code>): SQL</li>
+</ul>
+<hr>
+<h5 id="quotename-str"><code>quote(name: str)</code></h5>
+<p>引用 SQL 标识符</p>
+<ul>
+<li><strong>name</strong> (<code>已通过合法性校验的标识符</code>): <strong>返回值</strong>: 带方言引号的标识符</li>
+</ul>
+<hr>
+<h5 id="kv_table_ddltable-str-key_col-str-value_col-str"><code>kv_table_ddl(table: str, key_col: str, value_col: str)</code></h5>
+<p>生成 KV 表建表 DDL</p>
+<ul>
+<li><strong>table</strong> (<code>已引用的表名</code>): - <strong>key_col</strong>: 已引用的键列名</li>
+<li><strong>value_col</strong> (<code>已引用的值列名</code>): <strong>返回值</strong> (<code>CREATE</code>): TABLE 语句</li>
+</ul>
+<hr>
+<h5 id="upsert_kv_sqltable-str-key_col-str-value_col-str"><code>upsert_kv_sql(table: str, key_col: str, value_col: str)</code></h5>
+<p>生成 KV UPSERT 语句（内部 <code>?</code> 占位符）</p>
+<ul>
+<li><strong>table</strong> (<code>已引用的表名</code>): - <strong>key_col</strong>: 已引用的键列名</li>
+<li><strong>value_col</strong> (<code>已引用的值列名</code>): <strong>返回值</strong> (<code>UPSERT</code>): 语句</li>
+</ul>
+<hr>
+<h5 id="has_table_sqltable_name-str"><code>has_table_sql(table_name: str)</code></h5>
+<p>生成表存在性查询</p>
+<ul>
+<li><strong>table_name</strong> (<code>表名（未引用）</code>): <strong>返回值</strong> (<code>(SQL,</code>): 参数列表)</li>
+</ul>
+<hr>
+<h5 id="create_index_sqltable-str-index-str-column-str"><code>create_index_sql(table: str, index: str, column: str)</code></h5>
+<p>生成普通索引创建 DDL</p>
+<p>基类语义为"不存在则创建"（<code>IF NOT EXISTS</code>）；不支持该语法的方言
+（MySQL）覆写本方法为裸 <code>CREATE INDEX</code>，幂等由 :meth:<code>has_index_sql</code>
+存在性预检承接。</p>
+<ul>
+<li><strong>table</strong> (<code>表名（未引用）</code>): - <strong>index</strong>: 索引名（未引用）</li>
+<li><strong>column</strong> (<code>列名（未引用）</code>): <strong>返回值</strong> (<code>CREATE</code>): INDEX 语句</li>
+</ul>
+<hr>
+<h5 id="has_index_sqltable-str-index-str"><code>has_index_sql(table: str, index: str)</code></h5>
+<p>生成索引存在性查询（内部 <code>?</code> 占位符）</p>
+<ul>
+<li><strong>table</strong> (<code>表名（未引用）</code>): - <strong>index</strong>: 索引名（未引用）
+<strong>返回值</strong> (<code>(SQL,</code>): 参数列表)</li>
+</ul>
+<hr>
+<h5 id="autoincrement_columnbase_type-str"><code>autoincrement_column(base_type: str)</code></h5>
+<p>翻译自增主键定义（"INTEGER PRIMARY KEY AUTOINCREMENT" 中的类型部分）</p>
+<ul>
+<li><strong>base_type</strong> (<code>自增列基础类型（INTEGER/BIGINT</code>): 等）
+<strong>返回值</strong>: 方言等价定义</li>
+</ul>
+<hr>
+<h5 id="last_insert_id_sql"><code>last_insert_id_sql()</code></h5>
+<p>生成"最近一次插入的自增主键"查询 SQL</p>
+<p>供 ORM（Core/Bases/model.py）在 INSERT 后同一连接上回填自增主键。
+须与 INSERT 在同一连接/事务内执行（MySQL LAST_INSERT_ID() 与
+PostgreSQL lastval() 均为连接级语义）。</p>
+<p><strong>返回值</strong> (<code>查询</code>): SQL（内部 <code>?</code> 占位符记号，无参数）</p>
+<hr>
+<h5 id="_map_first_wordword-str"><code>_map_first_word(word: str)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 按首词映射列类型，保留括号参数与后缀</p>
+</blockquote>
+<hr>
+<h5 id="translate_column_typecol_type-str"><code>translate_column_type(col_type: str)</code></h5>
+<p>翻译列类型定义为方言等价写法</p>
+<p>处理自增主键重排与首词类型映射；无法识别的类型原样保留。</p>
+<ul>
+<li><strong>col_type</strong> (<code>用户传入的列类型定义</code>): <strong>返回值</strong>: 方言列类型定义</li>
+</ul>
+<hr>
+<h5 id="is_missing_table_errorexc-baseexception"><code>is_missing_table_error(exc: BaseException)</code></h5>
+<p>判断异常是否为"KV 表不存在"（用于自动重建后重试）</p>
+<ul>
+<li><strong>exc</strong> (<code>捕获到的异常</code>): <strong>返回值</strong>: 是否为缺表错误</li>
+</ul>
+<hr>
+<h3 id="class-sqlquerybuilderbasequerybuilder"><code>class SQLQueryBuilder(BaseQueryBuilder)</code></h3>
+<p>SQL 查询构建器（方言无关的共享实现）</p>
+<p>链式构建标准 SQL（内部 <code>?</code> 占位符），终止方法通过所属后端的
+:meth:<code>SQLStorageBase._execute_query</code> 漏斗执行，由方言完成占位符翻译。</p>
+<blockquote>
+<p><strong>提示</strong>
+使用方式：</p>
+<ol>
+<li>await storage.Table("users").Insert({"name": "Alice"}).aExecute()</li>
+<li>storage.Table("users").Select("name").Where("age &gt; ?", 18).Execute()</li>
+</ol>
+</blockquote>
+<h4 id="方法列表-2">方法列表</h4>
+<h5 id="_rows_to_dictrows-listtuple-columns-liststr-none"><code>_rows_to_dict(rows: list[tuple], columns: list[str] | None)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 将 tuple 行列表转为字典列表（columns 不可用时原样返回）</p>
+</blockquote>
+<hr>
+<h5 id="async-aexecute"><code>async aExecute()</code></h5>
+<p>执行构建的查询</p>
+<ul>
+<li><p>SELECT 返回 list[tuple]（调用 ToDict() 后为 list[dict]）</p>
+</li>
+<li><p>INSERT/UPDATE/DELETE 返回受影响行数 int</p>
+</li>
+<li><p><strong>conn</strong> (<code>内部参数：事务连接路由（勿手动传入）</code>): <strong>返回值</strong> (<code>查询结果或受影响行数</code>): 
+<strong>示例</strong>:</p>
+</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> rows <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> affected <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Delete<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-_aexecute_insert_multi"><code>async _aexecute_insert_multi()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 批量插入执行</p>
+</blockquote>
+<hr>
+<h5 id="async-aexecuteone"><code>async aExecuteOne()</code></h5>
+<p>执行查询并返回单条结果</p>
+<ul>
+<li><strong>conn</strong> (<code>内部参数：事务连接路由（勿手动传入）</code>): <strong>返回值</strong> (<code>单行元组（调用</code>): ToDict() 后为字典）或 None</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> row <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"*"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecuteOne<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-acount"><code>async aCount()</code></h5>
+<p>执行 COUNT 查询</p>
+<ul>
+<li><strong>conn</strong> (<code>内部参数：事务连接路由（勿手动传入）</code>): <strong>返回值</strong> (<code>匹配的行数</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> total <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aCount<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aexists"><code>async aExists()</code></h5>
+<p>检查是否存在匹配的记录</p>
+<ul>
+<li><strong>conn</strong> (<code>内部参数：事务连接路由（勿手动传入）</code>): <strong>返回值</strong> (<code>是否存在</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">if</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExists<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+</code></pre>
+<hr>
+<h3 id="class-altertablebuilder"><code>class AlterTableBuilder</code></h3>
+<p>ALTER TABLE 构建器</p>
+<p>链式收集表结构修改操作，<code>aExecute()</code> 原生异步执行，
+<code>Execute()</code> 同步兼容桥接。</p>
+<blockquote>
+<p><strong>提示</strong>
+使用方式：</p>
+<ol>
+<li>await storage.AlterTable("users").AddColumn("email", "TEXT").aExecute()</li>
+<li>storage.AlterTable("users").RenameTo("members").Execute()</li>
+</ol>
+</blockquote>
+<h4 id="方法列表-3">方法列表</h4>
+<h5 id="addcolumncolumn_name-str-column_type-str"><code>AddColumn(column_name: str, column_type: str)</code></h5>
+<p>添加列</p>
+<ul>
+<li><strong>column_name</strong> (<code>列名</code>): - <strong>column_type</strong>: 列类型（如 "TEXT", "INTEGER DEFAULT 0"）
+<strong>返回值</strong> (<code>self</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> storage<span class="token punctuation">.</span>AlterTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AddColumn<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">,</span> <span class="token string">"TEXT"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="renametonew_name-str"><code>RenameTo(new_name: str)</code></h5>
+<p>重命名表</p>
+<ul>
+<li><strong>new_name</strong> (<code>新表名</code>): <strong>返回值</strong> (<code>self</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> storage<span class="token punctuation">.</span>AlterTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>RenameTo<span class="token punctuation">(</span><span class="token string">"members"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aexecute-2"><code>async aExecute()</code></h5>
+<p>执行所有已收集的 ALTER TABLE 操作</p>
+<p><strong>返回值</strong>: 操作是否成功</p>
+<hr>
+<h5 id="execute"><code>Execute()</code></h5>
+<p>执行所有已收集的 ALTER TABLE 操作（同步兼容，桥接到 :meth:<code>aExecute</code>）</p>
+<p><strong>返回值</strong>: 操作是否成功</p>
+<hr>
+<h3 id="class-sqlstoragebasebasestorage"><code>class SQLStorageBase(BaseStorage)</code></h3>
+<p>SQL 存储后端共享基类</p>
+<p>实现三种内置 SQL 后端共享的 KV 存取（含嵌套键）、批量操作、DDL、
+事务编排与 ALTER TABLE；子类只需提供连接管理与方言执行漏斗。</p>
+<blockquote>
+<p><strong>提示</strong>
+子类必须实现：</p>
+<ol>
+<li><code>_create_loop_resource</code> / <code>_destroy_loop_resource</code>：每事件循环资源（连接池）</li>
+<li><code>_acquire_resource_conn</code> / <code>_release_resource_conn</code>：非事务连接获取/归还</li>
+<li><code>_open_txn_conn</code> / <code>_close_txn_conn</code>：事务专用连接获取/释放</li>
+<li><code>_exec_query_on</code>：方言执行漏斗（占位符翻译 + 游标语义）</li>
+</ol>
+</blockquote>
+<h4 id="方法列表-4">方法列表</h4>
+<h5 id="_ensure_resource_state"><code>_ensure_resource_state()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 确保实例级资源表存在（<strong>new</strong> 绕过构造时兜底）</p>
+</blockquote>
+<hr>
+<h5 id="_is_ready"><code>_is_ready()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 检查存储后端是否已初始化完成</p>
+</blockquote>
+<hr>
+<h5 id="_finish_init"><code>_finish_init()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 子类完成后调用：标记就绪并订阅配置热更新告警</p>
+</blockquote>
+<hr>
+<h5 id="_watch_storage_configcheck-callable-str-none"><code>_watch_storage_config(check: Callable[[], str | None])</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+订阅存储配置热更新；check() 返回告警文案（None 表示无需告警）</p>
+</blockquote>
+<hr>
+<h5 id="_default_project_pathfilename-str"><code>_default_project_path(filename: str)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 项目目录下的默认数据库文件路径</p>
+</blockquote>
+<hr>
+<h5 id="async-_create_loop_resource"><code>async _create_loop_resource()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 为当前事件循环创建连接资源（连接池/共享连接）</p>
+</blockquote>
+<hr>
+<h5 id="async-_destroy_loop_resourceresource-any"><code>async _destroy_loop_resource(resource: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 销毁事件循环连接资源</p>
+</blockquote>
+<hr>
+<h5 id="async-_acquire_resource_connresource-any"><code>async _acquire_resource_conn(resource: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 从资源获取非事务连接</p>
+</blockquote>
+<hr>
+<h5 id="async-_release_resource_connresource-any-conn-any"><code>async _release_resource_conn(resource: Any, conn: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 归还非事务连接</p>
+</blockquote>
+<hr>
+<h5 id="async-_open_txn_conn"><code>async _open_txn_conn()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 获取事务专用连接</p>
+</blockquote>
+<hr>
+<h5 id="async-_close_txn_connconn-any"><code>async _close_txn_conn(conn: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 释放事务专用连接</p>
+</blockquote>
+<hr>
+<h5 id="async-_get_loop_resource"><code>async _get_loop_resource()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 获取当前事件循环的连接资源（惰性创建，幂等，瞬时失败自动重试）</p>
+</blockquote>
+<hr>
+<h5 id="async-_emit_storage_eventevent-str"><code>async _emit_storage_event(event: str)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+发出存储生命周期事件（<code>storage.ready</code> / <code>storage.unreachable</code> /
+<code>storage.recovered</code>），供外部感知连接状态变化（如 Dashboard 告警）。</p>
+</blockquote>
+<p>后台发射（fire）：存储操作绝不等待观测者；lifecycle 未就绪或
+处理异常时静默跳过，不影响存储操作本身。</p>
+<hr>
+<h5 id="async-_acquire"><code>async _acquire()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+获取连接的统一入口：优先异步事务上下文绑定连接，否则走事件循环资源</p>
+</blockquote>
+<hr>
+<h5 id="async-_run_with_connimpl-callable-any"><code>async _run_with_conn(impl: Callable[..., Any])</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+执行 <code>impl(conn, *args)</code>：显式连接优先，否则自动获取并在退出时归还</p>
+</blockquote>
+<hr>
+<h5 id="async-_exec_query_onkind-str-sql-str-params-any-conn-any"><code>async _exec_query_on(kind: str, sql: str, params: Any, conn: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+方言执行漏斗：翻译占位符后按 kind 执行</p>
+</blockquote>
+<ul>
+<li><strong>kind</strong> (<code>"select"</code>): / "one" / "count" / "dml" / "dml_multi"</li>
+<li><strong>sql</strong> (<code>内部</code>): <code>?</code> 占位符 SQL</li>
+<li><strong>params</strong> (<code>参数列表（dml_multi</code>): 为参数行列表）</li>
+<li><strong>conn</strong> (<code>数据库连接</code>): <strong>返回值</strong> (<code>select/one</code>): 返回 (行, 列名列表或None)；其余返回受影响行数</li>
+</ul>
+<hr>
+<h5 id="async-_execute_querykind-str-sql-str-params-any"><code>async _execute_query(kind: str, sql: str, params: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 查询执行统一入口（连接路由 → 执行漏斗）</p>
+</blockquote>
+<hr>
+<h5 id="async-_acquire_txn_conn"><code>async _acquire_txn_conn()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 获取事务专用连接</p>
+</blockquote>
+<hr>
+<h5 id="async-_begin_txnconn-any"><code>async _begin_txn(conn: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 开启事务（SQL BEGIN，方言可覆写）</p>
+</blockquote>
+<hr>
+<h5 id="async-_commit_txnconn-any-handle-any-none"><code>async _commit_txn(conn: Any, handle: Any = None)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 提交事务</p>
+</blockquote>
+<hr>
+<h5 id="async-_rollback_txnconn-any-handle-any-none"><code>async _rollback_txn(conn: Any, handle: Any = None)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 回滚事务</p>
+</blockquote>
+<hr>
+<h5 id="async-_release_txn_connconn-any"><code>async _release_txn_conn(conn: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 释放事务专用连接</p>
+</blockquote>
+<hr>
+<h5 id="async-_run_altertable_name-str-operations-listtuplestr-tupleany-"><code>async _run_alter(table_name: str, operations: 'list[tuple[str, tuple[Any, ...]]]')</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 顺序执行 ALTER TABLE 操作</p>
+</blockquote>
+<hr>
+<h5 id="_parse_nested_keykey-str"><code>_parse_nested_key(key: str)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+解析嵌套键：点号(.)总是表示嵌套访问，即使根键不存在也会创建嵌套结构</p>
+</blockquote>
+<ul>
+<li><strong>key</strong> (<code>键名，如</code>): "user.settings.theme"
+<strong>返回值</strong> (<code>(根键名,</code>): 路径列表)</li>
+</ul>
+<hr>
+<h5 id="_get_nested_valueobj-any-key_path-liststr"><code>_get_nested_value(obj: Any, key_path: list[str])</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 从嵌套对象中获取值</p>
+</blockquote>
+<hr>
+<h5 id="_set_nested_valueobj-any-key_path-liststr-value-any"><code>_set_nested_value(obj: Any, key_path: list[str], value: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 在嵌套对象中设置值（中间层一律预创建为字典）</p>
+</blockquote>
+<hr>
+<h5 id="_delete_nested_valueobj-any-key_path-liststr"><code>_delete_nested_value(obj: Any, key_path: list[str])</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 从嵌套对象中删除值，返回 (更新后的对象, 是否删除成功)</p>
+</blockquote>
+<hr>
+<h5 id="_loadsraw-any"><code>_loads(raw: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> JSON 反序列化（失败时返回原始文本）</p>
+</blockquote>
+<hr>
+<h5 id="_kv_table_sql"><code>_kv_table_sql()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 返回 (已引用表名, 已引用键列, 已引用值列)</p>
+</blockquote>
+<hr>
+<h5 id="async-_init_kv_table"><code>async _init_kv_table()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 创建默认 KV 表</p>
+</blockquote>
+<hr>
+<h5 id="async-_recover_missing_table"><code>async _recover_missing_table()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 缺表自动恢复</p>
+</blockquote>
+<hr>
+<h5 id="_shadow_overlay"><code>_shadow_overlay()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+影子存储覆盖层（方向十一）：当前 owner 属影子时返回其覆盖层，
+否则 None。KV 三件套（aget / aset / adelete）据此实现"写隔离、
+读透传、删为墓碑"；ORM 读写不在覆盖层语义内（文档声明）。</p>
+</blockquote>
+<hr>
+<h5 id="async-agetkey-str-default-any-none"><code>async aget(key: str, default: Any = None)</code></h5>
+<p>异步获取存储项的值</p>
+<p>支持嵌套键访问，如 "user.settings.theme" 会从存储的嵌套对象中获取值</p>
+<ul>
+<li><strong>key</strong> (<code>存储项键名，支持嵌套路径</code>): - <strong>default</strong>: 默认值（当键不存在时返回）</li>
+<li><strong>conn</strong> (<code>内部参数：事务连接路由（勿手动传入）</code>): <strong>返回值</strong> (<code>存储项的值</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> timeout <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aget<span class="token punctuation">(</span><span class="token string">"network.timeout"</span><span class="token punctuation">,</span> <span class="token number">30</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-asetkey-str-value-any"><code>async aset(key: str, value: Any)</code></h5>
+<p>异步设置存储项的值</p>
+<pre><code>支持嵌套键设置，如 "user.settings.theme" 会更新存储的嵌套对象中的对应字段
+
+- **key** (`存储项键名，支持嵌套路径`): - **value**: 存储项的值
+- **conn** (`内部参数：事务连接路由（勿手动传入）`): **返回值** (`操作是否成功`): 
+</code></pre>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"user.settings.theme"</span><span class="token punctuation">,</span> <span class="token string">"dark"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-adeletekey-str"><code>async adelete(key: str)</code></h5>
+<p>异步删除存储项</p>
+<pre><code>支持嵌套键删除，如 "user.settings.theme" 会删除嵌套对象中的对应字段
+
+- **key** (`存储项键名，支持嵌套路径`): - **conn**: 内部参数：事务连接路由（勿手动传入）
+**返回值** (`操作是否成功`): 
+</code></pre>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>adelete<span class="token punctuation">(</span><span class="token string">"user.settings.theme"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aget_all_keys"><code>async aget_all_keys()</code></h5>
+<p>异步获取所有存储项的键名</p>
+<ul>
+<li><strong>conn</strong> (<code>内部参数：事务连接路由（勿手动传入）</code>): <strong>返回值</strong> (<code>键名列表</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> all_keys <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aget_all_keys<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aclear"><code>async aclear()</code></h5>
+<p>异步清空所有存储项</p>
+<ul>
+<li><strong>conn</strong> (<code>内部参数：事务连接路由（勿手动传入）</code>): <strong>返回值</strong> (<code>操作是否成功</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aclear<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aget_multikeys-liststr"><code>async aget_multi(keys: list[str])</code></h5>
+<p>异步批量获取多个存储项的值（单次 IN 查询，仅返回存在的键）</p>
+<ul>
+<li><strong>keys</strong> (<code>键名列表</code>): <strong>返回值</strong> (<code>键值对字典</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> settings <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aget_multi<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"app.name"</span><span class="token punctuation">,</span> <span class="token string">"app.version"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="get_multikeys-liststr"><code>get_multi(keys: list[str])</code></h5>
+<p>批量获取多个存储项的值（同步兼容，桥接到 :meth:<code>aget_multi</code>）</p>
+<ul>
+<li><strong>keys</strong> (<code>键名列表</code>): <strong>返回值</strong> (<code>键值对字典</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> settings <span class="token operator">=</span> storage<span class="token punctuation">.</span>get_multi<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"app.name"</span><span class="token punctuation">,</span> <span class="token string">"app.version"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aset_multiitems-dictstr-any"><code>async aset_multi(items: dict[str, Any])</code></h5>
+<p>异步批量设置多个存储项</p>
+<p>与旧版语义一致：键按<strong>字面量</strong>直写，不做点号嵌套解析
+（需要嵌套行为请逐键调用 :meth:<code>aset</code>）。</p>
+<ul>
+<li><strong>items</strong> (<code>键值对字典</code>): <strong>返回值</strong> (<code>操作是否成功</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aset_multi<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"app.name"</span><span class="token punctuation">:</span> <span class="token string">"MyApp"</span><span class="token punctuation">,</span> <span class="token string">"app.debug"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="set_multiitems-dictstr-any"><code>set_multi(items: dict[str, Any])</code></h5>
+<p>批量设置多个存储项（同步兼容，桥接到 :meth:<code>aset_multi</code>）</p>
+<ul>
+<li><strong>items</strong> (<code>键值对字典</code>): <strong>返回值</strong> (<code>操作是否成功</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> storage<span class="token punctuation">.</span>set_multi<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"app.name"</span><span class="token punctuation">:</span> <span class="token string">"MyApp"</span><span class="token punctuation">,</span> <span class="token string">"app.debug"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-adelete_multikeys-liststr"><code>async adelete_multi(keys: list[str])</code></h5>
+<p>异步批量删除多个存储项（单次批量 DELETE）</p>
+<ul>
+<li><strong>keys</strong> (<code>键名列表</code>): <strong>返回值</strong> (<code>操作是否成功</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>adelete_multi<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"temp.key1"</span><span class="token punctuation">,</span> <span class="token string">"temp.key2"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="delete_multikeys-liststr"><code>delete_multi(keys: list[str])</code></h5>
+<p>批量删除多个存储项（同步兼容，桥接到 :meth:<code>adelete_multi</code>）</p>
+<ul>
+<li><strong>keys</strong> (<code>键名列表</code>): <strong>返回值</strong> (<code>操作是否成功</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> storage<span class="token punctuation">.</span>delete_multi<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"temp.key1"</span><span class="token punctuation">,</span> <span class="token string">"temp.key2"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="tabletable_name-str"><code>Table(table_name: str)</code></h5>
+<p>获取指定表的查询构建器</p>
+<ul>
+<li><strong>table_name</strong> (<code>表名</code>): <strong>返回值</strong> (<code>SQLQueryBuilder</code>): 实例</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> rows <span class="token operator">=</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-acreatetabletable_name-str-columns-dictstr-str"><code>async aCreateTable(table_name: str, columns: dict[str, str])</code></h5>
+<p>异步创建表</p>
+<p>列类型支持 SQLite 风格定义（如 "INTEGER PRIMARY KEY AUTOINCREMENT"），
+由方言自动翻译为目标后端等价写法。</p>
+<ul>
+<li><strong>table_name</strong> (<code>表名</code>): - <strong>columns</strong>: 列名到类型的映射
+<strong>返回值</strong> (<code>操作是否成功</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aCreateTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"INTEGER PRIMARY KEY AUTOINCREMENT"</span><span class="token punctuation">,</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"TEXT NOT NULL"</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-adroptabletable_name-str"><code>async aDropTable(table_name: str)</code></h5>
+<p>异步删除表</p>
+<ul>
+<li><strong>table_name</strong> (<code>表名</code>): <strong>返回值</strong> (<code>操作是否成功</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aDropTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-ahastabletable_name-str"><code>async aHasTable(table_name: str)</code></h5>
+<p>异步检查表是否存在</p>
+<ul>
+<li><strong>table_name</strong> (<code>表名</code>): <strong>返回值</strong> (<code>是否存在</code>): 
+<strong>示例</strong>:</li>
+</ul>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">if</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aHasTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+</code></pre>
+<hr>
+<h5 id="async-agettablecolumnstable_name-str"><code>async aGetTableColumns(table_name: str)</code></h5>
+<p>异步列举表的现有列名（ORM 自动迁移用）</p>
+<ul>
+<li><strong>table_name</strong> (<code>表名</code>): <strong>返回值</strong>: 列名列表；查询失败时返回空列表</li>
+</ul>
+<hr>
+<h5 id="altertabletable_name-str"><code>AlterTable(table_name: str)</code></h5>
+<p>获取 ALTER TABLE 构建器</p>
+<ul>
+<li><strong>table_name</strong> (<code>表名</code>): <strong>返回值</strong> (<code>AlterTableBuilder</code>): 实例</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> storage<span class="token punctuation">.</span>AlterTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AddColumn<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">,</span> <span class="token string">"TEXT"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aclose"><code>async aclose()</code></h5>
+<p>异步关闭当前事件循环上绑定的连接资源（连接池/共享连接）</p>
+<p>事务专用连接不受影响（由事务自行管理）。</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> storage<span class="token punctuation">.</span>aclose<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/send_rules.html"><small>Previous</small><br>`ErisPulse.Core.Bases.send_rules` 模块</a>
+        <a class="doc-pager-next" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/storage.html"><small>Next</small><br>`ErisPulse.Core.Bases.storage` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

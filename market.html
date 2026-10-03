@@ -176,7 +176,1030 @@
         <main class="main-content">
             <!-- 视图片段占位符：启动时由 assets/js/core/views.js 加载 -->
             <div data-fragment-slot="home"></div>
-            <div data-fragment-slot="market"></div>
+            <div data-fragment-slot="market"><div id="market-view" class="view-container">
+            <div class="container market-container">
+                <div class="market-header">
+                    <h2 class="section-title" data-i18n="market.title">模块市场</h2>
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="module-search" data-i18n-placeholder="market.search" placeholder="搜索模块...">
+                    </div>
+                </div>
+
+                <!-- 模块市场统计信息 -->
+                <div class="market-stats">
+                    <div class="stats-grid">
+                        <div class="stat-card stat-card-highlight">
+                            <div class="stat-number" id="total-all-modules">51</div>
+                            <div class="stat-label" data-i18n="market.total">总模块数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-modules">36</div>
+                            <div class="stat-label" data-i18n="market.modules">功能模块</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-number" id="adapter-count">15</div>
+                            <div class="stat-label" data-i18n="market.adapters">平台适配器</div>
+                        </div>
+
+                        <div class="stat-card is-hidden" id="cli-stat-card">
+                            <div class="stat-number" id="cli-count">--</div>
+                            <div class="stat-label" data-i18n="market.cli">CLI 扩展</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="market-toolbar">
+                    <div class="category-segmented" role="tablist">
+                        <button class="category-btn active" data-category="all">
+                            <i class="fas fa-grip"></i>
+                            <span data-i18n="market.all">全部模块</span>
+                            <span class="category-count" id="category-count-all">--</span>
+                        </button>
+                        <button class="category-btn" data-category="modules">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <span data-i18n="market.modules">功能模块</span>
+                            <span class="category-count" id="category-count-modules">--</span>
+                        </button>
+                        <button class="category-btn" data-category="adapters">
+                            <i class="fas fa-plug"></i>
+                            <span data-i18n="market.adapters">平台适配器</span>
+                            <span class="category-count" id="category-count-adapters">--</span>
+                        </button>
+                        <button class="category-btn is-hidden" data-category="cli_extensions" id="category-cli-btn">
+                            <i class="fas fa-terminal"></i>
+                            <span data-i18n="market.cli">CLI 扩展</span>
+                        </button>
+                    </div>
+                    <button class="submit-module-link" id="submit-module-btn">
+                        <i class="fas fa-plus"></i> <span data-i18n="market.submit">提交模块</span>
+                    </button>
+                </div>
+
+                <!-- 筛选面板 -->
+                <div class="market-filters" id="market-filters">
+                    <div class="filter-row">
+                        <span class="filter-label" data-i18n="market.filter.quick">快速筛选</span>
+                        <div class="filter-chips" id="market-flag-filters">
+                            <button type="button" class="filter-chip" data-flag="featured">
+                                <i class="fas fa-star"></i> <span data-i18n="market.filter.featured">推荐</span>
+                            </button>
+                            <button type="button" class="filter-chip" data-flag="official">
+                                <i class="fas fa-check-circle"></i> <span data-i18n="market.filter.official">官方</span>
+                            </button>
+                            <button type="button" class="filter-chip" data-flag="verified">
+                                <i class="fas fa-shield-alt"></i> <span data-i18n="market.filter.verified">已验证</span>
+                            </button>
+                            <button type="button" class="filter-chip" data-flag="unverified">
+                                <i class="fas fa-exclamation-triangle"></i> <span data-i18n="market.filter.unverified">未验证</span>
+                            </button>
+                        </div>
+                        <div class="filter-tools">
+                            <span class="filter-label filter-label-inline" data-i18n="market.filter.sdk">我的 SDK 版本</span>
+                            <select class="filter-select" id="market-sdk-select" data-i18n-title="market.filter.sdk.hint"></select>
+                            <span class="filter-label filter-label-inline" data-i18n="market.filter.sort">排序</span>
+                            <select class="filter-select" id="market-sort-select"></select>
+                            <button type="button" class="filter-reset is-hidden" id="market-filter-reset">
+                                <i class="fas fa-times-circle"></i> <span data-i18n="market.filter.reset">清除筛选</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 分类：受控字段（后端存编号，按钮文字按当前语言渲染） -->
+                    <div class="filter-row is-hidden" id="market-category-row">
+                        <span class="filter-label" data-i18n="market.filter.category">分类</span>
+                        <div class="filter-tags" id="market-category-filters"></div>
+                    </div>
+
+                    <div class="filter-row is-hidden" id="market-tag-row">
+                        <span class="filter-label" data-i18n="market.filter.tags">标签</span>
+                        <div class="filter-tags" id="market-tag-filters"></div>
+                    </div>
+                </div>
+
+                <div class="filter-summary" id="market-summary"></div>
+
+                <div class="module-grid" id="modules-grid">
+                    <div class="module-card is-featured">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">Dashboard</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v2.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 管理</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">Web admin panel — system monitor, module management, config editor &amp; event stream | Web 管理面板 — 系统监控、模块管理、配置编辑、事件流查看</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card is-featured">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">HelpModule</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v2.1.3</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">为统一的命令系统提供一个help命令，用来在平台查看现有命令</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card is-featured">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">HelpNext</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v0.1.2</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">Modern help command module, session-aware listing &amp; full i18n (requires ErisPulse 2.8.0+) | 现代化帮助命令模块，会话感知列表与完整多语言（需 ErisPulse 2.8.0+）</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">YingXinche</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card is-featured">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">Takumi</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">Use takumi-py to quickly render images.</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ccd2s</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card is-featured">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">Cron</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse 定时任务调度模块 - 支持一次性/间隔/Cron定时，回调传参，SQLite持久化</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">AdapterConfig</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 管理</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">Dashboard extension for visually configuring adapter parameters | Dashboard 适配器配置扩展 — 可视化界面快速配置适配器参数</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">AdminControl</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v2.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 管理</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse 管理控制模块 - 提供框架管理和命令执行功能</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">AIChat</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v3.0.4</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> AI</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">AIChat 聊天机器人模块（停更）</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">BiliParser</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">B站视频解析模块，自动解析消息中的B站视频链接并展示详细信息</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">ChatSonar</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v2.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 数据分析</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">消息声呐 - 可视化群聊社交距离与岛屿群落</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">CopyCat</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 娱乐</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">复读机模块 - 检测群聊/私聊中连续重复消息并自动复读</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">樱城の心</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">DFAFilter</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v2.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">基于DFA算法的敏感词过滤模块，支持实时检测、自动替换和动态更新词库</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">Echo</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">Echo - 回显消息内容，支持文本、图片等多种类型，支持引用回显</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">樱城の心</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">EditVideoPlayer</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 娱乐</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">一个通用的视频播放器模块，可将视频转换为点阵字符并在支持消息编辑的平台上播放</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">EmailForwarder</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 通知</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">监听邮件适配器并将邮件转发到其他平台的 ErisPulse 模块</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">Feedback</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.1.2</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 管理</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse 反馈系统模块，支持反馈提交、状态管理、多群聊反馈组和数据导入导出</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">GitHubParser</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v3.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">GitHub链接解析模块，自动解析消息中的仓库/Issue/PR信息并以最佳格式展示</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">GitHubWebhook</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.2.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 通知</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">GitHub Webhook 聚合器模块，支持将 GitHub 事件转发到聊天平台</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">InfoQuery</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 数据分析</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">信息统计查询模块，用于查询InfoStats收集的统计数据</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">InfoStats</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 数据分析</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">Event listener &amp; statistics module for analytics | 信息统计模块 — 监听事件并统计分析</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">InteractiveTest</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse 交互式对话与 OneBot12 消息构建器功能测试模块，类似echo模块但功能更强大</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">MsgCounter</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.1.3</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 数据分析</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">一个用于统计消息的模块，末日水系列机器人同款</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">Future Tasks</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">MyServer</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 管理</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">服务器管理模块 - 支持远程监控、WebSocket终端、Dashboard管理</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">樱城の心</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">NekoCare</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v2.2.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 娱乐</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">NekoCare - 虚拟猫猫养成模块</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q, lin</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">OpenAI</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v2.1.3</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> AI</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">A unified OpenAI API wrapper module for ErisPulse | OpenAI 通用接口封装模块</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">QvQChat</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v3.2.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> AI</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">一个基于多AI协同的智能对话模块，让AI像真人一样自然参与聊天</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">Raffle</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 娱乐</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">General raffle module with Dashboard visualization, keyword signup &amp; draw animation | 通用抽奖模块 — Dashboard 可视化管理、群聊关键词报名、开奖动画、广播通知</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">RateLimiter</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse message rate limiting module to prevent spam, supports fixed/sliding window, multi-dimensional limiting, and whitelist immunity | ErisPulse 消息速率限制模块，防止刷屏，支持固定/滑动窗口、多维度限流、白名单免疫</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">樱城の心</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">RssReader</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 通知</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">RSS订阅器模块——在聊天中订阅任意RSS/Atom源，自动推送更新</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">ServerStatusMonitor</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.1.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">系统信息查询模块-平台模块</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">SeTu</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 娱乐</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">简单的色图模块</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ShanFish</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">SystemStatus</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.3</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">提供获取系统内存、CPU、硬盘占用的接口</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ShanFish</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">UmaMusume</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 娱乐</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse的赛马娘主题机器人模块</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">CyanTea</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">UniBind</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">跨平台用户身份绑定模块，通过验证码关联不同平台的同一用户</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">Weather</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 工具</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">天气查询，支持绑定城市、今日天气、五日天气</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ShanFish</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-puzzle-piece"></i></div>
+                            <div>
+                                <h3 class="module-name">XiaomiMarathon</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 娱乐</span>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">小米马拉松模拟器</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Discord</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Discord adapter — Gateway WS + REST API v10 | ErisPulse Discord 适配器 — Gateway WebSocket + REST API v10</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Email</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Email adapter — turn any mailbox into a Bot | ErisPulse 邮箱适配器 — 把任意邮箱变成机器人</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Ideaura</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.1.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Ideaura (Allons) adapter — multi-scenario chat platform | ErisPulse 花枫咖啡馆(Allons)适配器 — 多场景聊天平台</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Kook</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.1.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Kook adapter — messages, KMarkdown &amp; cards | ErisPulse Kook 适配器 — 消息收发，KMarkdown / 卡片</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ShanFish</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Matrix</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Matrix adapter — decentralized chat via long-polling sync | ErisPulse Matrix 适配器 — 去中心化协议，Long Polling 同步</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">OneBot11</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.3.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse OneBot11 adapter — compatible with any OneBot v11 implementation | ErisPulse OneBot11 适配器 — 兼容任意 OneBot V11 协议实现</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">OneBot12</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.3.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse OneBot12 adapter — baseline protocol, multi-account &amp; dual-mode | ErisPulse OneBot12 适配器 — 基线协议，多账户 / Server·Client 双模式</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">QQBot</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v5.0.1</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse QQ Official Bot adapter — groups, DMs &amp; channels | ErisPulse QQ 官方机器人适配器 — 群聊 / 私聊 / 频道</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">sandbox</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.1.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Sandbox adapter — test your Bot in a web UI, zero setup | ErisPulse 沙箱适配器 — 网页 UI 调试，零平台接入即测即用</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Telegram</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Telegram adapter — Bot API with multi-account &amp; rich media | ErisPulse Telegram 适配器 — Bot API，多账户 + 富媒体</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Terminal</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v1.1.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Terminal adapter — the terminal is the chat, zero-config | ErisPulse 终端适配器 — 命令行即聊天，零配置开发调试</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Webhook</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Webhook adapter — a low-code HTTP bridge to any system | ErisPulse Webhook 适配器 — 通用 HTTP 桥接，低代码接任意系统</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">WechatMp</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.2.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse WeChat MP adapter — webhook callback + customer/template messages | ErisPulse 微信公众号适配器 — Webhook 回调 + 客服 / 模板消息</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">ErisPulse</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">Yunhu</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.4.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Yunhu adapter — enterprise IM over WebSocket/Webhook | ErisPulse 云湖适配器 — 企业 IM，WebSocket / Webhook 双模式</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div>
+
+                    <div class="module-card">
+                        <div class="module-header">
+                            <div class="module-icon"><i class="fas fa-plug"></i></div>
+                            <div>
+                                <h3 class="module-name">YunhuUser</h3>
+                                <div class="module-meta-row">
+                                    <div class="module-version">v4.3.0</div>
+                                    <span class="module-badge badge-category"><i class="fas fa-layer-group"></i> 平台对接</span>
+                                    <span class="module-badge badge-official"><i class="fas fa-check-circle"></i> 官方</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="module-desc">ErisPulse Yunhu-User adapter — driven by user-account protocol | ErisPulse 云湖用户适配器 — 用户账户协议驱动</p>
+                        <div class="module-footer">
+                            <div class="module-footer-info"><div class="module-author">wsu2059q</div></div>
+                        </div>
+                    </div></div>
+            </div>
+        </div></div>
 
                 <!-- 模块市场统计信息 -->
                 

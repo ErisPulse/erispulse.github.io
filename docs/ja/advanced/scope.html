@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>スコープ (scope) - ErisPulse 文档中心</title>
+    <meta name="description" content="スコープは以下の4つの質問に答えます：どのモジュールが利用可能か、どのイベントを受け取るか、特定のモジュールがどのようなテキストを処理するか、モジュールが外部に何ができるか。コントロールはすべてユーザーに委ねられます。モジュール / アダプタ / プロセッサ / 出力呼び出しの登録の上層（ErisPulse.sc..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/scope.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/scope.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/scope.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/scope.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/scope.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/scope.html" />
+    <meta property="og:title" content="スコープ (scope) - ErisPulse 文档中心" />
+    <meta property="og:description" content="スコープは以下の4つの質問に答えます：どのモジュールが利用可能か、どのイベントを受け取るか、特定のモジュールがどのようなテキストを処理するか、モジュールが外部に何ができるか。コントロールはすべてユーザーに委ねられます。モジュール / アダプタ / プロセッサ / 出力呼び出しの登録の上層（ErisPulse.sc..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/scope.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"スコープ (scope)","description":"スコープは以下の4つの質問に答えます：どのモジュールが利用可能か、どのイベントを受け取るか、特定のモジュールがどのようなテキストを処理するか、モジュールが外部に何ができるか。コントロールはすべてユーザーに委ねられます。モジュール / アダプタ / プロセッサ / 出力呼び出しの登録の上層（ErisPulse.sc...","url":"https://www.erisdev.com/docs/ja/advanced/scope.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>スコープ (scope)</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/scope.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/scope.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/scope.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/scope.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/scope.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/scope.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="スコープ-scope">スコープ (scope)</h1>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>この機能は ErisPulse <strong>2.8.0+</strong> が必要です。</p>
+</div>
+<p>スコープは以下の4つの質問に答えます：<strong>どのモジュールが利用可能か、どのイベントを受け取るか、特定のモジュールがどのようなテキストを処理するか、モジュールが外部に何ができるか</strong>。<br>コントロールはすべてユーザーに委ねられます。モジュール / アダプタ / プロセッサ / 出力呼び出しの登録の<strong>上層</strong>（<code>ErisPulse.scope</code> または実行時 <code>sdk.scope</code> での設定）で一括して宣言し、イベントパイプラインはエントリ、プロセッサフィルタ、出力ゲートで自動的に読み取り、実行します。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>次元</th>
+<th>コントロール対象</th>
+<th>拒否される動作</th>
+<th>設定パス</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>① モジュール</strong></td>
+<td>利用可能なモジュール（プラットフォーム / Bot / セッションの3段階）</td>
+<td>フィルタされたモジュールはトリガーされず、返信されません（ブロードキャスト <code>scope.blocked</code> イベントをブロック；一致したコマンドは引き続き認定され、ブロックされます）</td>
+<td><code>scope.platforms / bots / sessions</code></td>
+</tr>
+<tr>
+<td><strong>② 身分</strong></td>
+<td>イベントの受信可否（アダプタ / Bot / セッション / ユーザーの4段階）</td>
+<td>エントリで完全に破棄されます（ブロードキャスト <code>scope.blocked</code> イベントをブロック）</td>
+<td><code>scope.identity.*</code></td>
+</tr>
+<tr>
+<td><strong>③ 出力</strong></td>
+<td>モジュールがどの出力呼び出し（メッセージ / API / 要求、メソッドレベルのホワイトリスト/ブラックリスト）を発行できるか</td>
+<td>失敗応答（<code>retcode=34601</code>）</td>
+<td><code>scope.actions</code></td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>関連システム</strong>：コマンドは特別なメッセージイベントプロセッサであり、そのユーザーのホワイトリスト/ブラックリスト（ACL）と実装パラメータのオーバーライドはコマンドシステムが独自に管理します（<code>ErisPulse.event.command</code>）。<br><a href="/docs/ja/getting-started/event-handling.html">イベント処理の入門</a> および <a href="/docs/ja/user-guide/configuration.html">設定ガイド</a> を参照してください。</p>
+</blockquote>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>単例を <code>from ErisPulse.Core import scope</code> でインポート（<code>sdk.scope</code> は同じオブジェクト）</li>
+<li>判定：<code>scope.is_allowed(...)</code> / <code>scope.is_identity_allowed(...)</code> /<br><code>scope.is_action_allowed(...)</code> はそれぞれ ①②③ の3つのゲートに対応します</li>
+<li>読み書き：次元化されたパラメータメソッド（IDEで補完可能）——<br><code>scope.set_module(...)</code> / <code>scope.set_identity(...)</code> / <code>scope.set_action(...)</code>；<br>また、辞書式のバックアップメソッドとして <code>scope.get(path)</code> / <code>scope.set(path, v)</code> / <code>scope.delete(path)</code> もあります</li>
+<li>イベントプロセッサのテキスト条件オーバーライドについては、<br><a href="/docs/ja/getting-started/event-handling.html#%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E3%82%AA%E3%83%BC%E3%83%90%E3%83%BC%E3%83%A9%E3%82%A4%E3%83%89-%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%B3%E3%83%BC%E3%83%89%E3%82%92%E5%A4%89%E6%9B%B4%E3%81%9B%E3%81%9A%E3%81%AB%E4%BB%BB%E6%84%8F%E3%81%AE%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E3%82%BF%E3%82%A4%E3%83%97%E3%81%AE%E6%8C%99%E5%8B%95%E3%82%92%E3%82%AA%E3%83%BC%E3%83%90%E3%83%BC%E3%83%A9%E3%82%A4%E3%83%89">イベント処理の入門 · イベントオーバーライド</a> を参照してください。<br>コマンド ACL / パラメータオーバーライドについては、<a href="/docs/ja/getting-started/event-handling.html">イベント処理の入門</a> を参照してください。
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="マッチング条目構文全システム共通">マッチング条目構文（全システム共通）</h2>
+<p>スコープのすべての「名前リスト」（モジュール名、身元キー、出力条目）は、同一のマッチング構文（<code>ErisPulse.Core.text_match</code>）を使用します：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>構文</th>
+<th>例</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>精確名</td>
+<td><code>"Chat"</code></td>
+<td>完全一致比較、<strong>大文字小文字は区別しない</strong></td>
+</tr>
+<tr>
+<td>glob</td>
+<td><code>"Tool*"</code>、<code>"spam_*"</code></td>
+<td><code>*</code> 任意文字列 / <code>?</code> 1文字 / <code>[seq]</code> 文字集合、大文字小文字は区別しない</td>
+</tr>
+<tr>
+<td>正規表現</td>
+<td><code>"re:^Danger.*"</code></td>
+<td><code>re:</code> 前置詞で宣言、正規表現の <code>search</code> で一致、デフォルトで大文字小文字は区別しない</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>不正な正規表現は<strong>静かに降格</strong>される（エラーを投げず、クラッシュしない）</li>
+<li>デコレータ引数（<code>pattern=</code> / <code>regex=</code>）は固定の意味を持つ：<code>pattern</code> は glob、<code>regex</code> は正規表現ソースコード（<code>re:</code> 前置詞なし）；スコープ設定の正規表現条目は<strong>必ず</strong> <code>re:</code> 前置詞が必要</li>
+</ul>
+<h2 id="グローバルバックアップdefault_allow">グローバルバックアップ：<code>default_allow</code></h2>
+<p><code>default_allow</code> は<strong>グローバルで唯一</strong>のバックアップスイッチ（デフォルト <code>true</code>）で、以下の2つの判定次元に一括して効果します：</p>
+<ul>
+<li><strong>モジュール次元</strong>：すべてのバインドに一致しない → <code>default_allow</code> で許可 / 拒否を決定</li>
+<li><strong>身元次元</strong>：すべての戦略に一致しない → <code>default_allow</code> で許可 / 拒否を決定</li>
+</ul>
+<p><code>false</code> に設定すると「暗黙の拒否」厳格モードが有効になり、ホワイトリスト式の管理が可能で、<strong>明示的に許可されていないものはすべて拒否</strong>されます。</p>
+<blockquote>
+<p><strong>例外</strong>：③ 出力次元は <code>default_allow</code> の影響を受けない——これは独立した絞り込みスイッチで、デフォルトはすべて許可され、明示的なルールのみが制限される（フレームワーク層の owner が空の呼び出しは常に許可される）。<br>これにより、厳格なグローバルモードでも、すべてのモジュールのメッセージ返信が意図せず遮断されることはない。<br>コマンド ACL には独立した <code>ErisPulse.event.command.default_allow</code> バックアップがあり、互いに影響しない。</p>
+</blockquote>
+<h2 id="設定ファイル">設定ファイル</h2>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope</span><span class="token punctuation">]</span>
+<span class="token key property">default_allow</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>        <span class="token comment"># グローバルバックアップ（false = 暗黙の拒否厳格モード）</span>
+<span class="token key property">cache_size</span> <span class="token punctuation">=</span> <span class="token number">1024</span>           <span class="token comment"># LRUキャッシュサイズ</span>
+
+<span class="token comment"># ── ① モジュール次元（優先度：セッション &gt; Bot &gt; プラットフォーム）──</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.platforms.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"Tool*"</span><span class="token punctuation">]</span>   <span class="token comment"># ホワイトリスト：正確名 / glob / re: 正規表現</span>
+<span class="token key property">blocked</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"re:^Danger"</span><span class="token punctuation">]</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.bots.onebot11."123456"</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span>
+<span class="token key property">merge</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>                  <span class="token comment"># プラットフォームレベルのバインドに追加（デフォルトは全体上書き）</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.sessions.onebot11."789012345"</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span>
+
+<span class="token comment"># ── ② 身元次元（優先度：ユーザー &gt; セッション &gt; Bot &gt; アダプター）──</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.adapters.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>                   <span class="token comment"># アダプター全体のイベントを完全に破棄</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.bots.onebot11."123456"</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.sessions.onebot11."g_blocked"</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.users.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"u_admin"</span><span class="token punctuation">]</span>           <span class="token comment"># ユーザー識別子に glob / re: 正規表現をサポート</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"u_bad"</span><span class="token punctuation">,</span> <span class="token string">"spam_*"</span><span class="token punctuation">]</span>
+
+<span class="token comment"># ── ③ 出力次元（デフォルトはすべて許可、明示的に絞る場合のみ制限）──</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.actions.MyModule</span><span class="token punctuation">]</span>
+<span class="token key property">send</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                                    <span class="token comment"># 送信を全禁止</span>
+<span class="token key property">api</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"get_*"</span><span class="token punctuation">]</span> <span class="token punctuation">}</span>                               <span class="token comment"># クエリ系の標準APIのみ許可</span>
+<span class="token key property">request</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                                 <span class="token comment"># リクエスト処理を禁止</span>
+</code></pre>
+<h2 id="①-モジュール次元">① モジュール次元</h2>
+<p>「あるコンテキストの中で、どのモジュールが利用可能か？」という質問に答える。デフォルトではすべてが開放されており、設定のバインディングが有効になってからフィルタリングが開始されるため、<strong>モジュールとアダプタは一切変更不要</strong>。</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["イベントがモジュールのハンドラ/コマンドに到達"] --&gt; B{"scope.is_allowed&lt;br/&gt;(platform, bot, module, session)"}
+    B --&gt; C{"解析の優先順位：セッションレベル &gt; Bot レベル &gt; プラットフォームレベル&lt;br/&gt;（子レベルで merge = true の場合、各レベルで逐次合併）"}
+    C --&gt;|"一致"| D["blocked に一致 → 拒否&lt;br/&gt;modules が空でない → 限定された白名単のみ許可&lt;br/&gt;両方空 → default_allow"]
+    C --&gt;|"不一致"| E["default_allow（デフォルトは true = 許可）"]
+    D --&gt;|"拒否"| Z["返信なし&lt;br/&gt;（ブロードキャスト `scope.blocked` イベントをブロック；一致したコマンドは引き続き認領され、ブロックされる）"]
+</code></pre>
+<ul>
+<li><strong>解析の優先順位：セッションレベル &gt; Bot レベル &gt; プラットフォームレベル</strong>。高優先度のバインディングは低優先度を<strong>全体的に上書き</strong>する。子レベルで <code>merge = true</code> を設定すると、低優先度と<strong>各項目ごとの合併</strong>（modules / blocked はそれぞれ独立に合併）に変更される（<code>merge</code> 自体は制御キーであり、項目としてはカウントされない）。</li>
+<li><strong>デフォルトの意味</strong>：フィルタリングされたモジュールのコマンドとハンドラはトリガされず、返信もされない。TRACE レベルのログで確認可能（<code>core.scope.denied</code>）。同時に <code>scope.blocked</code> ライフサイクルイベントがブロードキャストされ、何がブロックされたのか、なぜブロックされたのかをサブスクライブすることで観測可能。一致した<strong>コマンド</strong>は引き続き認領され、ブロックされる——コマンドのテキストは低優先度のメッセージハンドラに漏れることなく、二重応答の曖昧さ（コマンドが拒否された後にメッセージハンドラが再度反応する）を解消する。</li>
+<li><strong>フレームワークレベルのハンドラ</strong>（<code>scope_exempt=True</code> または owner が空）は影響を受けない。モジュール名が空（フレームワーク層のリソース）の場合は常に許可される。</li>
+<li><strong>セッション感知によるヘルプとコマンド照会</strong>：コマンド照会 API（<code>command.help</code> / <code>get_command</code> / <code>get_commands</code> / <code>get_group_commands</code> / <code>get_visible_commands</code>、および <code>module.get_commands_overview</code>）は、オプションで <code>event=</code> または明示的に <code>platform=</code> / <code>bot_id=</code> / <code>session_id=</code> を指定できる。現在のセッションで利用できないモジュールのコマンドは結果に含まれない（<code>get_command</code> は None を返し、単一のコマンドヘルプは「未登録」として扱われる。これはデフォルトの意味と一致する）。コンテキストを渡さない場合は、全量の動作を維持する。</li>
+</ul>
+<h3 id="バインディングの継承merge">バインディングの継承（merge）</h3>
+<p>デフォルトの上書きの意味は明確で予測可能である。上位レベルのバインディングに<strong>追加</strong>したい場合は、子レベルで <code>merge = true</code> を設定する：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.platforms.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"Tool"</span><span class="token punctuation">]</span>      <span class="token comment"># プラットフォームレベル：Chat、Tool を許可</span>
+
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.bots.onebot11."123456"</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Music"</span><span class="token punctuation">]</span>
+<span class="token key property">merge</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>                    <span class="token comment"># その Bot で実効する = ["Chat", "Tool", "Music"]</span>
+</code></pre>
+<ul>
+<li>合併ルール：<code>modules</code> と <code>blocked</code> はそれぞれ<strong>合併</strong>される。バインディング内では <code>blocked</code> は <code>modules</code> よりも優先される。</li>
+<li>鏈式の合併：プラットフォーム → Bot → セッションの順に段階的に追加され、各レベルで <code>merge</code> または上書きを個別に決定する。</li>
+</ul>
+<h2 id="②-身元次元イベント受信">② 身元次元（イベント受信）</h2>
+<p>「誰のイベントを受信するか」を回答します。拒否されたイベントは<strong>イベント配信のエントリで完全に破棄</strong>されます——ミドルウェアやどのハンドラにも送られず（フレームワークレベルも含む）、<code>core.scope.identity_denied</code> のTRACEレベルのログのみが表示されます。</p>
+<ul>
+<li><strong>解析優先度：ユーザー &gt; セッション &gt; Bot &gt; アダプター</strong>。最も具体的な設定された戦略を取る；<code>deny</code> は <code>allow</code> より優先</li>
+<li>各レベルのバインドは二元戦略：<code>{ allow = true }</code> または <code>{ deny = true }</code></li>
+<li>ユーザー識別子は glob / 正規表現をサポート（例：<code>"spam_*"</code> で一括した迷惑ユーザーをブロック）</li>
+<li>一般的な使い方——上位で deny、個人で allow で「例外許可」：</li>
+</ul>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.adapters.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.users.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"u_admin"</span><span class="token punctuation">]</span>   <span class="token comment"># アダプター全体が拒否していても、u_admin のイベントは許可される</span>
+</code></pre>
+<h2 id="③-出力次元モジュールの出力呼び出し制限">③ 出力次元（モジュールの出力呼び出し制限）</h2>
+<p>モジュールが<strong>出力アクション</strong>（メッセージ送信 / 標準APIアクション / リクエスト操作）を開始することを制限します。<br>3つのアクションはそれぞれのDSLに対応：<code>Event.reply</code> と <code>Send</code>（send）、<code>Api</code> / <code>call_api</code>（api）、<code>Request</code> の accept/reject（request）。イベントハンドラ実行中に出力呼び出しが発生した場合、モジュールの owner が含まれ、この次元で一括して判定されます。</p>
+<h3 id="規則の形態インライン表">規則の形態（インライン表）</h3>
+<p>各アクションのルールはインライン表です：<code>{ allow = [...], deny = true|[...] }</code>。<br>同一アクションには1つのルールしか設定できません（TOMLのキーは重複不可、全禁止と細粒度はどちらか一方のみ）：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.actions.MyModule</span><span class="token punctuation">]</span>
+<span class="token key property">send</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                                  <span class="token comment"># 送信を全禁止（Event.reply / Send DSL）</span>
+<span class="token comment"># または方法レベルの細粒度：send = { allow = ["Text", "Image*"], deny = ["File"] }</span>
+<span class="token key property">api</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"get_*"</span><span class="token punctuation">]</span> <span class="token punctuation">}</span>                             <span class="token comment"># クエリ系の標準APIのみ許可</span>
+<span class="token comment"># またはアクションレベルのブラックリスト：api = { deny = ["set_*", "leave_*"] }</span>
+<span class="token key property">request</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                               <span class="token comment"># リクエストの処理を禁止（accept/reject）</span>
+</code></pre>
+<ul>
+<li><code>send</code> の条目は<strong>送信メソッド名</strong>（<code>Text</code> / <code>Image</code> / <code>File</code> ...）に一致します、<br><code>api</code> の条目は<strong>標準アクション名</strong>（<code>get_group_info</code> / <code>set_group_name</code> ...）に一致します</li>
+<li>条目は正確名 / glob / <code>re:</code> 正規表現（全システムの統一構文に一致し、大文字小文字は区別しない）をサポート</li>
+<li><code>allow</code> に1つの文字列を書くことは、1つのリスト条目と同等です：<code>send = { allow = "Text" }</code></li>
+</ul>
+<h3 id="判定の意味">判定の意味</h3>
+<p><strong>デフォルトはすべて許可</strong>——設定されていない場合、または owner が空（フレームワーク層の内部呼び出し）の場合はすべて許可されます。<br>設定ルールがある場合、以下の順序で判定されます：</p>
+<ol>
+<li><code>deny = true</code> → 拒否</li>
+<li><code>deny</code> リストに呼び出し名が一致 → 拒否</li>
+<li><code>allow</code> リストが空でないかつ呼び出し名が一致しない（または呼び出し名がない）→ 拒否</li>
+<li>その他の場合は許可</li>
+</ol>
+<p>拒否された呼び出しはネットワークリクエストを開始せず、直接標準の失敗応答（<code>retcode = 34601</code>、<a href="/docs/ja/standards/api-response.html#53-%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0%E3%83%AF%E3%83%BC%E3%82%AF%E6%8B%A1%E5%BC%B5%E8%BF%94%E5%8D%B4%E3%82%B3%E3%83%BC%E3%83%8934xxx-%E3%83%97%E3%83%A9%E3%83%83%E3%83%88%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0%E3%82%A8%E3%83%A9%E3%83%BC%E6%AE%B5%E3%81%AE%E4%B8%8B3%E6%A1%81%E3%81%AE%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%A0%E5%AE%9A%E7%BE%A9">api-response §5.3</a>）を返します。<br>3つのアクションは互いに独立しており、1つだけ制限できます。</p>
+<pre><code class="language-python"><span class="token comment"># 実行時API</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>              <span class="token comment"># 送信を全禁止</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> allow<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>         <span class="token comment"># 送信可能なのはテキストのみ</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span>    <span class="token comment"># False</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"api"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"get_user_info"</span><span class="token punctuation">)</span>  <span class="token comment"># 規則に従って判定</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>delete_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>                      <span class="token comment"># 許可を復元</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>get_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>                         <span class="token comment"># そのアクションの現在のルール</span>
+</code></pre>
+<h2 id="実行時api">実行時API</h2>
+<p>スコープの実行時APIは3つの層に分かれています：<strong>判定</strong>（3つの質問）、<strong>ディメンション化された読み書き</strong>（各層の <code>set</code> / <code>get</code> / <code>delete</code> パラメータ化メソッド、すべての型注釈が付いており、IDEで補完可能）、<strong>辞書形式のバックアップ</strong>（ドット区切りパスで任意の節に直接アクセス）。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+scope <span class="token operator">=</span> sdk<span class="token punctuation">.</span>scope
+</code></pre>
+<h3 id="判定3つの質問">判定（3つの質問）</h3>
+<pre><code class="language-python">scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token string">"Chat"</span><span class="token punctuation">)</span>                 <span class="token comment"># ① モジュール次元</span>
+scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"789012345"</span><span class="token punctuation">)</span>    <span class="token comment"># セッションレベルを含む</span>
+scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">)</span>                   <span class="token comment"># フレームワーク層のリソース -&gt; True</span>
+
+scope<span class="token punctuation">.</span>is_identity_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token string">"group_9"</span><span class="token punctuation">,</span> <span class="token string">"u1"</span><span class="token punctuation">)</span>   <span class="token comment"># ② 身元次元</span>
+
+scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>                    <span class="token comment"># ④ 出力次元</span>
+scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span>      <span class="token comment"># メソッドレベルの細粒度</span>
+</code></pre>
+<h3 id="①-モジュール次元-2">① モジュール次元</h3>
+<pre><code class="language-python"><span class="token comment"># バインド（パラメータによって階層が決定：session_id &gt; bot_id &gt; プラットフォームレベル）</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"Tool*"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> blocked<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"re:^Danger"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>                       <span class="token comment"># プラットフォームレベル</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> session_id<span class="token operator">=</span><span class="token string">"g9"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># セッションレベル</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Music"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> merge<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>      <span class="token comment"># 現在のバインドと並列に追加</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> persist<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>    <span class="token comment"># 実行時のみ</span>
+
+<span class="token comment"># 読み取り / 削除</span>
+scope<span class="token punctuation">.</span>get_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">)</span>   <span class="token comment"># {"modules": ["Chat"], "blocked": []}</span>
+scope<span class="token punctuation">.</span>delete_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><code>merge=True</code> は<strong>書き込み時の並列</strong>（現在のバインドと条目を並列に）です；階層解析時の <code>merge = true</code> 設定は上記の<a href="#%E3%83%90%E3%82%A4%E3%83%B3%E3%83%89%E7%B6%99%E6%89%BFmerge">バインド継承</a>を参照してください——これらは独立したメカニズムです。</p>
+</blockquote>
+<blockquote>
+<p><strong>実行時バインド（<code>persist=False</code>）の意味</strong>：実行時バインドは独立したオーバーライド層に保存され、<strong>その後のすべての設定書き込み / 設定ファイルのホットアップデートによっても破棄されません</strong>（設定ツリーの再構築後に書き込み順序で自動的に再実行され、実行時削除も含む）。それらは永続化されず、プロセスの再起動後に失われる。モジュールのアンロード時に、そのモジュールが書き込んだ実行時バインドはバックアップでクリーンアップされる。その後、同じパスに対して <code>persist=True</code> で書き込み（ユーザー永続化の意味）を行うと、実行時ルールが上書きされます。</p>
+</blockquote>
+<h3 id="②-身元次元">② 身元次元</h3>
+<pre><code class="language-python"><span class="token comment"># 戦略のバインド（パラメータによって階層が決定：user &gt; session &gt; bot &gt; adapter；allow / deny は二択）</span>
+scope<span class="token punctuation">.</span>set_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"u_bad"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>set_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"spam_*"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>    <span class="token comment"># キーに glob / re: 正規表現をサポート</span>
+scope<span class="token punctuation">.</span>set_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> session_id<span class="token operator">=</span><span class="token string">"g9"</span><span class="token punctuation">,</span> allow<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 読み取り / 削除</span>
+scope<span class="token punctuation">.</span>get_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"u_bad"</span><span class="token punctuation">)</span>   <span class="token comment"># {"deny": True}</span>
+scope<span class="token punctuation">.</span>delete_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"u_bad"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="③-出力次元">③ 出力次元</h3>
+<pre><code class="language-python"><span class="token comment"># 制限ルールの設定（allow: str|list；deny: bool|str|list；ルール全体の置換）</span>
+scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>                    <span class="token comment"># 送信を全禁止</span>
+scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> allow<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>               <span class="token comment"># 送信可能なのはテキストのみ</span>
+scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"api"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"set_*"</span><span class="token punctuation">,</span> <span class="token string">"leave_*"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>     <span class="token comment"># 管理系APIを禁止</span>
+
+<span class="token comment"># 読み取り / 削除</span>
+scope<span class="token punctuation">.</span>get_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>       <span class="token comment"># {"allow": ["Text"]} 元のルール</span>
+scope<span class="token punctuation">.</span>delete_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>    <span class="token comment"># 単一アクションを削除</span>
+scope<span class="token punctuation">.</span>delete_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>            <span class="token comment"># モジュールの全アクション制限を削除</span>
+</code></pre>
+<h3 id="一般的な操作">一般的な操作</h3>
+<pre><code class="language-python">scope<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platforms"</span><span class="token punctuation">)</span>   <span class="token comment"># 辞書形式のバックアップ：ドット区切りパスで任意の節を読み取り</span>
+scope<span class="token punctuation">.</span>topology<span class="token punctuation">(</span><span class="token punctuation">)</span>         <span class="token comment"># 全ての設定ツリー（ダッシュボード用）</span>
+scope<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {"module_calls": .., "module_filtered": .., "identity_checks": .., "identity_denied": ..,</span>
+<span class="token comment">#  "action_checks": .., "action_denied": .., "cache_hits": .., "cache_misses": ..}</span>
+scope<span class="token punctuation">.</span>reset_stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>clear<span class="token punctuation">(</span><span class="token punctuation">)</span>           <span class="token comment"># 全ての設定をクリア（メモリ内のみ有効）</span>
+</code></pre>
+<h3 id="高度操作辞書形式のドット区切りパスバックアップ">高度操作：辞書形式のドット区切りパスバックアップ</h3>
+<p>ディメンション化されたメソッドは日常的なシナリオをカバーします。任意のノード（または将来追加されるディメンション）に直接アクセスする必要がある場合は、辞書形式のAPIを使用します——<code>get</code> / <code>set</code> / <code>delete</code> はドット区切りパスを受け取り（dictの深いマージ、書き込み後に即座に読み取り可能）、<code>scope[path]</code> / <code>scope[path] = v</code> / <code>del scope[path]</code> / <code>path in scope</code> のプロトコルも提供します：</p>
+<pre><code class="language-python">scope<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string">"bots.onebot11.123456"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"modules"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"blocked"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string">"identity.users.onebot11.u_bad"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"deny"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"actions.MyModule.send"</span><span class="token punctuation">)</span>
+
+scope<span class="token punctuation">[</span><span class="token string">"platforms.onebot11"</span><span class="token punctuation">]</span>        <span class="token comment"># 読み取り（存在しない場合はKeyError）</span>
+scope<span class="token punctuation">[</span><span class="token string">"platforms.onebot11"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span>  <span class="token comment"># 書き込み</span>
+<span class="token keyword">del</span> scope<span class="token punctuation">[</span><span class="token string">"platforms.onebot11"</span><span class="token punctuation">]</span>      <span class="token comment"># 削除</span>
+<span class="token string">"actions.MyModule"</span> <span class="token keyword">in</span> scope          <span class="token comment"># 存在確認</span>
+</code></pre>
+<h2 id="拦截の可観測性-scopeblocked-イベント">拦截の可観測性: <code>scope.blocked</code> イベント</h2>
+<p>スコープのブロッキング（モジュールフィルタリング / アイデンティティ拒否）が発生すると、ライフサイクルイベント <strong><code>scope.blocked</code></strong> がブロードキャストされます。<br>これにより、「誰がブロックされたのか、どの層でブロックされたのか」をサブスクライブし、統計を取ることができ、ダッシュボード上に表示することも可能になります。ブロッキングはデフォルトではレスポンスを返しませんが、もはやブラックボックスではなくなります。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dimension</code></td>
+<td><code>"module"</code>（モジュール次元のフィルタリング）/ <code>"identity"</code>（アイデンティティのアクセス拒否）</td>
+</tr>
+<tr>
+<td><code>module</code></td>
+<td>フィルタリングされたモジュール名（モジュール次元のみ）</td>
+</tr>
+<tr>
+<td><code>platform</code> / <code>bot_id</code> / <code>session_id</code> / <code>user_id</code></td>
+<td>ブロッキングが発生したソースコンテキスト</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>lifecycle <span class="token keyword">import</span> lifecycle
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"scope.blocked"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_blocked</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"ブロックされました：</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'dimension'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'module'</span><span class="token punctuation">)</span> <span class="token keyword">or</span> data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'user_id'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>イベントは <code>fire</code> バックグラウンドでブロードキャストされます（リスナーがいない場合、オーバーヘッドはゼロで、ホットパスを遅らせません）</li>
+<li>キャッシュヒットによる重複ブロッキングは<strong>再ブロードキャストされません</strong>——同じコンビネーションはキャッシュが失効した場合にのみ1回だけブロードキャストされます</li>
+<li><code>adapter.event.blocked</code>（ミドルウェアによる拒否）とは区別されます：前者はイベントレベルでの破棄であり、本イベントはスコープのアクセス制御におけるモジュール / アイデンティティのフィルタリングです。</li>
+</ul>
+<h2 id="キャッシュとホットアップデート">キャッシュとホットアップデート</h2>
+<ul>
+<li><code>is_allowed</code> / <code>is_identity_allowed</code> / <code>is_action_allowed</code> の結果は <strong>LRUキャッシュ</strong>（<code>scope.cache_size</code> で調整可能）が付いており、<code>set</code> / <code>delete</code> /<br>設定のホットアップデート（<code>config.updated</code> / <code>config.set</code>）で自動的に無効化されます</li>
+<li>すべてのディメンションの設定は<strong>即座に有効</strong>になり、再起動は不要</li>
+<li>スコープは「イベントごとに」判断されるため、イベント間で状態を保持しない：設定が変わると、次のイベントから新しいルールで判断される</li>
+</ul>
+<h2 id="設定フォーマットの検証">設定フォーマットの検証</h2>
+<p>ロード時またはホットアップデート時に、各セクションの設定フォーマットを検証します：型エラーのセクション（例：<code>platforms</code> が文字列になっている）、不正な出力ルール（例：<code>allow</code> が数字になっている）、未知のアクション名、未知のトップレベルのキー（例：<code>alow</code> のスペルミス）は <strong>WARNING</strong> として出力され、対応するセクション / 条目は無視され、他の合法な設定は正常に有効になります——間違った設定は静かに無効になることはありません。</p>
+<h2 id="常見問題與注意事項">常見問題與注意事項</h2>
+<h3 id="1-配置層級與覆蓋">1. 配置層級與覆蓋</h3>
+<ul>
+<li>モジュール次元：セッションレベル &gt; Bot レベル &gt; プラットフォームレベル。<strong>全体的な上書き</strong>（子レベルで <code>merge = true</code> の場合、各項目を並列にマージ）。
+「プラットフォームで Chat を許可し、Bot で Music を追加したい」場合は、Bot レベルで <code>merge = true</code> を設定するか、両方を明示的にリストに追加します。</li>
+<li>身元次元：ユーザー &gt; セッション &gt; Bot &gt; アダプター。<strong>最も具体的な</strong>設定された戦略を採用します（例外として許可する場合も可能）。</li>
+<li>コマンドのユーザーブラックリスト/ホワイトリスト：正確なコマンド名が glob キーに優先されます（<code>event.command.acl</code> を参照）。</li>
+</ul>
+<h3 id="2-モジュールコマンドが反応しない場合">2. モジュール/コマンドが反応しない場合</h3>
+<p>まず、モジュール自体ではなく作用域を疑ってください：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> <span class="token string">"MyModule"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_identity_allowed<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>   <span class="token comment"># module_filtered / identity_denied &gt; 0 なら、フィルタリング記録があります</span>
+</code></pre>
+<p>フィルタリングされた場合、デフォルトでは返信されません（モジュール次元と身元次元で、ルールを露出しないようにします）。ただし、<code>scope.blocked</code> ライフサイクルイベントがブロードキャストされ、統計は継続的に累積されます。コマンド次元で ACL に拒否された場合は、「権限不足」という明示的な返信がされます。</p>
+<h3 id="3-出力アクションが拒否された場合のトラブルシューティング">3. 出力アクションが拒否された場合のトラブルシューティング</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"actions.MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>   <span class="token comment"># action_denied &gt; 0 なら、呼び出しがブロックされています</span>
+</code></pre>
+<p>ブロックは<strong>明示的</strong>です：拒否された呼び出しは <code>retcode = 34601</code> の標準的な失敗レスポンスを返し、ネットワークリクエストは発生しません。</p>
+<h3 id="4-セッション識別子のプラットフォーム間の隔離">4. セッション識別子のプラットフォーム間の隔離</h3>
+<p><code>(platform, session_id)</code> の組み合わせが一意の識別子です。<code>scope.sessions.onebot11."789"</code> は onebot11 上でのみ有効で、Telegram 上で同じ <code>789</code> であるセッションには影響しません。身元次元のユーザー識別子も同様です。</p>
+<h2 id="トポロジツリーapi">トポロジツリーAPI</h2>
+<p><code>ModuleManager.get_topology()</code> と <code>AdapterManager.get_topology()</code> は、モジュール/アダプターの所属関係データを提供します。<code>sdk.get_topology()</code> は、スコープ <code>scope</code> を含む一括集約を提供します：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+topology <span class="token operator">=</span> sdk<span class="token punctuation">.</span>get_topology<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {</span>
+<span class="token comment">#   "modules": {                                   # モジュール → 持有するリソース</span>
+<span class="token comment">#     "Chat": {</span>
+<span class="token comment">#       "loaded": True, "enabled": True,</span>
+<span class="token comment">#       "commands": ["chat", "translate"],</span>
+<span class="token comment">#       "handlers": {"message": 2, "notice": 1},</span>
+<span class="token comment">#       "routes": {"http": ["/Chat/api"], "ws": [], "sse": []},</span>
+<span class="token comment">#       "lifecycle_hooks": 3,</span>
+<span class="token comment">#     }</span>
+<span class="token comment">#   },</span>
+<span class="token comment">#   "adapters": {                                  # アダプター → Bot → スコープ</span>
+<span class="token comment">#     "onebot11": {</span>
+<span class="token comment">#       "status": "started", "enabled": True,</span>
+<span class="token comment">#       "bots": {"123456": {"status": "online", "scope": {...}}},</span>
+<span class="token comment">#       "scope": {"modules": [...], "blocked": [...]},</span>
+<span class="token comment">#     }</span>
+<span class="token comment">#   },</span>
+<span class="token comment">#   "scope": {                                     # スコープ（モジュール / 身元 / 出力アクション）</span>
+<span class="token comment">#     "platforms": {...}, "bots": {...}, "sessions": {...},</span>
+<span class="token comment">#     "identity": {"adapters": {...}, "bots": {...}, "sessions": {...}, "users": {...}},</span>
+<span class="token comment">#     "actions": {...},</span>
+<span class="token comment">#   },</span>
+<span class="token comment"># }</span>
+</code></pre>
+<ul>
+<li>モジュールトポロジーは、登録されたコマンド、イベントハンドラ、HTTP/WS/SSEルート、ライフサイクルフックを集約し、モジュールリソースツリーの描画に便利です。</li>
+<li>アダプタートポロジーは、各アダプターのステータス、所属するBotのステータス、およびプラットフォーム/Botレベルのスコープバインド（モジュール次元）を集約します。</li>
+<li><strong>JSON安全出力</strong>：<code>get_topology(json_safe=...)</code> はデフォルトで <code>True</code> で、返された構造は <code>json.dumps</code> で直接シリアライズ可能——モジュール <code>info</code> は純粋なデータの <code>meta</code> サブテーブルのみを保持し（<code>module_class</code> / <code>strategy</code> などの実行時オブジェクトは除外）、その他のノード（アダプター作者が Bot <code>info</code> に追加した任意のオブジェクトを含む）はバックアップで浄化されます（クラスオブジェクトは <code>__name__</code> を取得、シリアライズできないオブジェクトは <code>str()</code> に退化）。ダッシュボード / WebUI は直接シリアライズして返すことができる；元のオブジェクトが必要な場合は <code>json_safe=False</code> を渡す。</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/i18n.html"><small>Previous</small><br>国際化 (i18n) システム</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/ownership.html"><small>Next</small><br>所有者（owner）システム</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

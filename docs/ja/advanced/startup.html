@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>スタートフローと手動制御 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse の await sdk.run() / await sdk.init() は、一連のスタートフローを「一行のコード」に抽象化しています。しかし、部分的な読み込み、動的な登録、ホットプラグ、カスタムロード戦略の注入など、完全にカスタマイズしたスタートフローが必要な場合は、このフローの内部で何が起..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/startup.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/startup.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
+    <meta property="og:title" content="スタートフローと手動制御 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse の await sdk.run() / await sdk.init() は、一連のスタートフローを「一行のコード」に抽象化しています。しかし、部分的な読み込み、動的な登録、ホットプラグ、カスタムロード戦略の注入など、完全にカスタマイズしたスタートフローが必要な場合は、このフローの内部で何が起..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/startup.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"スタートフローと手動制御","description":"ErisPulse の await sdk.run() / await sdk.init() は、一連のスタートフローを「一行のコード」に抽象化しています。しかし、部分的な読み込み、動的な登録、ホットプラグ、カスタムロード戦略の注入など、完全にカスタマイズしたスタートフローが必要な場合は、このフローの内部で何が起...","url":"https://www.erisdev.com/docs/ja/advanced/startup.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>スタートフローと手動制御</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/startup.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/startup.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/startup.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/startup.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/startup.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="スタートフローと手動制御">スタートフローと手動制御</h1>
+<p>ErisPulse の <code>await sdk.run()</code> / <code>await sdk.init()</code> は、一連のスタートフローを「一行のコード」に抽象化しています。しかし、部分的な読み込み、動的な登録、ホットプラグ、カスタムロード戦略の注入など、完全にカスタマイズしたスタートフローが必要な場合は、このフローの内部で何が起こっているのか、そして各ステップをどのように手動で駆動するのかを理解する必要があります。</p>
+<p>本文では、スタートフローを個々のステップに分解し、それぞれの役割と呼び出し順序を説明します。また、手動で完全にスタートさせるための例も示します。</p>
+<blockquote>
+<p>本文では、<a href="/docs/ja/getting-started/first-bot.html">最初のロボット</a>を実行済みと仮定し、<code>sdk.run(keep_running=True/False)</code> の 2 つのモードについて理解している前提でいます。本文では、<code>init()</code> の<strong>内部</strong>のフローの分解、および <code>init()</code> / <code>init_task()</code> / <code>init_sync()</code> などのより下層のエントリーポイントに焦点を当てます。</p>
+</blockquote>
+<h2 id="sdk-トップレベルのエントリーポイント一覧">SDK トップレベルのエントリーポイント一覧</h2>
+<p><code>run()</code> の 2 種類の <code>keep_running</code> モードに加えて、SDK はいくつかのより低レベルの初期化エントリーポイントを提供しています。これらの違いは、<strong>非同期性、戻り値、および例外のラッピング有無</strong>にあります。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>エントリーポイント</th>
+<th>非同期性</th>
+<th>戻り値</th>
+<th>例外処理</th>
+<th>適用される場面</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.run(True)</code></td>
+<td>async、ブロッキングして維持</td>
+<td><code>None</code>（終了時に自動 <code>uninit</code>）</td>
+<td>モジュール/アダプターのエラーは捕捉され、プロセスをクラッシュさせない</td>
+<td>ボット専用アプリケーション</td>
+</tr>
+<tr>
+<td><code>await sdk.run(False)</code></td>
+<td>async、ブロッキングしない</td>
+<td><code>None</code>（自動リリースしない）</td>
+<td>同上</td>
+<td>初期化後にカスタムロジックを実行する</td>
+</tr>
+<tr>
+<td><code>await sdk.init()</code></td>
+<td>async、awaitが必要</td>
+<td><code>bool</code></td>
+<td>内部でコンポーネントの例外を捕捉し、失敗時は <code>False</code> を返す</td>
+<td>手動でライフサイクルを制御（<code>uninit()</code> と併用）</td>
+</tr>
+<tr>
+<td><code>sdk.init_task()</code></td>
+<td>async、Task を返す、ブロッキングしない</td>
+<td><code>asyncio.Task</code></td>
+<td><code>init()</code> と同じ</td>
+<td>別の初期化処理を並行実行する、またはイベントループがまだ実行されていない場合</td>
+</tr>
+<tr>
+<td><code>sdk.init_sync()</code></td>
+<td><strong>同期</strong>、現在のスレッドをブロッキング</td>
+<td><code>bool</code></td>
+<td><code>init()</code> と同じ</td>
+<td>コマンドラインスクリプト、イベントループのない同期エントリーポイント</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>よくある誤解</strong>：<code>await sdk.init()</code> は <code>await sdk.run(keep_running=False)</code> と<strong>等価ではありません</strong>。2 つの違いがあります：① <code>init()</code> は <code>bool</code> を返します（失敗時は <code>False</code>）、<code>run()</code> は <code>None</code> を返します；② <code>init()</code> は初期化のみを行い、<strong>自動リリースはしません</strong>、<code>run()</code> はイベントループの終了時に自動で <code>uninit()</code> を呼び出します。したがって、手動でリリースやカスタムライフサイクルを制御する必要がある場合は、<code>init()</code> と <code>uninit()</code> を併用してください。</p>
+</blockquote>
+<h2 id="鍵路の起動概要">鍵路の起動概要</h2>
+<p><code>sdk.init()</code>（正確にはその内部の <code>Initializer.init()</code>）は、以下のようにフレームワーク全体を起動します。</p>
+<pre><code class="language-mermaid">flowchart TD
+    A[0. 環境準備&lt;br/&gt;設定の読み込み / 例外処理] --&gt; B
+    B[1. 並列的な発見とロード&lt;br/&gt;AdapterLoader.load / ModuleLoader.load&lt;br/&gt;内部で Finder.find_all を呼び出す] --&gt; C
+    C[2. アダプターの登録&lt;br/&gt;AdapterLoader.register_to_manager] --&gt; D
+    D[3. アダプターの起動&lt;br/&gt;adapter.startup] --&gt; E
+    E[4. モジュールの登録&lt;br/&gt;ModuleLoader.register_to_manager] --&gt; F
+    F[5. モジュールの初期化&lt;br/&gt;ModuleLoader.initialize_modules&lt;br/&gt;インスタンス化して sdk にマウント] --&gt; G
+    G[6. ルーティングサーバーの起動&lt;br/&gt;router.start]
+</code></pre>
+<p>対応するコアコンポーネント：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>層</th>
+<th>コンポーネント</th>
+<th>機能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>発見</td>
+<td><code>AdapterFinder</code> / <code>ModuleFinder</code></td>
+<td>インストール済みパッケージの entry-points から<strong>発見</strong>する</td>
+</tr>
+<tr>
+<td>ロード</td>
+<td><code>AdapterLoader</code> / <code>ModuleLoader</code></td>
+<td>発見 + インポート + メタデータの読み取り + 有効/無効の判定を行い、オブジェクトのリストを返す</td>
+</tr>
+<tr>
+<td>登録</td>
+<td><code>*Loader.register_to_manager</code></td>
+<td>オブジェクトを対応するマネージャーに登録する</td>
+</tr>
+<tr>
+<td>管理</td>
+<td><code>sdk.adapter</code> / <code>sdk.module</code></td>
+<td>アダプターやモジュールのインスタンスを管理し、起動/停止のインターフェースを提供する</td>
+</tr>
+<tr>
+<td>初期化</td>
+<td><code>ModuleLoader.initialize_modules</code></td>
+<td>モジュールのインスタンスを作成し、<code>sdk</code> にマウントする（依存関係のトポロジカルソートを処理する）</td>
+</tr>
+<tr>
+<td>ルーティング</td>
+<td><code>sdk.router</code></td>
+<td>HTTP / WebSocket サーバー</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>重要</strong>：<code>Finder</code> と <code>Loader</code> は2つの層です。<code>Loader</code> は内部で<strong>既に</strong> <code>Finder</code> を保持しています（<code>AdapterLoader</code> は <code>AdapterFinder</code> を内蔵し、<code>ModuleLoader</code> は <code>ModuleFinder</code> を内蔵しています）。ほとんどの場面では <code>Loader</code> を使用するだけで十分です。"インポートせずにリストアップする"必要がある場合にのみ、<code>Finder</code> を個別に使用します。</p>
+</blockquote>
+<h2 id="各環節の詳細解説">各環節の詳細解説</h2>
+<h3 id="1-探索層finder">1. 探索層：Finder</h3>
+<p>Finder は「どのパッケージがアダプター/モジュールを提供しているか」を見つけるだけの役割を持ち、インポートやインスタンス化は行いません。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>finders <span class="token keyword">import</span> AdapterFinder<span class="token punctuation">,</span> ModuleFinder
+
+adapter_finder <span class="token operator">=</span> AdapterFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_finder <span class="token operator">=</span> ModuleFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># すべてのインストール済みのアダプター/モジュールエントリポイントを検索</span>
+adapter_entries <span class="token operator">=</span> adapter_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token comment"># list[EntryPoint]</span>
+module_entries <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>      <span class="token comment"># list[EntryPoint]</span>
+
+<span class="token comment"># 名称で個別に検索</span>
+entry <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_by_name<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>  <span class="token comment"># EntryPoint | None</span>
+</code></pre>
+<p>各 <code>EntryPoint</code> は <code>.load()</code> を呼び出すことで対応するクラスを得られますが、通常は手動で呼び出す必要はありません。Loader が自動的に行います。</p>
+<h3 id="2-加載層loader">2. 加載層：Loader</h3>
+<p>Loader は Finder をベースに「インポート + メタデータの読み込み + 有効/無効の判定」を行います。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># load() 内部：finder.find_all() を呼び出し → 各エントリポイントを順次処理 → 三つ組を返す</span>
+adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters <span class="token operator">=</span> <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p><code>load()</code> が返す三つ組：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>戻り値</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>objs</code> (<code>dict</code>)</td>
+<td>名称 → オブジェクト（アダプタークラス / モジュールラッパー）</td>
+</tr>
+<tr>
+<td><code>enabled</code> (<code>list[str]</code>)</td>
+<td>有効化された名称（設定で無効化されていない）</td>
+</tr>
+<tr>
+<td><code>disabled</code> (<code>list[str]</code>)</td>
+<td>無効化された名称</td>
+</tr>
+</tbody></table></div>
+<h4 id="加載失敗時の診断情報">加載失敗時の診断情報</h4>
+<p>モジュール/アダプターが加載または初期化段階で例外を投げた場合、フレームワークはそのコンポーネントをスキップして他のコンポーネントの加載を継続し、<strong>ユーザーのコードフレームの要約</strong>を出力します。これにより、デフォルトの INFO レベルでもエラー箇所を特定でき、手動で DEBUG モードを有効化する必要がありません。</p>
+<pre><code>[ERROR] [ModuleLoader] entry-point からモジュール MyModule の加載に失敗しました。スキップしました: 'NoneType' object has no attribute 'platform'
+  → MyModule/Core.py:42 in on_load
+      adapter = sdk.platform
+  → AttributeError: 'NoneType' object has no attribute 'platform'
+  → ヒント: ログレベルを DEBUG に上げると完全なスタックトレースが表示されます。モジュール MyModule の実装コードを確認してください。
+</code></pre>
+<p>診断情報は <code>ErisPulse.runtime.diagnostics</code> モジュールによって生成され、フレームワーク内部のフレームは自動的にフィルタリングされ、ユーザーのコードフレームのみが残されます。カスタム加載ロジックで再利用する場合：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> log_diagnostic
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    risky_init<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    log_diagnostic<span class="token punctuation">(</span>e<span class="token punctuation">)</span>  <span class="token comment"># ユーザーコードフレームを自動的に抽出し、ERROR ログに記録</span>
+</code></pre>
+<p>このモジュールには <code>extract_user_frame()</code>（構造化されたフレーム情報を返す）と <code>format_diagnostic_block()</code>（複数行のテキストを返す）という2つの低レベル関数も提供されています。</p>
+<h3 id="3-登録層register_to_manager">3. 登録層：register_to_manager</h3>
+<p>Loader が出力したオブジェクトをマネージャーに登録し、<code>sdk.adapter</code> / <code>sdk.module</code> がそれらを認識できるようにします。</p>
+<pre><code class="language-python"><span class="token comment"># アダプターの登録（すべて成功した場合に True を返す）</span>
+<span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+
+<span class="token comment"># モジュールの登録</span>
+<span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p>登録後、アダプターはアダプターマネージャーに、モジュールはモジュールマネージャーに登録されますが、<strong>まだ起動/インスタンス化は行われていません</strong>。</p>
+<h3 id="4-アダプターの起動">4. アダプターの起動</h3>
+<pre><code class="language-python"><span class="token comment"># すべての登録済みアダプターを起動</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># 特定のプラットフォームを指定</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"telegram"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>登録 ≠ 起動。<code>register_to_manager</code> は単に登録するだけです。<code>startup</code> がアダプターの <code>start()</code> を呼び出し、プラットフォームとの接続を確立します。</p>
+</blockquote>
+<h3 id="5-モジュールの初期化">5. モジュールの初期化</h3>
+<p>モジュールはアダプターに比べて1段階多く、<strong>インスタンス化</strong>して <code>sdk</code> にアタッチする必要があります（これにより <code>sdk.MyModule.xxx</code> で呼び出せるようになります）。この段階では、モジュール間の依存宣言とトポロジカルソートも処理されます。</p>
+<pre><code class="language-python">success <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+    enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+<span class="token punctuation">)</span>
+</code></pre>
+<p>インスタンス化が成功すると、モジュールは <code>sdk.&lt;ModuleName&gt;</code> に登録されます。</p>
+<h3 id="6-ルーティングサーバーの起動">6. ルーティングサーバーの起動</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>
+    host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span>
+    port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">,</span>
+    ssl_certfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+    ssl_keyfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<p>ルーティングサーバーは、アダプターからの Webhook / WebSocket コールバックを受信します。このサーバーを起動しないと、server モードのアダプターはメッセージを受け取れません。</p>
+<h2 id="完全な手動起動の例">完全な手動起動の例</h2>
+<p>以下のコードは <code>await sdk.init()</code> のコアプロセスと<strong>同等</strong>ですが、各ステップが明示的に公開されており、任意の段階でカスタムロジックを挿入できます：</p>
+<pre><code class="language-python"><span class="token keyword">import</span> asyncio
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">manual_startup</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 0. 環境の準備（設定のロード、グローバル例外処理の登録）</span>
+    <span class="token comment">#    _prepare_environment は init() 内部の前置ステップです。手動プロセスでも最初に呼び出す必要があり、</span>
+    <span class="token comment">#    そうでなければ Loader は設定を読み取れず、すべてのアダプタ/モジュールを無効と誤認します。</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>_prepare_environment<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"環境準備に失敗しました"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token boolean">False</span>
+
+    <span class="token comment"># 1. ローダーの作成（内部でそれぞれ Finder を保持）</span>
+    adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 2. 並行的な発見とロード（init() 内部と同じ gather を使用）</span>
+    <span class="token punctuation">(</span>adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters<span class="token punctuation">)</span><span class="token punctuation">,</span> \
+    <span class="token punctuation">(</span>module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>gather<span class="token punctuation">(</span>
+        adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 3. アダプタの登録</span>
+    <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 4. アダプタの起動</span>
+    <span class="token keyword">if</span> enabled_adapters<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 5. モジュールの登録</span>
+    <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 6. モジュールの初期化（インスタンス化 + sdk にマウント）</span>
+    <span class="token keyword">if</span> enabled_modules<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+            enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+        <span class="token punctuation">)</span>
+
+    <span class="token comment"># 7. ルーティングサーバーの起動</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"手動起動完了"</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token boolean">True</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ok <span class="token operator">=</span> <span class="token keyword">await</span> manual_startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> ok<span class="token punctuation">:</span>
+        <span class="token comment"># 実行を維持するためのブロッキング（手動プロセスでは自動的にブロックされません）</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    asyncio<span class="token punctuation">.</span>run<span class="token punctuation">(</span>main<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="手動起動が必要な場面">手動起動が必要な場面</h3>
+<p>ほとんどの場合、手動起動は必要ありません。<code>await sdk.run()</code> は上記のすべてをすでに処理しています。手動起動は以下のケースでのみ価値があります：</p>
+<ul>
+<li><strong>部分的なロード</strong>：指定されたアダプタ/モジュールのみをロードし、他のものはスキップ</li>
+<li><strong>動的登録</strong>：実行時に条件に応じて新しいアダプタ/モジュールを登録</li>
+<li><strong>カスタム順序</strong>：デフォルトのロード順序を変更したい場合（例：特定のモジュールを先に起動してからアダプタを起動）</li>
+<li><strong>注入戦略</strong>：Loader にカスタムの厳格モードマネージャーやロード戦略などを注入</li>
+<li><strong>デバッグ/診断</strong>：特定の段階で失敗した際に、手動でプロセスを進め問題を特定</li>
+</ul>
+<h2 id="実行時細粒度制御">実行時細粒度制御</h2>
+<p><code>sdk.run()</code> を使用して起動した後でも、SDK 全体を再起動することなく、実行時に個々のサブシステムを個別に制御できます。</p>
+<h3 id="アダプタのホット起動停止">アダプタのホット起動・停止</h3>
+<pre><code class="language-python"><span class="token comment"># 接続の修復など、特定のアダプタをホットリスタート（他のプラットフォームには影響しない）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 実行中に新しいプラットフォームを起動</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 一時的に特定のプラットフォームをオフラインにする</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><code>adapter.startup()</code> は、アダプタが<strong>管理者に登録されている</strong>ことを前提としています。登録は <code>init()</code>/<code>run()</code> の内部で行われるため、起動<strong>後</strong>の細粒度制御となります。</p>
+</blockquote>
+<h3 id="ルーターサーバー">ルーター・サーバー</h3>
+<pre><code class="language-python"><span class="token comment"># 一時的に webhook サーバーをオフラインにする</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>stop<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 再度起動（たとえばポートを変更した場合）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="モジュールのオンデマンドロード">モジュールのオンデマンドロード</h3>
+<pre><code class="language-python"><span class="token comment"># モジュールを手動でロード（遅延ロードされる可能性のあるモジュール）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="エレガントなシャットダウン">エレガントなシャットダウン</h2>
+<p>2.7.0 以降、<code>sdk.shutdown()</code> は<strong>プログラムによるエレガントなシャットダウン</strong>を提供します。シャットダウンイベントを設定し、<code>await sdk.run(keep_running=True)</code> で待機中のメインループが戻り、<code>uninit()</code> が実行されてリソースのクリーンアップが完了します。</p>
+<pre><code class="language-python"><span class="token comment"># 任意のコルーチン内で呼び出すことで、エレガントな終了をトリガー（run() は待機から戻り、自動的に uninit() が実行される）</span>
+sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>典型的な用途：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown_after_idle</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># 空き状態が1時間続いたらエレガントに終了</span>
+</code></pre>
+<p><strong>シグナル処理</strong>：<code>run()</code> 内部では <code>SIGTERM</code> / <code>SIGHUP</code> ハンドラが登録され、システムシグナルをエレガントなシャットダウンに変換します。これにより、コンテナオーケストレーション（Docker <code>docker stop</code>）や <code>systemd</code> でサービスを停止した場合、プロセスは強制終了されるのではなく、<code>uninit()</code> のクリーンアップを完了します。</p>
+<ul>
+<li>Windows では <code>loop.add_signal_handler</code> がサポートされていないため、シグナルハンドラは自動的にスキップされます（<code>sdk.shutdown()</code> または Ctrl+C でシャットダウンをトリガーできます）</li>
+<li><code>sdk.shutdown()</code> を繰り返し呼び出しても安全です（イベントが設定された後は、再度呼び出しても無操作になります）</li>
+</ul>
+<h2 id="アンインストールの手順">アンインストールの手順</h2>
+<p>初期化の逆の操作は <code>await sdk.uninit()</code> であり、これは逆の順序でクリーンアップを行います：</p>
+<ol>
+<li>すべてのアダプターを閉じる（<code>adapter.shutdown()</code>）</li>
+<li>すべてのモジュールをアンロードする</li>
+<li>すべてのイベントハンドラをクリーンアップする</li>
+<li>マネージャーと SDK 上のモジュール属性をクリーンアップする</li>
+</ol>
+<p>手動で起動する場合、正常に終了するために終了前に <code>uninit()</code> を呼び出すことを忘れないでください：</p>
+<pre><code class="language-python"><span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>   <span class="token comment"># 実行を維持する</span>
+<span class="token keyword">finally</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>uninit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="再起動">再起動</h2>
+<p>SDK は、自分でアンインストールする必要のない2つの再起動方法を提供しています。フレームワークが自動的に処理します。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>呼び出し</th>
+<th>挙動</th>
+<th>適用場面</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ホット再起動</td>
+<td><code>await sdk.restart()</code></td>
+<td>同一プロセス内で <code>uninit()</code> の後に再び <code>init()</code> を呼び出し、アダプタ/モジュールを再読み込み</td>
+<td>設定の再読み込み、モジュールのホットアップデート</td>
+</tr>
+<tr>
+<td>ハード再起動</td>
+<td><code>await sdk.hard_restart()</code></td>
+<td><code>uninit()</code> の後に<strong>終了コード 42</strong>でプロセスを終了し、外部の監督者によって新しいプロセスが起動される</td>
+<td>メモリやリソースリークが疑われる場合、完全にクリーンな再起動が必要な場合</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token comment"># ホット再起動：同一プロセス内で再読み込み（最も一般的）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># ハード再起動：プロセスを終了し、外部の監督者に新しいプロセスの起動を任せる（下記「監督者ガイド」参照）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>hard_restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>2点の注意事項</strong>：</p>
+<ol>
+<li>これらのメソッドはバックグラウンドタスクで再起動を実行します。**<code>True</code> が返却されたのは「再起動タスクがスケジュールされた」ことを示すだけで、実際の再起動が完了したわけではありません**。現在のイベントフローを中断しないように、実際の再起動はバックグラウンドで行われます。</li>
+<li><code>hard_restart()</code> の仕組みは、アンロードと設定のフラッシュ後、<strong>終了コード 42</strong>（<code>HARD_RESTART_EXIT_CODE</code>）でプロセスを終了することです。<strong>自身で新しいプロセスを起動するものではなく、外部の監督者が終了コード 42 を検知した後に再起動を行う必要があります</strong>。<code>python main.py</code> で直接実行し、監督者が存在しない場合、終了コード 42 でプロセスが終了した後、<strong>自動的に再起動されません</strong>（フレームワークは警告が表示されます）。</li>
+</ol>
+</blockquote>
+<h3 id="ハード再起動はいつ使うべきか">ハード再起動はいつ使うべきか？</h3>
+<p>ハード再起動は単に「より徹底的な再起動」ではなく、以下の場面ではホット再起動よりも適切で、場合によってはより効率的です。</p>
+<ul>
+<li><strong>バイナリライブラリ（C拡張）の副作用</strong>：ホット再起動は同一プロセス内で行われるため、C拡張、開かれたファイルディスクリプタ、スレッドなどのプロセスレベルのリソースを解放できません。ハード再起動は新しいプロセスを起動するため、これらの副作用は完全にクリアされます。</li>
+<li><strong>リソースリークの調査</strong>：メモリやハンドルリークが疑われる場合、ハード再起動はクリーンな環境を得ることができます。</li>
+<li><strong>頻繁な再起動に性能が敏感な場合</strong>：ハード再起動は同一プロセス内でアンロード→再読み込みするオーバーヘッドを省くため、実際にはホット再起動よりも効率的です。</li>
+</ul>
+<blockquote>
+<p>Dashboard管理パネルの「フレームワーク再起動」機能は、内部的に <code>hard_restart()</code> を呼び出しています。</p>
+</blockquote>
+<h3 id="終了コード-42-の契約">終了コード 42 の契約</h3>
+<p>ハード再起動はプロセス間の協力です：<strong>SDK は終了（コード 42）を担当し、監督者はプロセスの再起動を担当</strong>します。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>挙動</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SDK（ハード再起動される際）</td>
+<td><code>uninit()</code> → 設定のフラッシュ → <code>os._exit(42)</code></td>
+</tr>
+<tr>
+<td>監督者</td>
+<td>子プロセスの終了コードが 42 であることを検知 → 同一コマンドで再起動</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><code>sdk.is_supervised()</code> を使用して、現在のプロセスが監督者によって起動されたかどうかを確認できます（環境変数 <code>ERISPULSE_SUPERVISED</code> を検出）。CLI <code>run</code> コマンドでサブプロセスを起動する際は、このマーカーが自動的に注入されます。systemd / Docker などの外部監督者は注入しないため、<code>is_supervised()</code> は <code>False</code> を返し、この場合ハード再起動後に「監督者を検出できませんでした」という警告が表示されます。</p>
+</blockquote>
+<h3 id="監督者ガイド">監督者ガイド</h3>
+<p>あなたの環境に適した監督者を選択し、ハード再起動を有効にしましょう。</p>
+<h4 id="1-cli-run-コマンド開発簡単なデプロイ推奨">1. CLI run コマンド（開発/簡単なデプロイ、推奨）</h4>
+<p><code>epsdk run main.py</code> には、サブプロセスの終了コードを監視し、42 であれば即座に再起動する監督ループが内蔵されています。他の異常終了コードは指数退避で自動的に再試行されます。<code>Ctrl+C</code> は、サブプロセスを優雅に終了し（コード 0 を正常終了と見なし、再起動しない）ます。</p>
+<pre><code class="language-bash">epsdk run main.py
+</code></pre>
+<h4 id="2-systemdlinux-サーバー">2. systemd（Linux サーバー）</h4>
+<p><code>RestartForceExitStatus=42</code> を設定することで、終了コード 42 も再起動をトリガーします（デフォルトの <code>on-failure</code> は非ゼロ終了コードのみ対象）。</p>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Service</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">ExecStart</span><span class="token punctuation">=</span><span class="token value attr-value">/usr/bin/python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">Restart</span><span class="token punctuation">=</span><span class="token value attr-value">on-failure</span>
+<span class="token key attr-name">RestartForceExitStatus</span><span class="token punctuation">=</span><span class="token value attr-value">42</span>
+<span class="token key attr-name">RestartSec</span><span class="token punctuation">=</span><span class="token value attr-value">2</span>
+<span class="token key attr-name">User</span><span class="token punctuation">=</span><span class="token value attr-value">mybot</span>
+</code></pre>
+<h4 id="3-docker-docker-compose">3. Docker / docker-compose</h4>
+<p>コンテナ内の PID 1 がアプリケーションプロセスであるため、終了コード 42 でコンテナが終了します。<code>restart</code> ポリシーを使用して自動再起動させましょう。</p>
+<pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">bot</span><span class="token punctuation">:</span>
+    <span class="token key atrule">build</span><span class="token punctuation">:</span> .
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped   <span class="token comment"># 42 を含むすべての終了コードで再起動</span>
+</code></pre>
+<h4 id="4-pm2node-生態系の運用">4. PM2（Node 生態系の運用）</h4>
+<pre><code class="language-bash">pm2 start main.py <span class="token parameter variable">--name</span> mybot <span class="token parameter variable">--interpreter</span> python3
+<span class="token comment"># 42 は終了コードとして PM2 がデフォルトで再起動します。`restart_delay` を設定して、防抖します</span>
+pm2 <span class="token builtin class-name">set</span> mybot.restart_delay <span class="token number">2000</span>
+</code></pre>
+<h4 id="5-supervisord">5. supervisord</h4>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">program:mybot</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">command</span><span class="token punctuation">=</span><span class="token value attr-value">python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">autorestart</span><span class="token punctuation">=</span><span class="token value attr-value">true</span>
+<span class="token key attr-name">exitcodes</span><span class="token punctuation">=</span><span class="token value attr-value">0,2,42    # 42 も「正常終了で再起動」扱い</span>
+</code></pre>
+<h4 id="6-純粋な-python-によるカスタム監督者">6. 純粋な Python によるカスタム監督者</h4>
+<pre><code class="language-python"><span class="token keyword">import</span> subprocess<span class="token punctuation">,</span> sys<span class="token punctuation">,</span> time
+
+<span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> subprocess<span class="token punctuation">.</span>Popen<span class="token punctuation">(</span><span class="token punctuation">[</span>sys<span class="token punctuation">.</span>executable<span class="token punctuation">,</span> <span class="token string">"main.py"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    code <span class="token operator">=</span> p<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">42</span><span class="token punctuation">:</span>          <span class="token comment"># ハード再起動リクエスト</span>
+        time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">0.5</span><span class="token punctuation">)</span>
+        <span class="token keyword">continue</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>           <span class="token comment"># 正常終了</span>
+        <span class="token keyword">break</span>
+    time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>           <span class="token comment"># 異常終了、退避して再試行</span>
+</code></pre>
+<blockquote>
+<p><strong>監督者がいない場合の挙動</strong>：<code>python main.py</code> で直接実行し、<code>hard_restart()</code> を呼び出した場合、プロセスは終了コード 42 で終了し、再起動されません。この場合、上記の監督者をいずれかに接続する必要があります。</p>
+</blockquote>
+<h2 id="関連ドキュメント">関連ドキュメント</h2>
+<ul>
+<li><a href="/docs/ja/getting-started/first-bot.html">最初のボットを作成する</a> - <code>keep_running</code> の2つの基本的なモードの入門</li>
+<li><a href="/docs/ja/advanced/lifecycle.html">ライフサイクル管理</a> - <code>core.init.start</code> / <code>core.init.complete</code> などの起動イベントを監視する</li>
+<li><a href="/docs/ja/advanced/lazy-loading.html">遅延ロードシステム</a> - モジュールの遅延ロードメカニズムと <code>load_module</code></li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/errors.html"><small>Previous</small><br>エラーシステムとキャッチガイド</a>
+        <a class="doc-pager-next" href="/docs/ja/ecosystem/README.html"><small>Next</small><br>エコシステムモジュール</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

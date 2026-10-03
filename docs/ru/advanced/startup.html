@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Процесс запуска и ручное управление - ErisPulse 文档中心</title>
+    <meta name="description" content="Методы await sdk.run() / await sdk.init() ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс за..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/startup.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/startup.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
+    <meta property="og:title" content="Процесс запуска и ручное управление - ErisPulse 文档中心" />
+    <meta property="og:description" content="Методы await sdk.run() / await sdk.init() ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс за..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/startup.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Процесс запуска и ручное управление","description":"Методы await sdk.run() / await sdk.init() ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс за...","url":"https://www.erisdev.com/docs/ru/advanced/startup.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Продвинутые темы
+        <span class="doc-crumb-sep">/</span> <span>Процесс запуска и ручное управление</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/startup.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/startup.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/startup.html">日本語</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ru/advanced/startup.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/startup.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="процесс-запуска-и-ручное-управление">Процесс запуска и ручное управление</h1>
+<p>Методы <code>await sdk.run()</code> / <code>await sdk.init()</code> ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс запуска (например, частичная загрузка, динамическая регистрация, горячая замена, встраивание пользовательской стратегии загрузки), вам нужно понимать, что происходит внутри этой цепочки, а также как вручную управлять каждым шагом.</p>
+<p>В этой статье мы разбиваем процесс запуска на отдельные этапы, объясняем их назначение и порядок вызова, а также приводим пример ручного полного запуска.</p>
+<blockquote>
+<p>В этой статье предполагается, что вы уже запустили <a href="/docs/ru/getting-started/first-bot.html">первого робота</a> и знакомы с двумя режимами <code>sdk.run(keep_running=True/False)</code>. В этой статье мы сосредоточимся на разборе внутренней цепочки <code>init()</code>, а также на более низкоуровневых входных точках, таких как <code>init()</code>/<code>init_task()</code>/<code>init_sync()</code>.</p>
+</blockquote>
+<h2 id="обзор-верхнего-уровня-sdk">Обзор верхнего уровня SDK</h2>
+<p>Помимо двух режимов <code>keep_running</code> для <code>run()</code>, SDK предоставляет несколько более низкоуровневых точек входа, которые отличаются <strong>асинхронностью, возвращаемым значением и обработкой исключений</strong>:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Точка входа</th>
+<th>Асинхронность</th>
+<th>Возвращаемое значение</th>
+<th>Обработка исключений</th>
+<th>Сценарий использования</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.run(True)</code></td>
+<td>async, блокирующий</td>
+<td><code>None</code> (автоматически <code>uninit</code> при остановке)</td>
+<td>Ошибки модулей/адаптеров перехватываются, не приводят к сбою процесса</td>
+<td>Простое приложение-бот</td>
+</tr>
+<tr>
+<td><code>await sdk.run(False)</code></td>
+<td>async, не блокирующий</td>
+<td><code>None</code> (не автоматически выгружается)</td>
+<td>То же самое</td>
+<td>Инициализация, затем выполнение пользовательской логики</td>
+</tr>
+<tr>
+<td><code>await sdk.init()</code></td>
+<td>async, требует <code>await</code></td>
+<td><code>bool</code></td>
+<td>Внутренние исключения компонентов перехватываются, в случае неудачи возвращается <code>False</code></td>
+<td>Ручное управление жизненным циклом (с <code>uninit()</code>)</td>
+</tr>
+<tr>
+<td><code>sdk.init_task()</code></td>
+<td>async, возвращает <code>Task</code> без блокировки</td>
+<td><code>asyncio.Task</code></td>
+<td>То же, что и <code>init()</code></td>
+<td>Параллельное выполнение других инициализаций или когда цикл событий еще не запущен</td>
+</tr>
+<tr>
+<td><code>sdk.init_sync()</code></td>
+<td><strong>Синхронный</strong>, блокирует текущий поток</td>
+<td><code>bool</code></td>
+<td>То же, что и <code>init()</code></td>
+<td>Сценарии командной строки, синхронный вход без цикла событий</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>Распространённое заблуждение</strong>: <code>await sdk.init()</code> <strong>не эквивалентно</strong> <code>await sdk.run(keep_running=False)</code>. Есть два различия: ① <code>init()</code> возвращает <code>bool</code> (в случае неудачи возвращает <code>False</code>), <code>run()</code> возвращает <code>None</code>; ② <code>init()</code> выполняет только инициализацию и <strong>не производит автоматическую выгрузку</strong>, <code>run()</code> автоматически вызывает <code>uninit()</code> при завершении цикла событий. Поэтому, если требуется ручное управление жизненным циклом или выгрузкой, используйте <code>init()</code> + <code>uninit()</code>.</p>
+</blockquote>
+<h2 id="обзор-запуска">Обзор запуска</h2>
+<p><code>sdk.init()</code> (точнее, его внутренний <code>Initializer.init()</code>) запускает всю систему в следующем порядке:</p>
+<pre><code class="language-mermaid">flowchart TD
+    A[0. Подготовка среды&lt;br/&gt;Загрузка конфигурации / Обработка исключений] --&gt; B
+    B[1. Параллельное обнаружение и загрузка&lt;br/&gt;AdapterLoader.load / ModuleLoader.load&lt;br/&gt;Внутренний вызов Finder.find_all] --&gt; C
+    C[2. Регистрация адаптера&lt;br/&gt;AdapterLoader.register_to_manager] --&gt; D
+    D[3. Запуск адаптера&lt;br/&gt;adapter.startup] --&gt; E
+    E[4. Регистрация модуля&lt;br/&gt;ModuleLoader.register_to_manager] --&gt; F
+    F[5. Инициализация модуля&lt;br/&gt;ModuleLoader.initialize_modules&lt;br/&gt;Создание экземпляра и привязка к sdk] --&gt; G
+    G[6. Запуск сервера маршрутизации&lt;br/&gt;router.start]
+</code></pre>
+<p>Соответствующие основные компоненты:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Уровень</th>
+<th>Компонент</th>
+<th>Ответственность</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Обнаружение</td>
+<td><code>AdapterFinder</code> / <code>ModuleFinder</code></td>
+<td><strong>Обнаружение</strong> адаптеров/модулей из entry-points установленных пакетов</td>
+</tr>
+<tr>
+<td>Загрузка</td>
+<td><code>AdapterLoader</code> / <code>ModuleLoader</code></td>
+<td>Обнаружение + импорт + чтение метаданных + проверка включения/отключения, возвращает список объектов</td>
+</tr>
+<tr>
+<td>Регистрация</td>
+<td><code>*Loader.register_to_manager</code></td>
+<td>Запись объектов в соответствующий менеджер</td>
+</tr>
+<tr>
+<td>Управление</td>
+<td><code>sdk.adapter</code> / <code>sdk.module</code></td>
+<td>Хранение экземпляров адаптеров/модулей, предоставление интерфейсов запуска/остановки</td>
+</tr>
+<tr>
+<td>Инициализация</td>
+<td><code>ModuleLoader.initialize_modules</code></td>
+<td>Создание экземпляров модулей и привязка к <code>sdk</code> (обработка топологической сортировки зависимостей)</td>
+</tr>
+<tr>
+<td>Маршрутизация</td>
+<td><code>sdk.router</code></td>
+<td>HTTP / WebSocket сервер</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>Важно</strong>: <code>Finder</code> и <code>Loader</code> — это два уровня. <code>Loader</code> внутри <strong>уже содержит</strong> <code>Finder</code> (<code>AdapterLoader</code> содержит <code>AdapterFinder</code>, <code>ModuleLoader</code> содержит <code>ModuleFinder</code>). В большинстве случаев вам достаточно использовать <code>Loader</code>, а <code>Finder</code> применяется только тогда, когда нужно "только перечислить, но не импортировать".</p>
+</blockquote>
+<p><a href="/docs/ru/advanced/docs/ru/quick-start.html">Документация на русском языке</a></p>
+<h2 id="подробное-описание-каждого-этапа">Подробное описание каждого этапа</h2>
+<h3 id="1-уровень-обнаружения-finder">1. Уровень обнаружения: Finder</h3>
+<p>Finder отвечает только за "поиск пакетов, предоставляющих адаптеры/модули", не импортирует и не создает экземпляры.</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>finders <span class="token keyword">import</span> AdapterFinder<span class="token punctuation">,</span> ModuleFinder
+
+adapter_finder <span class="token operator">=</span> AdapterFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_finder <span class="token operator">=</span> ModuleFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Поиск всех установленных entry-points для адаптеров/модулей</span>
+adapter_entries <span class="token operator">=</span> adapter_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token comment"># list[EntryPoint]</span>
+module_entries <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>      <span class="token comment"># list[EntryPoint]</span>
+
+<span class="token comment"># Поиск по имени</span>
+entry <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_by_name<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>  <span class="token comment"># EntryPoint | None</span>
+</code></pre>
+<p>Каждый <code>EntryPoint</code> можно загрузить через <code>.load()</code>, чтобы получить соответствующий класс, но обычно это делает Loader автоматически.</p>
+<h3 id="2-уровень-загрузки-loader">2. Уровень загрузки: Loader</h3>
+<p>Loader на основе Finder выполняет "импорт + чтение метаданных + проверку включения/отключения".</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Внутри load(): вызывается finder.find_all() → обработка entry-point → возврат тройки</span>
+adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters <span class="token operator">=</span> <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p>Тройка, возвращаемая <code>load()</code>:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Возвращаемое значение</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>objs</code> (<code>dict</code>)</td>
+<td>Сопоставление названия → объекта (класс адаптера / обёртка модуля)</td>
+</tr>
+<tr>
+<td><code>enabled</code> (<code>list[str]</code>)</td>
+<td>Названия, включённые (не отключены в конфигурации)</td>
+</tr>
+<tr>
+<td><code>disabled</code> (<code>list[str]</code>)</td>
+<td>Названия, отключённые</td>
+</tr>
+</tbody></table></div>
+<h4 id="информация-о-диагностике-при-сбое-загрузки">Информация о диагностике при сбое загрузки</h4>
+<p>Если при загрузке или инициализации модуля/адаптера возникает исключение, фреймворк пропускает этот компонент и продолжает загрузку остальных, выводя <strong>сводку пользовательских фреймов кода</strong>, чтобы вы могли локализовать проблему на уровне INFO, без необходимости вручную включать DEBUG:</p>
+<pre><code>[ERROR] [ModuleLoader] Загрузка модуля MyModule из entry-point не удалась, пропущено: 'NoneType' object has no attribute 'platform'
+  → MyModule/Core.py:42 in on_load
+      adapter = sdk.platform
+  → AttributeError: 'NoneType' object has no attribute 'platform'
+  → Подсказка: Увеличьте уровень логирования до DEBUG для просмотра полного стека; проверьте реализацию модуля MyModule
+</code></pre>
+<p>Диагностическая информация генерируется через модуль <code>ErisPulse.runtime.diagnostics</code> и автоматически фильтрует внутренние фреймы фреймворка, оставляя только фреймы вашего кода. При необходимости можно повторно использовать это в пользовательской логике загрузки:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> log_diagnostic
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    risky_init<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    log_diagnostic<span class="token punctuation">(</span>e<span class="token punctuation">)</span>  <span class="token comment"># Автоматически извлекает фреймы пользовательского кода и записывает в ERROR-лог</span>
+</code></pre>
+<p>Модуль также предоставляет два вспомогательных метода: <code>extract_user_frame()</code> (возвращает структурированную информацию о фрейме) и <code>format_diagnostic_block()</code> (возвращает многострочную текстовую строку).</p>
+<h3 id="3-регистрация-register_to_manager">3. Регистрация: register_to_manager</h3>
+<p>Регистрация объектов, созданных Loader, в менеджере, чтобы <code>sdk.adapter</code> / <code>sdk.module</code> могли их распознавать.</p>
+<pre><code class="language-python"><span class="token comment"># Регистрация адаптеров (возвращает bool, означающий, успешно ли все прошли)</span>
+<span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+
+<span class="token comment"># Регистрация модулей</span>
+<span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p>После регистрации адаптеры зарегистрированы в менеджере адаптеров, а модули — в менеджере модулей, но <strong>ни один из них ещё не запущен/не создан экземпляр</strong>.</p>
+<h3 id="4-запуск-адаптеров">4. Запуск адаптеров</h3>
+<pre><code class="language-python"><span class="token comment"># Запуск всех зарегистрированных адаптеров</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># Или указать платформу</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"telegram"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>Регистрация ≠ Запуск. <code>register_to_manager</code> — это просто регистрация; <code>startup</code> вызывает метод <code>start()</code> адаптера и устанавливает соединение с платформой.</p>
+</blockquote>
+<h3 id="5-инициализация-модулей">5. Инициализация модулей</h3>
+<p>Модули требуют дополнительного шага — <strong>инициализацию</strong> и привязку к <code>sdk</code> (чтобы вы могли обращаться к <code>sdk.MyModule.xxx</code>). Этот шаг также обрабатывает зависимости между модулями и сортирует их в топологическом порядке.</p>
+<pre><code class="language-python">success <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+    enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+<span class="token punctuation">)</span>
+</code></pre>
+<p>После успешной инициализации модуль появится в <code>sdk.&lt;ModuleName&gt;</code>.</p>
+<h3 id="6-запуск-сервера-маршрутизации">6. Запуск сервера маршрутизации</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>
+    host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span>
+    port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">,</span>
+    ssl_certfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+    ssl_keyfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<p>Сервер маршрутизации отвечает за получение обратных вызовов Webhook / WebSocket от адаптеров. Без запуска сервера, адаптеры в режиме сервера не смогут получать сообщения.</p>
+<h2 id="полный-пример-ручного-запуска">Полный пример ручного запуска</h2>
+<p>Следующий код <strong>эквивалентен</strong> основному процессу <code>await sdk.init()</code>, но каждая его часть доступна для ручного управления, что позволяет вставить пользовательскую логику в любой момент:</p>
+<pre><code class="language-python"><span class="token keyword">import</span> asyncio
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">manual_startup</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 0. Подготовка окружения (загрузка конфигурации, регистрация обработки исключений)</span>
+    <span class="token comment">#    _prepare_environment — это внутренний шаг init(); если использовать ручной процесс,</span>
+    <span class="token comment">#    его необходимо вызвать до Loader, иначе Loader не сможет прочитать конфигурацию,</span>
+    <span class="token comment">#    и все адаптеры/модули будут ошибочно признаны отключенными.</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>_prepare_environment<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Ошибка при подготовке окружения"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token boolean">False</span>
+
+    <span class="token comment"># 1. Создание загрузчиков (внутри каждый загрузчик содержит Finder)</span>
+    adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 2. Параллельное обнаружение и загрузка (аналогично внутреннему gather в init())</span>
+    <span class="token punctuation">(</span>adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters<span class="token punctuation">)</span><span class="token punctuation">,</span> \
+    <span class="token punctuation">(</span>module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>gather<span class="token punctuation">(</span>
+        adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 3. Регистрация адаптеров</span>
+    <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 4. Запуск адаптеров</span>
+    <span class="token keyword">if</span> enabled_adapters<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 5. Регистрация модулей</span>
+    <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 6. Инициализация модулей (инстанцирование + привязка к sdk)</span>
+    <span class="token keyword">if</span> enabled_modules<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+            enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+        <span class="token punctuation">)</span>
+
+    <span class="token comment"># 7. Запуск сервера маршрутизации</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Ручной запуск завершен"</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token boolean">True</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ok <span class="token operator">=</span> <span class="token keyword">await</span> manual_startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> ok<span class="token punctuation">:</span>
+        <span class="token comment"># Блокировка для поддержания работы (ручной процесс не блокирует автоматически)</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    asyncio<span class="token punctuation">.</span>run<span class="token punctuation">(</span>main<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="когда-использовать-ручной-запуск">Когда использовать ручной запуск?</h3>
+<p>В большинстве случаев <strong>ручной запуск не требуется</strong>, так как <code>await sdk.run()</code> уже выполняет все вышеперечисленные шаги. Ручной запуск имеет смысл только в следующих сценариях:</p>
+<ul>
+<li><strong>Частичная загрузка</strong>: загрузить только указанные адаптеры/модули, пропустив остальные</li>
+<li><strong>Динамическая регистрация</strong>: регистрировать новые адаптеры/модули во время выполнения в зависимости от условий</li>
+<li><strong>Собственный порядок</strong>: изменить стандартный порядок загрузки (например, запустить модуль до запуска адаптера)</li>
+<li><strong>Внедрение стратегий</strong>: внедрить в Loader пользовательские менеджеры строгого режима, стратегии загрузки и т. д.</li>
+<li><strong>Отладка/диагностика</strong>: при сбое на каком-либо этапе, ручной запуск позволяет локализовать проблему</li>
+</ul>
+<h2 id="контроль-на-уровне-выполнения">Контроль на уровне выполнения</h2>
+<p>Даже после использования <code>sdk.run()</code> для запуска, вы всё ещё можете управлять отдельными подсистемами в процессе выполнения, без необходимости перезапуска всего SDK:</p>
+<h3 id="горячая-перезагрузка-адаптеров">Горячая перезагрузка адаптеров</h3>
+<pre><code class="language-python"><span class="token comment"># Горячая перезагрузка одного из адаптеров (исправление подключения, не влияет на другие платформы)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Запуск новой платформы в процессе выполнения</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Временное отключение определённой платформы</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><code>adapter.startup()</code> требует, чтобы адаптер <strong>был зарегистрирован</strong> в менеджере. Регистрация происходит внутри <code>init()</code>/<code>run()</code>, поэтому это и есть тонкое управление, которое возможно <strong>после</strong> запуска.</p>
+</blockquote>
+<h3 id="сервер-маршрутизации">Сервер маршрутизации</h3>
+<pre><code class="language-python"><span class="token comment"># Временное отключение сервера webhook</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>stop<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Перезапуск (например, при смене порта)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="загрузка-модулей-по-требованию">Загрузка модулей по требованию</h3>
+<pre><code class="language-python"><span class="token comment"># Ручная загрузка модуля (возможно, ленивой загрузки)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="грациозное-завершение">Грациозное завершение</h2>
+<p>Начиная с версии 2.7.0, <code>sdk.shutdown()</code> обеспечивает <strong>программное грациозное завершение</strong>: установка события завершения, которое заставляет основной цикл, зависший в <code>await sdk.run(keep_running=True)</code>, вернуться, что приводит к запуску <code>uninit()</code> и завершению очистки ресурсов.</p>
+<pre><code class="language-python"><span class="token comment"># Вызывается в любой корутине, вызывает грациозный выход (run() зависший возвращает и автоматически выполняет uninit)</span>
+sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Типичное применение:</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown_after_idle</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># Грациозное завершение после 1 часа бездействия</span>
+</code></pre>
+<p><strong>Обработка сигналов</strong>: <code>run()</code> внутри регистрирует обработчики <code>SIGTERM</code> / <code>SIGHUP</code>, преобразуя системные сигналы в грациозное завершение — при остановке контейнеров (Docker <code>docker stop</code>) или остановке службы <code>systemd</code> процесс будет выполнять <code>uninit()</code> для очистки, а не будет принудительно убит.</p>
+<ul>
+<li>На Windows не поддерживается <code>loop.add_signal_handler</code>, обработчик сигналов будет автоматически пропущен (можно использовать <code>sdk.shutdown()</code> или Ctrl+C для вызова завершения)</li>
+<li>Повторный вызов <code>sdk.shutdown()</code> безопасен (при уже установленном событии повторные вызовы не выполняют никаких действий)</li>
+</ul>
+<h2 id="процесс-удаления">Процесс удаления</h2>
+<p>Обратной операцией запуска является <code>await sdk.uninit()</code>, которая очищает в обратном порядке:</p>
+<ol>
+<li>Закрытие всех адаптеров (<code>adapter.shutdown()</code>)</li>
+<li>Удаление всех модулей</li>
+<li>Очистка всех обработчиков событий</li>
+<li>Очистка модульных свойств менеджеров и SDK</li>
+</ol>
+<p>В ручных сценариях запуска не забудьте вызвать <code>uninit()</code> перед выходом для обеспечения корректного завершения:</p>
+<pre><code class="language-python"><span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>   <span class="token comment"># Поддержание работы</span>
+<span class="token keyword">finally</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>uninit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="перезапуск">Перезапуск</h2>
+<p>SDK предоставляет два способа перезапуска, и вам не нужно самостоятельно сначала удалять — фреймворк сам обрабатывает:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Способ</th>
+<th>Вызов</th>
+<th>Поведение</th>
+<th>Сценарии использования</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Горячий перезапуск</td>
+<td><code>await sdk.restart()</code></td>
+<td>Внутри одного процесса <code>uninit()</code> и повторный <code>init()</code>, повторная загрузка адаптеров/модулей</td>
+<td>Перезагрузка конфигурации, горячая замена модулей</td>
+</tr>
+<tr>
+<td>Жесткий перезапуск</td>
+<td><code>await sdk.hard_restart()</code></td>
+<td><code>uninit()</code> и выход из процесса с <strong>кодом 42</strong>, запуск нового процесса внешним наблюдателем</td>
+<td>Подозрение на утечку памяти/ресурсов, полный чистый перезапуск</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token comment"># Горячий перезапуск: повторная загрузка в том же процессе (наиболее часто используемый)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Жесткий перезапуск: выход из процесса, передача управления внешнему наблюдателю (см. руководство по наблюдателям ниже)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>hard_restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>Два важных замечания</strong>:</p>
+<ol>
+<li>Оба этих метода выполняются в фоновой задаче, <strong>немедленно возвращают <code>True</code>, означая, что задача перезапуска запланирована</strong>, а не что перезапуск уже завершен. Фактический перезапуск происходит в фоне, чтобы не прерывать текущую цепочку событий.</li>
+<li><code>hard_restart()</code> работает следующим образом: после отключения и сохранения конфигурации, процесс завершается с <strong>кодом 42</strong> (<code>HARD_RESTART_EXIT_CODE</code>) — <strong>он сам не запускает новый процесс</strong>, необходимо, чтобы внешний наблюдатель обнаружил код 42 и перезапустил процесс. Если процесс завершается с кодом 42 и не запущен никаким наблюдателем, например, при запуске напрямую через <code>python main.py</code>, процесс завершится и <strong>не будет автоматически перезапущен</strong> (фреймворк выдаст предупреждение).</li>
+</ol>
+</blockquote>
+<h3 id="когда-использовать-жесткий-перезапуск">Когда использовать жесткий перезапуск?</h3>
+<p>Жесткий перезапуск — это не просто "более полный перезапуск", он более подходит и даже эффективнее в следующих случаях:</p>
+<ul>
+<li><strong>Побочные эффекты двоичных библиотек (C-расширений)</strong>: Горячий перезапуск происходит в одном процессе, не позволяя освободить ресурсы, такие как C-расширения, открытые файловые дескрипторы, потоки и т.д. Жесткий перезапуск создает новый процесс, полностью устраняя эти побочные эффекты.</li>
+<li><strong>Выявление утечек ресурсов</strong>: При подозрении на утечку памяти или дескрипторов, жесткий перезапуск дает чистую среду.</li>
+<li><strong>Частые перезапуски, чувствительные к производительности</strong>: Жесткий перезапуск исключает накладные расходы на отключение и повторную загрузку в одном процессе, фактически более эффективен, чем горячий перезапуск.</li>
+</ul>
+<blockquote>
+<p>Функция "Перезапуск фреймворка" в панели управления Dashboard вызывает <code>hard_restart()</code>.</p>
+</blockquote>
+<h3 id="контракт-с-кодом-выхода-42">Контракт с кодом выхода 42</h3>
+<p>Жесткий перезапуск — это сотрудничество между процессами: <strong>SDK отвечает за выход (код 42), наблюдатель за запуск</strong>.</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Роль</th>
+<th>Поведение</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SDK (при жестком перезапуске)</td>
+<td><code>uninit()</code> → сохранение конфигурации → <code>os._exit(42)</code></td>
+</tr>
+<tr>
+<td>Наблюдатель</td>
+<td>Обнаружение кода выхода подпроцесса 42 → перезапуск той же команды</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><code>sdk.is_supervised()</code> позволяет проверить, был ли текущий процесс запущен наблюдателем (проверка переменной окружения <code>ERISPULSE_SUPERVISED</code>). Команда CLI <code>run</code> автоматически вставляет этот маркер при запуске подпроцесса; внешние наблюдатели, такие как systemd или Docker, не вставляют его, и <code>is_supervised()</code> возвращает <code>False</code>, в этом случае после жесткого перезапуска фреймворк выдаст предупреждение "Наблюдатель не обнаружен".</p>
+</blockquote>
+<h3 id="руководство-по-наблюдателям">Руководство по наблюдателям</h3>
+<p>Выберите подходящего наблюдателя, чтобы жесткий перезапуск действительно сработал:</p>
+<h4 id="1-команда-cli-run-для-разработкипростых-развертываний-рекомендуется">1. Команда CLI run (для разработки/простых развертываний, рекомендуется)</h4>
+<p><code>epsdk run main.py</code> содержит встроенную циклическую проверку: обнаружение кода выхода подпроцесса, перезапуск при коде 42; при других аномальных кодах выхода происходит автоматическая повторная попытка с экспоненциальной задержкой; <code>Ctrl+C</code> сначала корректно завершает подпроцесс (код 0 считается нормальным выходом, перезапуск не происходит).</p>
+<pre><code class="language-bash">epsdk run main.py
+</code></pre>
+<h4 id="2-systemd-linux-сервера">2. systemd (Linux-сервера)</h4>
+<p><code>RestartForceExitStatus=42</code> позволяет перезапускать при коде выхода 42 (по умолчанию <code>on-failure</code> срабатывает только при ненулевом коде):</p>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Service</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">ExecStart</span><span class="token punctuation">=</span><span class="token value attr-value">/usr/bin/python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">Restart</span><span class="token punctuation">=</span><span class="token value attr-value">on-failure</span>
+<span class="token key attr-name">RestartForceExitStatus</span><span class="token punctuation">=</span><span class="token value attr-value">42</span>
+<span class="token key attr-name">RestartSec</span><span class="token punctuation">=</span><span class="token value attr-value">2</span>
+<span class="token key attr-name">User</span><span class="token punctuation">=</span><span class="token value attr-value">mybot</span>
+</code></pre>
+<h4 id="3-docker-docker-compose">3. Docker / docker-compose</h4>
+<p>Внутри контейнера PID 1 — это процесс приложения, после кода выхода 42 контейнер завершается — используйте стратегию <code>restart</code>, чтобы он автоматически перезапускался:</p>
+<pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">bot</span><span class="token punctuation">:</span>
+    <span class="token key atrule">build</span><span class="token punctuation">:</span> .
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped   <span class="token comment"># перезапуск при любом выходе (включая 42)</span>
+</code></pre>
+<h4 id="4-pm2-экосистема-nodejs-для-администрирования">4. PM2 (экосистема Node.js для администрирования)</h4>
+<pre><code class="language-bash">pm2 start main.py <span class="token parameter variable">--name</span> mybot <span class="token parameter variable">--interpreter</span> python3
+<span class="token comment"># 42 считается кодом выхода, PM2 по умолчанию перезапускает; установите restart_delay для предотвращения дребезга</span>
+pm2 <span class="token builtin class-name">set</span> mybot.restart_delay <span class="token number">2000</span>
+</code></pre>
+<h4 id="5-supervisord">5. supervisord</h4>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">program:mybot</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">command</span><span class="token punctuation">=</span><span class="token value attr-value">python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">autorestart</span><span class="token punctuation">=</span><span class="token value attr-value">true</span>
+<span class="token key attr-name">exitcodes</span><span class="token punctuation">=</span><span class="token value attr-value">0,2,42    # 42 также считается "нормальным выходом, требующим перезапуска"</span>
+</code></pre>
+<h4 id="6-собственный-наблюдатель-на-чистом-python">6. Собственный наблюдатель на чистом Python</h4>
+<pre><code class="language-python"><span class="token keyword">import</span> subprocess<span class="token punctuation">,</span> sys<span class="token punctuation">,</span> time
+
+<span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> subprocess<span class="token punctuation">.</span>Popen<span class="token punctuation">(</span><span class="token punctuation">[</span>sys<span class="token punctuation">.</span>executable<span class="token punctuation">,</span> <span class="token string">"main.py"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    code <span class="token operator">=</span> p<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">42</span><span class="token punctuation">:</span>          <span class="token comment"># Запрос на жесткий перезапуск</span>
+        time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">0.5</span><span class="token punctuation">)</span>
+        <span class="token keyword">continue</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>           <span class="token comment"># Нормальный выход</span>
+        <span class="token keyword">break</span>
+    time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>           <span class="token comment"># Аномальный выход, задержка перед повторной попыткой</span>
+</code></pre>
+<blockquote>
+<p><strong>Поведение без наблюдателя</strong>: При запуске напрямую через <code>python main.py</code>, вызов <code>hard_restart()</code> приведет к завершению процесса с кодом 42 и <strong>не будет автоматического перезапуска</strong>. В этом случае необходимо подключить один из вышеперечисленных наблюдателей.</p>
+</blockquote>
+<h2 id="связанные-документы">Связанные документы</h2>
+<ul>
+<li><a href="/docs/ru/getting-started/first-bot.html">Создание первого бота</a> - Основные режимы <code>keep_running</code> для начала работы</li>
+<li><a href="/docs/ru/advanced/lifecycle.html">Управление жизненным циклом</a> - Обработка событий запуска <code>core.init.start</code> / <code>core.init.complete</code> и других</li>
+<li><a href="/docs/ru/advanced/lazy-loading.html">Ленивая загрузка системы</a> - Механизм ленивой загрузки модулей и <code>load_module</code></li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ru/advanced/errors.html"><small>Previous</small><br>Система исключений и руководство по обработке</a>
+        <a class="doc-pager-next" href="/docs/ru/ecosystem/README.html"><small>Next</small><br>Экосистемные модули</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

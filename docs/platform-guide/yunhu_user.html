@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>云湖用户平台特性文档 - ErisPulse 文档中心</title>
+    <meta name="description" content="YunhuUserAdapter 是基于云湖用户账户协议构建的适配器，通过用户邮箱账户登录，使用 WebSocket 接收事件，提供统一的事件处理和消息操作接口。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/platform-guide/yunhu_user.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/platform-guide/yunhu_user.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/platform-guide/yunhu_user.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/platform-guide/yunhu_user.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/platform-guide/yunhu_user.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/platform-guide/yunhu_user.html" />
+    <meta property="og:title" content="云湖用户平台特性文档 - ErisPulse 文档中心" />
+    <meta property="og:description" content="YunhuUserAdapter 是基于云湖用户账户协议构建的适配器，通过用户邮箱账户登录，使用 WebSocket 接收事件，提供统一的事件处理和消息操作接口。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/platform-guide/yunhu_user.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"云湖用户平台特性文档","description":"YunhuUserAdapter 是基于云湖用户账户协议构建的适配器，通过用户邮箱账户登录，使用 WebSocket 接收事件，提供统一的事件处理和消息操作接口。","url":"https://www.erisdev.com/docs/platform-guide/yunhu_user.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 平台特性指南
+        <span class="doc-crumb-sep">/</span> <span>云湖用户平台特性文档</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/platform-guide/yunhu_user.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/platform-guide/yunhu_user.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/platform-guide/yunhu_user.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/platform-guide/yunhu_user.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/platform-guide/yunhu_user.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/platform-guide/yunhu_user.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="云湖用户平台特性文档">云湖用户平台特性文档</h1>
+<p>YunhuUserAdapter 是基于云湖用户账户协议构建的适配器，通过用户邮箱账户登录，使用 WebSocket 接收事件，提供统一的事件处理和消息操作接口。</p>
+<hr>
+<h2 id="文档信息">文档信息</h2>
+<ul>
+<li>对应模块版本: 4.2.0</li>
+<li>维护者: wsu2059</li>
+</ul>
+<h2 id="基本信息">基本信息</h2>
+<ul>
+<li>平台简介：云湖（Yunhu）是一个企业级即时通讯平台，本适配器通过<strong>用户账户</strong>（而非机器人账户）与之交互</li>
+<li>适配器名称：YunhuUserAdapter</li>
+<li>多账户支持：支持通过账户名识别并配置多个用户账户</li>
+<li>链式修饰支持：支持 <code>.Reply()</code> 等链式修饰方法</li>
+<li>OneBot12兼容：支持发送 OneBot12 格式消息</li>
+<li>通信方式：通过邮箱登录获取 token，使用 WebSocket 接收事件，HTTP + Protobuf 协议发送消息</li>
+<li>会话类型：支持私聊（user）、群聊（group）、机器人会话（bot）</li>
+</ul>
+<h2 id="v5-范式更新420">v5 范式更新（4.2.0）</h2>
+<ul>
+<li><strong>BaseConverter 继承</strong>；<strong>spawn_background 任务归属</strong>（WS 监听任务）</li>
+<li><strong>用户API全集</strong>（基于 yhchatAPI full.proto / v1 端点，protobuf over HTTP）：<ul>
+<li>用户：get_user / edit_nickname / edit_avatar</li>
+<li>好友：通讯录 / 申请列表 / 申请 / 同意 / 忽略 / 删除</li>
+<li>群组：群信息 / 成员列表 / 创建 / 解散 / 邀请 / 移出 / 禁言 / 机器人列表</li>
+<li>会话：会话列表；消息：列表 / 撤回 / 按钮上报</li>
+</ul>
+</li>
+<li><strong>框架软依赖</strong>：运行时检测 ErisPulse&gt;=2.7.1 并提示；启动输出版本日志</li>
+</ul>
+<h2 id="已对接平台功能清单">已对接平台功能清单</h2>
+<h3 id="事件接收websocketprotobuf-编码">事件接收（WebSocket，protobuf 编码）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>WS cmd</th>
+<th>事件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>push_message</code></td>
+<td><code>message</code></td>
+<td>私聊/群聊/Bot 会话消息（文本/HTML/Markdown/图片/视频/语音/文件/表情/表单/文章/贴纸/按钮/A2UI）</td>
+</tr>
+<tr>
+<td><code>edit_message</code></td>
+<td><code>notice</code> (<code>message_edit</code>)</td>
+<td>消息编辑通知</td>
+</tr>
+<tr>
+<td><code>file_send_message</code></td>
+<td><code>notice</code> (<code>yunhu_user_file_send</code>)</td>
+<td>超级文件分享</td>
+</tr>
+<tr>
+<td><code>bot_board_message</code></td>
+<td><code>notice</code> (<code>yunhu_user_bot_board</code>)</td>
+<td>机器人公告看板</td>
+</tr>
+</tbody></table></div>
+<h3 id="api-dsl-方法对照-yunhuhttpclient-用户api-v1-端点-">Api DSL 方法对照（ YunhuHTTPClient → 用户API v1 端点 ）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>分类</th>
+<th>Api 方法</th>
+<th>端点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>账户</td>
+<td><code>get_self_info()</code></td>
+<td><code>/user/info</code></td>
+<td>登录用户信息（昵称/头像/user_id）</td>
+</tr>
+<tr>
+<td>用户</td>
+<td><code>get_user(user_id)</code></td>
+<td><code>/user/get-user</code></td>
+<td>用户详细信息</td>
+</tr>
+<tr>
+<td>用户</td>
+<td><code>edit_nickname(nickname)</code></td>
+<td><code>/user/edit-nickname</code></td>
+<td>修改自己昵称</td>
+</tr>
+<tr>
+<td>用户</td>
+<td><code>edit_avatar(url)</code></td>
+<td><code>/user/edit-avatar</code></td>
+<td>修改自己头像</td>
+</tr>
+<tr>
+<td>好友</td>
+<td><code>get_friend_address_book(md5)</code></td>
+<td><code>/friend/address-book-list</code></td>
+<td>通讯录（游标翻页）</td>
+</tr>
+<tr>
+<td>好友</td>
+<td><code>get_friend_requests()</code></td>
+<td><code>/friend/request-list</code></td>
+<td>好友/加群申请列表</td>
+</tr>
+<tr>
+<td>好友</td>
+<td><code>friend_apply(user_id, desc)</code></td>
+<td><code>/friend/apply</code></td>
+<td>申请添加好友</td>
+</tr>
+<tr>
+<td>好友</td>
+<td><code>friend_agree_apply(user_id)</code></td>
+<td><code>/friend/agree-apply</code></td>
+<td>同意好友申请</td>
+</tr>
+<tr>
+<td>好友</td>
+<td><code>friend_ignore_apply(user_id)</code></td>
+<td><code>/friend/ignore-apply</code></td>
+<td>忽略好友申请</td>
+</tr>
+<tr>
+<td>好友</td>
+<td><code>friend_delete(user_id)</code></td>
+<td><code>/friend/delete-friend</code></td>
+<td>删除好友</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>get_group_info(group_id)</code></td>
+<td><code>/group/info</code></td>
+<td>群组信息</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>get_group_member_list(group_id)</code></td>
+<td><code>/group/list-member</code></td>
+<td>群成员列表（支持关键词）</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>create_group(name, ...)</code></td>
+<td><code>/group/create-group</code></td>
+<td>创建群组</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>dismiss_group(group_id)</code></td>
+<td><code>/group/dismiss-group</code></td>
+<td>解散群组</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>group_invite(group_id, user_ids)</code></td>
+<td><code>/group/invite</code></td>
+<td>邀请进群</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>group_remove_member(group_id, user_id)</code></td>
+<td><code>/group/remove-member</code></td>
+<td>移出群成员</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>group_gag_member(group_id, user_id, 秒)</code></td>
+<td><code>/group/gag-member</code></td>
+<td>禁言群成员（0=解除）</td>
+</tr>
+<tr>
+<td>群组</td>
+<td><code>get_group_bot_list(group_id)</code></td>
+<td><code>/group/bot-list</code></td>
+<td>群内机器人列表</td>
+</tr>
+<tr>
+<td>会话</td>
+<td><code>get_conversation_list(md5)</code></td>
+<td><code>/conversation/list</code></td>
+<td>会话列表（游标翻页）</td>
+</tr>
+<tr>
+<td>消息</td>
+<td><code>get_message_list(chat_id, chat_type, ...)</code></td>
+<td><code>/msg/list-message</code></td>
+<td>消息列表（多种翻页变体见 HTTP 客户端）</td>
+</tr>
+<tr>
+<td>消息</td>
+<td><code>delete_message(msg_id, chat_id, chat_type)</code></td>
+<td><code>/msg/recall-msg</code></td>
+<td>撤回消息（批量撤回见 HTTP 客户端）</td>
+</tr>
+<tr>
+<td>消息</td>
+<td><code>button_report(...)</code></td>
+<td><code>/msg/button-report</code></td>
+<td>按钮点击上报</td>
+</tr>
+<tr>
+<td>元动作</td>
+<td><code>get_status</code> / <code>get_version</code> / <code>get_supported_actions</code></td>
+<td>-</td>
+<td>运行状态/版本/支持动作</td>
+</tr>
+</tbody></table></div>
+<h3 id="尚未对接端点已知fullproto-消息齐备可按需扩展">尚未对接（端点已知，full.proto 消息齐备，可按需扩展）</h3>
+<ul>
+<li>用户：验证码登录、勋章、金豆记录、绑定手机/邮箱、通知设置、用户数据存取</li>
+<li>好友：免打扰（no-notify）、删除申请记录</li>
+<li>群组：指令列表、分类、推荐、直播间、编辑群信息/群昵称/关键词、入群自动审批、群文件限制、事件 SSE</li>
+<li>会话：置顶/排序/删除、免打扰</li>
+<li>消息：转发、A2UI 提交、消息列表图片获取、文件下载记录</li>
+<li>群标签：list / relate / relate-cancel / create / edit / delete / members（端点 <code>/group-tag/*</code>）</li>
+</ul>
+<blockquote>
+<p>扩展方式：在 <code>YunhuHTTPClient</code> 中按既有模式追加方法（<code>_proto_request</code> / <code>_json_request</code> 通用封装），再在 <code>Api</code> 类暴露即可。端点与消息定义参考 <code>yhchatAPI/src/api/v1/*.md</code> 与 <code>yhchatAPI/src/full.proto</code>。</p>
+</blockquote>
+<h3 id="用户api示例">用户API示例</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+yunhu_user <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu_user"</span><span class="token punctuation">)</span>
+
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_self_info<span class="token punctuation">(</span><span class="token punctuation">)</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_friend_requests<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># 好友申请列表</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>friend_agree_apply<span class="token punctuation">(</span>user_id<span class="token punctuation">)</span>             <span class="token comment"># 同意好友申请</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_group_member_list<span class="token punctuation">(</span>group_id<span class="token punctuation">)</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_conversation_list<span class="token punctuation">(</span><span class="token punctuation">)</span>        <span class="token comment"># 会话列表</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>delete_message<span class="token punctuation">(</span>msg_id<span class="token punctuation">,</span> chat_id<span class="token punctuation">,</span> chat_type<span class="token punctuation">)</span>  <span class="token comment"># 撤回</span>
+</code></pre>
+<hr>
+<h2 id="支持的消息发送类型">支持的消息发送类型</h2>
+<p>所有发送方法均通过链式语法实现，例如：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> adapter
+yunhu_user <span class="token operator">=</span> adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu_user"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello World!"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>支持的发送类型包括：</p>
+<ul>
+<li><code>.Text(text: str, buttons: Optional[List] = None)</code>：发送纯文本消息。</li>
+<li><code>.Html(html: str, buttons: Optional[List] = None)</code>：发送HTML格式消息。</li>
+<li><code>.Markdown(markdown: str, buttons: Optional[List] = None)</code>：发送Markdown格式消息。</li>
+<li><code>.Image(file: Union[str, bytes], buttons: Optional[List] = None)</code>：发送图片消息，支持URL、本地路径或二进制数据。</li>
+<li><code>.Video(file: Union[str, bytes], buttons: Optional[List] = None)</code>：发送视频消息，支持URL、本地路径或二进制数据。</li>
+<li><code>.Audio(file: Union[str, bytes], buttons: Optional[List] = None)</code>：发送语音消息，支持URL、本地路径或二进制数据，自动检测音频时长。</li>
+<li><code>.Voice(file: Union[str, bytes], buttons: Optional[List] = None)</code>：<code>.Audio()</code> 的别名。</li>
+<li><code>.File(file: Union[str, bytes], file_name: Optional[str] = None, buttons: Optional[List] = None)</code>：发送文件消息，支持URL、本地路径或二进制数据。</li>
+<li><code>.Face(file: Union[str, bytes], buttons: Optional[List] = None)</code>：发送表情/贴纸消息，支持贴纸ID、贴纸URL或二进制图片数据。</li>
+<li><code>.A2ui(a2ui_data: Union[str, Dict, List], buttons: Optional[List] = None)</code>：发送A2UI消息（消息类型14），A2UI JSON 数据会填入 text 字段发送。</li>
+<li><code>.Edit(msg_id: str, text: str, content_type: str = "text")</code>：编辑已有消息。</li>
+<li><code>.Recall(msg_id: str)</code>：撤回消息。</li>
+<li><code>.Raw_ob12(message: Union[List, Dict])</code>：发送 OneBot12 格式消息。</li>
+</ul>
+<h3 id="媒体文件处理">媒体文件处理</h3>
+<p>所有媒体类型（图片、视频、音频、文件）支持以下输入方式：</p>
+<ul>
+<li><strong>URL</strong>：<code>"https://example.com/image.jpg"</code> — 自动下载后上传</li>
+<li><strong>本地路径</strong>：<code>"/path/to/file.jpg"</code> — 自动读取后上传</li>
+<li><strong>二进制数据</strong>：<code>open("file.jpg", "rb").read()</code> — 直接上传</li>
+</ul>
+<p>媒体文件会自动上传到七牛云存储，支持以下特性：</p>
+<ul>
+<li>自动通过 <code>filetype</code> 库检测文件类型和 MIME</li>
+<li>自动计算文件大小</li>
+<li>音频文件自动检测时长（支持 MP3、MP4/M4A 格式）</li>
+</ul>
+<h3 id="按钮参数说明">按钮参数说明</h3>
+<p><code>buttons</code> 参数是一个嵌套列表，表示按钮的布局和功能。每个按钮对象包含以下字段：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>是否必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text</code></td>
+<td>string</td>
+<td>是</td>
+<td>按钮上的文字</td>
+</tr>
+<tr>
+<td><code>actionType</code></td>
+<td>int</td>
+<td>是</td>
+<td>动作类型：<br><code>1</code>: 跳转 URL<br><code>2</code>: 复制<br><code>3</code>: 点击汇报</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td>string</td>
+<td>否</td>
+<td>当 <code>actionType=1</code> 时使用，表示跳转的目标 URL</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>string</td>
+<td>否</td>
+<td>当 <code>actionType=2</code> 时，该值会复制到剪贴板<br>当 <code>actionType=3</code> 时，该值会发送给订阅端</td>
+</tr>
+</tbody></table></div>
+<p>示例：</p>
+<pre><code class="language-python">buttons <span class="token operator">=</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"复制"</span><span class="token punctuation">,</span> <span class="token string">"actionType"</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">:</span> <span class="token string">"xxxx"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"点击跳转"</span><span class="token punctuation">,</span> <span class="token string">"actionType"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token string">"url"</span><span class="token punctuation">:</span> <span class="token string">"http://www.baidu.com"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"汇报事件"</span><span class="token punctuation">,</span> <span class="token string">"actionType"</span><span class="token punctuation">:</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">:</span> <span class="token string">"xxxxx"</span><span class="token punctuation">}</span>
+    <span class="token punctuation">]</span>
+<span class="token punctuation">]</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Buttons<span class="token punctuation">(</span>buttons<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"带按钮的消息"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="链式修饰方法可组合使用">链式修饰方法（可组合使用）</h3>
+<p>链式修饰方法返回 <code>self</code>，支持链式调用，必须在最终发送方法前调用：</p>
+<ul>
+<li><code>.Reply(message_id: str)</code>：回复指定消息。</li>
+<li><code>.At(user_id: str)</code>：@指定用户（文本形式 @user_id）。</li>
+<li><code>.AtAll()</code>：@所有人（伪@全体，发送 @all 文本）。</li>
+<li><code>.Buttons(buttons: List)</code>：添加按钮。</li>
+</ul>
+<blockquote>
+<p><strong>注意：</strong> 因为用户账户较为特殊，即便不是管理员也可以 @全体，但这里的 <code>AtAll()</code> 只会发送一个艾特全体的文本，是一个伪@全体。</p>
+</blockquote>
+<h3 id="链式调用示例">链式调用示例</h3>
+<pre><code class="language-python"><span class="token comment"># 基础发送</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 回复消息</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> group_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span>msg_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"回复消息"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 回复 + 按钮</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> group_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span>msg_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Buttons<span class="token punctuation">(</span>buttons<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"带回复和按钮的消息"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 指定账户 + 回复 + 按钮</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"default"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> group_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span>msg_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Buttons<span class="token punctuation">(</span>buttons<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"完整链式调用"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="onebot12消息支持">OneBot12消息支持</h3>
+<p>适配器支持发送 OneBot12 格式的消息，便于跨平台消息兼容：</p>
+<ul>
+<li><code>.Raw_ob12(message: List[Dict], **kwargs)</code>：发送 OneBot12 格式消息。</li>
+</ul>
+<pre><code class="language-python"><span class="token comment"># 发送 OneBot12 格式消息</span>
+ob12_msg <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>ob12_msg<span class="token punctuation">)</span>
+
+<span class="token comment"># 配合链式修饰</span>
+ob12_msg <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"回复消息"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> group_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span>msg_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>ob12_msg<span class="token punctuation">)</span>
+</code></pre>
+<p>Raw_ob12 支持自动将混合消息段分组处理：</p>
+<ul>
+<li><code>text</code>、<code>mention</code> 类型可合并为一组发送</li>
+<li><code>image</code>、<code>video</code>、<code>audio</code>、<code>file</code>、<code>face</code>、<code>markdown</code>、<code>html</code>、<code>a2ui</code> 等类型各自独立成组</li>
+<li><code>reply</code> 类型可附加到任何组</li>
+</ul>
+<h2 id="发送方法返回值">发送方法返回值</h2>
+<p>所有发送方法均返回一个 Task 对象，可以直接 await 获取发送结果。返回结果遵循 ErisPulse 适配器标准化返回规范：</p>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span>           <span class="token operator">//</span> 执行状态
+    <span class="token string">"retcode"</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>             <span class="token operator">//</span> 返回码
+    <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>            <span class="token operator">//</span> 响应数据
+    <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"123456"</span><span class="token punctuation">,</span>   <span class="token operator">//</span> 消息ID
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>            <span class="token operator">//</span> 错误信息
+    <span class="token string">"yunhu_user_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span>   <span class="token operator">//</span> 原始响应数据
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="特有事件类型">特有事件类型</h2>
+<p>需要 <code>platform == "yunhu_user"</code> 检测再使用本平台特性</p>
+<h3 id="核心差异点">核心差异点</h3>
+<ol>
+<li>特有事件类型：<ul>
+<li>超级文件分享：<code>yunhu_user_file_send</code></li>
+<li>机器人公告看板：<code>yunhu_user_bot_board</code></li>
+<li>消息编辑通知：<code>message_edit</code></li>
+<li>消息删除通知：<code>message_delete</code>（撤回）</li>
+</ul>
+</li>
+<li>特有消息段类型：<ul>
+<li>表单消息段：<code>yunhu_user_form</code></li>
+<li>文章消息段：<code>yunhu_user_post</code></li>
+<li>贴纸消息段：<code>yunhu_user_sticker</code></li>
+<li>按钮消息段：<code>yunhu_user_button</code></li>
+<li>A2UI 消息段：<code>a2ui</code></li>
+</ul>
+</li>
+<li>扩展字段：<ul>
+<li>所有特有字段均以 <code>yunhu_user_</code> 前缀标识</li>
+<li>保留原始数据在 <code>yunhu_user_raw</code> 字段</li>
+<li>原始事件类型记录在 <code>yunhu_user_raw_type</code> 字段</li>
+<li>私聊中 <code>self.user_id</code> 表示当前登录用户ID</li>
+</ul>
+</li>
+</ol>
+<h3 id="支持的原始事件类型">支持的原始事件类型</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>原始事件类型</th>
+<th>OneBot12 类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>push_message</code></td>
+<td><code>message</code></td>
+<td>推送消息（私聊、群聊、Bot 会话）</td>
+</tr>
+<tr>
+<td><code>edit_message</code></td>
+<td><code>notice</code> (<code>message_edit</code>)</td>
+<td>消息编辑事件</td>
+</tr>
+<tr>
+<td><code>file_send_message</code></td>
+<td><code>notice</code> (<code>yunhu_user_file_send</code>)</td>
+<td>超级文件分享事件</td>
+</tr>
+<tr>
+<td><code>bot_board_message</code></td>
+<td><code>notice</code> (<code>yunhu_user_bot_board</code>)</td>
+<td>机器人公告看板事件</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>其他事件类型（如 <code>heartbeat_ack</code>、<code>draft_input</code>、<code>stream_message</code> 等）会被忽略。</p>
+</blockquote>
+<h3 id="onebot12-支持的-detail_type">OneBot12 支持的 detail_type</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OneBot12 detail_type</th>
+<th>云湖 chat_type</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>private</code></td>
+<td>1</td>
+<td>私聊消息</td>
+</tr>
+<tr>
+<td><code>group</code></td>
+<td>2</td>
+<td>群聊消息</td>
+</tr>
+<tr>
+<td><code>bot</code></td>
+<td>3</td>
+<td>机器人会话</td>
+</tr>
+</tbody></table></div>
+<h3 id="消息事件示例">消息事件示例</h3>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"event_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"group"</span><span class="token punctuation">,</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"your_user_id"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"消息内容"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"消息内容"</span><span class="token punctuation">,</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"sender_user_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"user_nickname"</span><span class="token punctuation">:</span> <span class="token string">"发送者昵称"</span><span class="token punctuation">,</span>
+    <span class="token string">"group_id"</span><span class="token punctuation">:</span> <span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"msg_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"push_message"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="消息编辑通知示例">消息编辑通知示例</h3>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"notice"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"message_edit"</span><span class="token punctuation">,</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"your_user_id"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"msg_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"sender_user_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"user_nickname"</span><span class="token punctuation">:</span> <span class="token string">"发送者昵称"</span><span class="token punctuation">,</span>
+    <span class="token string">"edit_time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>
+    <span class="token string">"group_id"</span><span class="token punctuation">:</span> <span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"edit_message"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="超级文件分享事件示例">超级文件分享事件示例</h3>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"notice"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user_file_send"</span><span class="token punctuation">,</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"your_user_id"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"send_user_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"user_nickname"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_file_send"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"send_user_id"</span><span class="token punctuation">:</span> <span class="token string">"发送者ID"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"接收用户ID"</span><span class="token punctuation">,</span>
+        <span class="token string">"send_type"</span><span class="token punctuation">:</span> <span class="token string">"发送类型"</span><span class="token punctuation">,</span>
+        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token string">"文件数据"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"file_send_message"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="机器人公告看板事件示例">机器人公告看板事件示例</h3>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"notice"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user_bot_board"</span><span class="token punctuation">,</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"your_user_id"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"bot_id"</span><span class="token punctuation">:</span> <span class="token string">"bot_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"bot_name"</span><span class="token punctuation">:</span> <span class="token string">"机器人名称"</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_bot_board"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"bot_id"</span><span class="token punctuation">:</span> <span class="token string">"bot_id"</span><span class="token punctuation">,</span>
+        <span class="token string">"chat_id"</span><span class="token punctuation">:</span> <span class="token string">"chat_id"</span><span class="token punctuation">,</span>
+        <span class="token string">"chat_type"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+        <span class="token string">"content"</span><span class="token punctuation">:</span> <span class="token string">"公告内容"</span><span class="token punctuation">,</span>
+        <span class="token string">"content_type"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+        <span class="token string">"last_update_time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"yunhu_user_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"bot_board_message"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="事件处理示例">事件处理示例</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message<span class="token punctuation">,</span> notice
+
+<span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_yunhu_user_message</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""处理云湖用户消息"""</span>
+    <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+    
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+    user_nickname <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_nickname"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+    alt_message <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"alt_message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"用户 </span><span class="token interpolation"><span class="token punctuation">{</span>user_nickname<span class="token punctuation">}</span></span><span class="token string">(</span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">): </span><span class="token interpolation"><span class="token punctuation">{</span>alt_message<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 检查消息段中的特有类型</span>
+    <span class="token keyword">for</span> segment <span class="token keyword">in</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        seg_type <span class="token operator">=</span> segment<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">if</span> seg_type <span class="token operator">==</span> <span class="token string">"yunhu_user_form"</span><span class="token punctuation">:</span>
+            form_data <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"form"</span><span class="token punctuation">]</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到表单消息: </span><span class="token interpolation"><span class="token punctuation">{</span>form_data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"yunhu_user_post"</span><span class="token punctuation">:</span>
+            post_data <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到文章消息: </span><span class="token interpolation"><span class="token punctuation">{</span>post_data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'post_title'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"yunhu_user_sticker"</span><span class="token punctuation">:</span>
+            sticker_url <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"file_id"</span><span class="token punctuation">]</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到贴纸消息: </span><span class="token interpolation"><span class="token punctuation">{</span>sticker_url<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"yunhu_user_button"</span><span class="token punctuation">:</span>
+            buttons <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"buttons"</span><span class="token punctuation">]</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"消息包含按钮: </span><span class="token interpolation"><span class="token punctuation">{</span>buttons<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"a2ui"</span><span class="token punctuation">:</span>
+            a2ui_data <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"a2ui"</span><span class="token punctuation">]</span>
+            <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到A2UI消息: </span><span class="token interpolation"><span class="token punctuation">{</span>a2ui_data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 使用 event.reply() 自动回复</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>alt_message<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@notice<span class="token punctuation">.</span>on_notice</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_yunhu_user_notice</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""处理云湖用户通知事件"""</span>
+    <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+    
+    detail_type <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"detail_type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> detail_type <span class="token operator">==</span> <span class="token string">"message_edit"</span><span class="token punctuation">:</span>
+        message_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        user_nickname <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_nickname"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        edit_time <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"edit_time"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"用户 </span><span class="token interpolation"><span class="token punctuation">{</span>user_nickname<span class="token punctuation">}</span></span><span class="token string"> 编辑了消息 </span><span class="token interpolation"><span class="token punctuation">{</span>message_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">elif</span> detail_type <span class="token operator">==</span> <span class="token string">"yunhu_user_file_send"</span><span class="token punctuation">:</span>
+        file_data <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu_user_file_send"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到超级文件分享: </span><span class="token interpolation"><span class="token punctuation">{</span>file_data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">elif</span> detail_type <span class="token operator">==</span> <span class="token string">"yunhu_user_bot_board"</span><span class="token punctuation">:</span>
+        board_data <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu_user_bot_board"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+        bot_name <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"机器人 </span><span class="token interpolation"><span class="token punctuation">{</span>bot_name<span class="token punctuation">}</span></span><span class="token string"> 发布了公告: </span><span class="token interpolation"><span class="token punctuation">{</span>board_data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'content'</span><span class="token punctuation">,</span> <span class="token string">''</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="扩展字段说明">扩展字段说明</h2>
+<ul>
+<li>所有特有字段均以 <code>yunhu_user_</code> 前缀标识，避免与标准字段冲突</li>
+<li>保留原始数据在 <code>yunhu_user_raw</code> 字段，便于访问云湖平台的完整原始数据</li>
+<li>原始事件类型记录在 <code>yunhu_user_raw_type</code> 字段（如 <code>push_message</code>、<code>edit_message</code> 等）</li>
+<li><code>self.user_id</code> 表示当前登录用户ID（从登录响应中获取）</li>
+<li>超级文件分享通过 <code>yunhu_user_file_send</code> 字段提供文件分享数据</li>
+<li>机器人公告看板通过 <code>yunhu_user_bot_board</code> 字段提供公告数据</li>
+</ul>
+<h3 id="特有消息段类型">特有消息段类型</h3>
+<h4 id="表单消息段-yunhu_user_form">表单消息段 (yunhu_user_form)</h4>
+<p>当 content_type 为 5 时，消息段类型为 <code>yunhu_user_form</code>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"yunhu_user_form"</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"form"</span><span class="token operator">:</span> <span class="token string">"表单数据"</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h4 id="文章消息段-yunhu_user_post">文章消息段 (yunhu_user_post)</h4>
+<p>当 content_type 为 6 时，消息段类型为 <code>yunhu_user_post</code>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"yunhu_user_post"</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"post_id"</span><span class="token operator">:</span> <span class="token string">"文章ID"</span><span class="token punctuation">,</span>
+        <span class="token property">"post_title"</span><span class="token operator">:</span> <span class="token string">"文章标题"</span><span class="token punctuation">,</span>
+        <span class="token property">"post_content"</span><span class="token operator">:</span> <span class="token string">"文章内容"</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>post_id</code></td>
+<td>string</td>
+<td>文章唯一标识</td>
+</tr>
+<tr>
+<td><code>post_title</code></td>
+<td>string</td>
+<td>文章标题</td>
+</tr>
+<tr>
+<td><code>post_content</code></td>
+<td>string</td>
+<td>文章内容</td>
+</tr>
+</tbody></table></div>
+<h4 id="贴纸消息段-yunhu_user_sticker">贴纸消息段 (yunhu_user_sticker)</h4>
+<p>当 content_type 为 7 时，消息段类型为 <code>yunhu_user_sticker</code>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"yunhu_user_sticker"</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"file_id"</span><span class="token operator">:</span> <span class="token string">"贴纸图片URL"</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>file_id</code></td>
+<td>string</td>
+<td>贴纸图片URL</td>
+</tr>
+</tbody></table></div>
+<h4 id="按钮消息段-yunhu_user_button">按钮消息段 (yunhu_user_button)</h4>
+<p>消息中包含按钮时，会附加 <code>yunhu_user_button</code> 消息段：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"yunhu_user_button"</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"buttons"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"按钮文字"</span><span class="token punctuation">,</span> <span class="token property">"actionType"</span><span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token property">"value"</span><span class="token operator">:</span> <span class="token string">"值"</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h4 id="a2ui-消息段-a2ui">A2UI 消息段 (a2ui)</h4>
+<p>当 content_type 为 14 时，消息段类型为 <code>a2ui</code>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"a2ui"</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"a2ui"</span><span class="token operator">:</span> <span class="token string">"A2UI JSON数据"</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<hr>
+<h2 id="多账户配置">多账户配置</h2>
+<h3 id="配置说明">配置说明</h3>
+<p>YunhuUserAdapter 支持同时配置和运行多个用户账户。</p>
+<pre><code class="language-toml"><span class="token comment"># config.toml</span>
+<span class="token punctuation">[</span><span class="token table class-name">YunhuUserAdapter</span><span class="token punctuation">]</span>
+<span class="token key property">ws_reconnect_interval</span> <span class="token punctuation">=</span> <span class="token number">30</span>  <span class="token comment"># WebSocket重连间隔（秒）</span>
+<span class="token key property">ws_timeout</span> <span class="token punctuation">=</span> <span class="token number">70</span>             <span class="token comment"># WebSocket超时时间（秒）</span>
+
+<span class="token punctuation">[</span><span class="token table class-name">YunhuUserAdapter.accounts.default</span><span class="token punctuation">]</span>
+<span class="token key property">email</span> <span class="token punctuation">=</span> <span class="token string">"user1@example.com"</span>  <span class="token comment"># 用户邮箱（必填）</span>
+<span class="token key property">password</span> <span class="token punctuation">=</span> <span class="token string">"password1"</span>       <span class="token comment"># 用户密码（必填）</span>
+<span class="token key property">platform</span> <span class="token punctuation">=</span> <span class="token string">"windows"</span>         <span class="token comment"># 登录平台（可选，默认windows）</span>
+<span class="token key property">device_id</span> <span class="token punctuation">=</span> <span class="token string">""</span>               <span class="token comment"># 设备ID（可选，不填自动生成）</span>
+<span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>               <span class="token comment"># 是否启用（可选，默认为true）</span>
+
+<span class="token punctuation">[</span><span class="token table class-name">YunhuUserAdapter.accounts.account2</span><span class="token punctuation">]</span>
+<span class="token key property">email</span> <span class="token punctuation">=</span> <span class="token string">"user2@example.com"</span>
+<span class="token key property">password</span> <span class="token punctuation">=</span> <span class="token string">"password2"</span>
+<span class="token key property">platform</span> <span class="token punctuation">=</span> <span class="token string">"android"</span>
+<span class="token key property">device_id</span> <span class="token punctuation">=</span> <span class="token string">"fixed_device_id_2"</span>
+<span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+</code></pre>
+<p><strong>配置项说明：</strong></p>
+<ul>
+<li><code>email</code>：用户邮箱（必填），用于登录云湖平台</li>
+<li><code>password</code>：用户密码（必填）</li>
+<li><code>platform</code>：登录平台标识（可选，默认为 <code>windows</code>），可选值：<code>windows</code>、<code>macos</code>、<code>linux</code>、<code>ios</code>、<code>android</code></li>
+<li><code>device_id</code>：设备ID（可选，不填自动生成），建议填写固定值以保持会话一致性</li>
+<li><code>enabled</code>：是否启用该账户（可选，默认为 <code>true</code>）</li>
+</ul>
+<p><strong>适配器级别配置：</strong></p>
+<ul>
+<li><code>ws_reconnect_interval</code>：WebSocket 重连间隔（秒，默认 30）</li>
+<li><code>ws_timeout</code>：WebSocket 超时时间（秒，默认 70）</li>
+</ul>
+<p><strong>重要提示：</strong></p>
+<ol>
+<li>适配器使用邮箱登录方式获取 token，登录后通过 WebSocket 接收事件</li>
+<li>WebSocket 连接断开后会自动重连，最多重试 3 次</li>
+<li>建议为每个账户设置固定的 <code>device_id</code>，以保持会话一致性</li>
+<li>未修改的模板账户（默认邮箱和密码）会被自动跳过</li>
+</ol>
+<h3 id="使用send-dsl指定账户">使用Send DSL指定账户</h3>
+<p>可以通过 <code>Using()</code> 方法指定使用哪个账户发送消息。该方法支持两种参数：</p>
+<ul>
+<li><strong>账户名</strong>：配置中的账户名称（如 <code>default</code>、<code>account2</code>）</li>
+<li><strong>user_id</strong>：登录后获取的用户 ID</li>
+</ul>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> adapter
+yunhu_user <span class="token operator">=</span> adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu_user"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 使用账户名发送消息</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"default"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"user123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello from account1!"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 使用 user_id 发送消息（自动匹配对应账户）</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"user_id_here"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"group456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello from user!"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 不指定时使用第一个启用的账户</span>
+<span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"user123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello from default account!"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>提示：</strong> 使用 <code>user_id</code> 时，系统会自动查找配置中匹配的账户。这在处理事件回复时特别有用，可以直接使用 <code>event["self"]["user_id"]</code> 来回复同一账户。</p>
+</blockquote>
+<h3 id="事件中的账户标识">事件中的账户标识</h3>
+<p>接收到的事件会自动包含对应的用户ID信息：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message
+
+<span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_message</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> event<span class="token punctuation">[</span><span class="token string">"platform"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"yunhu_user"</span><span class="token punctuation">:</span>
+        <span class="token comment"># 获取当前登录用户ID</span>
+        my_user_id <span class="token operator">=</span> event<span class="token punctuation">[</span><span class="token string">"self"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"消息来自账户: </span><span class="token interpolation"><span class="token punctuation">{</span>my_user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token comment"># 使用相同账户回复消息</span>
+        yunhu_user <span class="token operator">=</span> adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu_user"</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span>my_user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span>
+            event<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+            event<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token keyword">if</span> event<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"private"</span> <span class="token keyword">else</span> event<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span>
+        <span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"回复消息"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="日志信息">日志信息</h3>
+<p>适配器会在日志中自动包含账户信息，便于调试和追踪：</p>
+<pre><code>[INFO] 账户 default (user1@example.com) 登录成功，用户ID: 12345678
+[INFO] 账户 default WebSocket 监听任务已启动
+[INFO] 账户 account2 (user2@example.com) 登录成功，用户ID: 87654321
+</code></pre>
+<h3 id="管理接口">管理接口</h3>
+<pre><code class="language-python"><span class="token comment"># 获取所有账户信息</span>
+accounts <span class="token operator">=</span> yunhu_user<span class="token punctuation">.</span>accounts
+<span class="token comment"># 返回格式: {"default": {"name": "default", "email": "...", "token": "...", "user_id": "...", ...}, ...}</span>
+
+<span class="token comment"># 检查账户是否启用</span>
+<span class="token keyword">for</span> account_name<span class="token punctuation">,</span> account_config <span class="token keyword">in</span> yunhu_user<span class="token punctuation">.</span>_account_configs<span class="token punctuation">.</span>items<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>account_name<span class="token punctuation">}</span></span><span class="token string">: enabled=</span><span class="token interpolation"><span class="token punctuation">{</span>account_config<span class="token punctuation">.</span>enabled<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># 通过账户名获取 HTTP 客户端</span>
+http_client <span class="token operator">=</span> yunhu_user<span class="token punctuation">.</span>_get_http_client<span class="token punctuation">(</span><span class="token string">"default"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 通过 user_id 查找账户</span>
+account_name <span class="token operator">=</span> yunhu_user<span class="token punctuation">.</span>_get_account_by_user_id<span class="token punctuation">(</span><span class="token string">"12345678"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="api-调用">API 调用</h2>
+<p>适配器提供 <code>call_api</code> 方法，支持直接调用平台 API：</p>
+<pre><code class="language-python"><span class="token comment"># 发送消息</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/send"</span><span class="token punctuation">,</span> 
+    target_type<span class="token operator">=</span><span class="token string">"group"</span><span class="token punctuation">,</span> 
+    target_id<span class="token operator">=</span><span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    account_id<span class="token operator">=</span><span class="token string">"default"</span><span class="token punctuation">,</span>
+    message<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">,</span> <span class="token string">"msg_type"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 编辑消息</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/edit"</span><span class="token punctuation">,</span>
+    target_type<span class="token operator">=</span><span class="token string">"group"</span><span class="token punctuation">,</span>
+    target_id<span class="token operator">=</span><span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    msg_id<span class="token operator">=</span><span class="token string">"msg_id"</span><span class="token punctuation">,</span>
+    text<span class="token operator">=</span><span class="token string">"新内容"</span><span class="token punctuation">,</span>
+    content_type<span class="token operator">=</span><span class="token string">"text"</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 撤回消息</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/recall"</span><span class="token punctuation">,</span>
+    target_type<span class="token operator">=</span><span class="token string">"group"</span><span class="token punctuation">,</span>
+    target_id<span class="token operator">=</span><span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    msg_id<span class="token operator">=</span><span class="token string">"msg_id"</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 批量撤回消息</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/recall_batch"</span><span class="token punctuation">,</span>
+    target_type<span class="token operator">=</span><span class="token string">"group"</span><span class="token punctuation">,</span>
+    target_id<span class="token operator">=</span><span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    msg_id_list<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"msg_id_1"</span><span class="token punctuation">,</span> <span class="token string">"msg_id_2"</span><span class="token punctuation">]</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 获取消息列表</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/list"</span><span class="token punctuation">,</span>
+    chat_id<span class="token operator">=</span><span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    chat_type<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">,</span>
+    msg_count<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">,</span>
+    msg_id<span class="token operator">=</span><span class="token string">""</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 获取消息编辑记录</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/list_edit_record"</span><span class="token punctuation">,</span>
+    msg_id<span class="token operator">=</span><span class="token string">"msg_id"</span><span class="token punctuation">,</span>
+    size<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">,</span>
+    page<span class="token operator">=</span><span class="token number">1</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 按钮事件报告</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> yunhu_user<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/button_report"</span><span class="token punctuation">,</span>
+    chat_id<span class="token operator">=</span><span class="token string">"group_id"</span><span class="token punctuation">,</span>
+    chat_type<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">,</span>
+    msg_id<span class="token operator">=</span><span class="token string">"msg_id"</span><span class="token punctuation">,</span>
+    user_id<span class="token operator">=</span><span class="token string">"user_id"</span><span class="token punctuation">,</span>
+    button_value<span class="token operator">=</span><span class="token string">"button_value"</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<p><strong>支持的 API 端点：</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>端点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/send</code></td>
+<td>发送消息</td>
+</tr>
+<tr>
+<td><code>/edit</code></td>
+<td>编辑消息</td>
+</tr>
+<tr>
+<td><code>/recall</code></td>
+<td>撤回消息</td>
+</tr>
+<tr>
+<td><code>/recall_batch</code></td>
+<td>批量撤回消息</td>
+</tr>
+<tr>
+<td><code>/list</code></td>
+<td>获取消息列表</td>
+</tr>
+<tr>
+<td><code>/list_by_seq</code></td>
+<td>通过序列获取消息</td>
+</tr>
+<tr>
+<td><code>/list_by_mid_seq</code></td>
+<td>通过消息ID和序列获取消息</td>
+</tr>
+<tr>
+<td><code>/list_edit_record</code></td>
+<td>获取消息编辑记录</td>
+</tr>
+<tr>
+<td><code>/button_report</code></td>
+<td>按钮事件报告</td>
+</tr>
+</tbody></table></div>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/platform-guide/yunhu.html"><small>上一篇</small><br>云湖平台特性文档</a>
+        <a class="doc-pager-next" href="/docs/platform-guide/qqbot.html"><small>下一篇</small><br>QQBot平台特性文档</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

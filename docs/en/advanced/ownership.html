@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ownership (owner) System - ErisPulse 文档中心</title>
+    <meta name="description" content="Ownership is the cornerstone of the &quot;plug-and-play&quot; nature of modules: all framework resources registered during module loading are automatically attributed,..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/ownership.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/ownership.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/ownership.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/ownership.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/ownership.html" />
+    <meta property="og:title" content="Ownership (owner) System - ErisPulse 文档中心" />
+    <meta property="og:description" content="Ownership is the cornerstone of the &quot;plug-and-play&quot; nature of modules: all framework resources registered during module loading are automatically attributed,..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/ownership.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Ownership (owner) System","description":"Ownership is the cornerstone of the \"plug-and-play\" nature of modules: all framework resources registered during module loading are automatically attributed,...","url":"https://www.erisdev.com/docs/en/advanced/ownership.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Advanced Topics
+        <span class="doc-crumb-sep">/</span> <span>Ownership (owner) System</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/ownership.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/advanced/ownership.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/ownership.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/ownership.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/ownership.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="ownership-owner-system">Ownership (owner) System</h1>
+<p>Ownership is the cornerstone of the "plug-and-play" nature of modules: all framework resources registered during module loading are automatically attributed, and automatically reclaimed when the module is unloaded or disabled. Module authors only need to declare resources, without writing manual cleanup logic.</p>
+<blockquote>
+<p><strong>Related Systems</strong>: Scope determines "whether a resource is active" during event dispatching, while ownership determines "who owns the resource and who is responsible for reclaiming it during lifecycle events." For more details on scope, see <a href="/docs/en/advanced/scope.html">Unified Control Plane (scope)</a>. For background tasks, see [Lifecycle Management](lifecycle.md#Background Task Ownership and Automatic Cancellation).</p>
+</blockquote>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>Ownership is automatically recorded at the <strong>moment of registration</strong> based on <code>current_owner</code>, requiring zero code changes from the module.</li>
+<li>Unload and disable share the same cleanup chain (<code>_cleanup_module_registrations</code>), where each step only logs a warning if it fails, without interrupting the process.</li>
+<li>Resources with user-configured semantics (persistent overrides / scope rules / command ACLs) are <strong>not</strong> cleaned up when the module is unloaded.</li>
+<li>External handles managed by utility modules can be attached to the cleanup chain via <code>on_cleanup(cb)</code>, which will be automatically called when the dependent module is unloaded (see <a href="#Guide-to-Utility-Modules-Managing-Handles-of-Other-Modules">Guide to Utility Modules: Managing Handles of Other Modules</a>).
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="owner-context-mechanism">Owner Context Mechanism</h2>
+<p>The <code>owner</code> is passed through the context variable <code>current_owner</code> (<code>ErisPulse.runtime.context</code>):</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> owner_scope<span class="token punctuation">,</span> get_current_owner
+
+<span class="token keyword">with</span> owner_scope<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># All resources registered within this context are automatically attributed to MyModule</span>
+    <span class="token keyword">assert</span> get_current_owner<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"MyModule"</span>
+</code></pre>
+<p>The framework automatically injects the <code>owner</code> at the following points (module/adapter code does not need to manually wrap these):</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Timing</th>
+<th>Owner Value</th>
+<th>Location</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Module <code>load()</code></td>
+<td>Module name</td>
+<td>Throughout instantiation + <code>on_load</code></td>
+</tr>
+<tr>
+<td>Adapter <code>start()</code> / <code>restart()</code></td>
+<td>Platform name</td>
+<td>Throughout adapter startup</td>
+</tr>
+<tr>
+<td><code>activate_on</code> lazy-load stub registration</td>
+<td>Module name</td>
+<td>During placeholder command/handler registration</td>
+</tr>
+<tr>
+<td>Event handler execution</td>
+<td>Module name of handler's owner</td>
+<td>Re-injected at handler/command entry</td>
+</tr>
+</tbody></table></div>
+<p>Re-injection during execution means that command handlers declared in <code>on_load</code> will still be automatically attributed to the module if they call registration APIs (such as <code>sdk.adapter.on()</code> or <code>overrides.*.set(persist=False)</code>) during runtime.</p>
+<h2 id="resource-ownership-overview">Resource Ownership Overview</h2>
+<p>All resources registered by a module within its loading context are recorded for ownership and automatically reclaimed upon unloading/disabling:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Registration Method</th>
+<th>Cleanup Call</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Command</td>
+<td><code>@command()</code> / Command dict declaration</td>
+<td><code>command.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>Event Handler</td>
+<td><code>@message</code> / <code>@notice</code> / <code>@request</code> / <code>@meta</code></td>
+<td><code>handler.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>Adapter Event Listener</td>
+<td><code>sdk.adapter.on()</code> / <code>raw=True</code></td>
+<td><code>adapter.unregister_handlers_by_owner()</code></td>
+</tr>
+<tr>
+<td>Adapter Middleware</td>
+<td><code>@sdk.adapter.middleware</code></td>
+<td>Same as above</td>
+</tr>
+<tr>
+<td>Routes (HTTP/WS/SSE)</td>
+<td><code>router.http()</code> / <code>websocket()</code> / <code>sse()</code></td>
+<td>Double fallback by namespace + by owner</td>
+</tr>
+<tr>
+<td>Route Middleware</td>
+<td><code>@router.middleware()</code> / <code>add_middleware()</code></td>
+<td><code>router.unregister_all_by_owner()</code></td>
+</tr>
+<tr>
+<td>Dashboard Home Entry</td>
+<td><code>router.register_home_entry()</code></td>
+<td><code>unregister_home_entries_by_owner()</code></td>
+</tr>
+<tr>
+<td>Custom Session Type</td>
+<td><code>register_custom_type()</code></td>
+<td><code>unregister_custom_types_by_owner()</code></td>
+</tr>
+<tr>
+<td>Platform Event Method Injection</td>
+<td><code>register_event_method()</code> / <code>register_event_mixin()</code></td>
+<td><code>unregister_event_methods_by_owner()</code> (module unloading automatically reclaims, old closures no longer leak)</td>
+</tr>
+<tr>
+<td>Background Tasks</td>
+<td><code>self.spawn()</code></td>
+<td><code>cancel_owner_tasks()</code></td>
+</tr>
+<tr>
+<td>External Cleanup Hook (Tool Module Managed)</td>
+<td><code>runtime.on_cleanup(cb)</code></td>
+<td><code>run_owner_cleanups()</code> (triggered during unload/disable/adapter shutdown chain)</td>
+</tr>
+<tr>
+<td>Lifecycle Hook</td>
+<td><code>lifecycle.register()</code></td>
+<td><code>lifecycle.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>Master Source Provider</td>
+<td><code>master.provider</code></td>
+<td><code>master.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>i18n Translation Keys</td>
+<td><code>I18nClass</code> declaration (domain=module name)</td>
+<td><code>i18n.unregister_domain()</code></td>
+</tr>
+<tr>
+<td>Event Override (Runtime)</td>
+<td><code>overrides.*.set(persist=False)</code></td>
+<td><code>overrides.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>Interactive Sessions (wait_reply waiting / lease)</td>
+<td><code>event.wait_reply()</code> / <code>sdk.interaction.acquire()</code></td>
+<td><code>interaction.cancel_by_owner()</code> (waiter immediately receives cancellation)</td>
+</tr>
+<tr>
+<td>Context Data</td>
+<td><code>runtime/context</code> recorded by owner</td>
+<td>Precise cleanup by module</td>
+</tr>
+</tbody></table></div>
+<p>On the adapter side, corresponding resources (with platform name as owner) are reclaimed by <code>_cleanup_adapter_resources</code> during the adapter's <code>shutdown()</code> / <code>restart()</code>, including:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Cleanup Call</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Adapter's own <code>on()</code> handlers and middleware</td>
+<td><code>adapter.unregister_handlers_by_owner(platform)</code></td>
+</tr>
+<tr>
+<td>Platform Event Method Extension (<code>EventMixin</code>)</td>
+<td><code>unregister_platform_event_methods(platform)</code></td>
+</tr>
+<tr>
+<td>Custom Session Type</td>
+<td><code>unregister_custom_types_by_owner(platform)</code></td>
+</tr>
+<tr>
+<td>Interactive Sessions (wait_reply / lease pending on this platform)</td>
+<td><code>interaction.cancel_by_platform(platform)</code></td>
+</tr>
+<tr>
+<td>i18n Translation Domain (domain=configuration key)</td>
+<td><code>i18n.unregister_domain(configuration key)</code></td>
+</tr>
+<tr>
+<td>Fine-grained Namespaced Routes</td>
+<td><code>router.unregister_all_by_owner(platform)</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="unloaddisable-cleanup-sequence">Unload/Disable Cleanup Sequence</h2>
+<p><code>unload()</code> and <code>disable()</code> share the same cleanup chain (each step is independently wrapped in try/except, failures are only logged, <strong>not interrupting subsequent cleanup</strong>):</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["unload / disable"] --&gt; B["on_unload()（timeout protection）"]
+    B --&gt; C["Fallback: cancel background tasks (cancel_owner_tasks）"]
+    C --&gt; C1["External ownership cleanup hooks&lt;br/&gt;（registered by tool modules via on_cleanup, triggered by run_owner_cleanups）"]
+    C1 --&gt; D["_cleanup_module_registrations&lt;br/&gt;＝ ownership.reclaim_sync()"]
+    D --&gt; D1["i18n translation domains"]
+    D1 --&gt; D2["Routes: namespace + owner fallback&lt;br/&gt;（exact deletion by route object identity,&lt;br/&gt;including middleware / home entry）"]
+    D2 --&gt; D3["Adapter event handlers / middleware"]
+    D3 --&gt; D4["Commands + event handlers"]
+    D4 --&gt; D5["Custom session types"]
+    D5 --&gt; D5b["Platform event method injection"]
+    D5b --&gt; D6["Runtime event overwrites (persist=False）"]
+    D6 --&gt; D7["Owner source provider"]
+    D7 --&gt; D8["Lifecycle hooks"]
+    D8 --&gt; E["Remove SDK attributes + lazy-loaded proxies"]
+    E --&gt; F["Auto-light audit: orphan owner warnings"]
+</code></pre>
+<p><code>sdk.uninit()</code> performs additional global fallback on exit: all adapters shutdown → all modules unload → <code>router.stop()</code> (clear routes/middleware/home entry) → <code>cancel_all_background_tasks()</code> → clear event handlers and hooks.</p>
+<h2 id="ownership-facade-ownership">Ownership Facade (ownership)</h2>
+<p>The sixteen steps of chain cleanup converge under the ownership facade <code>ErisPulse.Core.ownership</code>, with four verbs covering "reclaim, count, scan, audit"—the subsystem-specific <code>*_by_owner</code> reclaim functions remain unchanged, serving as internal implementations of the facade:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Verb</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ownership.reclaim(owner)</code></td>
+<td>Unified reclaim of all resources owned by owner (task cancellation → cleanup hooks → registered resource types; asynchronous full version)</td>
+</tr>
+<tr>
+<td><code>ownership.reclaim_sync(owner)</code></td>
+<td>Registered resource type reclaim (synchronous version, for synchronous unload paths)</td>
+</tr>
+<tr>
+<td><code>ownership.counts(owner=None)</code></td>
+<td>Read-only count of resources registered under owner (None for all owners)</td>
+</tr>
+<tr>
+<td><code>ownership.orphans()</code></td>
+<td>Orphan scan: resources registered but owner has been unregistered (concrete leak report)</td>
+</tr>
+<tr>
+<td><code>ownership.audit(owner, deep=)</code></td>
+<td>Leak audit report (counts + orphans + optional gc instance survey)</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ownership
+
+ownership<span class="token punctuation">.</span>reclaim_sync<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>       <span class="token comment"># {'commands': 1, 'routes_http': 2, ...}</span>
+ownership<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>             <span class="token comment"># Count of registered resources</span>
+ownership<span class="token punctuation">.</span>orphans<span class="token punctuation">(</span><span class="token punctuation">)</span>                      <span class="token comment"># [{"owner": "ghost", "total": 2, ...}]</span>
+</code></pre>
+<p><strong>Audit entry points</strong>:</p>
+<ul>
+<li><strong>Automatic light audit</strong> after unload/reload: issues WARNING alert when orphaned owner resources are found (zero-cost counting scan)</li>
+<li><code>sdk.module.audit(name, deep=True)</code>: Module instance gc survey—when an instance is unreclaimable, it reports the referencing type (identifying "who is holding the old instance"); involves global pause overhead, used only for explicit troubleshooting</li>
+<li>Deep survey is an explicit operation, not configurable, and does not perform automatic repair</li>
+</ul>
+<h2 id="hot-reload-failure-rollback">Hot Reload Failure Rollback</h2>
+<p>Hot reload has been changed to "<strong>Snapshot before Unload → Automatic Rollback on Failure</strong>": When a new version encounters syntax errors, missing dependencies, or fails to load, the old instance and its registration status (registry entries, sdk attributes, sys.modules entries) are automatically restored, ensuring uninterrupted service. The log will indicate "Rolled back to old instance to continue service."</p>
+<p>Best-effort semantics (documented boundaries):</p>
+<ul>
+<li>Side effects already executed in <code>on_unload</code> (such as disconnected connections, canceled tasks) are irreversible—after rollback, the old instance is in a "cleaned-up" state and must be reloaded to become fully available again.</li>
+<li>Manual references to the old instance cached by third-party libraries during runtime are not restored.</li>
+<li>If the target package has been unloaded (entry-point disappeared), it is considered a successful unload and no rollback will occur.</li>
+</ul>
+<h2 id="design-boundaries-resources-not-cleaned-on-unload">Design Boundaries: Resources Not Cleaned on Unload</h2>
+<p>Ownership only recovers <strong>runtime resources registered by module code</strong>. The following resources are <strong>user-configured semantics</strong> (controlled by the user, possibly intentionally configured), and persist after module unload:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Semantics</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>overrides.*.set(persist=True)</code></td>
+<td>Persistent overrides</td>
+<td>Written to configuration file, effective across restarts; not deleted on module unload (user explicitly configured)</td>
+</tr>
+<tr>
+<td><code>scope.set_action()</code> and other scope rules</td>
+<td>Permission control plane</td>
+<td>Managed by user/Dashboard; rules are not reclaimed when the module is unloaded</td>
+</tr>
+<tr>
+<td><code>overrides.acl.set(persist=True)</code></td>
+<td>Command ACLs</td>
+<td>Same as above</td>
+</tr>
+<tr>
+<td><code>Conversation.save()</code> persistence</td>
+<td>Multi-turn conversation archives</td>
+<td>Data assets are not cleaned up</td>
+</tr>
+</tbody></table></div>
+<p>Runtime temporary writes (<code>persist=False</code>) are reclaimed by owner—<strong>persistence is the boundary between "user assets" and "module runtime state."</strong></p>
+<h2 id="internal-implementation-how-ownership-works">Internal Implementation: How Ownership Works</h2>
+<p>The ownership system consists of <strong>two independent chains</strong>. Understanding their division of labor is essential for troubleshooting ownership issues:</p>
+<h3 id="attribution-chain-contextvar-propagation">Attribution Chain (contextvar Propagation)</h3>
+<p>The <code>ContextVar</code>s in <code>runtime/context.py</code>, such as <code>current_owner</code>, are responsible for <strong>attribution</strong> — "whom does the resource registered or the call initiated by the code at this moment belong to?" The propagation rules follow the semantics of Python's <code>contextvars</code>:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Execution Path</th>
+<th>Context Propagated?</th>
+<th>Attribution Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Synchronous call chain / <code>await</code> chain</td>
+<td>✅ Propagated</td>
+<td>Correct attribution</td>
+</tr>
+<tr>
+<td><code>asyncio.create_task</code> within <code>owner_scope</code></td>
+<td>✅ Propagated (task copies context at creation)</td>
+<td>Framework calls <strong>inside</strong> the task are correctly attributed</td>
+</tr>
+<tr>
+<td><code>run_in_executor</code> / bare thread</td>
+<td>❌ Not propagated</td>
+<td>Attribution lost</td>
+</tr>
+<tr>
+<td>Custom event loop</td>
+<td>❌ Not propagated</td>
+<td>Attribution lost</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>Attribution ≠ Registration: Context propagation only affects "to whom it is attributed." Whether the resource is cleaned up depends on whether it enters the subsequent cancellation chain.</p>
+</blockquote>
+<h3 id="cancellation-chain-task-registry">Cancellation Chain (Task Registry)</h3>
+<p>The <code>_owner_tasks</code> registry in <code>runtime/tasks.py</code> manages <strong>lifecycle</strong> — "which unfinished tasks belong to the owner, and cancel them all together during unload." Tasks enter the registry through:</p>
+<ol>
+<li><strong>Explicit Scheduling</strong>: <code>spawn_background()</code> / <code>self.spawn()</code> → captures <code>current_owner</code> at creation (or explicitly via <code>owner=</code> parameter) → registers into the table;</li>
+<li><strong>Task Factory Automatic Registration</strong> (2.8.3): <code>install_owner_task_factory()</code> is installed into the main event loop at framework startup — <strong>any</strong> task creation (including <code>create_task</code> inside third-party libraries) is processed by the factory, reading <code>current_owner</code>; if not None, it registers.</li>
+</ol>
+<p>Registry self-cleans: Each task includes a <code>done_callback</code>, and once completed, it is removed from the table, preventing leaks.</p>
+<h3 id="cancellation-timing-module-unload">Cancellation Timing (Module Unload)</h3>
+<pre><code>module.unload()
+  → on_unload(event)                    # Module self-cleans (fallback timeout protection)
+  → Framework deregisters commands/events/hooks/routes for this owner
+  → cancel_owner_tasks(owner)           # Registry fallback cancellation
+      → cancel each task.cancel()       # Excludes the task itself executing cancellation logic
+      → await gather(pending, timeout)  # Wait for cleanup (no blocking after timeout)
+</code></pre>
+<h3 id="troubleshooting-approach">Troubleshooting Approach</h3>
+<ul>
+<li><strong>Resources not cleaned up</strong> → Check the registry: <code>get_owner_tasks("MyModule")</code> whether it contains the task; if not, the registration path did not pass through the ownership chain (import phase / thread / independent loop), refer to the table above for identification.</li>
+<li><strong>Incorrect attribution</strong> → Check the value of <code>get_current_owner()</code> at the time of error; for asynchronously delayed execution (callbacks/tasks), attribution is taken from the context at creation, not at execution time.</li>
+</ul>
+<h2 id="module-author-guide">Module Author Guide</h2>
+<h3 id="recommended-practices">Recommended Practices</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> owner_scope<span class="token punctuation">,</span> spawn_background
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># Framework resources: automatically owned, no manual cleanup required</span>
+        self<span class="token punctuation">.</span>task <span class="token operator">=</span> self<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>self<span class="token punctuation">.</span>polling<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>      <span class="token comment"># Background task</span>
+        sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>register_home_entry<span class="token punctuation">(</span><span class="token string">"My Module"</span><span class="token punctuation">,</span> <span class="token string">"/my"</span><span class="token punctuation">)</span>  <span class="token comment"># Home entry</span>
+
+        <span class="token comment"># Module-specific resources: include in owner_scope to integrate into ownership system</span>
+        <span class="token keyword">with</span> owner_scope<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>client<span class="token punctuation">.</span>on_event<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_handle<span class="token punctuation">)</span>      <span class="token comment"># Hypothetical custom registration</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># Framework resources have been automatically cleaned up, only clean up non-owner_scope covered resources</span>
+        <span class="token keyword">await</span> self<span class="token punctuation">.</span>client<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="notes">Notes</h3>
+<ul>
+<li><strong>Registration during import has no ownership</strong>: Hooks/handlers registered at the module's top level (during import) occur before <code>owner_scope</code>, and are considered framework-level resources (owner=None) and <strong>will not be cleaned up</strong>. Always register inside <code>on_load()</code>.</li>
+<li><strong>Custom domain i18n registration</strong>: When <code>i18n.register(domain=...)</code> uses a domain different from the module name, it won't be automatically cleaned up. Please ensure domain=module name.</li>
+<li><strong>Background tasks recommended via <code>self.spawn()</code></strong>: As of 2.8.3, raw <code>asyncio.create_task</code> will also <strong>automatically register ownership</strong> (Task Factory automatically registers, cancels on unload as a fallback). However, <code>self.spawn()</code> remains the recommended approach—supporting non-main loop thread scheduling back to the main loop, explicit <code>owner=</code> assignment, and fire-and-forget to prevent GC. <strong>For versions before 2.8.3</strong>, raw tasks are not owned, and <code>self.spawn()</code> must be used.</li>
+<li><strong>Cleanup chain "failure only logs warning"</strong>: Single-step cleanup exceptions will not block other resource releases, visible in DEBUG/WARNING log levels; enable TRACE for troubleshooting.</li>
+</ul>
+<h3 id="registration-timing-ownership-result-comparison-table">Registration Timing → Ownership Result Comparison Table</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Registration Scenario</th>
+<th>Ownership Result</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Registered inside <code>on_load()</code> via framework APIs (commands/events/lifecycle/routing decorators)</td>
+<td>Owned by module</td>
+<td>Automatically unregistered on unload</td>
+</tr>
+<tr>
+<td>Registered at module top level (during import)</td>
+<td><strong>No ownership</strong> (owner=None)</td>
+<td>Not cleaned up, do not use</td>
+</tr>
+<tr>
+<td>Background tasks created via <code>self.spawn()</code></td>
+<td>Owned by module</td>
+<td>Automatically cancelled on unload</td>
+</tr>
+<tr>
+<td>Registered inside <code>owner_scope("Name")</code> via third-party APIs</td>
+<td>Owned by module</td>
+<td>Depends on third-party callbacks executing synchronously within scope</td>
+</tr>
+<tr>
+<td>Raw <code>asyncio.create_task</code> (including <code>loop.create_task</code> / <code>ensure_future</code>)</td>
+<td><strong>Automatic ownership</strong> (Task Factory, 2.8.3+)</td>
+<td>Instantly reads <code>current_owner</code> on creation, automatically registers within owner context, cancels on unload as a fallback; see <a href="#internal-implementation-how-ownership-works">Internal Implementation</a> below</td>
+</tr>
+<tr>
+<td>Tasks created internally within third-party library asynchronous callbacks (e.g., aiohttp / APScheduler)</td>
+<td><strong>Automatic ownership</strong> (Task Factory, 2.8.3+)</td>
+<td>If <code>current_owner</code> is injected (e.g., during framework handler execution), the task automatically registers</td>
+</tr>
+<tr>
+<td><code>run_in_executor</code> (thread pool)</td>
+<td><strong>No ownership</strong> (not asyncio.Task)</td>
+<td>Threads are not managed by Task Factory, lifecycle must be managed manually</td>
+</tr>
+<tr>
+<td>Registration within an independent event loop (self-created loop)</td>
+<td><strong>No ownership</strong></td>
+<td>Task Factory is only installed in the main loop; contextvars do not propagate across event loops</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>Principle: <strong>Ownership follows the <code>current_owner</code> context at the moment of registration</strong>; any asynchronous delay, thread pools, or independent loops will detach from this context—explicitly enter <code>owner_scope</code> when ownership is required.</p>
+</blockquote>
+<h2 id="tool-module-guide-handling-references-to-other-modules">Tool Module Guide: Handling References to Other Modules</h2>
+<p><strong>Scenario</strong>: Tool modules such as scheduled tasks, registries, and connection pools hold references to other modules—when a module calls <code>sdk.Cron.on_trigger(handler)</code> in its <code>on_load</code>, your container stores a callback pointing to the instance of the calling module. The framework automatically cleans up all framework-level resources registered by the module, but it cannot clean up references stored in your <strong>private container</strong>: after the module is unloaded, your container still holds its instance, preventing it from being garbage collected (memory leak, <code>purge</code> leak diagnostics report "un回收able").</p>
+<p><strong>Solution</strong>: In the same function where you register the other module's resources, call <code>on_cleanup()</code>. The framework will automatically invoke your cleanup function when the module is unloaded or disabled:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> off_cleanup<span class="token punctuation">,</span> on_cleanup
+
+<span class="token keyword">class</span> <span class="token class-name">CronModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>_entries <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>  <span class="token comment"># {module_name: list of callbacks registered by the module}</span>
+
+    <span class="token keyword">def</span> <span class="token function">on_trigger</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> handler<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># Automatically identifies the caller module name (whether called directly in on_load or via module.call),</span>
+        <span class="token comment"># returns the resolved owner, which can be used directly as a named key</span>
+        owner <span class="token operator">=</span> on_cleanup<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_drop<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>_entries<span class="token punctuation">.</span>setdefault<span class="token punctuation">(</span>owner<span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span>append<span class="token punctuation">(</span>handler<span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">_drop</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> owner<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""Called automatically by the framework when the module is unloaded/disabled: simply discard its handle"""</span>
+        self<span class="token punctuation">.</span>_entries<span class="token punctuation">.</span>pop<span class="token punctuation">(</span>owner<span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        off_cleanup<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_drop<span class="token punctuation">)</span>  <span class="token comment"># ③ Unregister the hook before self-unloading to avoid the hook table holding a reference to self</span>
+</code></pre>
+<p>Guaranteed framework behavior:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Trigger Timing</td>
+<td>Triggered when the module is unloaded / disabled, or when the adapter shuts down—always within the framework's cleanup chain, before <code>purge</code> leak diagnostics</td>
+</tr>
+<tr>
+<td>Caller Identification</td>
+<td>Direct call uses <code>current_owner</code>; called via <code>module.call()</code> uses <code>current_caller</code>; can also explicitly specify via <code>on_cleanup(cb, owner="module_name")</code>. <strong>Mandatory validation</strong>: if <code>owner</code> cannot be resolved (missing from all three sources), a <code>ValueError</code> is raised—private tool modules should register hooks within their own loading context</td>
+</tr>
+<tr>
+<td>Callback Signature</td>
+<td><code>cb(owner: str)</code>, synchronous or asynchronous; asynchronous callbacks have timeout protection (<code>CLEANUP_CALLBACK_TIMEOUT_SECS</code>, default 10 seconds)</td>
+</tr>
+<tr>
+<td>Fault Tolerance</td>
+<td>If a single callback fails or times out, only logs are recorded, without affecting other hooks or the cleanup chain</td>
+</tr>
+<tr>
+<td>Duplicate Registration</td>
+<td>Identical <code>(owner, callback)</code> pairs are idempotently deduplicated</td>
+</tr>
+</tbody></table></div>
+<p><strong>When Not Needed</strong>: If the module registers framework-level resources (commands, event handlers, routes, background tasks, etc.), the framework automatically cleans them up (see <a href="#resource-ownership-overview">Resource Ownership Overview</a> above). Only references held in your private container require <code>on_cleanup</code>. A quick-reference version from a module developer's perspective is available at <a href="/docs/en/developer-guide/modules/best-practices.html#tool-modules-handling-references-to-other-modules-should-catch-unload-notifications">Best Practices · Tool Modules</a>.</p>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/advanced/scope.html"><small>Previous</small><br>Scope</a>
+        <a class="doc-pager-next" href="/docs/en/advanced/interaction.html"><small>Next</small><br>Interactive Session System</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

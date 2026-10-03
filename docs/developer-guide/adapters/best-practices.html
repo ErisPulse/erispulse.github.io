@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>适配器开发最佳实践 - ErisPulse 文档中心</title>
+    <meta name="description" content="适配器应主动通过 adapter.emit() 发送 meta 事件，让框架自动追踪 Bot 的连接状态、上下线和心跳信息。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/best-practices.html" />
+    <meta property="og:title" content="适配器开发最佳实践 - ErisPulse 文档中心" />
+    <meta property="og:description" content="适配器应主动通过 adapter.emit() 发送 meta 事件，让框架自动追踪 Bot 的连接状态、上下线和心跳信息。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/developer-guide/adapters/best-practices.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"适配器开发最佳实践","description":"适配器应主动通过 adapter.emit() 发送 meta 事件，让框架自动追踪 Bot 的连接状态、上下线和心跳信息。","url":"https://www.erisdev.com/docs/developer-guide/adapters/best-practices.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 开发者指南 <span class="doc-crumb-sep">/</span> 适配器开发
+        <span class="doc-crumb-sep">/</span> <span>适配器开发最佳实践</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/developer-guide/adapters/best-practices.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/adapters/best-practices.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/best-practices.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/best-practices.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/best-practices.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/adapters/best-practices.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="适配器开发最佳实践">适配器开发最佳实践</h1>
+<p>本文档提供了 ErisPulse 适配器开发的最佳实践建议。</p>
+<h2 id="bot-状态管理与-meta-事件">Bot 状态管理与 Meta 事件</h2>
+<p>适配器应主动通过 <code>adapter.emit()</code> 发送 meta 事件，让框架自动追踪 Bot 的连接状态、上下线和心跳信息。</p>
+<h3 id="1-何时发送-meta-事件">1. 何时发送 Meta 事件</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>事件</th>
+<th><code>detail_type</code></th>
+<th>触发时机</th>
+<th>框架行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>连接</td>
+<td><code>"connect"</code></td>
+<td>Bot 与平台建立连接时</td>
+<td>注册 Bot，触发 <code>adapter.bot.online</code> 生命周期事件</td>
+</tr>
+<tr>
+<td>断开</td>
+<td><code>"disconnect"</code></td>
+<td>Bot 与平台断开连接时</td>
+<td>标记 Bot 离线，触发 <code>adapter.bot.offline</code> 生命周期事件</td>
+</tr>
+<tr>
+<td>心跳</td>
+<td><code>"heartbeat"</code></td>
+<td>定期发送（建议 30-60 秒）</td>
+<td>更新 Bot 活跃时间和元信息</td>
+</tr>
+</tbody></table></div>
+<h3 id="2-发送-meta-事件">2. 发送 Meta 事件</h3>
+<p>框架提供 <code>emit_meta()</code> 方法，一行即可发送 meta 事件：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_ws_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> websocket<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        bot_id <span class="token operator">=</span> self<span class="token punctuation">.</span>_get_bot_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># Bot 上线：一行发送 connect 事件</span>
+        <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"connect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> user_name<span class="token operator">=</span><span class="token string">"MyBot"</span><span class="token punctuation">,</span> nickname<span class="token operator">=</span><span class="token string">"我的机器人"</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">try</span><span class="token punctuation">:</span>
+            <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+                data <span class="token operator">=</span> <span class="token keyword">await</span> websocket<span class="token punctuation">.</span>receive_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                event <span class="token operator">=</span> self<span class="token punctuation">.</span>convert<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+                <span class="token keyword">if</span> event<span class="token punctuation">:</span>
+                    <span class="token keyword">await</span> self<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
+        <span class="token keyword">except</span> WebSocketDisconnect<span class="token punctuation">:</span>
+            <span class="token keyword">pass</span>
+        <span class="token keyword">finally</span><span class="token punctuation">:</span>
+            <span class="token comment"># Bot 下线</span>
+            <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"disconnect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-心跳事件">3. 心跳事件</h3>
+<p>适配器应在连接存活期间定期发送心跳事件，更新 Bot 的活跃时间：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_heartbeat_loop</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> bot_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">while</span> self<span class="token punctuation">.</span>_connected<span class="token punctuation">:</span>
+            <span class="token comment"># 向框架发送 meta heartbeat（一行完成）</span>
+            <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"heartbeat"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
+            <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="4-self-字段自动发现">4. <code>self</code> 字段自动发现</h3>
+<p>框架的 <code>adapter.emit()</code> 会自动处理所有事件（不仅是 meta 事件）中的 <code>self</code> 字段：</p>
+<ul>
+<li><strong>普通事件</strong>（message/notice/request）中的 <code>self</code> 字段会自动发现并注册 Bot</li>
+<li><strong><code>self</code> 字段扩展信息</strong>：支持 <code>user_name</code>、<code>nickname</code>、<code>avatar</code>、<code>account_id</code> 可选字段</li>
+</ul>
+<pre><code class="language-python"><span class="token comment"># 转换器中包含 self 字段即可自动注册 Bot</span>
+onebot_event <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"bot123"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_name"</span><span class="token punctuation">:</span> <span class="token string">"MyBot"</span><span class="token punctuation">,</span>
+        <span class="token string">"nickname"</span><span class="token punctuation">:</span> <span class="token string">"我的机器人"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token comment"># ... 其他字段</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">await</span> self<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span>onebot_event<span class="token punctuation">)</span>
+<span class="token comment"># Bot "bot123" 已自动注册并更新活跃时间</span>
+</code></pre>
+<h3 id="5-bot-状态查询">5. Bot 状态查询</h3>
+<p>框架提供以下查询方法：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># 获取 Bot 详细信息</span>
+info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_bot_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"bot123"</span><span class="token punctuation">)</span>
+<span class="token comment"># {"status": "online", "last_active": 1712345678.0, "info": {"nickname": "MyBot"}}</span>
+
+<span class="token comment"># 列出所有 Bot（按平台分组）</span>
+all_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 列出指定平台的 Bot</span>
+platform_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 检查 Bot 是否在线</span>
+is_online <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>is_bot_online<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"bot123"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 获取完整状态摘要（适合 WebUI 展示）</span>
+summary <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_status_summary<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {"adapters": {"myplatform": {"status": "started", "bots": {...}}}}</span>
+</code></pre>
+<h2 id="连接管理">连接管理</h2>
+<h3 id="1-实现连接重试">1. 实现连接重试</h3>
+<pre><code class="language-python"><span class="token keyword">import</span> asyncio
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        retry_count <span class="token operator">=</span> <span class="token number">0</span>
+        max_retries <span class="token operator">=</span> <span class="token number">5</span>
+        
+        <span class="token keyword">while</span> retry_count <span class="token operator">&lt;</span> max_retries<span class="token punctuation">:</span>
+            <span class="token keyword">try</span><span class="token punctuation">:</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect_to_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"连接成功"</span><span class="token punctuation">)</span>
+                <span class="token keyword">break</span>
+            <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                retry_count <span class="token operator">+=</span> <span class="token number">1</span>
+                <span class="token keyword">if</span> retry_count <span class="token operator">&lt;</span> max_retries<span class="token punctuation">:</span>
+                    <span class="token comment"># 指数退避策略</span>
+                    wait_time <span class="token operator">=</span> <span class="token builtin">min</span><span class="token punctuation">(</span><span class="token number">60</span> <span class="token operator">*</span> <span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">**</span> retry_count<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">600</span><span class="token punctuation">)</span>
+                    self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span>
+                        <span class="token string-interpolation"><span class="token string">f"连接失败，</span><span class="token interpolation"><span class="token punctuation">{</span>wait_time<span class="token punctuation">}</span></span><span class="token string">秒后重试 (</span><span class="token interpolation"><span class="token punctuation">{</span>retry_count<span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>max_retries<span class="token punctuation">}</span></span><span class="token string">): </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span>
+                    <span class="token punctuation">)</span>
+                    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span>wait_time<span class="token punctuation">)</span>
+                <span class="token keyword">else</span><span class="token punctuation">:</span>
+                    self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string">"连接失败，已达到最大重试次数"</span><span class="token punctuation">)</span>
+                    <span class="token keyword">raise</span>
+</code></pre>
+<h3 id="2-连接状态管理">2. 连接状态管理</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>connection <span class="token operator">=</span> <span class="token boolean">None</span>
+        self<span class="token punctuation">.</span>_connected <span class="token operator">=</span> <span class="token boolean">False</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_ws_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> websocket<span class="token punctuation">:</span> WebSocket<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>connection <span class="token operator">=</span> websocket
+        self<span class="token punctuation">.</span>_connected <span class="token operator">=</span> <span class="token boolean">True</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"连接已建立"</span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">try</span><span class="token punctuation">:</span>
+            <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+                data <span class="token operator">=</span> <span class="token keyword">await</span> websocket<span class="token punctuation">.</span>receive_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>_process_event<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+        <span class="token keyword">except</span> WebSocketDisconnect<span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"连接已断开"</span><span class="token punctuation">)</span>
+        <span class="token keyword">finally</span><span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>connection <span class="token operator">=</span> <span class="token boolean">None</span>
+            self<span class="token punctuation">.</span>_connected <span class="token operator">=</span> <span class="token boolean">False</span>
+</code></pre>
+<h3 id="3-心跳保活与-meta-心跳">3. 心跳保活与 Meta 心跳</h3>
+<p>适配器的心跳应同时完成两个任务：向平台发送心跳保活，并向框架发送 meta heartbeat 事件。</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>connection <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect_to_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>_heartbeat_task <span class="token operator">=</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_heartbeat_loop<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_heartbeat_loop</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">while</span> self<span class="token punctuation">.</span>connection<span class="token punctuation">:</span>
+            <span class="token keyword">try</span><span class="token punctuation">:</span>
+                <span class="token comment"># 1. 向平台发送心跳保活</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>connection<span class="token punctuation">.</span>send_json<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"ping"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+                <span class="token comment"># 2. 向框架发送 meta heartbeat（使用 emit_meta 一行完成）</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"heartbeat"</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>_bot_id<span class="token punctuation">)</span>
+
+                <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">)</span>
+            <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"心跳失败: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+                <span class="token keyword">break</span>
+</code></pre>
+<h3 id="4-连接信息暴露">4. 连接信息暴露</h3>
+<p>适配器注册的路由应对用户可见，便于用户配置平台侧的回调地址。推荐在 <code>start()</code> 中主动输出连接信息：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        router<span class="token punctuation">.</span>register_websocket<span class="token punctuation">(</span>
+            module_name<span class="token operator">=</span>self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+            path<span class="token operator">=</span><span class="token string">"/ws"</span><span class="token punctuation">,</span>
+            handler<span class="token operator">=</span>self<span class="token punctuation">.</span>_ws_handler
+        <span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> self<span class="token punctuation">.</span>sdk<span class="token punctuation">:</span>
+            info <span class="token operator">=</span> self<span class="token punctuation">.</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_connection_info<span class="token punctuation">(</span>self<span class="token punctuation">.</span>platform<span class="token punctuation">)</span>
+            <span class="token keyword">if</span> info<span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"WebSocket 地址: "</span></span>
+                    <span class="token string-interpolation"><span class="token string">f"{info.get('connection', {}).get('base_url', '')}"</span></span>
+                    <span class="token string-interpolation"><span class="token string">f"{info.get('connection', {}).get('websocket_routes', [])}"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<p>用户可以通过以下 API 查看适配器的所有路由和连接地址：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># 适配器级别的连接信息（推荐）</span>
+info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_connection_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 路由管理器级别的查询</span>
+sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>list_namespaces<span class="token punctuation">(</span><span class="token punctuation">)</span>              <span class="token comment"># 列出所有命名空间</span>
+sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>  <span class="token comment"># 详细路由信息</span>
+sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>    <span class="token comment"># 完整连接 URL</span>
+</code></pre>
+<blockquote>
+<p><strong>注意</strong>：路由注册时的 <code>module_name</code> 必须与适配器在 ErisPulse 中注册的 <code>platform</code> 名称完全一致，否则 <code>get_connection_info()</code> 将无法关联路由。多账户适配器应为每个账户注册子路径（如 <code>/account1/webhook</code>、<code>/account2/webhook</code>），而非使用不同的 <code>module_name</code>。</p>
+</blockquote>
+<h2 id="事件转换">事件转换</h2>
+<h3 id="1-严格遵循-onebot12-标准">1. 严格遵循 OneBot12 标准</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyPlatformConverter</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""转换事件"""</span>
+        onebot_event <span class="token operator">=</span> <span class="token punctuation">{</span>
+            <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"event_id"</span><span class="token punctuation">,</span> uuid<span class="token punctuation">.</span>uuid4<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"type"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_convert_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"detail_type"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_convert_detail_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+            <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+                <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">,</span>  <span class="token comment"># 保留原始数据（必须）</span>
+            <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>  <span class="token comment"># 原始类型（必须）</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> onebot_event
+</code></pre>
+<h3 id="2-时间戳标准化">2. 时间戳标准化</h3>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_timestamp</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> timestamp<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""转换为 10 位秒级时间戳"""</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> timestamp<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 如果是毫秒级时间戳</span>
+    <span class="token keyword">if</span> timestamp <span class="token operator">&gt;</span> <span class="token number">10</span><span class="token operator">**</span><span class="token number">12</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">int</span><span class="token punctuation">(</span>timestamp <span class="token operator">/</span> <span class="token number">1000</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 如果是秒级时间戳</span>
+    <span class="token keyword">return</span> <span class="token builtin">int</span><span class="token punctuation">(</span>timestamp<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-事件-id-生成">3. 事件 ID 生成</h3>
+<pre><code class="language-python"><span class="token keyword">import</span> uuid
+
+<span class="token keyword">def</span> <span class="token function">_generate_event_id</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""生成事件 ID"""</span>
+    event_id <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"event_id"</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> event_id<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>event_id<span class="token punctuation">)</span>
+    <span class="token comment"># 如果平台没有提供 ID，生成 UUID</span>
+    <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>uuid<span class="token punctuation">.</span>uuid4<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="senddsl-实现">SendDSL 实现</h2>
+<p><code>At</code>/<code>AtAll</code>/<code>Reply</code> 修饰器已由框架 SendDSL 基类内置，适配器只需实现 <code>Raw_ob12</code> 和具体发送方法。使用 <code>self._apply_modifiers(message)</code> 和 <code>self.send_context</code> 简化开发。</p>
+<h3 id="1-必须返回-task-对象">1. 必须返回 Task 对象</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""推荐实现：使用框架辅助方法"""</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            segments <span class="token operator">=</span> self<span class="token punctuation">.</span>_apply_modifiers<span class="token punctuation">(</span>message<span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                endpoint<span class="token operator">=</span><span class="token string">"/send_message"</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span>segments<span class="token punctuation">,</span>
+                <span class="token operator">**</span>self<span class="token punctuation">.</span>send_context<span class="token punctuation">,</span>
+                <span class="token operator">**</span>kwargs
+            <span class="token punctuation">)</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>_do_send<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">Text</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> text<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="2-链式修饰方法返回-self">2. 链式修饰方法返回 self</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
+
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> adapter<span class="token punctuation">,</span> target_type<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> target_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> account_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>adapter<span class="token punctuation">,</span> target_type<span class="token punctuation">,</span> target_id<span class="token punctuation">,</span> account_id<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>buttons <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">def</span> <span class="token function">Button</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> content<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token string">'Send'</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>buttons<span class="token punctuation">.</span>append<span class="token punctuation">(</span>content<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self <span class="token comment"># 返回 self</span>
+</code></pre>
+<h3 id="3-支持平台特有方法">3. 支持平台特有方法</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Sticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""发送表情包"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>
+            self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                endpoint<span class="token operator">=</span><span class="token string">"/send_sticker"</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"sticker"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"id"</span><span class="token punctuation">:</span> sticker_id<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                <span class="token operator">**</span>self<span class="token punctuation">.</span>send_context
+            <span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+    
+    <span class="token keyword">def</span> <span class="token function">Card</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> card_data<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""发送卡片消息"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>
+            self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                endpoint<span class="token operator">=</span><span class="token string">"/send_card"</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"card"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> card_data<span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                <span class="token operator">**</span>self<span class="token punctuation">.</span>send_context
+            <span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h2 id="api-响应">API 响应</h2>
+<h3 id="1-标准化响应格式">1. 标准化响应格式</h3>
+<p>框架提供 <code>make_response()</code> 和 <code>make_error()</code> 方法构造标准化响应：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        raw_response <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_platform_api_call<span class="token punctuation">(</span>endpoint<span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span>
+        
+        <span class="token keyword">if</span> raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"success"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_response<span class="token punctuation">(</span>
+                data<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                message_id<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                raw<span class="token operator">=</span>raw_response<span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>
+                retcode<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">,</span> <span class="token number">10001</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                raw<span class="token operator">=</span>raw_response<span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+    <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>message<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>make_response()</code> 会自动生成包含 <code>{platform}_raw</code> 键的响应字典。<code>make_error()</code> 默认使用 <code>retcode=34000</code>（Platform Error）。</p>
+<h3 id="2-错误码规范">2. 错误码规范</h3>
+<p>遵循 OneBot12 标准错误码：</p>
+<pre><code class="language-python"><span class="token comment"># 1xxxx - 动作请求错误</span>
+<span class="token number">10001</span><span class="token punctuation">:</span> Bad Request
+<span class="token number">10002</span><span class="token punctuation">:</span> Unsupported Action
+<span class="token number">10003</span><span class="token punctuation">:</span> Bad Param
+
+<span class="token comment"># 2xxxx - 动作处理器错误</span>
+<span class="token number">20001</span><span class="token punctuation">:</span> Bad Handler
+<span class="token number">20002</span><span class="token punctuation">:</span> Internal Handler Error
+
+<span class="token comment"># 3xxxx - 动作执行错误</span>
+<span class="token number">31000</span><span class="token punctuation">:</span> Database Error
+<span class="token number">32000</span><span class="token punctuation">:</span> Filesystem Error
+<span class="token number">33000</span><span class="token punctuation">:</span> Network Error
+<span class="token number">34000</span><span class="token punctuation">:</span> Platform Error
+<span class="token number">35000</span><span class="token punctuation">:</span> Logic Error
+</code></pre>
+<h2 id="多账户支持">多账户支持</h2>
+<h3 id="1-声明式配置推荐">1. 声明式配置（推荐）</h3>
+<p>使用 <code>AccountConfigClass</code> 声明配置类后，框架自动管理多账户加载、校验和模板生成。<code>BotAccountConfig</code> 基类提供 <code>enabled</code> 和 <code>name</code> 字段，适配器无需声明：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BotAccountConfig
+
+<span class="token decorator annotation punctuation">@dataclass</span>
+<span class="token keyword">class</span> <span class="token class-name">MyBotConfig</span><span class="token punctuation">(</span>BotAccountConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    token<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span> metadata<span class="token operator">=</span><span class="token punctuation">{</span>
+        <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.bot_token"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Bot Token"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
+        <span class="token string">"secret"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    AccountConfigClass <span class="token operator">=</span> MyBotConfig
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> name<span class="token punctuation">,</span> account <span class="token keyword">in</span> self<span class="token punctuation">.</span>enabled_accounts<span class="token punctuation">.</span>items<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"启动账户 </span><span class="token interpolation"><span class="token punctuation">{</span>name<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect<span class="token punctuation">(</span>name<span class="token punctuation">,</span> account<span class="token punctuation">.</span>token<span class="token punctuation">)</span>
+            <span class="token comment"># bot_id 由框架自动从平台协议/登录响应中获取并回填</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        account_id <span class="token operator">=</span> params<span class="token punctuation">.</span>pop<span class="token punctuation">(</span><span class="token string">"account_id"</span><span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">)</span>
+        name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span>account_id<span class="token punctuation">)</span>
+        <span class="token comment"># name: 账户名, account: MyBotConfig 实例</span>
+</code></pre>
+<p>配置文件自动生成为：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">MyAdapter.accounts.default</span><span class="token punctuation">]</span>
+<span class="token key property">token</span> <span class="token punctuation">=</span> <span class="token string">""</span>
+<span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">""</span>
+</code></pre>
+<h3 id="2-账户选择机制">2. 账户选择机制</h3>
+<p>框架内置 <code>_resolve_account()</code> 方法，匹配优先级：</p>
+<ol>
+<li><strong>账户名</strong> — 配置键名精确匹配</li>
+<li><strong><code>bot_id</code> 字段</strong> — 自动获取的 bot_id（即 <code>event["self"]["user_id"]</code>）</li>
+<li><strong>任意 str 字段</strong> — 配置中其他字符串字段</li>
+<li><strong>兜底</strong> — 第一个启用的账户</li>
+</ol>
+<pre><code class="language-python"><span class="token comment"># 按账户名匹配</span>
+name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span><span class="token string">"account1"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 按 bot_id 匹配（最常用的方式，来自事件）</span>
+name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span><span class="token string">"bot_123"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 获取第一个启用的账户（传入 None）</span>
+name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span><span class="token boolean">None</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="错误处理">错误处理</h2>
+<h3 id="1-分类异常处理">1. 分类异常处理</h3>
+<p>使用 <code>make_error()</code> 构造标准化错误响应。通过 <code>sdk.client</code> 请求时捕获 ErisPulse 异常：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError<span class="token punctuation">,</span> ClientTimeoutError
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+        resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+            <span class="token string-interpolation"><span class="token string">f"https://api.platform.com/</span><span class="token interpolation"><span class="token punctuation">{</span>endpoint<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span>
+            json<span class="token operator">=</span>params<span class="token punctuation">,</span>
+            max_retries<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+        response <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_response<span class="token punctuation">(</span>data<span class="token operator">=</span>response<span class="token punctuation">,</span> raw<span class="token operator">=</span>response<span class="token punctuation">)</span>
+    <span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"请求超时: </span><span class="token interpolation"><span class="token punctuation">{</span>endpoint<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">32000</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"请求超时"</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"网络错误: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">33000</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"网络请求失败"</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> json<span class="token punctuation">.</span>JSONDecodeError<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string">"JSON 解析失败"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">10006</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"响应格式错误"</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"未知错误: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span> exc_info<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>message<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>向后兼容</strong>：直接使用 <code>aiohttp</code> 的旧适配器代码不受影响，仍可捕获 <code>aiohttp.ClientError</code>。异常转换仅在通过 <code>sdk.client</code> 发起请求时生效。</p>
+</blockquote>
+<h3 id="2-日志记录">2. 日志记录</h3>
+<p>框架自动为适配器创建子 logger（<code>sdk.logger.get_child("MyAdapter")</code>），无需手动初始化：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># ConfigClass = ...  # 声明配置类后 self.logger 自动可用</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"适配器启动中..."</span><span class="token punctuation">)</span>
+        <span class="token comment"># ...</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"适配器启动完成"</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"适配器关闭中..."</span><span class="token punctuation">)</span>
+        <span class="token comment"># ...</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"适配器关闭完成"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="测试">测试</h2>
+<h3 id="1-单元测试">1. 单元测试</h3>
+<pre><code class="language-python"><span class="token keyword">import</span> pytest
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseAdapter
+
+<span class="token keyword">class</span> <span class="token class-name">TestMyAdapter</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">test_converter</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""测试转换器"""</span>
+        converter <span class="token operator">=</span> MyPlatformConverter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        raw_event <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span>
+        result <span class="token operator">=</span> converter<span class="token punctuation">.</span>convert<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span>
+        <span class="token keyword">assert</span> result <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span>
+        <span class="token keyword">assert</span> result<span class="token punctuation">[</span><span class="token string">"platform"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"myplatform"</span>
+        <span class="token keyword">assert</span> <span class="token string">"myplatform_raw"</span> <span class="token keyword">in</span> result
+    
+    <span class="token keyword">def</span> <span class="token function">test_api_response</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""测试 API 响应格式"""</span>
+        adapter <span class="token operator">=</span> MyAdapter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        response <span class="token operator">=</span> adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/test"</span><span class="token punctuation">,</span> param<span class="token operator">=</span><span class="token string">"value"</span><span class="token punctuation">)</span>
+        <span class="token keyword">assert</span> <span class="token string">"status"</span> <span class="token keyword">in</span> response
+        <span class="token keyword">assert</span> <span class="token string">"retcode"</span> <span class="token keyword">in</span> response
+</code></pre>
+<h3 id="2-集成测试">2. 集成测试</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@pytest<span class="token punctuation">.</span>mark<span class="token punctuation">.</span>asyncio</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">test_adapter_start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""测试适配器启动"""</span>
+    adapter <span class="token operator">=</span> MyAdapter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">assert</span> adapter<span class="token punctuation">.</span>_connected <span class="token keyword">is</span> <span class="token boolean">True</span>
+
+<span class="token decorator annotation punctuation">@pytest<span class="token punctuation">.</span>mark<span class="token punctuation">.</span>asyncio</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">test_send_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""测试发送消息"""</span>
+    adapter <span class="token operator">=</span> MyAdapter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+    <span class="token keyword">assert</span> result <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span>
+</code></pre>
+<h2 id="反向转换与消息构建">反向转换与消息构建</h2>
+<p><code>Raw_ob12</code> 是适配器<strong>必须实现</strong>的方法，是反向转换（OneBot12 → 平台）的统一入口。标准方法（<code>Text</code>、<code>Image</code> 等）应委托给 <code>Raw_ob12</code>，修饰器状态（<code>At</code>/<code>Reply</code>/<code>AtAll</code>）需在 <code>Raw_ob12</code> 内合并为消息段。</p>
+<p><code>MessageBuilder</code> 是配合 <code>Raw_ob12</code> 使用的消息段构建工具，支持链式调用和快速构建。</p>
+<blockquote>
+<p>完整的实现规范、代码示例和使用方法请参阅：</p>
+<ul>
+<li><a href="/docs/standards/send-method-spec.html#6-%E5%8F%8D%E5%90%91%E8%BD%AC%E6%8D%A2%E8%A7%84%E8%8C%83onebot12--%E5%B9%B3%E5%8F%B0">发送方法规范 §6 反向转换规范</a></li>
+<li><a href="/docs/standards/send-method-spec.html#11-%E6%B6%88%E6%81%AF%E6%9E%84%E5%BB%BA%E5%99%A8-messagebuilder">发送方法规范 §11 消息构建器</a></li>
+</ul>
+</blockquote>
+<h2 id="平台事件方法扩展">平台事件方法扩展</h2>
+<p>适配器可以为 Event 包装类注册平台专有方法，让模块开发者能更方便地访问平台特有数据。</p>
+<h3 id="1-使用-mixin-类批量注册推荐">1. 使用 Mixin 类批量注册（推荐）</h3>
+<p>当平台有多个专有方法时，推荐使用 Mixin 类：</p>
+<pre><code class="language-python"><span class="token comment"># 在适配器的 start() 或模块级别注册</span>
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> register_event_mixin
+
+<span class="token keyword">class</span> <span class="token class-name">MyPlatformEventMixin</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">get_chat_name</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""获取聊天名称"""</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"chat"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">is_official_message</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""判断是否为官方消息"""</span>
+        raw <span class="token operator">=</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"sender"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"is_official"</span><span class="token punctuation">,</span> <span class="token boolean">False</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">get_message_type</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""获取平台消息类型"""</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"msg_type"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 批量注册</span>
+register_event_mixin<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> MyPlatformEventMixin<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="2-使用装饰器注册单个方法">2. 使用装饰器注册单个方法</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> register_event_method
+
+<span class="token decorator annotation punctuation">@register_event_method</span><span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">get_chat_name</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"chat"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-适配器关闭时清理">3. 适配器关闭时清理</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> unregister_platform_event_methods
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 清理平台事件方法注册</span>
+        unregister_platform_event_methods<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+        <span class="token comment"># ... 其他清理</span>
+</code></pre>
+<blockquote>
+<p>更详细的注册和注销说明请参阅 <a href="/docs/api-reference/event-system.html#%E9%80%82%E9%85%8D%E5%99%A8%E6%B3%A8%E5%86%8C%E5%B9%B3%E5%8F%B0%E6%89%A9%E5%B1%95%E6%96%B9%E6%B3%95">事件系统 API - 注册平台扩展方法</a>。</p>
+</blockquote>
+<h2 id="文档维护">文档维护</h2>
+<h3 id="1-维护平台特性文档">1. 维护平台特性文档</h3>
+<p>在 <code>docs/zh-CN/platform-guide/</code> 下创建 <code>{platform}.md</code> 文档(其它语言版本会自动生成)：</p>
+<pre><code class="language-markdown"><span class="token title important"><span class="token punctuation">#</span> 平台名称适配器文档</span>
+
+<span class="token title important"><span class="token punctuation">##</span> 基本信息</span>
+<span class="token list punctuation">-</span> 对应模块版本: 1.0.0
+<span class="token list punctuation">-</span> 维护者: Your Name
+
+<span class="token title important"><span class="token punctuation">##</span> 支持的消息发送类型</span>
+...
+
+<span class="token title important"><span class="token punctuation">##</span> 特有事件类型</span>
+...
+
+<span class="token title important"><span class="token punctuation">##</span> 配置选项</span>
+...
+</code></pre>
+<h3 id="2-更新版本信息">2. 更新版本信息</h3>
+<p>发布新版本时，更新文档中的版本信息：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">project</span><span class="token punctuation">]</span>
+<span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"2.0.0"</span>  <span class="token comment"># 更新版本号</span>
+</code></pre>
+<h2 id="相关文档">相关文档</h2>
+<ul>
+<li><a href="/docs/developer-guide/adapters/getting-started.html">适配器开发入门</a> - 创建第一个适配器</li>
+<li><a href="/docs/developer-guide/adapters/core-concepts.html">适配器核心概念</a> - 了解适配器架构</li>
+<li><a href="/docs/developer-guide/adapters/send-dsl.html">SendDSL 详解</a> - 学习消息发送</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/developer-guide/adapters/send-dsl.html"><small>上一篇</small><br>SendDSL 详解</a>
+        <a class="doc-pager-next" href="/docs/developer-guide/adapters/converter.html"><small>下一篇</small><br>事件转换器实现指南</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>模組排查指南 - ErisPulse 文档中心</title>
+    <meta name="description" content="當模組「沒有反應」時，可依症狀分為三類問題，每類皆有對應的框架診斷工具（RFC EPRFC-2026-001 方向五）：" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/developer-guide/module-troubleshooting.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/module-troubleshooting.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/module-troubleshooting.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/module-troubleshooting.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/module-troubleshooting.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/module-troubleshooting.html" />
+    <meta property="og:title" content="模組排查指南 - ErisPulse 文档中心" />
+    <meta property="og:description" content="當模組「沒有反應」時，可依症狀分為三類問題，每類皆有對應的框架診斷工具（RFC EPRFC-2026-001 方向五）：" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/developer-guide/module-troubleshooting.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"模組排查指南","description":"當模組「沒有反應」時，可依症狀分為三類問題，每類皆有對應的框架診斷工具（RFC EPRFC-2026-001 方向五）：","url":"https://www.erisdev.com/docs/zh-TW/developer-guide/module-troubleshooting.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 開發者指南
+        <span class="doc-crumb-sep">/</span> <span>模組排查指南</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/module-troubleshooting.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/module-troubleshooting.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/developer-guide/module-troubleshooting.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/module-troubleshooting.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/module-troubleshooting.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/module-troubleshooting.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="模組排查指南">模組排查指南</h1>
+<p>當模組「沒有反應」時，可依症狀分為三類問題，每類皆有對應的框架診斷工具（RFC EPRFC-2026-001 方向五）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>症狀</th>
+<th>診斷工具</th>
+<th>定位層面</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模組未載入</td>
+<td><code>ErisPulse.runtime.explain_module(name)</code></td>
+<td>注冊與載入鏈</td>
+</tr>
+<tr>
+<td>事件未響應</td>
+<td><code>ErisPulse.runtime.explain_event(event)</code></td>
+<td>分發入口檢查</td>
+</tr>
+<tr>
+<td>命令未觸發</td>
+<td>分發決策鏈（測試端 <code>DispatchTrace</code> / 框架內建 <code>trace</code>）</td>
+<td>命令判定鏈</td>
+</tr>
+</tbody></table></div>
+<p>這兩個診斷函數皆為<strong>純讀取</strong>操作，不會改變任何狀態，可在任意時刻調用；返回機器可讀的 dict，搭配 <code>format_report()</code> 可渲染為人類可讀的文本。</p>
+<h2 id="場景一模組未載入">場景一：模組未載入</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> explain_module<span class="token punctuation">,</span> format_report
+
+report <span class="token operator">=</span> explain_module<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>format_report<span class="token punctuation">(</span>report<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>explain_module()</code> 會逐一檢查並提供結論，涵蓋以下原因：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>檢查項目</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未註冊</td>
+<td>套件未安裝、entry-point 組名錯誤，或註冊名稱與查詢名稱不一致</td>
+</tr>
+<tr>
+<td>慢載入未實例化</td>
+<td><strong>正常狀態而非故障</strong>：慢載入模組首次被呼叫（<code>module.call</code> / 命令觸發等）時才實例化</td>
+</tr>
+<tr>
+<td>配置已停用</td>
+<td><code>ErisPulse.modules.status.&lt;模組名&gt; = false</code>（未配置即預設啟用）</td>
+</tr>
+<tr>
+<td>依賴未載入</td>
+<td>模組宣告的 <code>depends</code> 列表中有模組未就緒</td>
+</tr>
+<tr>
+<td>SDK 版本不符</td>
+<td>模組元數據宣告的 <code>min_sdk_version</code> 高於目前框架版本</td>
+</tr>
+<tr>
+<td>on_load 異常</td>
+<td>登記正常但未載入且無上述原因——檢查啟動日誌中模組名對應的 ERROR 記錄</td>
+</tr>
+</tbody></table></div>
+<p>回傳 dict 的結構化欄位：<code>registered</code> / <code>loaded</code> / <code>lazy</code> / <code>enabled</code>（<code>None</code> 表示未配置即預設啟用）/ <code>missing_dependencies</code> / <code>sdk_version_ok</code> / <code>conclusion</code>（一句話結論）/ <code>reasons</code>（原因清單）。</p>
+<h2 id="場景二事件沒響應">場景二：事件沒響應</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> explain_event<span class="token punctuation">,</span> format_report
+
+report <span class="token operator">=</span> explain_event<span class="token punctuation">(</span>event<span class="token punctuation">)</span>   <span class="token comment"># 在處理器內拿到的 Event 或原始事件 dict</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>format_report<span class="token punctuation">(</span>report<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>explain_event()</code> 按分發入口的實際檢查順序輸出結論：</p>
+<ol>
+<li><strong>平台適配器未註冊</strong>：<code>platform</code> 對應的適配器實例不存在——事件根本沒進入框架。</li>
+<li><strong>身份維度被作用域拒絕</strong>：用戶 / 會話 / Bot / 適配器被拉黑——事件在分發入口被完全丟棄。作用域配置見<a href="/docs/zh-TW/user-guide/configuration.html">模組配置</a>。</li>
+<li><strong>模組被會話屏蔽</strong>：區分當前會話 <code>available_modules</code>（可用）與 <code>blocked_modules</code>（被作用域屏蔽）。</li>
+<li><strong>文本形如命令但未命中</strong>：帶命令前綴但不是任何註冊命令——檢查前綴配置與命令名。</li>
+</ol>
+<p>入口檢查全部通過仍無響應時，結論會指引繼續檢查兩處：</p>
+<ul>
+<li><strong>處理器過濾條件</strong>：<code>detail_type</code> / <code>pattern=</code> / <code>regex=</code> 等條件不滿足；</li>
+<li><strong>中間件否決</strong>：中間件顯式返回 <code>False</code> 會在事件層面丟棄，並觸發 <code>adapter.event.blocked</code> 生命週期鉤子（攜帶中間件名與完整事件）——可註冊該鉤子審計「是誰丟棄了事件」。</li>
+</ul>
+<h2 id="場景三命令未觸發分發決策鏈">場景三：命令未觸發（分發決策鏈）</h2>
+<p>一條帶前綴的消息要真正執行命令，需依次通過：命令文本判定 → 命令命中（未命中附拼寫建議）→ 作用域 → 用戶 ACL → 主人檢查 → 權限函數 → 冷卻 / 限流 / 用量靜默丟棄 → 廢棄拒絕與提示 → 參數解析 → 執行。框架把每個判定点記錄為因果鏈，給出「為什麼沒觸發」的結論。</p>
+<h3 id="測試中testbotdispatch-返回-dispatchtrace">測試中：TestBot.dispatch 返回 DispatchTrace</h3>
+<p>推薦用測試復現問題後直接讀取因果鏈（工具用法見<a href="/docs/zh-TW/developer-guide/testing.html">模組測試</a>）：</p>
+<pre><code class="language-python">trace <span class="token operator">=</span> <span class="token keyword">await</span> bot<span class="token punctuation">.</span>dispatch<span class="token punctuation">(</span>create_command_event<span class="token punctuation">(</span><span class="token string">"dailyx"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+trace<span class="token punctuation">.</span>verdict          <span class="token comment"># executed / rejected / dropped / failed / no_match / passed</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>trace<span class="token punctuation">.</span>explain<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment"># 逐行因果說明（當前語言）</span>
+trace<span class="token punctuation">.</span>assert_no_match<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="框架內建-trace-模組">框架內建 trace 模組</h3>
+<p>決策鏈由 <code>ErisPulse.Core.Event.trace</code> 提供，預設<strong>零開銷</strong>——未處於採集上下文時判定点直接跳過，生產路徑無感知：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> <span class="token punctuation">(</span>
+    start_dispatch_trace<span class="token punctuation">,</span>
+    format_dispatch_trace<span class="token punctuation">,</span>
+    final_verdict<span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">with</span> start_dispatch_trace<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">as</span> records<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 采集上下文內發生的分發（含其派生的處理器任務）</span>
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>format_dispatch_trace<span class="token punctuation">(</span>records<span class="token punctuation">)</span><span class="token punctuation">)</span>   <span class="token comment"># 人類可讀因果鏈（當前語言）</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>final_verdict<span class="token punctuation">(</span>records<span class="token punctuation">)</span><span class="token punctuation">)</span>           <span class="token comment"># 總結論</span>
+</code></pre>
+<p><code>final_verdict()</code> 的取值：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>結論</th>
+<th>含義</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>executed</code></td>
+<td>命令已執行</td>
+</tr>
+<tr>
+<td><code>rejected</code></td>
+<td>被權限類判定拒絕（作用域 / ACL / 主人 / 權限函數）</td>
+</tr>
+<tr>
+<td><code>dropped</code></td>
+<td>被靜默丟棄（冷卻 / 限流 / 用量 / 中間件否決）</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>執行出錯</td>
+</tr>
+<tr>
+<td><code>no_match</code></td>
+<td>帶前綴但未命中任何命令</td>
+</tr>
+<tr>
+<td><code>passed</code></td>
+<td>非命令文本，放行給訊息處理器</td>
+</tr>
+</tbody></table></div>
+<p>記錄為機器可讀 dict（<code>stage</code> / <code>verdict</code> / <code>message_key</code> / <code>params</code>），自定義展示時可按 <code>stage</code> 過濾（如只看 <code>cooldown</code>）。</p>
+<h3 id="治理類靜默命中的辨別">治理類靜默命中的辨別</h3>
+<p><code>cooldown=</code> / <code>rate_limit=</code> / <code>usage_limit=</code> 命中時<strong>預設靜默丟棄</strong>（命令仍被認領，不漏給低优先級處理器），容易誤判為「命令壞了」：現象是部分使用者可用、部分使用者無回應，且決策鏈中出現對應 <code>stage</code> 的 <code>dropped</code> 記錄。<code>deprecated=</code> 命令則表現為呼叫時自動回覆廢棄文案（<code>deprecated_reject=True</code> 時拒絕執行）。</p>
+<h2 id="通用建議">通用建議</h2>
+<ul>
+<li>排查前先把日誌調到 <code>DEBUG</code> / <code>TRACE</code>（配置見<a href="/docs/zh-TW/developer-guide/README.html#%E8%AA%BF%E8%A9%A6%E6%8A%80%E5%B7%A7">開發者指南</a>），可以看到模組載入、路由註冊、事件分發等框架內部流程；</li>
+<li><code>explain_module</code> / <code>explain_event</code> 隨時可調、純讀無副作用，適合直接掛到運維命令或管理面板；</li>
+<li>"命令沒觸發"類問題優先寫一個 <code>DispatchTrace</code> 斷言測試復現——<code>assert_executed</code> / <code>assert_rejected</code> 等斷言失敗時會自動附上完整因果鏈。</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/developer-guide/orm.html"><small>Previous</small><br>數據模型層（ORM）</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/developer-guide/modules/getting-started.html"><small>Next</small><br>模組開發入門</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

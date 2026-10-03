@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>常見任務範例 - ErisPulse 文档中心</title>
+    <meta name="description" content="除了簡單的 event.reply()，你還可以透過適配器的 Send DSL 實現更複雜的發送場景：失敗自動重試、超時取消、成功後執行邏輯、批量發送多條消息。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/getting-started/common-tasks.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/getting-started/common-tasks.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/getting-started/common-tasks.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/getting-started/common-tasks.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/getting-started/common-tasks.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/getting-started/common-tasks.html" />
+    <meta property="og:title" content="常見任務範例 - ErisPulse 文档中心" />
+    <meta property="og:description" content="除了簡單的 event.reply()，你還可以透過適配器的 Send DSL 實現更複雜的發送場景：失敗自動重試、超時取消、成功後執行邏輯、批量發送多條消息。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/getting-started/common-tasks.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"常見任務範例","description":"除了簡單的 event.reply()，你還可以透過適配器的 Send DSL 實現更複雜的發送場景：失敗自動重試、超時取消、成功後執行邏輯、批量發送多條消息。","url":"https://www.erisdev.com/docs/zh-TW/getting-started/common-tasks.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 入門指南
+        <span class="doc-crumb-sep">/</span> <span>常見任務範例</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/getting-started/common-tasks.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/getting-started/common-tasks.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/getting-started/common-tasks.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/getting-started/common-tasks.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/getting-started/common-tasks.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/getting-started/common-tasks.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="常見任務範例">常見任務範例</h1>
+<p>本指南提供常見功能的實現範例，幫助你快速實現常用功能。</p>
+<h2 id="內容清單">內容清單</h2>
+<ol>
+<li>數據持久化  </li>
+<li>定時任務  </li>
+<li>消息過濾  </li>
+<li>多平台適配  </li>
+<li>消息發送進階（重試/超時/批量）  </li>
+<li>權限控制  </li>
+<li>消息統計  </li>
+<li>搜索功能  </li>
+<li>圖片處理</li>
+</ol>
+<h2 id="數據持久化">數據持久化</h2>
+<h3 id="簡單計數器">簡單計數器</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"count"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"查看命令呼叫次數"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">count_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 獲取計數</span>
+    count <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"command_count"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 增加計數</span>
+    count <span class="token operator">+=</span> <span class="token number">1</span>
+    sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string">"command_count"</span><span class="token punctuation">,</span> count<span class="token punctuation">)</span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"這是第 </span><span class="token interpolation"><span class="token punctuation">{</span>count<span class="token punctuation">}</span></span><span class="token string"> 次呼叫此命令"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="用戶數據存儲">用戶數據存儲</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"profile"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"查看個人資料"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">profile_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 獲取用戶數據</span>
+    user_data <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"user:</span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+        <span class="token string">"nickname"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+        <span class="token string">"join_date"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+        <span class="token string">"message_count"</span><span class="token punctuation">:</span> <span class="token number">0</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    
+    profile_text <span class="token operator">=</span> <span class="token string-interpolation"><span class="token string">f"""
+暱稱: </span><span class="token interpolation"><span class="token punctuation">{</span>user_data<span class="token punctuation">[</span><span class="token string">'nickname'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">
+加入時間: </span><span class="token interpolation"><span class="token punctuation">{</span>user_data<span class="token punctuation">[</span><span class="token string">'join_date'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">
+訊息數: </span><span class="token interpolation"><span class="token punctuation">{</span>user_data<span class="token punctuation">[</span><span class="token string">'message_count'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">
+    """</span></span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span>profile_text<span class="token punctuation">.</span>strip<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"setnick"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"設定暱稱"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">setnick_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    args <span class="token operator">=</span> event<span class="token punctuation">.</span>get_command_args<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> <span class="token keyword">not</span> args<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"請輸入暱稱"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    <span class="token comment"># 更新用戶數據</span>
+    user_data <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"user:</span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+    user_data<span class="token punctuation">[</span><span class="token string">"nickname"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">" "</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>args<span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"user:</span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span> user_data<span class="token punctuation">)</span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"暱稱已設定為: </span><span class="token interpolation"><span class="token punctuation">{</span><span class="token string">' '</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>args<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="定時任務">定時任務</h2>
+<h3 id="簡單定時器">簡單定時器</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+<span class="token keyword">import</span> asyncio
+
+<span class="token keyword">class</span> <span class="token class-name">TimerModule</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>sdk <span class="token operator">=</span> sdk
+        self<span class="token punctuation">.</span>_tasks <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""模組載入時啟動定時任務"""</span>
+        self<span class="token punctuation">.</span>_start_timers<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        
+        <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"timer"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"定時器管理"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">timer_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"定時器正在運行中..."</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">def</span> <span class="token function">_start_timers</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""啟動定時任務"""</span>
+        <span class="token comment"># 每 60 秒執行一次</span>
+        task <span class="token operator">=</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_every_minute<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>_tasks<span class="token punctuation">.</span>append<span class="token punctuation">(</span>task<span class="token punctuation">)</span>
+        
+        <span class="token comment"># 每天凌晨執行</span>
+        task <span class="token operator">=</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_daily_task<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>_tasks<span class="token punctuation">.</span>append<span class="token punctuation">(</span>task<span class="token punctuation">)</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_every_minute</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""每分鐘執行的任務"""</span>
+        self<span class="token punctuation">.</span>sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"每分鐘任務執行"</span><span class="token punctuation">)</span>
+        <span class="token comment"># 你的邏輯...</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_daily_task</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""每天凌晨執行的任務（註：基於 UTC 時間計算，如需本地時間請自行調整）"""</span>
+        <span class="token keyword">import</span> time
+        
+        <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+            <span class="token comment"># 計算到凌晨的時間</span>
+            now <span class="token operator">=</span> time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            midnight <span class="token operator">=</span> now <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token number">86400</span> <span class="token operator">-</span> now <span class="token operator">%</span> <span class="token number">86400</span><span class="token punctuation">)</span>
+            
+            <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span>midnight <span class="token operator">-</span> now<span class="token punctuation">)</span>
+            
+            <span class="token comment"># 執行任務</span>
+            self<span class="token punctuation">.</span>sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"每日任務執行"</span><span class="token punctuation">)</span>
+            <span class="token comment"># 你的邏輯...</span>
+</code></pre>
+<h3 id="使用生命週期事件">使用生命週期事件</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"core.init.complete"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">init_complete_handler</span><span class="token punctuation">(</span>event_data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""SDK 初始化完成後啟動定時任務"""</span>
+    <span class="token keyword">import</span> asyncio
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">daily_reminder</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""每日提醒"""</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">86400</span><span class="token punctuation">)</span>  <span class="token comment"># 24小時</span>
+        sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"執行每日任務"</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 啟動後台任務</span>
+    asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>daily_reminder<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="消息過濾">消息過濾</h2>
+<h3 id="關鍵字過濾">關鍵字過濾</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message
+
+blocked_words <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"垃圾"</span><span class="token punctuation">,</span> <span class="token string">"廣告"</span><span class="token punctuation">,</span> <span class="token string">"釣魚"</span><span class="token punctuation">]</span>
+
+<span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">filter_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    text <span class="token operator">=</span> event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 檢查是否包含敏感詞</span>
+    <span class="token keyword">for</span> word <span class="token keyword">in</span> blocked_words<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> word <span class="token keyword">in</span> text<span class="token punctuation">:</span>
+            sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"攔截敏感訊息: </span><span class="token interpolation"><span class="token punctuation">{</span>word<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span>  <span class="token comment"># 不處理此訊息</span>
+    
+    <span class="token comment"># 正常處理訊息</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到: </span><span class="token interpolation"><span class="token punctuation">{</span>text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="黑名單過濾">黑名單過濾</h3>
+<pre><code class="language-python"><span class="token comment"># 從配置或儲存加載黑名單</span>
+blacklist <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_blacklist"</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">blacklist_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> user_id <span class="token keyword">in</span> blacklist<span class="token punctuation">:</span>
+        sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"黑名單使用者: </span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>  <span class="token comment"># 不處理</span>
+    
+    <span class="token comment"># 正常處理</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"你好，</span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="多平台適配">多平台適配</h2>
+<h3 id="平台特定回應">平台特定回應</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"help"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"顯示幫助"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">help_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    platform <span class="token operator">=</span> event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> platform <span class="token operator">==</span> <span class="token string">"yunhu"</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"雲湖平台幫助..."</span><span class="token punctuation">)</span>
+    <span class="token keyword">elif</span> platform <span class="token operator">==</span> <span class="token string">"telegram"</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Telegram platform help..."</span><span class="token punctuation">)</span>
+    <span class="token keyword">elif</span> platform <span class="token operator">==</span> <span class="token string">"onebot11"</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"OneBot11 help..."</span><span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"通用幫助資訊"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="平台特性檢測">平台特性檢測</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"rich"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"發送富文本訊息"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">rich_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    platform <span class="token operator">=</span> event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> platform <span class="token operator">==</span> <span class="token string">"yunhu"</span><span class="token punctuation">:</span>
+        <span class="token comment"># 雲湖支援 HTML</span>
+        yunhu <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> yunhu<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Html<span class="token punctuation">(</span>
+            <span class="token string">"&lt;b&gt;加粗文字&lt;/b&gt;&lt;i&gt;斜體文字&lt;/i&gt;"</span>
+        <span class="token punctuation">)</span>
+    <span class="token keyword">elif</span> platform <span class="token operator">==</span> <span class="token string">"telegram"</span><span class="token punctuation">:</span>
+        <span class="token comment"># Telegram 支援 Markdown</span>
+        telegram <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> telegram<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Markdown<span class="token punctuation">(</span>
+            <span class="token string">"**加粗文字** *斜體文字*"</span>
+        <span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        <span class="token comment"># 其他平台使用純文字</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"加粗文字 斜體文字"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="消息發送進階重試超時批量">消息發送進階（重試/超時/批量）</h2>
+<p>除了簡單的 <code>event.reply()</code>，你還可以透過適配器的 Send DSL 實現更複雜的發送場景：失敗自動重試、超時取消、成功後執行邏輯、批量發送多條消息。</p>
+<blockquote>
+<p>下面的示例用 <code>event.get_detail_type()</code> 和 <code>event.get_target_id()</code> 從事件中獲取目標類型和 ID（群聊自動取 group_id，私聊自動取 user_id），避免硬編碼。</p>
+</blockquote>
+<h3 id="發送成功後執行邏輯">發送成功後執行邏輯</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"pay"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"模擬支付"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">pay_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    yunhu <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token comment"># 發送成功後才扣積分</span>
+    <span class="token keyword">await</span> <span class="token punctuation">(</span>yunhu<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_detail_type<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> event<span class="token punctuation">.</span>get_target_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+           <span class="token punctuation">.</span>Hook<span class="token punctuation">(</span><span class="token keyword">lambda</span> r<span class="token punctuation">:</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"points:</span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+           <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"支付成功，已扣除 10 積分"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="失敗重試-超時取消">失敗重試 + 超時取消</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"notice"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"發送重要通知"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">notice_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    adapter_inst <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token comment"># 最多重試 3 次，每次超時 10 秒</span>
+    task <span class="token operator">=</span> <span class="token punctuation">(</span>adapter_inst<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_detail_type<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> event<span class="token punctuation">.</span>get_target_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span>OnError<span class="token punctuation">(</span><span class="token keyword">lambda</span> ctx<span class="token punctuation">:</span> sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"通知發送失敗: </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>error<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"這是一條重要通知"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token comment"># 不等待，後台發送</span>
+</code></pre>
+<h3 id="批量發送多條消息">批量發送多條消息</h3>
+<p>一條鏈路發多條消息，統一執行：</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"announce"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"發送公告"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">announce_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    adapter_inst <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token comment"># 建構多條消息，統一發送（預設並行）</span>
+    results <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">(</span>adapter_inst<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_detail_type<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> event<span class="token punctuation">.</span>get_target_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"📋 今日公告"</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"https://example.com/banner.jpg"</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"詳細內容見上方圖片"</span><span class="token punctuation">)</span>
+                    <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>            <span class="token comment"># 失敗的條目各自重試</span>
+                    <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"批量發送完成，共 </span><span class="token interpolation"><span class="token punctuation">{</span><span class="token builtin">len</span><span class="token punctuation">(</span>results<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string"> 條"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>更完整的規則與批量說明請參考 <a href="/docs/zh-TW/platform-guide/README.html#%E7%99%BC%E9%80%81%E8%A6%8F%E5%89%87%E8%A3%9D%E9%A3%BE%E5%99%A8">平台特性指南</a>。</p>
+</blockquote>
+<h2 id="權限控制">權限控制</h2>
+<h3 id="管理員檢查">管理員檢查</h3>
+<pre><code class="language-python"><span class="token comment"># 配置主人列表</span>
+MASTERS <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"user123"</span><span class="token punctuation">,</span> <span class="token string">"user456"</span><span class="token punctuation">]</span>
+
+<span class="token keyword">def</span> <span class="token function">is_master</span><span class="token punctuation">(</span>user_id<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""檢查是否為框架主人"""</span>
+    <span class="token keyword">return</span> user_id <span class="token keyword">in</span> MASTERS
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"master"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"框架主人命令"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">master_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> <span class="token keyword">not</span> is_master<span class="token punctuation">(</span>user_id<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"權限不足，此命令僅框架主人可用"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"框架主人命令執行成功"</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"addmaster"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"新增框架主人"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">addmaster_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> is_master<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span>
+    
+    args <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">.</span>split<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>args<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">2</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"用法: /addmaster &lt;用戶ID&gt;"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    new_master <span class="token operator">=</span> args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+    MASTERS<span class="token punctuation">.</span>append<span class="token punctuation">(</span>new_master<span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"已新增框架主人: </span><span class="token interpolation"><span class="token punctuation">{</span>new_master<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="群組權限">群組權限</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"groupinfo"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"查看群組資訊"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">groupinfo_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> event<span class="token punctuation">.</span>is_group_message<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"此命令僅限群聊使用"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    group_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_group_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"群組 ID: </span><span class="token interpolation"><span class="token punctuation">{</span>group_id<span class="token punctuation">}</span></span><span class="token string">, 你的 ID: </span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="消息統計">消息統計</h2>
+<h3 id="消息計數">消息計數</h3>
+<blockquote>
+<p><strong>注意</strong>：以下示例使用 <code>sdk.storage.get/set</code> 進行簡單計數。在高併發場景下，建議使用 <code>sdk.storage.transaction()</code> 以保證原子性。</p>
+</blockquote>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">count_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 獲取統計</span>
+    stats <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message_stats"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+        <span class="token string">"total"</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+        <span class="token string">"by_user"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"by_day"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 更新統計</span>
+    stats<span class="token punctuation">[</span><span class="token string">"total"</span><span class="token punctuation">]</span> <span class="token operator">+=</span> <span class="token number">1</span>
+    
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    stats<span class="token punctuation">[</span><span class="token string">"by_user"</span><span class="token punctuation">]</span><span class="token punctuation">[</span>user_id<span class="token punctuation">]</span> <span class="token operator">=</span> stats<span class="token punctuation">[</span><span class="token string">"by_user"</span><span class="token punctuation">]</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span>user_id<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span>
+    
+    <span class="token comment"># 保存</span>
+    sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string">"message_stats"</span><span class="token punctuation">,</span> stats<span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"stats"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"查看消息統計"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">stats_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    stats <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message_stats"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+        <span class="token string">"total"</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+        <span class="token string">"by_user"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"by_day"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    
+    top_users <span class="token operator">=</span> <span class="token builtin">sorted</span><span class="token punctuation">(</span>
+        stats<span class="token punctuation">[</span><span class="token string">"by_user"</span><span class="token punctuation">]</span><span class="token punctuation">.</span>items<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        key<span class="token operator">=</span><span class="token keyword">lambda</span> x<span class="token punctuation">:</span> x<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        reverse<span class="token operator">=</span><span class="token boolean">True</span>
+    <span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token number">5</span><span class="token punctuation">]</span>
+    
+    top_text <span class="token operator">=</span> <span class="token string">"\n"</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>
+        <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>uid<span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>count<span class="token punctuation">}</span></span><span class="token string"> 條消息"</span></span> <span class="token keyword">for</span> uid<span class="token punctuation">,</span> count <span class="token keyword">in</span> top_users
+    <span class="token punctuation">)</span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"總消息數: </span><span class="token interpolation"><span class="token punctuation">{</span>stats<span class="token punctuation">[</span><span class="token string">'total'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">\n\n活躍用戶:\n</span><span class="token interpolation"><span class="token punctuation">{</span>top_text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="搜尋功能">搜尋功能</h2>
+<h3 id="簡單搜尋">簡單搜尋</h3>
+<blockquote>
+<p><strong>注意</strong>：以下示例使用記憶體列表儲存訊息歷史，<strong>程式重啟後資料會遺失</strong>。生產環境建議使用 <code>sdk.storage</code> 或 SQLite 表進行持久化儲存。</p>
+</blockquote>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command<span class="token punctuation">,</span> message
+
+<span class="token comment"># 儲存訊息歷史</span>
+message_history <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+<span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">store_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""儲存訊息用於搜尋"""</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    text <span class="token operator">=</span> event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    message_history<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> user_id<span class="token punctuation">,</span>
+        <span class="token string">"text"</span><span class="token punctuation">:</span> text<span class="token punctuation">,</span>
+        <span class="token string">"time"</span><span class="token punctuation">:</span> event<span class="token punctuation">.</span>get_time<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 限制歷史記錄數量</span>
+    <span class="token keyword">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>message_history<span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">1000</span><span class="token punctuation">:</span>
+        message_history<span class="token punctuation">.</span>pop<span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"search"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"搜尋訊息"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">search_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    args <span class="token operator">=</span> event<span class="token punctuation">.</span>get_command_args<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> <span class="token keyword">not</span> args<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"請輸入搜尋關鍵字"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    keyword <span class="token operator">=</span> <span class="token string">" "</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>args<span class="token punctuation">)</span>
+    results <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+    
+    <span class="token comment"># 搜尋歷史記錄</span>
+    <span class="token keyword">for</span> msg <span class="token keyword">in</span> message_history<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> keyword <span class="token keyword">in</span> msg<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+            results<span class="token punctuation">.</span>append<span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+    
+    <span class="token keyword">if</span> <span class="token keyword">not</span> results<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"未找到匹配的訊息"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    <span class="token comment"># 顯示結果</span>
+    result_text <span class="token operator">=</span> <span class="token string-interpolation"><span class="token string">f"找到 </span><span class="token interpolation"><span class="token punctuation">{</span><span class="token builtin">len</span><span class="token punctuation">(</span>results<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string"> 條匹配訊息:\n\n"</span></span>
+    <span class="token keyword">for</span> i<span class="token punctuation">,</span> msg <span class="token keyword">in</span> <span class="token builtin">enumerate</span><span class="token punctuation">(</span>results<span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token number">10</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># 最多顯示 10 條</span>
+        result_text <span class="token operator">+=</span> <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>i<span class="token punctuation">}</span></span><span class="token string">. </span><span class="token interpolation"><span class="token punctuation">{</span>msg<span class="token punctuation">[</span><span class="token string">'text'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">\n"</span></span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span>result_text<span class="token punctuation">)</span>
+</code></pre>
+<h2 id="圖片處理">圖片處理</h2>
+<h3 id="圖片下載和存儲">圖片下載和存儲</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+<span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">image_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""處理圖片訊息"""</span>
+    message_segments <span class="token operator">=</span> event<span class="token punctuation">.</span>get_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">for</span> segment <span class="token keyword">in</span> message_segments<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> segment<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"image"</span><span class="token punctuation">:</span>
+            file_url <span class="token operator">=</span> segment<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"file"</span><span class="token punctuation">)</span>
+            
+            <span class="token keyword">if</span> file_url<span class="token punctuation">:</span>
+                <span class="token comment"># 推薦使用 SDK 內建客戶端下載圖片</span>
+                resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span>file_url<span class="token punctuation">)</span>
+                <span class="token keyword">if</span> resp<span class="token punctuation">.</span>status <span class="token operator">==</span> <span class="token number">200</span><span class="token punctuation">:</span>
+                    image_data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                    
+                    <span class="token comment"># 存儲到檔案</span>
+                    filename <span class="token operator">=</span> <span class="token string-interpolation"><span class="token string">f"images/</span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>get_time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">.jpg"</span></span>
+                    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>filename<span class="token punctuation">,</span> <span class="token string">"wb"</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>
+                        f<span class="token punctuation">.</span>write<span class="token punctuation">(</span>image_data<span class="token punctuation">)</span>
+                    
+                    sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"圖片已儲存: </span><span class="token interpolation"><span class="token punctuation">{</span>filename<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+                    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"圖片已儲存"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="圖片識別範例">圖片識別範例</h3>
+<blockquote>
+<p><strong>注意</strong>：以下範例使用佔位 API 地址，實際使用時請替換為你自己的圖片識別服務。</p>
+</blockquote>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"identify"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"識別圖片"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">identify_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""識別訊息中的圖片"""</span>
+    message_segments <span class="token operator">=</span> event<span class="token punctuation">.</span>get_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">for</span> segment <span class="token keyword">in</span> message_segments<span class="token punctuation">:</span>
+        <span class="token keyword">if</span> segment<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"image"</span><span class="token punctuation">:</span>
+            file_url <span class="token operator">=</span> segment<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"file"</span><span class="token punctuation">)</span>
+            
+            <span class="token comment"># 調用圖片識別 API</span>
+            result <span class="token operator">=</span> <span class="token keyword">await</span> _identify_image<span class="token punctuation">(</span>file_url<span class="token punctuation">)</span>
+            
+            <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"識別結果: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span>
+    
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"未找到圖片"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_identify_image</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""調用圖片識別 API（範例）- 使用 SDK 內建客戶端"""</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+        <span class="token string">"https://api.example.com/identify"</span><span class="token punctuation">,</span>
+        json<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"url"</span><span class="token punctuation">:</span> url<span class="token punctuation">}</span>
+    <span class="token punctuation">)</span>
+    data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"description"</span><span class="token punctuation">,</span> <span class="token string">"識別失敗"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="下一步">下一步</h2>
+<ul>
+<li><a href="/docs/zh-TW/user-guide.html">使用者指南</a> - 了解設定和模組管理</li>
+<li><a href="/docs/zh-TW/developer-guide.html">開發者指南</a> - 學習開發模組和適配器</li>
+<li><a href="/docs/zh-TW/advanced.html">進階主題</a> - 深入了解框架特性</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/getting-started/basic-concepts.html"><small>Previous</small><br>基礎概念</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/getting-started/event-handling.html"><small>Next</small><br>事件處理入門</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

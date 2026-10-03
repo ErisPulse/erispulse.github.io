@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>類型存根生成（IDE 補全） - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 透過 entry-points 動態發現模組/適配器，入口點無法在靜態層面獲知使用者類別的具體類型。epsdk types 命令透過掃描已安裝的模組/適配器，產生一個類型存根檔案，讓使用者可以將這些類型用作變數標註，進而獲得 IDE 補全。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/getting-started/ide-completion.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/getting-started/ide-completion.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/getting-started/ide-completion.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/getting-started/ide-completion.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/getting-started/ide-completion.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/getting-started/ide-completion.html" />
+    <meta property="og:title" content="類型存根生成（IDE 補全） - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 透過 entry-points 動態發現模組/適配器，入口點無法在靜態層面獲知使用者類別的具體類型。epsdk types 命令透過掃描已安裝的模組/適配器，產生一個類型存根檔案，讓使用者可以將這些類型用作變數標註，進而獲得 IDE 補全。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/getting-started/ide-completion.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"類型存根生成（IDE 補全）","description":"ErisPulse 透過 entry-points 動態發現模組/適配器，入口點無法在靜態層面獲知使用者類別的具體類型。epsdk types 命令透過掃描已安裝的模組/適配器，產生一個類型存根檔案，讓使用者可以將這些類型用作變數標註，進而獲得 IDE 補全。","url":"https://www.erisdev.com/docs/zh-TW/getting-started/ide-completion.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 入門指南
+        <span class="doc-crumb-sep">/</span> <span>類型存根生成（IDE 補全）</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/getting-started/ide-completion.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/getting-started/ide-completion.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/getting-started/ide-completion.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/getting-started/ide-completion.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/getting-started/ide-completion.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/getting-started/ide-completion.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="類型存根生成ide-補全">類型存根生成（IDE 補全）</h1>
+<p>ErisPulse 透過 entry-points 動態發現模組/適配器，入口點無法在靜態層面獲知使用者類別的具體類型。<br><code>epsdk types</code> 命令透過掃描已安裝的模組/適配器，產生一個類型存根檔案，讓使用者可以將這些類型用作變數標註，進而獲得 IDE 補全。</p>
+<h2 id="核心設計原則">核心設計原則</h2>
+<p>存根檔案<strong>只導出類型</strong>，不提供任何執行時實例：</p>
+<ul>
+<li>所有匯入都在 <code>TYPE_CHECKING</code> 下，<strong>零執行時開銷、零行為改變</strong></li>
+<li>類型名採用 entry-point 名的 PascalCase 形式（如 <code>yunhu</code> → <code>Yunhu</code>），與傳入 <code>sdk.adapter.get()</code> / <code>sdk.module.get()</code> 的名稱對應</li>
+<li>使用者在程式碼中照常用 <code>sdk.module.get(...)</code> / <code>sdk.adapter.get(...)</code> 取得實例，只是用匯入的類型做<strong>變數標註</strong></li>
+</ul>
+<h2 id="基本用法">基本用法</h2>
+<p>在專案根目錄執行：</p>
+<pre><code class="language-bash">epsdk types
+</code></pre>
+<p>會在當前目錄產生 <code>_ep_types.py</code>，包含所有已安裝模組/適配器的類型。</p>
+<h2 id="在程式碼中使用">在程式碼中使用</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> _ep_types <span class="token keyword">import</span> MyModule<span class="token punctuation">,</span> Yunhu
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># 使用導入的類型作為變數標註，即可讓 IDE 自動補全該類的方法</span>
+my_mod<span class="token punctuation">:</span> MyModule <span class="token operator">=</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+my_mod<span class="token punctuation">.</span>hello<span class="token punctuation">(</span><span class="token punctuation">)</span>                  <span class="token comment"># ← IDE 自動補全 hello</span>
+
+my_adapter<span class="token punctuation">:</span> Yunhu <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Board<span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span>   <span class="token comment"># ← 自動補全平台特有方法</span>
+</code></pre>
+<h2 id="工作原理">工作原理</h2>
+<ol>
+<li>掃描 <code>erispulse.adapter</code> / <code>erispulse.module</code> entry-points  </li>
+<li>透過子進程在目標 Python 環境中內省，收集每個適配器/模組的實際類資訊（包含模組路徑與限定名）  </li>
+<li>產生 <code>.py</code> 檔，其中：  <ul>
+<li>所有 <code>from xxx import Yyy as Zzz</code> 都在 <code>TYPE_CHECKING</code> 下  </li>
+<li><code>Zzz</code> 是 entry-point 名的 PascalCase 形式</li>
+</ul>
+</li>
+<li>IDE 讀取 <code>TYPE_CHECKING</code> 部分提供補全；執行時不執行任何程式碼</li>
+</ol>
+<p>產生的存根範例：</p>
+<pre><code class="language-python"><span class="token comment"># _ep_types.py（自動產生）</span>
+<span class="token keyword">from</span> typing <span class="token keyword">import</span> TYPE_CHECKING
+
+<span class="token keyword">if</span> TYPE_CHECKING<span class="token punctuation">:</span>
+    <span class="token comment"># 適配器</span>
+    <span class="token keyword">from</span> MyAdapter<span class="token punctuation">.</span>Core <span class="token keyword">import</span> MyAdapter <span class="token keyword">as</span> MyAdapter
+    <span class="token keyword">from</span> YunhuAdapter<span class="token punctuation">.</span>Core <span class="token keyword">import</span> YunhuAdapter <span class="token keyword">as</span> Yunhu
+
+    <span class="token comment"># 模組</span>
+    <span class="token keyword">from</span> MyModule<span class="token punctuation">.</span>Core <span class="token keyword">import</span> Main <span class="token keyword">as</span> MyModule
+
+    __all__ <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'MyAdapter'</span><span class="token punctuation">,</span> <span class="token string">'Yunhu'</span><span class="token punctuation">,</span> <span class="token string">'MyModule'</span><span class="token punctuation">]</span>
+</code></pre>
+<h2 id="命令選項">命令選項</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>選項</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>-o, --output PATH</code></td>
+<td>指定輸出檔案路徑（預設 <code>./_ep_types.py</code>）</td>
+</tr>
+<tr>
+<td><code>--force</code></td>
+<td>覆蓋已存在的存根檔案</td>
+</tr>
+<tr>
+<td><code>--adapters-only</code></td>
+<td>僅掃描適配器</td>
+</tr>
+<tr>
+<td><code>--modules-only</code></td>
+<td>僅掃描模組</td>
+</tr>
+</tbody></table></div>
+<h2 id="何時重新產生">何時重新產生</h2>
+<ul>
+<li>安裝/解除安裝新的模組或適配器後</li>
+<li>模組/適配器更新了公開 API 後</li>
+<li>IDE 自動完成失效或類型過期時</li>
+</ul>
+<h2 id="與-senddsl-標準方法的關係">與 SendDSL 標準方法的關係</h2>
+<p><code>SendDSL</code> 基類已內建標準發送方法（Text/Image/Voice/Video/File），無論以何種方式取得的 SendDSL 實例都能補全這些方法。<br><code>types</code> 命令主要用於補全<strong>平台特有方法</strong>（如雲湖的 <code>Board</code>、沙盒的 <code>Dice</code>）以及<strong>模組特有方法</strong>。</p>
+<h2 id="相關文件">相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a> - 標準發送方法說明</li>
+<li><a href="/docs/zh-TW/developer-guide/adapters/getting-started.html">適配器開發入門</a> - 建立適配器</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/getting-started/event-handling.html"><small>Previous</small><br>事件處理入門</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/user-guide/README.html"><small>Next</small><br>用戶使用指南</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

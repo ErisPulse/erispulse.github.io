@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exception System and Handling Guide - ErisPulse 文档中心</title>
+    <meta name="description" content="All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and con..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/errors.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
+    <meta property="og:title" content="Exception System and Handling Guide - ErisPulse 文档中心" />
+    <meta property="og:description" content="All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and con..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/errors.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Exception System and Handling Guide","description":"All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and con...","url":"https://www.erisdev.com/docs/en/advanced/errors.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Advanced Topics
+        <span class="doc-crumb-sep">/</span> <span>Exception System and Handling Guide</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/errors.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/advanced/errors.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/errors.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/errors.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/errors.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="exception-system-and-handling-guide">Exception System and Handling Guide</h1>
+<p>All custom exceptions in ErisPulse inherit from <code>ErisPulseError</code>. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and converted to corresponding ErisPulse exceptions—business code <strong>does not need to rely on any underlying library exception types</strong>.</p>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>For broad error handling: catch <code>ErisPulseError</code> (base class for all framework exceptions)</li>
+<li>For precise handling: catch by module (e.g., <code>ModuleCallTimeoutError</code>, <code>StorageUnreachableError</code>)</li>
+<li>Storage operations do not throw by default: log failures and return <code>False / None / default</code>; subscribe to <code>storage.unreachable</code> / <code>storage.recovered</code> events for connection state changes
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="exception-overview">Exception Overview</h2>
+<pre><code class="language-text">ErisPulseError                      # Base class for all framework exceptions
+├── ClientError                     # Base class for HTTP/WS client request exceptions (Core/client)
+│   ├── ClientConnectionError       # Connection layer errors: DNS resolution failed, connection refused, network unreachable
+│   ├── ClientTimeoutError          # Request timeout
+│   └── HTTPStatusError             # HTTP status code errors (e.g., 4xx/5xx with raise_for_status)
+├── WebSocketError                  # Base class for WebSocket exceptions (Core/client WS connections)
+│   └── WebSocketDisconnect         # WebSocket disconnected (common to both server and client)
+├── StorageError                    # Base class for storage exceptions (Core/storage)
+│   └── StorageUnreachableError     # Storage backend unreachable (retry exhaustion: database unreachable/credential error)
+├── InteractionError                # Base class for interaction session exceptions (Core/Event/interaction)
+│   ├── InteractionCancelled        # Canceled pending wait/lease (wait_reply upper layer returns None)
+│   └── SessionOccupiedError        # Session exclusive lease occupied (hold() acquisition failed)
+├── ModuleError                     # Base class for module system exceptions (Core/module)
+│   └── ModuleCallError             # Base class for module call exceptions
+│       ├── ModuleNotAvailableError # Target module not registered/unavailable/initialization failed (including lazy loading access)
+│       ├── ServiceNotProvidedError # Target module did not declare this service (outside meta.services whitelist)
+│       └── ModuleCallTimeoutError  # Called method execution timeout (default 30s)
+└── StrictModeError                 # Fatal violation in strict mode (halts startup process, loaders/strict)
+</code></pre>
+<h2 id="structured-properties">Structured Properties</h2>
+<p>After catching an exception, you can read structured properties (no need to parse message text):</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Properties</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code> (and subclasses)</td>
+<td><code>.url</code> Request URL, <code>.method</code> Request method, <code>.attempts</code> Number of attempts (when retries exhausted)</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>.status</code> Status code, <code>.message</code> Response message</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td><code>.code</code> Close code, <code>.reason</code> Close reason</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td><code>.backend</code> Backend name (sqlite/mysql/postgres), <code>.cooldown</code> Cool-down seconds</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code> (and subclasses)</td>
+<td><code>.module</code> Target module name, <code>.method</code> Target method name</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td>Inherits <code>.module/.method</code>, also has <code>.timeout</code> Timeout limit (seconds)</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td><code>.reason</code> Cancellation reason, <code>.wait_key</code> Session key</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td><code>.wait_key</code> Session key, <code>.owner</code> Occupier</td>
+</tr>
+<tr>
+<td><code>StrictModeError</code></td>
+<td><code>.violations</code> List of violation records</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token punctuation">,</span> json<span class="token operator">=</span>payload<span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Request failed </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>method<span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>url<span class="token punctuation">}</span></span><span class="token string">, attempted </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>attempts<span class="token punctuation">}</span></span><span class="token string"> times: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="exception-descriptions-and-occurrence-locations">Exception Descriptions and Occurrence Locations</h2>
+<h3 id="client-series-coreclientpy-corebasesclientpy">Client Series — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
+<p>Thrown when <code>sdk.client</code> / HTTP client and WebSocket client initiate requests:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Location</th>
+<th>Typical Scenario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code></td>
+<td>Request encapsulation layer</td>
+<td>Other client errors (underlying aiohttp exceptions already converted)</td>
+</tr>
+<tr>
+<td><code>ClientConnectionError</code></td>
+<td>Connection establishment phase</td>
+<td>Target service unreachable, DNS failure, connection refused</td>
+</tr>
+<tr>
+<td><code>ClientTimeoutError</code></td>
+<td>Request execution phase</td>
+<td>Exceeds request timeout</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>raise_for_status()</code></td>
+<td>Response status code is 4xx/5xx</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientTimeoutError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://api.example.com"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<h3 id="websocket-series-coreclientpy-send-receive">WebSocket Series — <code>Core/client.py</code> (<code>send</code> / <code>receive</code>)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Location</th>
+<th>Typical Scenario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>WebSocketError</code></td>
+<td>WS send/receive methods</td>
+<td>Connection closed, received unexpected message type, underlying WS exception</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td>WS send/receive methods</td>
+<td>Peer disconnected normally (framework will auto-reconnect)</td>
+</tr>
+</tbody></table></div>
+<h3 id="storage-series-corestorage-corebasessql_basepy">Storage Series — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Location</th>
+<th>Typical Scenario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>StorageError</code></td>
+<td>Storage layer</td>
+<td>Base class for storage-related exceptions</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td>Pool creation phase</td>
+<td>Database unreachable / credential error / network isolation, retry exhausted</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>Failure semantics for storage operations</strong>: KV and query operations <strong>do not throw by default</strong>—failures log ERROR and return <code>False</code> / <code>None</code> / <code>default</code> (to avoid blocking framework operation due to connection issues). Thus, business code usually <strong>does not</strong> catch <code>StorageUnreachableError</code> (it is mainly used for direct storage layer operations or custom backends). For runtime connection state awareness, subscribe to lifecycle events <code>storage.unreachable</code> / <code>storage.recovered</code> (see <a href="/docs/en/advanced/lifecycle.html#storage-connection-status">Lifecycle Events</a>).</p>
+</blockquote>
+<p>See <a href="/docs/en/advanced/storage-backends.html#connection-failure-behavior">Storage Backend → Connection Failure Behavior</a> for details on connection failure behavior.</p>
+<h3 id="interaction-coreeventinteractionpy">Interaction — <code>Core/Event/interaction.py</code></h3>
+<p>Related to <code>wait_reply</code> / session lease / reminder timer:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Location</th>
+<th>Typical Scenario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>InteractionError</code></td>
+<td>Interaction session layer</td>
+<td>Base class for interaction session exceptions</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td>When pending wait is canceled</td>
+<td>Set on the waiting future (the waiting code can catch and get <code>.reason</code>)</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td><code>hold()</code> lease acquisition failed</td>
+<td>Session already occupied by another owner (<code>.owner</code> can check the occupier)</td>
+</tr>
+</tbody></table></div>
+<p>When wait is canceled (module unload / platform shutdown / new wait in same session replaces it), <code>wait_reply</code> <strong>returns <code>None</code></strong> instead of throwing an exception (<code>InteractionCancelled</code> is internally converted); only catch it directly when distinguishing the cancellation reason is needed.</p>
+<h3 id="module-series-coremodulepy-sdkmodulecall">Module Series — <code>Core/module.py</code> (<code>sdk.module.call</code>)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Location</th>
+<th>Typical Scenario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ModuleError</code></td>
+<td>Module system</td>
+<td>Base class for module system exceptions</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code></td>
+<td><code>module.call()</code></td>
+<td>Base class for module call exceptions</td>
+</tr>
+<tr>
+<td><code>ModuleNotAvailableError</code></td>
+<td><code>module.call()</code> / lazy loading attribute access</td>
+<td>Target not registered / disabled / initialization failed</td>
+</tr>
+<tr>
+<td><code>ServiceNotProvidedError</code></td>
+<td><code>module.call()</code></td>
+<td>Target <code>meta.services</code> whitelist did not declare this method</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td><code>module.call()</code></td>
+<td>Called coroutine exceeds timeout (default 30s)</td>
+</tr>
+</tbody></table></div>
+<p>"Target module unavailable" in different access paths:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Access Path</th>
+<th>Exception</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.module.call("X", "method")</code></td>
+<td><code>ModuleNotAvailableError</code> (typed)</td>
+</tr>
+<tr>
+<td><code>sdk.module.X.attr</code> (lazy loading attribute access, after initialization failure)</td>
+<td><code>ModuleNotAvailableError</code></td>
+</tr>
+<tr>
+<td><code>sdk.module.X</code> (attribute access when module is disabled)</td>
+<td><code>AttributeError</code> (Python attribute convention, <code>hasattr</code> relies on this semantics)</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ModuleNotAvailableError<span class="token punctuation">,</span> ServiceNotProvidedError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    history <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ModuleNotAvailableError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Target module does not exist / is disabled</span>
+<span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Target module does not provide this service</span>
+</code></pre>
+<h3 id="framework-internal-parameter-validation-valueerror">Framework Internal Parameter Validation (ValueError)</h3>
+<p>Parameter validation in storage query builders (empty column types, <code>Insert</code> non-dict, unsafe column types, etc.) throws standard <code>ValueError</code>—these are <strong>development-time coding errors</strong>, and normal business code should not catch them, but rather correct the calls.</p>
+<p>Standard adapter actions do not throw exceptions on failure: return a response dictionary with <code>retcode</code> (protocol semantics, e.g., <code>retcode=10002</code> means action not implemented)—this is a parallel error channel to client layer "failures throw <code>ClientError</code>". Adapter development must handle both.</p>
+<h2 id="handling-recommendations">Handling Recommendations</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># Base class is aggregated from Core</span>
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword">except</span> ErisPulseError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># General catch-all: all framework custom exceptions</span>
+</code></pre>
+<ul>
+<li>For module development: catch as needed (see table above), use <code>ErisPulseError</code> as a fallback at the outermost layer</li>
+<li>All exceptions are aggregated and exported from <code>ErisPulse.Core</code> (including <code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code>), or can be imported from <code>ErisPulse.Core.Bases.errors</code></li>
+<li>Full definitions are in <code>src/ErisPulse/Core/Bases/errors.py</code></li>
+</ul>
+<h2 id="noise-folding-on-shutdown">Noise Folding on Shutdown</h2>
+<p>When long-running processes are shut down (or background loops are canceled), the event loop often generates a batch of noise messages such as <code>Task was destroyed but it is pending!</code> that have little value for troubleshooting. The framework includes built-in <strong>noise folding</strong> functionality: within a 2-second window, similar messages are downgraded to TRACE level, merged, and counted, with only one output being generated, followed by a suffix indicating 「(N more similar messages were folded)」. This is a deliberate noise reduction measure—seeing the folding suffix does not mean the framework has swallowed real exceptions. Business exceptions (all types listed above) are still fully output as usual.</p>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/advanced/storage-backends.html"><small>Previous</small><br>Storage Backends</a>
+        <a class="doc-pager-next" href="/docs/en/advanced/startup.html"><small>Next</small><br>Startup Process and Manual Control</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

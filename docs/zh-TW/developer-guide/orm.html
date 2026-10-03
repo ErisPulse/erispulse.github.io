@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>數據模型層（ORM） - ErisPulse 文档中心</title>
+    <meta name="description" content="自 2.9.0 版本起，框架內建了宣告式數據模型層：繼承 Model 並使用 Field 聲明欄位，即可獲得自動建表與增刪改查能力。模型直接建構在內建儲存層之上——SQLite / MySQL / PostgreSQL 由 ErisPulse.storage.backend 配置決定，切換後端無需修改模型程式碼。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/orm.html" />
+    <meta property="og:title" content="數據模型層（ORM） - ErisPulse 文档中心" />
+    <meta property="og:description" content="自 2.9.0 版本起，框架內建了宣告式數據模型層：繼承 Model 並使用 Field 聲明欄位，即可獲得自動建表與增刪改查能力。模型直接建構在內建儲存層之上——SQLite / MySQL / PostgreSQL 由 ErisPulse.storage.backend 配置決定，切換後端無需修改模型程式碼。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"數據模型層（ORM）","description":"自 2.9.0 版本起，框架內建了宣告式數據模型層：繼承 Model 並使用 Field 聲明欄位，即可獲得自動建表與增刪改查能力。模型直接建構在內建儲存層之上——SQLite / MySQL / PostgreSQL 由 ErisPulse.storage.backend 配置決定，切換後端無需修改模型程式碼。","url":"https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 開發者指南
+        <span class="doc-crumb-sep">/</span> <span>數據模型層（ORM）</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/orm.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/orm.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/orm.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/orm.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/orm.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="數據模型層orm">數據模型層（ORM）</h1>
+<p>自 2.9.0 版本起，框架內建了宣告式數據模型層：繼承 <code>Model</code> 並使用 <code>Field</code> 聲明欄位，即可獲得自動建表與增刪改查能力。模型直接建構在內建儲存層之上——SQLite / MySQL / PostgreSQL 由 <code>ErisPulse.storage.backend</code> 配置決定，<strong>切換後端無需修改模型程式碼</strong>。</p>
+<h2 id="聲明模型">聲明模型</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> Model<span class="token punctuation">,</span> Field
+
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+    age<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> ge<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> le<span class="token operator">=</span><span class="token number">150</span><span class="token punctuation">)</span>
+    role<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">"user"</span><span class="token punctuation">,</span> choices<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"admin"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    tags<span class="token punctuation">:</span> <span class="token builtin">list</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default_factory<span class="token operator">=</span><span class="token builtin">list</span><span class="token punctuation">)</span>          <span class="token comment"># JSON 列，讀寫自動序列化</span>
+    bio<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span> description<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"user.bio"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"簡介"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>表名預設取類名 snake_case（<code>UserProfile → user_profile</code>），可用 <code>__tablename__ = "xxx"</code> 覆蓋</li>
+<li><code>Field</code> 的約束詞表與宣告式配置類一致（<code>choices</code> / <code>ge</code> / <code>le</code> / <code>max_length</code>，<code>description</code> 同樣支援 i18n 字典）；校驗引擎與配置校驗同源</li>
+</ul>
+<h2 id="字段參數">字段參數</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>參數</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>default</code></td>
+<td>預設值（未提供且非自增 → 必填 NOT NULL）</td>
+</tr>
+<tr>
+<td><code>default_factory</code></td>
+<td>可變預設值工廠（如 <code>list</code>）</td>
+</tr>
+<tr>
+<td><code>primary_key</code></td>
+<td>主鍵</td>
+</tr>
+<tr>
+<td><code>autoincrement</code></td>
+<td>自增主鍵（隱含主鍵，<code>create</code> 後自動回填）</td>
+</tr>
+<tr>
+<td><code>max_length</code></td>
+<td>字串最大長度（生成 <code>VARCHAR(n)</code>，寫入驗證）</td>
+</tr>
+<tr>
+<td><code>nullable</code></td>
+<td>是否允許 NULL（預設 False）</td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td>生成普通索引</td>
+</tr>
+<tr>
+<td><code>unique</code></td>
+<td>唯一約束</td>
+</tr>
+<tr>
+<td><code>choices</code> / <code>ge</code> / <code>le</code></td>
+<td>列舉 / 數值範圍（寫入驗證）</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>描述（i18n 字典，與配置類同格式）</td>
+</tr>
+<tr>
+<td><code>column_type</code></td>
+<td>覆寫 SQL 列類型定義</td>
+</tr>
+</tbody></table></div>
+<h2 id="建表與-crud">建表與 CRUD</h2>
+<pre><code class="language-python"><span class="token keyword">await</span> User<span class="token punctuation">.</span>create_table<span class="token punctuation">(</span><span class="token punctuation">)</span>                      <span class="token comment"># 幂等（IF NOT EXISTS）</span>
+
+user <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>create<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">,</span> age<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token comment"># 插入（自增主鍵自動回填）</span>
+got <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token builtin">id</span><span class="token operator">=</span>user<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">)</span>               <span class="token comment"># 等值查詢首條</span>
+
+users <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>order_by<span class="token punctuation">(</span><span class="token string">"-age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>limit<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+first <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span>User<span class="token punctuation">.</span>name <span class="token operator">==</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">(</span><span class="token punctuation">)</span>
+total <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>count<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span>
+
+user<span class="token punctuation">.</span>age <span class="token operator">=</span> <span class="token number">21</span>
+<span class="token keyword">await</span> user<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>                              <span class="token comment"># 按主鍵更新（先約束校驗）；主鍵缺失時退化為插入（自增主鍵同樣回填到實例）</span>
+<span class="token keyword">await</span> user<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>                            <span class="token comment"># 按主鍵刪除</span>
+
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>update_all<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">,</span> role<span class="token operator">=</span><span class="token string">"adult"</span><span class="token punctuation">)</span>  <span class="token comment"># 批量更新</span>
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>delete_all<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">100</span><span class="token punctuation">)</span>               <span class="token comment"># 批量刪除</span>
+</code></pre>
+<p>查詢表達式支援 <code>&gt; &gt;= &lt; &lt;= == !=</code>、<code>in_([...])</code>，以及 <code>&amp;</code>（與）/ <code>|</code>（或）組合：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span><span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> User<span class="token punctuation">.</span>name<span class="token punctuation">.</span>in_<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"Bob"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="事務">事務</h2>
+<p>ORM 的讀寫與框架儲存層共用同一個事務路由：當處於 <code>storage.atransaction()</code> 環境的事務內時，<code>create</code> / <code>save</code> / <code>delete</code> 與查詢會自動複用事務連接，並隨事務統一提交或回滾，不會獨立提交。</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">with</span> storage<span class="token punctuation">.</span>atransaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> User<span class="token punctuation">.</span>create<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 塊內拋異常時，上面的 INSERT 一併回滾</span>
+</code></pre>
+<h2 id="與宣告式配置類的關係">與宣告式配置類的關係</h2>
+<p>模型宣告與 <code>ConfigClass</code>（<code>@dataclass + field(metadata=...)</code>）<strong>共享同一套底層</strong>——約束詞表、校驗器引擎（<code>validate_field_constraints</code>）、類型類別註冊表（<code>python_type_category</code>）；但類基座有意分離：配置欄位是普通值（TOML 往返、一次載入熱更新），模型欄位是欄位描述符（類存取 = 查詢表達式、逐行實例）。一份宣告語法，兩個各司其職的基座。</p>
+<h3 id="兩種宣告何時用哪個">兩種宣告何時用哪個</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>維度</th>
+<th>配置類 <code>field(metadata=...)</code></th>
+<th>模型欄位 <code>Field()</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>適用場景</td>
+<td>模組行為參數（少量、人工可讀、需熱更新）</td>
+<td>業務資料記錄（多行、程式讀寫、需查詢）</td>
+</tr>
+<tr>
+<td>存儲形態</td>
+<td><code>config.toml</code>（註解保留、TOML 往返）</td>
+<td>資料庫表（自動建表、SQL 方言）</td>
+</tr>
+<tr>
+<td>值形態</td>
+<td>普通值（<code>dataclass</code> 屬性直讀）</td>
+<td>描述符（類存取 = 欄位表達式，實例存取 = 行值）</td>
+</tr>
+<tr>
+<td>約束宣告</td>
+<td><code>metadata={"choices": ..., "min": ..., "max": ...}</code></td>
+<td><code>Field(choices=..., ge=..., le=..., max_length=...)</code></td>
+</tr>
+<tr>
+<td>共享底層</td>
+<td>校驗器引擎 + 約束詞表 + 類型類別註冊表（同一套）</td>
+<td>同左</td>
+</tr>
+</tbody></table></div>
+<p>經驗法則：<strong>「模組如何運作」用配置類，「使用者產生了什麼資料」用模型</strong>。</p>
+<h2 id="邊界與注意事項">邊界與注意事項</h2>
+<ul>
+<li>後端由全域儲存配置決定；模型可用 <code>__storage__</code> 類屬性覆寫為自訂 <code>BaseStorage</code> 實例（用於測試注入）</li>
+<li><code>list</code> / <code>dict</code> 欄位（含參數化泛型如 <code>list[int]</code>、<code>dict[str, int]</code>）按容器類別以 JSON 文本列儲存，讀寫自動序列化</li>
+<li>寫入（<code>create</code> / <code>save</code>）前自動執行約束校驗，失敗拋 <code>ValueError</code>（本地化訊息）</li>
+<li>自動遷移已交付<strong>新增欄位</strong>場景（見下文）；欄位類型變更與刪欄需手動處理</li>
+<li>觸發儲存連線失敗時的行為與儲存層一致：不崩潰框架，冷卻後自動重連</li>
+</ul>
+<h2 id="自動遷移階段二">自動遷移（階段二）</h2>
+<p><code>create_table()</code> 在表已存在時自動對比現有列與模型欄位：<strong>新增欄位</strong>自動執行
+<code>ALTER TABLE ADD COLUMN</code>（遷移欄位剔除 <code>NOT NULL</code> 約束，存量行回填 NULL），
+宣告了 <code>index=True</code> 的新欄位同步建立索引。無需手動編寫遷移腳本。</p>
+<pre><code class="language-python"><span class="token comment"># v1 上線後模型演進：新增 email / bio 欄位</span>
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"orm_users"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+    age<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>
+    email<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span>     <span class="token comment"># 新增：下次 create_table() 自動 ADD COLUMN</span>
+    bio<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>create_table<span class="token punctuation">(</span><span class="token punctuation">)</span>              <span class="token comment"># 幂等：僅遷移新增欄位</span>
+</code></pre>
+<p><strong>邊界</strong>：僅支援新增欄位；主鍵變更、欄位類型變更、刪欄需手動處理（避免破壞性
+ALTER 誤操作）。</p>
+<h2 id="外鍵關係映射基礎">外鍵（關係映射基礎）</h2>
+<p><code>foreign_key="表.列"</code> 聲明欄位級外鍵約束，DDL 會生成 <code>REFERENCES</code> 子句：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Post</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"posts"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    author<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>foreign_key<span class="token operator">=</span><span class="token string">"orm_users.id"</span><span class="token punctuation">)</span>
+
+    content<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">255</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="關係映射relationship">關係映射（relationship）</h2>
+<p>在模型類體中以類屬性宣告 <code>relationship()</code>，<strong>方向依外鍵欄位宣告在哪張表自動判定</strong>：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> Model<span class="token punctuation">,</span> Field<span class="token punctuation">,</span> relationship
+
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"orm_users"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+
+    posts <span class="token operator">=</span> relationship<span class="token punctuation">(</span><span class="token string">"Post"</span><span class="token punctuation">,</span> foreign_key<span class="token operator">=</span><span class="token string">"author"</span><span class="token punctuation">)</span>   <span class="token comment"># 外鍵在對方表 → has-many</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Post</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"posts"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    author<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>foreign_key<span class="token operator">=</span><span class="token string">"orm_users.id"</span><span class="token punctuation">)</span>
+    content<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">255</span><span class="token punctuation">)</span>
+
+    writer <span class="token operator">=</span> relationship<span class="token punctuation">(</span><span class="token string">"User"</span><span class="token punctuation">,</span> foreign_key<span class="token operator">=</span><span class="token string">"author"</span><span class="token punctuation">)</span>  <span class="token comment"># 外鍵在本表 → belongs-to</span>
+</code></pre>
+<p><strong>has-many</strong>：實例屬性返回查詢集，<code>QuerySet</code> 全部鏈式能力可用，<br><code>create</code> 自動回填本表主鍵到對方外鍵欄位：</p>
+<pre><code class="language-python">alice <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>get<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">)</span>
+
+posts <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>                          <span class="token comment"># 該用戶的全部文章</span>
+latest <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>order_by<span class="token punctuation">(</span><span class="token string">"-id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">(</span><span class="token punctuation">)</span>
+total <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>count<span class="token punctuation">(</span><span class="token punctuation">)</span>
+hot <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>where<span class="token punctuation">(</span>Post<span class="token punctuation">.</span>content <span class="token operator">!=</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># 追加對方表欄位條件</span>
+<span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>                               <span class="token comment"># 只刪該用戶的</span>
+
+new_post <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>create<span class="token punctuation">(</span>content<span class="token operator">=</span><span class="token string">"hi"</span><span class="token punctuation">)</span>        <span class="token comment"># author 自動 = alice.id</span>
+</code></pre>
+<p><strong>belongs-to</strong>：直接 <code>await</code> 得到對方實例（無匹配或外鍵為 NULL 返回 <code>None</code>）：</p>
+<pre><code class="language-python">post <span class="token operator">=</span> <span class="token keyword">await</span> Post<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token builtin">id</span><span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+writer <span class="token operator">=</span> <span class="token keyword">await</span> post<span class="token punctuation">.</span>writer          <span class="token comment"># User 實例或 None</span>
+<span class="token keyword">await</span> writer<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>count<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># 雙向互通</span>
+</code></pre>
+<p><strong>要點</strong>：</p>
+<ul>
+<li><code>related</code> 傳入類名字串（按模型類名註冊表惰性解析，兩側定義順序無關）或直接傳模型類</li>
+<li>關係查詢與對方模型使用各自的儲存後端（不支援跨後端 JOIN——關係查詢是獨立的兩條 SQL）</li>
+<li>關係查詢不快取，每次存取都是即時查詢；改用 <code>User.where(...)</code> 仍可做任意自訂查詢</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/developer-guide/testing.html"><small>Previous</small><br>模組測試（ErisPulse-Testing）</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/developer-guide/module-troubleshooting.html"><small>Next</small><br>模組排查指南</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

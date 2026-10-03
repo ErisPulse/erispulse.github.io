@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>架構概要 - ErisPulse 文档中心</title>
+    <meta name="description" content="このドキュメントでは、ErisPulse SDK の技術的アーキテクチャを可視化した図解を通じて紹介し、フレームワークの設計思想とモジュール間の関係を迅速に理解できるようにします。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/architecture.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/architecture.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/architecture.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/architecture.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/architecture.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/architecture.html" />
+    <meta property="og:title" content="架構概要 - ErisPulse 文档中心" />
+    <meta property="og:description" content="このドキュメントでは、ErisPulse SDK の技術的アーキテクチャを可視化した図解を通じて紹介し、フレームワークの設計思想とモジュール間の関係を迅速に理解できるようにします。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/architecture.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"架構概要","description":"このドキュメントでは、ErisPulse SDK の技術的アーキテクチャを可視化した図解を通じて紹介し、フレームワークの設計思想とモジュール間の関係を迅速に理解できるようにします。","url":"https://www.erisdev.com/docs/ja/architecture.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> クイックスタート
+        <span class="doc-crumb-sep">/</span> <span>架構概要</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/architecture.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/architecture.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/architecture.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/architecture.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/architecture.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/architecture.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="アーキテクチャ概要">アーキテクチャ概要</h1>
+<p>このドキュメントでは、ErisPulse SDK の技術的アーキテクチャを可視化した図解を通じて紹介し、フレームワークの設計思想とモジュール間の関係を迅速に理解できるようにします。</p>
+<h2 id="sdkのコアアーキテクチャ">SDKのコアアーキテクチャ</h2>
+<p>下図は、SDKのコアモジュール構成とその関係を示しています：</p>
+<pre><code class="language-mermaid">graph TB
+    SDK["sdk&lt;br/&gt;統一エントリーポイント"]
+
+    SDK --&gt; Event["Event&lt;br/&gt;イベントシステム"]
+    SDK --&gt; Lifecycle["Lifecycle&lt;br/&gt;ライフサイクル管理"]
+    SDK --&gt; Logger["Logger&lt;br/&gt;ログ管理"]
+    SDK --&gt; Storage["Storage / env&lt;br/&gt;ストレージ管理"]
+    SDK --&gt; Config["Config&lt;br/&gt;設定管理"]
+    SDK --&gt; AdapterMgr["Adapter&lt;br/&gt;アダプタ管理"]
+    SDK --&gt; ModuleMgr["Module&lt;br/&gt;モジュール管理"]
+    SDK --&gt; Router["Router&lt;br/&gt;ルーティング管理"]
+    SDK --&gt; Client["Client&lt;br/&gt;HTTPクライアント"]
+    Event --&gt; Command["command"]
+    Event --&gt; Message["message"]
+    Event --&gt; Notice["notice"]
+    Event --&gt; Request["request"]
+    Event --&gt; Meta["meta"]
+    Event --&gt; Conversation["Conversation&lt;br/&gt;会話 + 永続化"]
+
+    AdapterMgr --&gt; BaseAdapter["BaseAdapter"]
+    BaseAdapter --&gt; P1["雲湖"]
+    BaseAdapter --&gt; P2["Telegram"]
+    BaseAdapter --&gt; P3["OneBot11/12"]
+    BaseAdapter --&gt; PN["..."]
+
+    ModuleMgr --&gt; BaseModule["BaseModule"]
+    BaseModule --&gt; CM["カスタムモジュール"]
+
+    BaseAdapter -.-&gt; SendDSL["SendDSL&lt;br/&gt;メッセージ送信"]
+</code></pre>
+<h3 id="コアモジュールの説明">コアモジュールの説明</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>モジュール</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Event</strong></td>
+<td>イベントシステム。command / message / notice / request / meta 5種類のイベント処理と、Conversationによる多段階対話処理を提供します。</td>
+</tr>
+<tr>
+<td><strong>Adapter</strong></td>
+<td>アダプタマネージャー。複数プラットフォームのアダプタの登録、起動、停止を管理します。</td>
+</tr>
+<tr>
+<td><strong>Module</strong></td>
+<td>モジュールマネージャー。プラグインの登録、ロード、アンロードを管理し、依存関係の宣言とトポロジカルソートをサポートします。</td>
+</tr>
+<tr>
+<td><strong>Lifecycle</strong></td>
+<td>ライフサイクルマネージャー。イベント駆動型のライフサイクルフックを提供します。</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>SQLiteベースのキーバリューストレージシステム。一般的なSQLチェーンクエリをサポートします。</td>
+</tr>
+<tr>
+<td><strong>Config</strong></td>
+<td>TOML形式の設定ファイル管理。</td>
+</tr>
+<tr>
+<td><strong>Logger</strong></td>
+<td>モジュール化されたログシステム。サブロガーをサポートします。</td>
+</tr>
+<tr>
+<td><strong>Router</strong></td>
+<td>HTTP/WebSocketルーティング管理。FastAPI + Uvicornで抽象化された下層バックエンドをカプセル化し、デコレータールーティング、ミドルウェア、グループ、リクエスト制限、CORSをサポートします。</td>
+</tr>
+<tr>
+<td><strong>Client</strong></td>
+<td>統一HTTP/WSクライアント（2.8.0以前は<code>HttpClient</code>、互換性のある別名を保持）。aiohttpで抽象化された下層リクエストライブラリをカプセル化し、リクエスト統計、リトライ、ログ、WebSocketクライアント、ErisPulseの例外体系等功能を提供します。クライアントとサーバーのWebSocketは<code>WebSocketConnectionBase</code>基底クラスを共有します。</td>
+</tr>
+</tbody></table></div>
+<h2 id="初期化フロー">初期化フロー</h2>
+<p>下図は<code>sdk.init()</code>の完全な初期化プロセスを示しています：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["sdk.init()"] --&gt; B["実行環境の準備"]
+    B --&gt; B1["設定ファイルの読み込み"]
+    B1 --&gt; B2["グローバル例外処理の設定"]
+    B2 --&gt; C["アダプタ &amp; モジュールの発見"]
+    C --&gt; D{"並列ロード"}
+    D --&gt; D1["PyPIからアダプタをロード"]
+    D --&gt; D2["PyPIからモジュールをロード"]
+    D1 &amp; D2 --&gt; E["アダプタの登録"]
+    E --&gt; E1["アダプタの起動"]
+    E1 --&gt; F["モジュールの登録"]
+    F --&gt; F1{"依存関係の検証"}
+    F1 --&gt;|"依存関係が不足"| F2["モジュールをスキップし警告を記録"]
+    F1 --&gt;|"依存関係が満たされている"| F3["トポロジカルソート&lt;br/&gt;（Kahnアルゴリズム + 優先度）"]
+    F3 --&gt; G["順序に従ってモジュールを初期化&lt;br/&gt;（インスタンス化 + on_load）"]
+    F2 --&gt; G
+    G --&gt; H["ルーティングサーバーの起動"]
+    H --&gt; K["起動完了"]
+</code></pre>
+<h3 id="初期化段階の詳細">初期化段階の詳細</h3>
+<blockquote>
+<p>完全な初期化のチェーン分解（Finder / Loader / Manager / Router）、下層エントリーポイント（<code>init()</code> / <code>init_task()</code> / <code>init_sync()</code>）と手動の完全起動については<a href="/docs/ja/advanced/startup.html">起動フローと手動制御</a>を参照してください。</p>
+</blockquote>
+<h2 id="イベント処理フロー">イベント処理フロー</h2>
+<p>下図は、プラットフォームからハンドラへのメッセージの完全な流れを示しています：</p>
+<pre><code class="language-mermaid">flowchart LR
+    A["プラットフォームの元のメッセージ"] --&gt; B["アダプタが受信"]
+    B --&gt; C["OneBot12標準に変換"]
+    C --&gt; D["adapter.emit()"]
+    D --&gt; E["ミドルウェアチェーンの実行"]
+    E --&gt; F{"イベントの分散"}
+    F --&gt; G1["command&lt;br/&gt;コマンドハンドラ"]
+    F --&gt; G2["message&lt;br/&gt;メッセージハンドラ"]
+    F --&gt; G3["notice&lt;br/&gt;通知ハンドラ"]
+    F --&gt; G4["request&lt;br/&gt;リクエストハンドラ"]
+    F --&gt; G5["meta&lt;br/&gt;メタイベントハンドラ"]
+    G1 &amp; G2 &amp; G3 &amp; G4 &amp; G5 --&gt; H["ハンドラのコールバック実行"]
+    H --&gt; I["event.reply()&lt;br/&gt;SendDSL経由で返信"]
+    I --&gt; J["アダプタがプラットフォームに送信"]
+</code></pre>
+<h3 id="イベント処理チェーンの詳細">イベント処理チェーンの詳細</h3>
+<p>上記の図は「結果」です。下に<code>adapter.emit()</code>を分解したフレームワークが<strong>裏で何をしたか</strong>を示します。これは3層に分かれた分散チェーンです：</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant P as プラットフォーム
+    participant A as アダプタマネージャー層&lt;br/&gt;AdapterManager.emit
+    participant T as ハンドラ Task層&lt;br/&gt;_dispatch_handler_task
+    participant E as Eventモジュール層&lt;br/&gt;_process_event
+
+    P-&gt;&gt;A: 元のイベント
+    A-&gt;&gt;A: platform/type/detail_type + 元のフィールドを抽出
+    A-&gt;&gt;A: [Recv] 受信ログ
+    A-&gt;&gt;A: lifecycle.adapter.event.receive（初期のフック）
+    A-&gt;&gt;A: selfフィールドの処理（meta分岐 / Botの自動登録）
+    A-&gt;&gt;A: ミドルウェアチェーン（直列、イベントデータを変更可能）
+    A-&gt;&gt;A: ハンドラの収集（具体的なタイプ + ワイルドカード*）
+    A-&gt;&gt;A: 身元認証 + スコープフィルタリング（Taskの作成前に、静かに破棄/スキップ）
+    A-&gt;&gt;T: asyncio.create_task（fire-and-forget）
+    A-&gt;&gt;A: lifecycle.adapter.event.dispatched（最終のフック）
+    T-&gt;&gt;T: 並行信号量の取得（デフォルト上限64）
+    T-&gt;&gt;E: Eventモジュールに登録されたハンドラを呼び出す
+    E-&gt;&gt;E: lifecycle.event.pre_process
+    E-&gt;&gt;E: ignore_self（メッセージイベントはデフォルトで自身を無視）
+    E-&gt;&gt;E: 優先度順にグループ化：高→低、グループ間直列、グループ内並列
+    E-&gt;&gt;E: グループ内のコピーを実行 + フィールドのマージ（競合警告）
+    E-&gt;&gt;E: グループ後のstop()チェックで、より低い優先度をブロック
+    T-&gt;&gt;T: スローなログ（1秒以上かかる場合、wait_reply時間のホワイトリストから除外）
+</code></pre>
+<p><strong>フレームワークが何をしたか、そしてあなたが介入できる点：</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>階段</th>
+<th>フレームワークが何をしたか</th>
+<th>介入できる点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>受信</td>
+<td>標準フィールドの抽出、{platform}_rawの元データを保持；[Recv]ログを記録</td>
+<td><code>adapter.event.receive</code>を監視して初期イベントを取得</td>
+</tr>
+<tr>
+<td>selfフィールド</td>
+<td>metaイベントはconnect/disconnect/heartbeat分岐；通常のイベントはBotを自動登録し、<code>adapter.bot.online</code>をトリガー</td>
+<td><code>adapter.bot.online</code> / <code>bot.offline</code>を監視</td>
+</tr>
+<tr>
+<td>ミドルウェア</td>
+<td><strong>直列</strong>で実行、None以外の戻り値があればイベントデータを置き換え</td>
+<td>ミドルウェアを登録してイベントを変更/ブロック</td>
+</tr>
+<tr>
+<td>分散収集</td>
+<td>先に具体的なタイプのハンドラを取得し、次に<code>*</code>ワイルドカードハンドラを取得</td>
+<td>—</td>
+</tr>
+<tr>
+<td>身元次元</td>
+<td>分散入口はユーザー&gt;セッション&gt;Bot&gt;アダプタで判定（<code>scope.is_identity_allowed</code>）、<strong>拒否されればイベントは破棄</strong></td>
+<td><code>ErisPulse.scope.identity</code>をバインド</td>
+</tr>
+<tr>
+<td>スコープフィルタリング</td>
+<td>モジュールのownerで判定<code>scope.is_allowed</code>（セッションレベル&gt;Botレベル&gt;プラットフォームレベル）、<strong>通過しないと静かにスキップ</strong></td>
+<td>スコープのホワイトリスト/ブラックリストを設定</td>
+</tr>
+<tr>
+<td>スケジューリング</td>
+<td>各マッチするハンドラは独立<code>asyncio.Task</code>、<code>emit()</code>は<strong>ハンドラが完了するまで待たずに</strong>返す</td>
+<td>—</td>
+</tr>
+<tr>
+<td>優先度</td>
+<td>高優先度のグループが先に実行；<strong>グループ間直列、グループ内並列</strong>（グループ内の各ハンドラはイベントのコピーを持ち、フィールドの変更をマージ、競合時はWARNINGを出す）</td>
+<td><code>@command(..., priority=N)</code> / 登録時にpriorityを指定</td>
+</tr>
+<tr>
+<td>ブロック</td>
+<td>各グループの処理後<code>event.is_stopped()</code>をチェック、ヒットすると<strong>より低い優先度は実行されない</strong></td>
+<td><code>event.mark_processed(stop=True)</code> / <code>event.done()</code></td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>よくある誤解</strong>：</p>
+<ol>
+<li><strong>スコープフィルタリングは静か</strong>です。遮断されたハンドラはエラーもレスポンスもせず、TRACEレベルのログ（<code>core.scope.denied</code>）にのみ表示されます。「私のモジュールがメッセージを受け取らない」場合は、まずスコープのバインディングを確認してください。</li>
+<li><strong>ハンドラは天然並列</strong>です。フレームワークは各ハンドラに独立したTaskを用意しているため、<strong>自分で<code>asyncio.create_task</code>をラップする必要はありません</strong>。</li>
+<li><strong>同優先度のグループ内ではブロックされません</strong>。<code>mark_processed(stop=True)</code>は、より低い優先度のグループをブロックするだけで、同じグループ内で並列実行されているハンドラは途中で中断されません。</li>
+<li><strong>スローなログの閾値は固定1秒</strong>です。ハンドラの処理時間が1秒を超えると、ログにWARNINGが出力されます（<code>wait_reply</code>待ち時間は処理時間から除外されますが、処理は中断されません）。</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>作用域（scope）のモジュール次元の3段階バインディング、身元認証と出力アクションの制限の詳細は<a href="/docs/ja/advanced/scope.html">作用域（scope）</a>を参照してください。イベント作用域のテキストフィルタリングとコマンドユーザーACLは<a href="/docs/ja/getting-started/event-handling.html">イベント処理入門</a>を参照してください。並列上限の設定は<a href="/docs/ja/user-guide/configuration.html#%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0%E3%83%AF%E3%83%BC%E3%82%AF%E8%A8%AD%E5%AE%9A">設定ガイド</a>を参照してください。</p>
+</blockquote>
+<h2 id="ライフサイクルイベント">ライフサイクルイベント</h2>
+<p>下図は、フレームワーク各コンポーネントのライフサイクルイベントの発生順序を示しています：</p>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Core["コア"]
+        direction LR
+        C1["core.init.start"] --&gt; C2["core.init.complete"]
+    end
+
+    subgraph AdapterLife["アダプタ"]
+        direction LR
+        A1["adapter.start"] --&gt; A2["adapter.status.change"] --&gt; A3["adapter.stop"] --&gt; A4["adapter.stopped"]
+    end
+
+    subgraph ModuleLife["モジュール"]
+        direction LR
+        M1["module.load"] --&gt; M2["module.init"] --&gt; M3["module.unload"]
+    end
+
+    subgraph BotLife["Bot"]
+        direction LR
+        B1["adapter.bot.online"] --&gt; B2["adapter.bot.offline"]
+    end
+
+    Core --&gt; AdapterLife
+    AdapterLife --&gt; ModuleLife
+    AdapterLife -.-&gt; BotLife
+</code></pre>
+<h3 id="ライフサイクルイベントの監視">ライフサイクルイベントの監視</h3>
+<blockquote>
+<p>完全なイベント監視方法（<code>lifecycle.on()</code> / <code>once()</code> / <code>has_handlers()</code>）、すべてのライフサイクルイベントリストとデータ形式は<a href="/docs/ja/advanced/lifecycle.html">ライフサイクル管理</a>を参照してください。</p>
+</blockquote>
+<h2 id="モジュールロード戦略">モジュールロード戦略</h2>
+<p>ErisPulseは3種類のモジュールロード戦略をサポートし、<code>get_load_strategy()</code>が返す<code>ModuleLoadStrategy</code>で宣言されます：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["モジュールをModuleManagerに登録"] --&gt; B{"ロード戦略"}
+    B --&gt;|"lazy_load = true&lt;br/&gt;+ activate_on宣言"| C["ModuleActivatorプロキシを作成"]
+    B --&gt;|"lazy_load = true&lt;br/&gt;activate_onなし"| D["LazyModuleプロキシを作成"]
+    B --&gt;|"lazy_load = false"| E["即時インスタンス作成"]
+    C --&gt; F["イベント/コマンドstubをディスパッチャに登録"]
+    F --&gt; G["sdk属性にマウント"]
+    G --&gt; H["イベント到達時にアクティブ化"]
+    H --&gt; I["インスタンス化 + on_load() + stubの登録解除"]
+    D --&gt; J["sdk属性にマウント"]
+    J --&gt; K["最初の属性アクセス時に初期化"]
+    E --&gt; L["on_load()を呼び出す"]
+    L --&gt; M["sdk属性にマウント"]
+</code></pre>
+<blockquote>
+<p>詳細は<a href="/docs/ja/advanced/lazy-loading.html">遅延ロードシステム</a>、<a href="/docs/ja/advanced/lifecycle.html">ライフサイクル管理</a>、およびモジュールドキュメントを参照してください。</p>
+</blockquote>
+<h3 id="イベント駆動型遅延アクティブ化activate_onのトリガーアーキテクチャ">イベント駆動型遅延アクティブ化（<code>activate_on</code>）のトリガーアーキテクチャ</h3>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>この機能はErisPulse **2.8.0+**が必要です。</p>
+</div>
+<p><code>activate_on</code>を使用すると、モジュールは<strong>最初の一致するイベント/コマンドが到達した時点で</strong>ロードされ、常駐メモリを避ける一方で、イベントの損失を防ぎます：</p>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Declare["モジュールの宣言"]
+        S1["get_load_strategy()が返す&lt;br/&gt;ModuleLoadStrategy(activate_on=...)"] --&gt; S2["activate_onの構文：&lt;br/&gt;str / dict / listの自由な混合"]
+        S2 --&gt; S2a["'message' → イベントタイプレベル"]
+        S2 --&gt; S2b["{'notice': 'group_member_increase'}&lt;br/&gt;→ タイプ + detail_type"]
+        S2 --&gt; S2c["{'command': 'roll'}&lt;br/&gt;→ コマンドトリガー（簡略形/リスト）"]
+        S2 --&gt; S2d["{'command': {'name': 'dice', 'help': ...,&lt;br/&gt;'aliases': [...], 'hidden': ...}}&lt;br/&gt;→ コマンドトリガー（dict宣言）"]
+    end
+
+    subgraph Runtime["実行時"]
+        R1["ModuleActivatorがstubを登録"] --&gt; R1a["イベントstub → message/notice/request/metaマネージャー&lt;br/&gt;優先度ACTIVATION_STUB_PRIORITY（極めて低い）"]
+        R1 --&gt; R1b["コマンドstub → コマンドマネージャー&lt;br/&gt;占位コマンド（dict宣言のhelp/usage/group/aliases/hiddenをミラー）"]
+        R1a --&gt; R2{"イベント到達時にトリガー"}
+        R1b --&gt; R2
+        R2 --&gt; R3["ownerによるスコープフィルタリング"]
+        R3 --&gt; R4["asyncio.Lockで重複アクティブ化を防ぐ"]
+        R4 --&gt; R5["モジュールのインスタンス化 + on_load()の呼び出し"]
+        R5 --&gt; R6["すべてのstubの登録解除"]
+        R6 --&gt; R7["イベントを真のハンドラに転送"]
+    end
+
+    Declare --&gt; Runtime
+</code></pre>
+<p><strong>トリガーメカニズムの要点：</strong></p>
+<blockquote>
+<p>完全な<code>activate_on</code>構文（str / dict / list）、コマンドdict宣言、占位コマンドのhelp回帰チェーン、スコープフィルタリングと失敗の意味は<a href="/docs/ja/advanced/lazy-loading.html#%E3%82%A4%E3%83%99%E3%83%B3%E3%83%88%E9%A7%86%E5%8B%95%E5%9E%8B%E9%81%85%E5%BB%B6%E3%82%A2%E3%82%AF%E3%83%86%E3%82%A3%E3%83%96activate_on">遅延ロードシステム</a>を参照してください。</p>
+</blockquote>
+<h2 id="ローカルプラグインフォルダアーキテクチャ">ローカルプラグインフォルダアーキテクチャ</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>この機能はErisPulse **2.8.0+**が必要です。</p>
+</div>
+<p>ローカルプラグイン（<code>plugins/</code>ディレクトリ）は、パッケージングや公開を必要とせず、フレームワークの起動時に自動的に発見されロードされます：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["プロジェクトのplugins/ディレクトリ&lt;br/&gt;（ErisPulse.framework.plugins_dir、複数ディレクトリをサポート）"] --&gt; B{"PluginFolderLoader.discover()"}
+    B --&gt; C["単一ファイル：dice.py → プラグイン名 = ファイル名"]
+    B --&gt; D["パッケージ形式：weather/（__init__.pyを含む）→ プラグイン名 = ディレクトリ名"]
+    B --&gt; E["無視対象：__pycache__ / _で始まる / .py以外 / __init__.pyを含まないディレクトリ"]
+    C --&gt; F["モジュールのインポート（spec_from_file_location）"]
+    D --&gt; G["モジュールのインポート（sys.path + import_module）"]
+    F --&gt; H["モジュールクラスの識別：Main（BaseModuleのサブクラス）を優先、なければ最初のサブクラス"]
+    G --&gt; H
+    H --&gt; I["entry-pointと一致するmoduleInfoを構築"]
+    I --&gt; J["ModuleLoader.load()で統合&lt;br/&gt;ローカルがPyPIの同名インストールパッケージを上書き"]
+    J --&gt; K["インストールパッケージのモジュールと共用：&lt;br/&gt;有効状態 / スコープ / meta / i18n / コンテキスト"]
+</code></pre>
+<p><strong>規約と特性：</strong></p>
+<ul>
+<li>プラグイン名の取得元：単一ファイルはファイル名、パッケージ形式はディレクトリ名</li>
+<li>ローカルプラグイン <code>moduleInfo.meta.source == "plugin_folder"</code>、PyPIインストールパッケージモジュールとシームレスに共存</li>
+<li>同名の場合はローカルが優先（ローカルの上書きデバッグに便利）、無効化された場合は同名のentry-point項目も削除される</li>
+</ul>
+<h2 id="モジュールのホットリロードアーキテクチャ">モジュールのホットリロードアーキテクチャ</h2>
+<p>ホットリロードは<strong>すべてのモジュールソース</strong>に対して一貫して適用されます：ローカルプラグインはファイル変更を監視して自動的にトリガし、任意のモジュールは<code>sdk.reload_module()</code> / <code>sdk.module.reload()</code>で手動でリロードできます（PyPIインストールパッケージモジュールはpipアップデート後に呼び出すことで有効になります）；<code>sdk.reload_all_modules()</code> / <code>sdk.module.reload_all()</code>で登録済みのすべてのモジュールを一度にリロードできます（pipのバッチアップデート後に呼び出すことですべてのモジュールが有効になります）：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["sdk.enable_plugin_hot_reload()&lt;br/&gt;（自動監視、ローカルプラグインディレクトリのみ）"] --&gt; B["PluginReloadWatcherの起動"]
+    B --&gt; C["PollingObserver（バックグラウンドデーモンスレッド）&lt;br/&gt;定期的に.pyファイルのmtimeを比較"]
+    C --&gt; D{"プラグインファイルの変更"}
+    D --&gt; E["変更のデブウンス（デフォルト1秒）"]
+    E --&gt; F["_handle_changeでプラグイン名を解析&lt;br/&gt;（単一ファイル / パッケージ形式）"]
+    F --&gt; G["asyncio.run_coroutine_threadsafe&lt;br/&gt;メインイベントループにスケジュール"]
+    G --&gt; H["sdk.reload_module(name, full=…)&lt;br/&gt;（任意のモジュールに手動で呼び出してもよい）"]
+    H --&gt; I["古いインスタンスのアンロード（on_unloadをトリガー）&lt;br/&gt;依存者を収集して連鎖リロードの準備"]
+    I --&gt; J{"モジュールのソースは？"}
+    J --&gt;|"plugin_folder"| K["登録とプラグインsys.modulesのクリーンアップ&lt;br/&gt;plugins/ディレクトリを再スキャン"]
+    J --&gt;|"PyPIインストールパッケージ"| L["登録のクリーンアップ + top_levelでパッケージのクリーンアップ&lt;br/&gt;sys.modulesのサブツリー（full=Trueの場合は旧モジュールオブジェクトのトップ段階を追加）&lt;br/&gt;インポートキャッシュをリフレッシュした後、entry-pointを再調査"]
+    K --&gt; M["再登録 + 再ロード"]
+    L --&gt; M
+    M --&gt; N["新インスタンスをsdk属性にマウント"]
+    N --&gt; O["依存者を連鎖リロード&lt;br/&gt;（プラグインは完全リロード / PyPIは再インスタンス化；&lt;br/&gt;full=Trueの場合は依存者もコードを再導入）"]
+    K -.-&gt;|"ファイルが削除された"| P["ロード結果から削除"]
+    L -.-&gt;|"entry-pointが消滅した（アンインストールされた）"| P
+</code></pre>
+<p><strong>2つのソースの違いは発見段階のみ</strong>、登録、ロード、連鎖リロードは完全に一致します：</p>
+<ul>
+<li><strong>ローカルプラグイン</strong>（<code>moduleInfo.meta.source == "plugin_folder"</code>）：プラグイン名に対応する<code>sys.modules</code>をクリーンアップした後、<code>plugins/</code>ディレクトリを再スキャンします；ファイルが削除された場合はロード結果から削除されます。</li>
+<li><strong>PyPIインストールパッケージ</strong>：<code>meta.top_level</code>に従ってパッケージの<code>sys.modules</code>サブツリーをクリーンアップし、インポートキャッシュをリフレッシュ（entry-pointの60秒キャッシュを突破）した後、再調査して再インポートします；entry-pointが消滅した（pipでアンインストールされた）場合はロード結果から削除されます。</li>
+</ul>
+<p><strong>全量リロード（<code>full=True</code>）と全体リロード（<code>reload_all_modules</code>）：</strong></p>
+<ul>
+<li><code>top_level</code>メタデータが欠落し、推論できない場合、デフォルトのリロードは<strong>インポートキャッシュをクリーンアップしません</strong>（再インポートで旧モジュールオブジェクトを再利用、いわゆる「偽リロード」）、フレームワークは明示的に警告を出し、<code>full=True</code>の使用を推奨します——全量リロードは旧モジュールオブジェクトのトップレベルパッケージ名を追加でクリーンアップし、最新のコードが実行されることを保証します。</li>
+<li><code>full=True</code>の場合はPyPIの依存者も完全リロード（コードを再導入）し、デフォルトモードでは再インスタンス化のみ（既存の意味）。</li>
+<li>リロードはもともと遅延ロードのモジュールを強制的にアクティブ化します（表示されない違いは明示的なログに変更されました）；<code>reload_all_modules()</code>は遅延ロード戦略を維持し、リロード前に既にロード済みのモジュールを再アクティブ化します。</li>
+<li><code>reload_all_modules()</code>は依存関係のトポロジカル順序で再ロードし、単一モジュールの失敗は診断を記録してスキップします（全体のロールバックは行われません——on_unloadの副作用は元に戻せないため、単一モジュールのホットリロードの尽力の意味と一致します）；リロード失敗でロールバックされた状況も同様で、ログには旧インスタンスが既に終了した状態であることが明示的に表示されます。</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/quick-start.html"><small>Previous</small><br>すぐに始める</a>
+        <a class="doc-pager-next" href="/docs/ja/bug-tracker.html"><small>Next</small><br>バグトラッカー</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

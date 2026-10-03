@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse-Cron - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse-Cron 是 ErisPulse 生态的定时任务调度模块，为其他模块提供统一的定时任务 API：支持一次性定时、间隔循环、Cron 表达式三种任务类型，回调传参，SQLite 持久化（重启不丢任务）。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ecosystem/cron.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/ecosystem/cron.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/ecosystem/cron.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/ecosystem/cron.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/ecosystem/cron.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/ecosystem/cron.html" />
+    <meta property="og:title" content="ErisPulse-Cron - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse-Cron 是 ErisPulse 生态的定时任务调度模块，为其他模块提供统一的定时任务 API：支持一次性定时、间隔循环、Cron 表达式三种任务类型，回调传参，SQLite 持久化（重启不丢任务）。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ecosystem/cron.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse-Cron","description":"ErisPulse-Cron 是 ErisPulse 生态的定时任务调度模块，为其他模块提供统一的定时任务 API：支持一次性定时、间隔循环、Cron 表达式三种任务类型，回调传参，SQLite 持久化（重启不丢任务）。","url":"https://www.erisdev.com/docs/ecosystem/cron.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 生态模块
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse-Cron</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/ecosystem/cron.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/ecosystem/cron.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/ecosystem/cron.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/ecosystem/cron.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/ecosystem/cron.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/ecosystem/cron.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulse-cron">ErisPulse-Cron</h1>
+<p><a href="https://github.com/wsu2059q/ErisPulse-Cron">ErisPulse-Cron</a> 是 ErisPulse 生态的<strong>定时任务调度模块</strong>，为其他模块提供统一的定时任务 API：支持一次性定时、间隔循环、Cron 表达式三种任务类型，回调传参，SQLite 持久化（重启不丢任务）。</p>
+<div class="markdown-alert markdown-alert-important"><p class="markdown-alert-title"><i class="fas fa-comment-dots" aria-hidden="true"></i>Important</p>
+<p>Cron <strong>不是</strong> ErisPulse 框架的内置功能，需要单独安装：</p>
+<pre><code class="language-bash">epsdk <span class="token function">install</span> Cron
+</code></pre>
+</div>
+<p>安装后通过 <code>sdk.Cron</code> 访问全部接口。</p>
+<hr>
+<h2 id="功能速览">功能速览</h2>
+<ul>
+<li><strong>三种定时类型</strong>：一次性（<code>once</code>）、间隔循环（<code>interval</code>）、Cron 表达式（<code>cron</code>）</li>
+<li><strong>回调传参</strong>：创建时传入 <code>callback_data</code>，触发时原样返回，方便识别任务来源</li>
+<li><strong>持久化</strong>：任务存储在 SQLite（经 <code>sdk.storage</code>），框架重启后自动恢复</li>
+<li><strong>错过策略</strong>：立即触发 / 跳过 / 重新调度，可按任务选择</li>
+<li><strong>任务管理</strong>：暂停、恢复、取消、手动触发、清理过期任务</li>
+<li><strong>Dashboard 集成</strong>：已安装 <a href="/docs/ecosystem/dashboard.html">ErisPulse-Dashboard</a> 时自动注册管理视窗</li>
+</ul>
+<hr>
+<h2 id="快速开始">快速开始</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># 1. 注册回调处理器</span>
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>on_trigger</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_trigger</span><span class="token punctuation">(</span>info<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    data <span class="token operator">=</span> info<span class="token punctuation">[</span><span class="token string">"callback_data"</span><span class="token punctuation">]</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"任务触发: </span><span class="token interpolation"><span class="token punctuation">{</span>info<span class="token punctuation">[</span><span class="token string">'task_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">, 数据: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># 2. 创建定时任务</span>
+task_id <span class="token operator">=</span> sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>once<span class="token punctuation">(</span>
+    delay<span class="token operator">=</span><span class="token number">60</span><span class="token punctuation">,</span>
+    callback_data<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"reminder"</span><span class="token punctuation">,</span> <span class="token string">"msg"</span><span class="token punctuation">:</span> <span class="token string">"该喝水了"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h2 id="api-概览">API 概览</h2>
+<h3 id="创建任务">创建任务</h3>
+<pre><code class="language-python"><span class="token comment"># 一次性：延迟 600 秒触发</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>once<span class="token punctuation">(</span>delay<span class="token operator">=</span><span class="token number">600</span><span class="token punctuation">,</span> callback_data<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"order_id"</span><span class="token punctuation">:</span> <span class="token string">"123"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> label<span class="token operator">=</span><span class="token string">"订单超时提醒"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 间隔循环：每 300 秒触发，最多 100 次</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>interval<span class="token punctuation">(</span>interval_seconds<span class="token operator">=</span><span class="token number">300</span><span class="token punctuation">,</span> callback_data<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"monitor"</span><span class="token punctuation">:</span> <span class="token string">"server-1"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> max_runs<span class="token operator">=</span><span class="token number">100</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Cron 表达式：工作日每天 9:30</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>cron<span class="token punctuation">(</span>expression<span class="token operator">=</span><span class="token string">"30 9 * * 1-5"</span><span class="token punctuation">,</span> callback_data<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"daily_report"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 通用可选参数：trigger_at（绝对时间戳）、delay（首次延迟）、timezone、</span>
+<span class="token comment"># max_runs（0=无限）、label、source（创建者模块名）、missed_policy（错过策略）</span>
+</code></pre>
+<p>常用 Cron 表达式：<code>*/5 * * * *</code>（每 5 分钟）、<code>0 8 * * *</code>（每天早 8 点）、<code>30 9 * * 1-5</code>（工作日 9:30）、<code>0 0 1 * *</code>（每月 1 号）。</p>
+<h3 id="回调">回调</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>on_trigger</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">my_handler</span><span class="token punctuation">(</span>info<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># info 含 task_id / task_type / callback_data / label / source /</span>
+    <span class="token comment"># run_count / max_runs / created_at / last_run / trigger_time</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<p>支持注册多个 handler，全部依次调用，单个 handler 异常不影响其他 handler。</p>
+<h3 id="管理任务">管理任务</h3>
+<pre><code class="language-python">sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>cancel<span class="token punctuation">(</span>task_id<span class="token punctuation">)</span>                  <span class="token comment"># 取消</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>pause<span class="token punctuation">(</span>task_id<span class="token punctuation">)</span>                   <span class="token comment"># 暂停</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>resume<span class="token punctuation">(</span>task_id<span class="token punctuation">)</span>                  <span class="token comment"># 恢复（reschedule=True 重新计算下次触发）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>trigger_now<span class="token punctuation">(</span>task_id<span class="token punctuation">)</span>       <span class="token comment"># 手动立即触发（不影响原计划）</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>get_task<span class="token punctuation">(</span>task_id<span class="token punctuation">)</span>                <span class="token comment"># 查看单个任务</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>list_tasks<span class="token punctuation">(</span>source<span class="token operator">=</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>    <span class="token comment"># 列出任务（支持 source/status/task_type 过滤）</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>delete_task<span class="token punctuation">(</span>task_id<span class="token punctuation">)</span>             <span class="token comment"># 删除任务记录</span>
+sdk<span class="token punctuation">.</span>Cron<span class="token punctuation">.</span>cleanup<span class="token punctuation">(</span><span class="token punctuation">)</span>                        <span class="token comment"># 清理 7 天前的已完成/已取消任务</span>
+</code></pre>
+<h3 id="错过策略missed_policy">错过策略（missed_policy）</h3>
+<p>框架重启后，对于错过触发时间的任务：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fire_immediately</code></td>
+<td>立即触发（默认）</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td>跳过本次，等下次</td>
+</tr>
+<tr>
+<td><code>reschedule</code></td>
+<td>从当前时间重新计算下次触发</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="模块卸载时的行为">模块卸载时的行为</h2>
+<p>Cron 的任务数据是<strong>持久化资产</strong>：任务创建方模块被卸载或禁用不会删除已创建的任务。但该模块注册的回调句柄会被清理——基于归属权系统的<a href="/docs/advanced/ownership.html#%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97%E6%8C%87%E5%8D%97%E6%89%98%E7%AE%A1%E5%85%B6%E5%AE%83%E6%A8%A1%E5%9D%97%E7%9A%84%E5%8F%A5%E6%9F%84">外部清理钩子</a>，Cron 在替其他模块托管回调时会自动记名，对方模块被卸载/禁用时自动抛弃其回调句柄，保证对方模块实例可以被正常回收。</p>
+<ul>
+<li>任务创建方<strong>重载</strong>后重新 <code>on_trigger</code> 即恢复接收触发</li>
+<li>不再需要的任务可用 <code>sdk.Cron.cancel(task_id)</code> / <code>delete_task(task_id)</code> 清理</li>
+</ul>
+<hr>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li><a href="https://github.com/wsu2059q/ErisPulse-Cron">GitHub 仓库</a></li>
+<li><a href="https://pypi.org/project/ErisPulse-Cron/">PyPI 页面</a></li>
+<li><a href="/docs/advanced/ownership.html">归属权（owner）系统</a></li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ecosystem/dashboard.html"><small>上一篇</small><br>ErisPulse-Dashboard</a>
+        <a class="doc-pager-next" href="/docs/ecosystem/takumi.html"><small>下一篇</small><br>ErisPulse-Takumi</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

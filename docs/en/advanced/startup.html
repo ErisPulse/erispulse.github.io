@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Startup Process and Manual Control - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse&#39;s await sdk.run() / await sdk.init() encapsulates the entire startup chain into a single line of code. However, when you need to fully customize th..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/startup.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/startup.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
+    <meta property="og:title" content="Startup Process and Manual Control - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse&#39;s await sdk.run() / await sdk.init() encapsulates the entire startup chain into a single line of code. However, when you need to fully customize th..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/startup.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Startup Process and Manual Control","description":"ErisPulse's await sdk.run() / await sdk.init() encapsulates the entire startup chain into a single line of code. However, when you need to fully customize th...","url":"https://www.erisdev.com/docs/en/advanced/startup.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Advanced Topics
+        <span class="doc-crumb-sep">/</span> <span>Startup Process and Manual Control</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/startup.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/advanced/startup.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/startup.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/startup.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/startup.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="startup-process-and-manual-control">Startup Process and Manual Control</h1>
+<p>ErisPulse's <code>await sdk.run()</code> / <code>await sdk.init()</code> encapsulates the entire startup chain into a single line of code. However, when you need to fully customize the startup process (for example, partial loading, dynamic registration, hot plugging, injecting custom loading strategies), you need to understand what happens inside this chain and how to manually drive each step.</p>
+<p>This article breaks down the startup chain into independent components, explains the responsibilities of each, the order of calls, and provides an example of how to manually perform a complete startup.</p>
+<blockquote>
+<p>This article assumes you have already run through <a href="/docs/en/getting-started/first-bot.html">the first bot</a> and understand the two modes of <code>sdk.run(keep_running=True/False)</code>. This article focuses on the internal breakdown of the <code>init()</code> chain and lower-level entry points such as <code>init()</code> / <code>init_task()</code> / <code>init_sync()</code>.</p>
+</blockquote>
+<h2 id="overview-of-sdk-top-level-entry-points">Overview of SDK Top-Level Entry Points</h2>
+<p>In addition to the two <code>keep_running</code> modes of <code>run()</code>, the SDK also provides several lower-level initialization entry points, which differ in terms of <strong>asynchronicity, return value, and whether exceptions are wrapped</strong>:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Entry Point</th>
+<th>Asynchronicity</th>
+<th>Return Value</th>
+<th>Exception Handling</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.run(True)</code></td>
+<td>async, blocks and maintains</td>
+<td><code>None</code> (automatically <code>uninit</code> when closed)</td>
+<td>Module/adapter errors are intercepted, not crashing the process</td>
+<td>Pure bot application</td>
+</tr>
+<tr>
+<td><code>await sdk.run(False)</code></td>
+<td>async, does not block</td>
+<td><code>None</code> (does not automatically unload)</td>
+<td>Same as above</td>
+<td>Execute custom logic after initialization</td>
+</tr>
+<tr>
+<td><code>await sdk.init()</code></td>
+<td>async, requires await</td>
+<td><code>bool</code></td>
+<td>Internal component exceptions are caught, returns <code>False</code> on failure</td>
+<td>Manual lifecycle control (paired with <code>uninit()</code>)</td>
+</tr>
+<tr>
+<td><code>sdk.init_task()</code></td>
+<td>async, returns Task without blocking</td>
+<td><code>asyncio.Task</code></td>
+<td>Same as <code>init()</code></td>
+<td>Concurrently execute other initializations, or when event loop is not yet running</td>
+</tr>
+<tr>
+<td><code>sdk.init_sync()</code></td>
+<td><strong>Synchronous</strong>, blocks current thread</td>
+<td><code>bool</code></td>
+<td>Same as <code>init()</code></td>
+<td>Command-line scripts, synchronous entry point without event loop</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>Common Misconception</strong>: <code>await sdk.init()</code> is <strong>not equivalent</strong> to <code>await sdk.run(keep_running=False)</code>. There are two differences: ① <code>init()</code> returns <code>bool</code> (returns <code>False</code> on failure), while <code>run()</code> returns <code>None</code>; ② <code>init()</code> only performs initialization and <strong>does not automatically unload</strong>, whereas <code>run()</code> automatically <code>uninit()</code> when the event loop ends. Therefore, when manually pairing unloading or customizing the lifecycle, use <code>init()</code> + <code>uninit()</code>.</p>
+</blockquote>
+<h2 id="chain-startup-overview">Chain Startup Overview</h2>
+<p><code>sdk.init()</code> (specifically, its internal <code>Initializer.init()</code>) initiates the framework in the following sequence:</p>
+<pre><code class="language-mermaid">flowchart TD
+    A[0. Prepare Environment&lt;br/&gt;Configuration Loading / Exception Handling] --&gt; B
+    B[1. Parallel Discovery and Loading&lt;br/&gt;AdapterLoader.load / ModuleLoader.load&lt;br/&gt;Internal call to Finder.find_all] --&gt; C
+    C[2. Register Adapters&lt;br/&gt;AdapterLoader.register_to_manager] --&gt; D
+    D[3. Start Adapters&lt;br/&gt;adapter.startup] --&gt; E
+    E[4. Register Modules&lt;br/&gt;ModuleLoader.register_to_manager] --&gt; F
+    F[5. Initialize Modules&lt;br/&gt;ModuleLoader.initialize_modules&lt;br/&gt;Instantiate and mount to sdk] --&gt; G
+    G[6. Start Router Server&lt;br/&gt;router.start]
+</code></pre>
+<p>Corresponding core components:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Component</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Discovery</td>
+<td><code>AdapterFinder</code> / <code>ModuleFinder</code></td>
+<td><strong>Discover</strong> adapters/modules from entry-points of installed packages</td>
+</tr>
+<tr>
+<td>Loading</td>
+<td><code>AdapterLoader</code> / <code>ModuleLoader</code></td>
+<td>Discovery + Import + Read metadata + Determine enable/disable, return object list</td>
+</tr>
+<tr>
+<td>Registration</td>
+<td><code>*Loader.register_to_manager</code></td>
+<td>Register objects to corresponding managers</td>
+</tr>
+<tr>
+<td>Management</td>
+<td><code>sdk.adapter</code> / <code>sdk.module</code></td>
+<td>Maintain adapter/module instances, provide startup/shutdown interfaces</td>
+</tr>
+<tr>
+<td>Initialization</td>
+<td><code>ModuleLoader.initialize_modules</code></td>
+<td>Create module instances and mount to <code>sdk</code> (handle dependency topological sorting)</td>
+</tr>
+<tr>
+<td>Routing</td>
+<td><code>sdk.router</code></td>
+<td>HTTP / WebSocket server</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>Important</strong>: <code>Finder</code> and <code>Loader</code> are two layers. The <code>Loader</code> internally <strong>already holds</strong> a <code>Finder</code> (<code>AdapterLoader</code> has its own <code>AdapterFinder</code>, <code>ModuleLoader</code> has its own <code>ModuleFinder</code>). In most scenarios, you only need to use <code>Loader</code>. You would only use <code>Finder</code> separately when you need to "list without importing".</p>
+</blockquote>
+<h2 id="detailed-explanation-of-each-step">Detailed Explanation of Each Step</h2>
+<h3 id="1-discovery-layer-finder">1. Discovery Layer: Finder</h3>
+<p>The Finder is responsible only for "finding which packages provide adapters/modules", without importing or instantiating them.</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>finders <span class="token keyword">import</span> AdapterFinder<span class="token punctuation">,</span> ModuleFinder
+
+adapter_finder <span class="token operator">=</span> AdapterFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_finder <span class="token operator">=</span> ModuleFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Find all installed adapter/module entry-points</span>
+adapter_entries <span class="token operator">=</span> adapter_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token comment"># list[EntryPoint]</span>
+module_entries <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>      <span class="token comment"># list[EntryPoint]</span>
+
+<span class="token comment"># Find a single entry-point by name</span>
+entry <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_by_name<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>  <span class="token comment"># EntryPoint | None</span>
+</code></pre>
+<p>Each <code>EntryPoint</code> can be loaded via <code>.load()</code> to obtain the corresponding class, but typically you do not need to do this manually—the Loader will handle it.</p>
+<h3 id="2-loading-layer-loader">2. Loading Layer: Loader</h3>
+<p>The Loader performs "importing + reading metadata + determining enabled/disabled" on top of the Finder.</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># load() internally: calls finder.find_all() → processes each entry-point → returns a triple</span>
+adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters <span class="token operator">=</span> <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p>The triple returned by <code>load()</code>:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Return Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>objs</code> (<code>dict</code>)</td>
+<td>Name → Object (adapter class / module wrapper object)</td>
+</tr>
+<tr>
+<td><code>enabled</code> (<code>list[str]</code>)</td>
+<td>Names that are enabled (not disabled in configuration)</td>
+</tr>
+<tr>
+<td><code>disabled</code> (<code>list[str]</code>)</td>
+<td>Names that are disabled</td>
+</tr>
+</tbody></table></div>
+<h4 id="diagnostic-information-on-loading-failures">Diagnostic Information on Loading Failures</h4>
+<p>When a module/adapter throws an exception during loading or initialization, the framework skips that component and continues loading others, while outputting a <strong>user code frame summary</strong>. This allows you to locate the error position at the default INFO level, without manually enabling DEBUG:</p>
+<pre><code>[ERROR] [ModuleLoader] Failed to load module MyModule from entry-point, skipped: 'NoneType' object has no attribute 'platform'
+  → MyModule/Core.py:42 in on_load
+      adapter = sdk.platform
+  → AttributeError: 'NoneType' object has no attribute 'platform'
+  → Hint: Increase log level to DEBUG to view full stack trace; check implementation code of module MyModule
+</code></pre>
+<p>Diagnostic information is generated through the <code>ErisPulse.runtime.diagnostics</code> module, which automatically filters out internal framework frames and retains only your code frames. If you need to reuse this in custom loading logic:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> log_diagnostic
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    risky_init<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    log_diagnostic<span class="token punctuation">(</span>e<span class="token punctuation">)</span>  <span class="token comment"># Automatically extracts user code frames and writes to ERROR log</span>
+</code></pre>
+<p>This module also provides two low-level functions: <code>extract_user_frame()</code> (returns structured frame information) and <code>format_diagnostic_block()</code> (returns multi-line text).</p>
+<h3 id="3-registration-layer-register_to_manager">3. Registration Layer: register_to_manager</h3>
+<p>Registers the objects produced by the Loader into the manager, so that <code>sdk.adapter</code> / <code>sdk.module</code> can recognize them.</p>
+<pre><code class="language-python"><span class="token comment"># Register adapters (returns bool indicating success)</span>
+<span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+
+<span class="token comment"># Register modules</span>
+<span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p>After registration, adapters are registered into the adapter manager, and modules are registered into the module manager, but <strong>they are not yet started/instantiated</strong>.</p>
+<h3 id="4-starting-adapters">4. Starting Adapters</h3>
+<pre><code class="language-python"><span class="token comment"># Start all registered adapters</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># Or specify a platform</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"telegram"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>Registration ≠ Starting. <code>register_to_manager</code> only registers; <code>startup</code> calls the adapter's <code>start()</code> method to establish a connection with the platform.</p>
+</blockquote>
+<h3 id="5-initializing-modules">5. Initializing Modules</h3>
+<p>Modules have an additional step compared to adapters—they need to be <strong>instantiated</strong> and attached to <code>sdk</code> (so you can call <code>sdk.MyModule.xxx</code>). This step also handles module dependencies and topological sorting.</p>
+<pre><code class="language-python">success <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+    enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+<span class="token punctuation">)</span>
+</code></pre>
+<p>After successful instantiation, the module appears at <code>sdk.&lt;ModuleName&gt;</code>.</p>
+<h3 id="6-starting-the-router-server">6. Starting the Router Server</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>
+    host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span>
+    port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">,</span>
+    ssl_certfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+    ssl_keyfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<p>The router server is responsible for receiving webhook/WebSocket callbacks from adapters. Without starting it, server-mode adapters cannot receive messages.</p>
+<h2 id="complete-manual-startup-example">Complete Manual Startup Example</h2>
+<p>The following code is <strong>equivalent</strong> to the core process of <code>await sdk.init()</code>, but exposes every step, allowing you to insert custom logic at any point:</p>
+<pre><code class="language-python"><span class="token keyword">import</span> asyncio
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">manual_startup</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 0. Prepare environment (load configuration, register global exception handling)</span>
+    <span class="token comment">#    _prepare_environment is a pre-step inside init(); for manual flow, it must be called first,</span>
+    <span class="token comment">#    otherwise the Loader won't read the configuration and will incorrectly disable all adapters/modules.</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>_prepare_environment<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Environment preparation failed"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token boolean">False</span>
+
+    <span class="token comment"># 1. Create loaders (each internally holds a Finder)</span>
+    adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 2. Parallel discovery and loading (same as internal gather in init())</span>
+    <span class="token punctuation">(</span>adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters<span class="token punctuation">)</span><span class="token punctuation">,</span> \
+    <span class="token punctuation">(</span>module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>gather<span class="token punctuation">(</span>
+        adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 3. Register adapters</span>
+    <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 4. Start adapters</span>
+    <span class="token keyword">if</span> enabled_adapters<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 5. Register modules</span>
+    <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 6. Initialize modules (instantiation + attach to sdk)</span>
+    <span class="token keyword">if</span> enabled_modules<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+            enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+        <span class="token punctuation">)</span>
+
+    <span class="token comment"># 7. Start the routing server</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Manual startup completed"</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token boolean">True</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ok <span class="token operator">=</span> <span class="token keyword">await</span> manual_startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> ok<span class="token punctuation">:</span>
+        <span class="token comment"># Block to keep running (manual flow won't automatically block)</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    asyncio<span class="token punctuation">.</span>run<span class="token punctuation">(</span>main<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="when-should-you-use-manual-startup">When Should You Use Manual Startup?</h3>
+<p>In most cases, <strong>manual startup is not necessary</strong> as <code>await sdk.run()</code> already handles all the above steps. Manual startup is only valuable in these scenarios:</p>
+<ul>
+<li><strong>Partial loading</strong>: Load only specific adapters/modules, skipping others</li>
+<li><strong>Dynamic registration</strong>: Register new adapters/modules at runtime based on conditions</li>
+<li><strong>Custom order</strong>: Need to change the default loading order (e.g., start a module before starting an adapter)</li>
+<li><strong>Injection strategies</strong>: Inject custom strict-mode managers, loading strategies, etc., into the Loader</li>
+<li><strong>Debugging/diagnosis</strong>: Manually drive execution at a specific step when failure occurs to locate the issue</li>
+</ul>
+<h2 id="runtime-fine-grained-control">Runtime Fine-grained Control</h2>
+<p>Even after using <code>sdk.run()</code> to start the SDK, you can still control individual subsystems at runtime without having to restart the entire SDK:</p>
+<h3 id="hot-restart-of-adapters">Hot Restart of Adapters</h3>
+<pre><code class="language-python"><span class="token comment"># Hot restart a specific adapter (to fix a connection, without affecting other platforms)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Bring up a new platform during runtime</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Temporarily take a platform offline</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><code>adapter.startup()</code> requires the adapter to be <strong>registered</strong> with the manager. Registration occurs internally within <code>init()</code>/<code>run()</code>, so this is a fine-grained control that operates <strong>after</strong> startup.</p>
+</blockquote>
+<h3 id="router-server">Router Server</h3>
+<pre><code class="language-python"><span class="token comment"># Temporarily take the webhook server offline</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>stop<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Restart it (for example, after changing the port)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="on-demand-module-loading">On-demand Module Loading</h3>
+<pre><code class="language-python"><span class="token comment"># Manually load a module (which may be lazily loaded)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="graceful-shutdown">Graceful Shutdown</h2>
+<p>Starting from version 2.7.0, <code>sdk.shutdown()</code> provides <strong>programmatic graceful shutdown</strong>: it sets a shutdown event, allowing the main loop that is hanging with <code>await sdk.run(keep_running=True)</code> to return, which in turn triggers <code>uninit()</code> to complete resource cleanup.</p>
+<pre><code class="language-python"><span class="token comment"># Call from any coroutine to trigger graceful exit (run() will return and uninit is automatically triggered)</span>
+sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Typical use cases:</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown_after_idle</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># Gracefully exit after being idle for 1 hour</span>
+</code></pre>
+<p><strong>Signal Handling</strong>: <code>run()</code> internally registers <code>SIGTERM</code> / <code>SIGHUP</code> handlers, converting system signals into graceful shutdown—when stopping services via container orchestration (e.g., Docker <code>docker stop</code>) or <code>systemd</code>, the process will complete <code>uninit()</code> cleanup instead of being forcefully killed.</p>
+<ul>
+<li>On Windows, <code>loop.add_signal_handler</code> is not supported, so signal handlers are automatically skipped (graceful shutdown can still be triggered via <code>sdk.shutdown()</code> or Ctrl+C)</li>
+<li>Repeatedly calling <code>sdk.shutdown()</code> is safe (subsequent calls after the event is set are no-ops)</li>
+</ul>
+<h2 id="uninstall-process">Uninstall Process</h2>
+<p>The reverse operation of startup is <code>await sdk.uninit()</code>, which performs cleanup in the reverse order:</p>
+<ol>
+<li>Shut down all adapters (<code>adapter.shutdown()</code>)</li>
+<li>Unload all modules</li>
+<li>Clean up all event handlers</li>
+<li>Clean up module properties on managers and the SDK</li>
+</ol>
+<p>In scenarios where the process is manually started, remember to call <code>uninit()</code> before exiting to ensure a graceful shutdown:</p>
+<pre><code class="language-python"><span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>   <span class="token comment"># Keep running</span>
+<span class="token keyword">finally</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>uninit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="restart">Restart</h2>
+<p>The SDK provides two restart methods, both of which do not require you to manually uninstall first—the framework handles it automatically:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Call</th>
+<th>Behavior</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hot Restart</td>
+<td><code>await sdk.restart()</code></td>
+<td>Re-initialize (<code>init()</code>) after <code>uninit()</code> in the same process, reloading adapters/modules</td>
+<td>Reload configuration, hot update modules</td>
+</tr>
+<tr>
+<td>Hard Restart</td>
+<td><code>await sdk.hard_restart()</code></td>
+<td>After <code>uninit()</code>, exit the process with <strong>exit code 42</strong>, and let an external supervisor start a new process</td>
+<td>Suspected memory/resource leaks, or when a completely clean restart is needed</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token comment"># Hot restart: Reload within the same process (most common)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Hard restart: Exit the process, let an external supervisor restart (see "Supervisor Guide" below)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>hard_restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>Two points to note</strong>:</p>
+<ol>
+<li>Both methods execute the restart in the background, <strong>immediately returning <code>True</code> to indicate that the "restart task has been scheduled"</strong>, not that the restart is completed. The actual restart runs in the background to avoid interrupting the current event chain.</li>
+<li>The principle of <code>hard_restart()</code> is: after unloading and saving the configuration, exit the process with <strong>exit code 42</strong> (<code>HARD_RESTART_EXIT_CODE</code>) — <strong>it does not start a new process itself</strong>. It must be restarted by an external supervisor that detects exit code 42. If you run <code>python main.py</code> directly without any supervisor, the process exits with code 42 and <strong>does not automatically restart</strong> (the framework will issue a warning).</li>
+</ol>
+</blockquote>
+<h3 id="when-to-use-hard-restart">When to Use Hard Restart?</h3>
+<p>Hard restart is not just a "more thorough restart"—it is more suitable and even more efficient than hot restart in the following scenarios:</p>
+<ul>
+<li><strong>Binary library (C extension) side effects</strong>: Hot restart occurs within the same process and cannot release C extensions, open file descriptors, threads, or other process-level resources. Hard restart starts a new process, completely clearing these side effects.</li>
+<li><strong>Resource leak troubleshooting</strong>: When you suspect memory or handle leaks, hard restart provides a clean environment.</li>
+<li><strong>Frequent restarts sensitive to performance</strong>: Hard restart avoids the overhead of unloading and reloading within the same process, making it more efficient than hot restart.</li>
+</ul>
+<blockquote>
+<p>The "Framework Restart" function in the Dashboard management panel internally calls <code>hard_restart()</code>.</p>
+</blockquote>
+<h3 id="exit-code-42-contract">Exit Code 42 Contract</h3>
+<p>Hard restart is a cross-process collaboration: <strong>SDK is responsible for exiting (code 42), and the supervisor is responsible for restarting</strong>.</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SDK (when hard restarted)</td>
+<td><code>uninit()</code> → Save configuration → <code>os._exit(42)</code></td>
+</tr>
+<tr>
+<td>Supervisor</td>
+<td>Detects child process exit code 42 → Restart the same command</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><code>sdk.is_supervised()</code> can check if the current process was started by a supervisor (by checking the environment variable <code>ERISPULSE_SUPERVISED</code>). The CLI <code>run</code> command automatically injects this flag when starting a subprocess; external supervisors like systemd or Docker do not inject it, so <code>is_supervised()</code> returns <code>False</code>, and the framework will issue a "no supervisor detected" warning after hard restart.</p>
+</blockquote>
+<h3 id="supervisor-guide">Supervisor Guide</h3>
+<p>Choose a supervisor that suits your needs to make hard restart work effectively:</p>
+<h4 id="1-cli-run-command-developmentsimple-deployment-recommended">1. CLI run command (Development/Simple Deployment, Recommended)</h4>
+<p><code>epsdk run main.py</code> includes a built-in supervision loop: it detects the child process exit code, restarts immediately if it is 42; for other abnormal exit codes, it automatically retries with exponential backoff; <code>Ctrl+C</code> first gracefully terminates the child process (exit code 0 is considered normal, so it will not be restarted).</p>
+<pre><code class="language-bash">epsdk run main.py
+</code></pre>
+<h4 id="2-systemd-linux-server">2. systemd (Linux Server)</h4>
+<p><code>RestartForceExitStatus=42</code> makes exit code 42 trigger a restart (by default <code>on-failure</code> only applies to non-zero codes):</p>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Service</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">ExecStart</span><span class="token punctuation">=</span><span class="token value attr-value">/usr/bin/python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">Restart</span><span class="token punctuation">=</span><span class="token value attr-value">on-failure</span>
+<span class="token key attr-name">RestartForceExitStatus</span><span class="token punctuation">=</span><span class="token value attr-value">42</span>
+<span class="token key attr-name">RestartSec</span><span class="token punctuation">=</span><span class="token value attr-value">2</span>
+<span class="token key attr-name">User</span><span class="token punctuation">=</span><span class="token value attr-value">mybot</span>
+</code></pre>
+<h4 id="3-docker-docker-compose">3. Docker / docker-compose</h4>
+<p>The container's PID 1 is the application process, and it exits with code 42, causing the container to exit—use the <code>restart</code> policy to make it automatically restart:</p>
+<pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">bot</span><span class="token punctuation">:</span>
+    <span class="token key atrule">build</span><span class="token punctuation">:</span> .
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped   <span class="token comment"># Restart for any exit (including 42)</span>
+</code></pre>
+<h4 id="4-pm2-node-ecosystem-operations">4. PM2 (Node Ecosystem Operations)</h4>
+<pre><code class="language-bash">pm2 start main.py <span class="token parameter variable">--name</span> mybot <span class="token parameter variable">--interpreter</span> python3
+<span class="token comment"># 42 is treated as an exit code, and PM2 restarts by default; set restart_delay to debounce</span>
+pm2 <span class="token builtin class-name">set</span> mybot.restart_delay <span class="token number">2000</span>
+</code></pre>
+<h4 id="5-supervisord">5. supervisord</h4>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">program:mybot</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">command</span><span class="token punctuation">=</span><span class="token value attr-value">python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">autorestart</span><span class="token punctuation">=</span><span class="token value attr-value">true</span>
+<span class="token key attr-name">exitcodes</span><span class="token punctuation">=</span><span class="token value attr-value">0,2,42    # 42 is also considered "normal exit, restart needed"</span>
+</code></pre>
+<h4 id="6-pure-python-custom-supervisor">6. Pure Python Custom Supervisor</h4>
+<pre><code class="language-python"><span class="token keyword">import</span> subprocess<span class="token punctuation">,</span> sys<span class="token punctuation">,</span> time
+
+<span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> subprocess<span class="token punctuation">.</span>Popen<span class="token punctuation">(</span><span class="token punctuation">[</span>sys<span class="token punctuation">.</span>executable<span class="token punctuation">,</span> <span class="token string">"main.py"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    code <span class="token operator">=</span> p<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">42</span><span class="token punctuation">:</span>          <span class="token comment"># Hard restart request</span>
+        time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">0.5</span><span class="token punctuation">)</span>
+        <span class="token keyword">continue</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>           <span class="token comment"># Normal exit</span>
+        <span class="token keyword">break</span>
+    time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>           <span class="token comment"># Abnormal exit, retry with backoff</span>
+</code></pre>
+<blockquote>
+<p><strong>Behavior without a supervisor</strong>: Running directly with <code>python main.py</code>, calling <code>hard_restart()</code> causes the process to exit with code 42 and not restart. In this case, you should integrate one of the supervisors above.</p>
+</blockquote>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="/docs/en/getting-started/first-bot.html">Create Your First Bot</a> - Introduction to the two basic modes of <code>keep_running</code></li>
+<li><a href="/docs/en/advanced/lifecycle.html">Lifecycle Management</a> - Listen to startup events such as <code>core.init.start</code> / <code>core.init.complete</code></li>
+<li><a href="/docs/en/advanced/lazy-loading.html">Lazy Loading System</a> - Module lazy loading mechanism and <code>load_module</code></li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/advanced/errors.html"><small>Previous</small><br>Exception System and Handling Guide</a>
+        <a class="doc-pager-next" href="/docs/en/ecosystem/README.html"><small>Next</small><br>Ecosystem Modules</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

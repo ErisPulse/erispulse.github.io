@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>模組開發入門 - ErisPulse 文档中心</title>
+    <meta name="description" content="配置讀取：上面的基礎範例未使用配置。需要讀取配置時，推薦聲明嵌套的 ConfigClass 並透過 self.cfg 即時讀取（見 模組核心概念）。手動呼叫 _load_config() 的舊寫法已廢棄。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/developer-guide/modules/getting-started.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/modules/getting-started.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/modules/getting-started.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/modules/getting-started.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/modules/getting-started.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/modules/getting-started.html" />
+    <meta property="og:title" content="模組開發入門 - ErisPulse 文档中心" />
+    <meta property="og:description" content="配置讀取：上面的基礎範例未使用配置。需要讀取配置時，推薦聲明嵌套的 ConfigClass 並透過 self.cfg 即時讀取（見 模組核心概念）。手動呼叫 _load_config() 的舊寫法已廢棄。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/developer-guide/modules/getting-started.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"模組開發入門","description":"配置讀取：上面的基礎範例未使用配置。需要讀取配置時，推薦聲明嵌套的 ConfigClass 並透過 self.cfg 即時讀取（見 模組核心概念）。手動呼叫 _load_config() 的舊寫法已廢棄。","url":"https://www.erisdev.com/docs/zh-TW/developer-guide/modules/getting-started.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 開發者指南 <span class="doc-crumb-sep">/</span> 模組開發
+        <span class="doc-crumb-sep">/</span> <span>模組開發入門</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/modules/getting-started.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/modules/getting-started.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/developer-guide/modules/getting-started.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/modules/getting-started.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/modules/getting-started.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/modules/getting-started.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="模組開發入門">模組開發入門</h1>
+<p>本指南帶你從零開始建立一個 ErisPulse 模組。</p>
+<h2 id="項目結構">項目結構</h2>
+<p>一個標準的模組結構：</p>
+<pre><code>MyModule/
+├── pyproject.toml
+├── README.md
+├── LICENSE
+└── MyModule/
+    ├── __init__.py
+    └── Core.py
+</code></pre>
+<h2 id="pyprojecttoml-配置">pyproject.toml 配置</h2>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">project</span><span class="token punctuation">]</span>
+<span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">"ErisPulse-MyModule"</span>
+<span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"1.0.0"</span>
+<span class="token key property">description</span> <span class="token punctuation">=</span> <span class="token string">"模組功能描述"</span>
+<span class="token key property">readme</span> <span class="token punctuation">=</span> <span class="token string">"README.md"</span>
+<span class="token key property">requires-python</span> <span class="token punctuation">=</span> <span class="token string">"&gt;=3.10"</span>
+<span class="token key property">license</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">file</span> <span class="token punctuation">=</span> <span class="token string">"LICENSE"</span> <span class="token punctuation">}</span>
+<span class="token key property">authors</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span> <span class="token punctuation">{</span> <span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">"yourname"</span><span class="token punctuation">,</span> <span class="token key property">email</span> <span class="token punctuation">=</span> <span class="token string">"your@mail.com"</span> <span class="token punctuation">}</span> <span class="token punctuation">]</span>
+<span class="token key property">dependencies</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+<span class="token punctuation">[</span><span class="token table class-name">project.urls</span><span class="token punctuation">]</span>
+<span class="token key property">"homepage"</span> <span class="token punctuation">=</span> <span class="token string">"https://github.com/yourname/MyModule"</span>
+
+<span class="token punctuation">[</span><span class="token table class-name">project.entry-points."erispulse.module"</span><span class="token punctuation">]</span>
+<span class="token key property">"MyModule"</span> <span class="token punctuation">=</span> <span class="token string">"MyModule:Main"</span>
+</code></pre>
+<h2 id="initpy"><strong>init</strong>.py</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> <span class="token punctuation">.</span>Core <span class="token keyword">import</span> Main
+</code></pre>
+<h2 id="corepy---基礎模組">Core.py - 基礎模組</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+
+<span class="token keyword">class</span> <span class="token class-name">Main</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sdk<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>sdk <span class="token operator">=</span> sdk
+        self<span class="token punctuation">.</span>logger <span class="token operator">=</span> sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>get_child<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>storage <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage
+    
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""返回模組加載策略"""</span>
+        <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+            priority<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span>
+            depends<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token comment"># 可選：依賴的其他模組列表</span>
+            <span class="token comment"># 可選：事件驅動懶加載——聲明觸發器，首個匹配事件/命令到達時自動加載</span>
+            <span class="token comment"># activate_on=[{"command": {"name": "hello", "help": "發送問候"}}],</span>
+        <span class="token punctuation">)</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""模組加載時調用"""</span>
+        <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"發送問候"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            name <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_nickname<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">or</span> <span class="token string">"朋友"</span>
+            <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"你好，</span><span class="token interpolation"><span class="token punctuation">{</span>name<span class="token punctuation">}</span></span><span class="token string">！"</span></span><span class="token punctuation">)</span>
+        
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"模組已加載"</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""模組卸載時調用"""</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"模組已卸載"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>配置讀取</strong>：上面的基礎範例未使用配置。需要讀取配置時，推薦聲明嵌套的 <code>ConfigClass</code> 並透過 <code>self.cfg</code> 即時讀取（見 <a href="/docs/zh-TW/developer-guide/modules/core-concepts.html#%E5%AE%A3%E5%91%8A%E5%BC%8F%E9%85%8D%E7%BD%AE%E6%8E%A8%E8%96%A6">模組核心概念</a>）。手動呼叫 <code>_load_config()</code> 的舊寫法已廢棄。</p>
+</blockquote>
+<h2 id="測試模組">測試模組</h2>
+<h3 id="本地測試">本地測試</h3>
+<pre><code class="language-bash"><span class="token comment"># 在專案目錄安裝模組</span>
+epsdk <span class="token function">install</span> ./MyModule
+
+<span class="token comment"># 運行專案</span>
+epsdk run main.py <span class="token parameter variable">--reload</span>
+</code></pre>
+<h3 id="測試命令">測試命令</h3>
+<p>發送命令測試：</p>
+<pre><code>/hello
+</code></pre>
+<h2 id="核心概念">核心概念</h2>
+<h3 id="basemodule-基類">BaseModule 基類</h3>
+<p>所有模組必須繼承 <code>BaseModule</code>，提供以下方法：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>說明</th>
+<th>必須</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>__init__(self, sdk)</code></td>
+<td>建構函數（框架傳入 <code>sdk</code> 實例）</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>get_load_strategy()</code></td>
+<td>返回載入策略</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>get_meta()</code></td>
+<td>返回模組介紹元資訊（可選）</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>on_load(self, event)</code></td>
+<td>模組載入時呼叫</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>on_unload(self, event)</code></td>
+<td>模組卸載時呼叫</td>
+<td>是</td>
+</tr>
+</tbody></table></div>
+<h3 id="模組介紹-meta">模組介紹 meta</h3>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本特性需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p>透過 <code>get_meta()</code> 聲明模組的介紹元資訊（這個模組是用來做什麼的、屬於哪一類等）。
+元資訊是模組的<strong>通用介紹資料</strong>，供 help 模組、Dashboard 模組列表、模組商店等各類介面/生態模組消費。</p>
+<p>與 <code>get_load_strategy()</code> 返回 <code>ModuleLoadStrategy</code> 一致，<strong>推薦返回 <code>ModuleMeta</code> 配置類實例</strong>（屬性類型、IDE 自動補全），也兼容直接返回 dict：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_meta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> ModuleMeta<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> ModuleMeta<span class="token punctuation">(</span>
+            name<span class="token operator">=</span><span class="token string">"天氣"</span><span class="token punctuation">,</span>               <span class="token comment"># 顯示名（預設註冊名）</span>
+            description<span class="token operator">=</span><span class="token string">"查詢城市天氣"</span><span class="token punctuation">,</span>  <span class="token comment"># 模組簡介</span>
+            version<span class="token operator">=</span><span class="token string">"1.0.0"</span><span class="token punctuation">,</span>
+            author<span class="token operator">=</span><span class="token string">"ErisDev"</span><span class="token punctuation">,</span>
+            group<span class="token operator">=</span><span class="token string">"工具"</span><span class="token punctuation">,</span>               <span class="token comment"># 功能分組</span>
+            tags<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"天氣"</span><span class="token punctuation">,</span> <span class="token string">"查詢"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<p>相容寫法（dict）：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_meta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token punctuation">{</span>
+            <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"天氣"</span><span class="token punctuation">,</span>
+            <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"查詢城市天氣"</span><span class="token punctuation">,</span>
+            <span class="token string">"version"</span><span class="token punctuation">:</span> <span class="token string">"1.0.0"</span><span class="token punctuation">,</span>
+            <span class="token string">"author"</span><span class="token punctuation">:</span> <span class="token string">"ErisDev"</span><span class="token punctuation">,</span>
+            <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"工具"</span><span class="token punctuation">,</span>
+            <span class="token string">"tags"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"天氣"</span><span class="token punctuation">,</span> <span class="token string">"查詢"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li><code>module.get_meta("MyModule")</code> 讀取已解析的元資訊（類宣告 &gt; 註冊 info，自動補全該模組的命令名）。</li>
+<li><code>module.get_commands_overview()</code> 聚合「模組 meta + 其註冊的命令（別名/分組/幫助）」，按模組組織的命令總覽。</li>
+<li>命令歸屬模組透過 <code>cmd_info["owner"]</code> 取得（註冊時由上下文系統自動注入）。</li>
+</ul>
+<h4 id="meta-字段的-i18n-支援">meta 字段的 i18n 支援</h4>
+<p>元資訊字段值可用純字串，或 i18n 字典 <code>{"i18n": "key.path", "default": "兜底文本"}</code>（與配置 <code>description</code> 約定一致）。
+翻譯鍵透過 <code>I18nClass</code> 聲明註冊，<code>module.get_meta()</code> 讀取時自動解析為當前語言文本：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">class</span> <span class="token class-name">I18nClass</span><span class="token punctuation">(</span>BaseI18n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        meta_description<span class="token punctuation">:</span> I18nKey <span class="token operator">=</span> I18nKey<span class="token punctuation">(</span>
+            default<span class="token operator">=</span><span class="token string">"Weather lookup"</span><span class="token punctuation">,</span>
+            zh_CN<span class="token operator">=</span><span class="token string">"查詢城市天氣"</span><span class="token punctuation">,</span>
+            en<span class="token operator">=</span><span class="token string">"Weather lookup"</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_meta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> ModuleMeta<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> ModuleMeta<span class="token punctuation">(</span>
+            name<span class="token operator">=</span><span class="token string">"天氣"</span><span class="token punctuation">,</span>
+            description<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"MyModule.meta_description"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Weather lookup"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h3 id="sdk-物件">SDK 物件</h3>
+<p>透過 <code>sdk</code> 物件存取核心功能：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+sdk<span class="token punctuation">.</span>storage    <span class="token comment"># 存儲系統</span>
+sdk<span class="token punctuation">.</span>config     <span class="token comment"># 配置系統</span>
+sdk<span class="token punctuation">.</span>logger     <span class="token comment"># 日誌系統</span>
+sdk<span class="token punctuation">.</span>adapter    <span class="token comment"># 適配器系統</span>
+sdk<span class="token punctuation">.</span>router     <span class="token comment"># 路由系統</span>
+sdk<span class="token punctuation">.</span>lifecycle  <span class="token comment"># 生命週期系統</span>
+</code></pre>
+<h2 id="下一步">下一步</h2>
+<ul>
+<li><a href="/docs/zh-TW/developer-guide/modules/core-concepts.html">模組核心概念</a> - 深入了解模組架構  </li>
+<li><a href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類別詳解</a> - 學習 Event 物件  </li>
+<li><a href="/docs/zh-TW/developer-guide/modules/best-practices.html">模組最佳實踐</a> - 開發高品質模組</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/developer-guide/module-troubleshooting.html"><small>Previous</small><br>模組排查指南</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/developer-guide/modules/core-concepts.html"><small>Next</small><br>模組核心概念</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

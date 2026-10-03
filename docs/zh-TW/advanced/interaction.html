@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>互動會話系統 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 將「與使用者的持續互動」做成了框架級基礎設施：從一條 wait_reply， 到定時提醒、多路等待、會話互斥、重啟恢復，全部由統一的 互動會話管理器（Core/Event/interaction.py，sdk.interaction）調度。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/interaction.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/interaction.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/interaction.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/interaction.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/interaction.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/interaction.html" />
+    <meta property="og:title" content="互動會話系統 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 將「與使用者的持續互動」做成了框架級基礎設施：從一條 wait_reply， 到定時提醒、多路等待、會話互斥、重啟恢復，全部由統一的 互動會話管理器（Core/Event/interaction.py，sdk.interaction）調度。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/interaction.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"互動會話系統","description":"ErisPulse 將「與使用者的持續互動」做成了框架級基礎設施：從一條 wait_reply， 到定時提醒、多路等待、會話互斥、重啟恢復，全部由統一的 互動會話管理器（Core/Event/interaction.py，sdk.interaction）調度。","url":"https://www.erisdev.com/docs/zh-TW/advanced/interaction.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 進階主題
+        <span class="doc-crumb-sep">/</span> <span>互動會話系統</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/interaction.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/interaction.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/interaction.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/interaction.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/interaction.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/interaction.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="互動會話系統">互動會話系統</h1>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本章內容需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p>ErisPulse 將「與使用者的持續互動」做成了框架級基礎設施：從一條 <code>wait_reply</code>，
+到定時提醒、多路等待、會話互斥、重啟恢復，全部由統一的
+<strong>互動會話管理器</strong>（<code>Core/Event/interaction.py</code>，<code>sdk.interaction</code>）調度。</p>
+<p>{!--&lt; tips &gt;!--}
+本文涵蓋的每一項能力都附帶<strong>歸屬（owner）</strong>：互動等待、租約、定時器全部記錄
+註冊時的模組名，模組卸載 / 適配器關閉時由框架自動清理，等待方立即得到通知
+而非干等超時——這是歸屬權系統在互動維度的延伸（見 <a href="/docs/zh-TW/advanced/ownership.html">歸屬權系統</a>）。
+{!--&lt; /tips &gt;!--}</p>
+<h2 id="等待回覆wait_reply">等待回覆：wait_reply</h2>
+<p><code>wait_reply</code> 是互動會話的基石——掛起當前協程，等待目標使用者在下一條訊息中「回覆」。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ask"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ask_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>prompt<span class="token operator">=</span><span class="token string">"請輸入你的名字:"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> reply <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"超時了"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"你好，</span><span class="token interpolation"><span class="token punctuation">{</span>reply<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">！"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="全參數一覽">全參數一覽</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>參數</th>
+<th>說明</th>
+<th>預設</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>prompt</code></td>
+<td>掛起前發送的提示訊息</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>等待超時（秒）</td>
+<td>60</td>
+</tr>
+<tr>
+<td><code>pattern</code></td>
+<td>glob 過濾（<code>*</code> / <code>?</code> / <code>[seq]</code>），不匹配繼續等待</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>regex</code></td>
+<td>正則過濾（與 pattern 同時給定時須都匹配），不匹配繼續等待</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>validator</code></td>
+<td>校驗函數（接收 Event，返回 bool），失敗繼續等待</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>callback</code></td>
+<td>收到回覆時的回調（替代回傳值式的另一種寫法）</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>prompt 的發送方法</td>
+<td>"Text"</td>
+</tr>
+<tr>
+<td><code>session</code></td>
+<td><strong>會話級等待</strong>：同會話（群 / 頻道）中任何人的回覆均可命中</td>
+<td>False</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token comment"># 只接受數字金額，否則繼續等</span>
+reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span><span class="token string">"請輸入金額:"</span><span class="token punctuation">,</span> regex<span class="token operator">=</span><span class="token string">r"\d+\s*元"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 會話級等待：群協作場景，任何群友回答均可</span>
+reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> prompt<span class="token operator">=</span><span class="token string">"哪位大神幫忙答一下？"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="等待會在什麼時候被取消">等待會在什麼時候被取消</h3>
+<p>等待不再是「只能等超時」——以下情況會讓等待<strong>立即終止</strong>（<code>wait_reply</code> 返回 <code>None</code>），
+而不是讓呼叫方一直等到超時：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>觸發</th>
+<th>取消原因（<code>InteractionCancelled.reason</code>）</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>歸屬模組被卸載 / 禁用</td>
+<td><code>owner_unload</code></td>
+<td>歸屬清理：誰註冊的等待，誰消失時一併回收</td>
+</tr>
+<tr>
+<td>適配器關閉 / 重啟</td>
+<td><code>platform_stop</code></td>
+<td>該平台掛起的等待全部取消</td>
+</tr>
+<tr>
+<td>同會話被新的等待 / 租約取代</td>
+<td><code>conflict</code></td>
+<td>見下方「會話仲裁」</td>
+</tr>
+<tr>
+<td>回覆者被拉黑 / owner 模組被解綁</td>
+<td><code>revoked</code></td>
+<td>回覆命中的<strong>權限複查</strong>：scope 身份維度 + 模組維度</td>
+</tr>
+<tr>
+<td>使用者回覆命中</td>
+<td>——</td>
+<td>正常路徑，回傳回覆事件</td>
+</tr>
+</tbody></table></div>
+<p>底層異常為 <code>InteractionCancelled</code>（掛在 <code>InteractionError</code> 異常體系下），
+<code>wait_reply</code> 已將其轉換為回傳 <code>None</code>；需要原因的呼叫方可直接使用
+<code>sdk.interaction.register()</code> 低層 API。</p>
+<h3 id="回覆命中的完整判定鏈">回覆命中的完整判定鏈</h3>
+<p>一條回覆訊息到達時，互動管理器按以下順序判定（在命令匹配<strong>之前</strong>執行，
+對話連續性優先——即使訊息已被其他高優先級處理器認領，掛起的對話也能完成）：</p>
+<pre><code>會話鍵命中（精確 user 維度 → 會話級回退）
+  → pattern / regex 文本過濾（不匹配繼續等）
+  → validator 校驗（失敗繼續等）
+  → 權限複查（scope 身份維度 + owner 模組維度，失敗則終止等待）
+  → 喚醒等待方 + 認領事件（mark_processed）
+</code></pre>
+<h2 id="會話定時器remind-escalate">會話定時器：remind / escalate</h2>
+<p>將「超時」從回傳值變成可編排的原語。定時器掛在互動會話上，<br>隨模組卸載 / 適配器關閉自動取消，單一會話活躍 remind 上限 5 個。</p>
+<h3 id="remind沒回覆就提醒">remind：沒回覆就提醒</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ticket"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ticket_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"工單已提交，處理結果會在這裡通知"</span><span class="token punctuation">)</span>
+    <span class="token comment"># 5 分鐘無回覆則溫和催一次；用戶任何回覆都會自動取消它</span>
+    event<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">,</span> <span class="token string">"還在嗎？有結果了會第一時間告訴你"</span><span class="token punctuation">)</span>
+    reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">3600</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<ul>
+<li><code>event.remind(delay, text=None, *, callback=None)</code>：到期向當前會話發送 <code>text</code><br>（或執行 <code>callback(event)</code>，支援同步 / 異步）。<strong>強制校驗</strong>：<code>text</code> 與<br><code>callback</code> 必須二選一（都不給則拋 <code>ValueError</code>）</li>
+<li>回傳 <code>Reminder</code> 句柄：<code>reminder.cancel()</code> 手動取消、<code>reminder.expired</code> 查詢狀態</li>
+<li>用戶在該會話<strong>回覆後自動取消</strong>——這正是「提醒」語意：<br>提醒只在用戶沉默時出現</li>
+<li><code>Conversation</code> 內同樣可用：<code>conv.remind(120, "還在考慮嗎？")</code></li>
+</ul>
+<h3 id="escalate到點必達的升級">escalate：到點必達的升級</h3>
+<pre><code class="language-python">event<span class="token punctuation">.</span>escalate<span class="token punctuation">(</span><span class="token number">1800</span><span class="token punctuation">,</span> <span class="token keyword">lambda</span> e<span class="token punctuation">:</span> notify_master<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"工單 30 分鐘未處理：</span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>get_command_args<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p>與 <code>remind</code> 的唯一區別：<strong>不受用戶回覆取消</strong>——升級動作（通知主人、轉人工）<br>是「超時必達」承諾，僅手動 <code>cancel()</code> / 模組卸載 / 適配器關閉才取消。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th><code>remind</code></th>
+<th><code>escalate</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>到期行為</td>
+<td>發文本 / 執行 callback</td>
+<td>執行 callback</td>
+</tr>
+<tr>
+<td>用戶回覆</td>
+<td><strong>自動取消</strong></td>
+<td>不受影響</td>
+</tr>
+<tr>
+<td>歸屬清理（卸載 / 關平台）</td>
+<td>取消</td>
+<td>取消</td>
+</tr>
+<tr>
+<td>單一會話上限</td>
+<td>5</td>
+<td>不限（隨歸屬清理兜底）</td>
+</tr>
+</tbody></table></div>
+<h2 id="多路等待expect-select">多路等待：expect + select</h2>
+<p>同時掛起多條期望，<strong>先到先得</strong>——典型場景：等管理員審批的同時等使用者撤回、
+多人協作投票。</p>
+<pre><code class="language-python">which<span class="token punctuation">,</span> reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>select<span class="token punctuation">(</span>
+    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"同意*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10001"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"拒絕*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10002"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>validator<span class="token operator">=</span><span class="token keyword">lambda</span> e<span class="token punctuation">:</span> e<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"擱置"</span><span class="token punctuation">,</span> session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    timeout<span class="token operator">=</span><span class="token number">60</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">if</span> which <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"60 秒內未收到任何審批結果"</span><span class="token punctuation">)</span>
+<span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"已同意"</span><span class="token punctuation">)</span>
+<span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"已拒絕"</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li><code>event.expect(...)</code> 建構<strong>期望描述</strong>（不註冊任何等待）：支援
+<code>pattern</code> / <code>regex</code> / <code>validator</code> / <code>user</code>（限定回覆者）/ <code>session</code>（任何人可答）</li>
+<li><code>event.select(*expectations, timeout=60)</code>：統一註冊 → 任一命中即返回
+<code>(下標, 回覆事件)</code> → 未命中的等待自動取消；全部超時返回 <code>(None, None)</code>。
+<strong>強制校驗</strong>：至少傳入一條 expectation，否則拋 <code>ValueError</code></li>
+<li>命中的事件已被框架認領（<code>mark_processed</code>），不會被其他處理器重複消費</li>
+</ul>
+<p>{!--&lt; tips &gt;!--}
+<code>select</code> 與多執行緒 <code>asyncio.wait</code> 手工編排相比：期望未命中時自動清理、
+命中事件自動認領、權限複查與歸屬清理全部生效——不需要自己管任何 Future。
+{!--&lt; /tips &gt;!--}</p>
+<h2 id="會話互斥acquire-hold-get_owner_of">會話互斥：acquire / hold / get_owner_of</h2>
+<p>歸屬權從「資源」走向「會話」——「這個使用者目前正被誰佔用」成為一等查詢。</p>
+<pre><code class="language-python"><span class="token comment"># 查詢：這個會話正被誰互動？（空閒返回 None）</span>
+owner <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>get_owner_of<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
+<span class="token keyword">if</span> owner <span class="token keyword">and</span> owner <span class="token operator">!=</span> <span class="token string">"MyModule"</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span>  <span class="token comment"># 其他模組正在對話中，避免打擾</span>
+
+<span class="token comment"># 互斥租約：獨佔會話（deny 策略，被佔用返回 None）</span>
+lease <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span>event<span class="token punctuation">)</span>          <span class="token comment"># 默認 TTL 1 小時，可傳 ttl=</span>
+<span class="token keyword">if</span> lease <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span>  <span class="token comment"># 已被佔用</span>
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 獨佔互動</span>
+<span class="token keyword">finally</span><span class="token punctuation">:</span>
+    lease<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>上下文管理器形式（獲取失敗拋 <code>SessionOccupiedError</code>）：</p>
+<pre><code class="language-python"><span class="token keyword">with</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>hold<span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token keyword">as</span> lease<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 退出自動釋放</span>
+</code></pre>
+<p>租約支援 <code>renew(ttl)</code> 續期；TTL 慣性過期——過期的租約在下次存取時自動清理。</p>
+<p><code>Conversation.resume()</code> 恢復對話時框架會自動 acquire 租約（見
+<a href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a>的「恢復即接管」）——
+恢復的對話天然持有會話，其他模組不會插入。</p>
+<h2 id="會話收件箱eventhistory">會話收件箱：event.history</h2>
+<p>每會話近期訊息流的統一記錄（使用者 + 機器人雙方），作為 AI 上下文、
+防重複回覆、行為分析類模組的<strong>共享事實底座</strong>——各模組不再各自儲存歷史。</p>
+<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># 當前會話最近 20 條，時間升序</span>
+<span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># role: "user" / "bot"</span>
+</code></pre>
+<ul>
+<li>自動記錄：入站訊息（role=user）+ 機器人出站文字（role=bot）</li>
+<li>儲存：獨立 SQLite 表，保留策略 = 每會話上限（預設 50）+ 全域 TTL（預設 7 天）</li>
+<li>配置：<code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
+<li>管理器 API：<code>sdk.transcript.append() / get() / clear()</code></li>
+</ul>
+<h2 id="消息事務message_tx">消息事務：message_tx</h2>
+<p>事務內的所有出站發送自動記帳；<strong>異常退出時逆序自動撤回</strong>已發送的訊息<br>（適配器未實作 <code>delete_message</code> 時跳過，帳本仍正常記錄）。</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">with</span> event<span class="token punctuation">.</span>message_tx<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"正在處理，請稍候"</span><span class="token punctuation">)</span>
+    result <span class="token operator">=</span> <span class="token keyword">await</span> do_something<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># 這裡拋異常 →</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"完成: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>   <span class="token comment"># 前面的"處理中"自動撤回</span>
+</code></pre>
+<p>事務外發送不記帳（零開銷）；<code>get_send_receipts()</code> 可查看目前事務已發送的回執。</p>
+<h2 id="鏈路追蹤trace-id">鏈路追蹤：trace-id</h2>
+<p>每個入站事件自動獲得追蹤 ID（複用 <code>event["id"]</code>，若缺失則生成），貫穿：</p>
+<ul>
+<li>handler 上下文（使用 <code>get_current_trace_id()</code> 讀取）</li>
+<li>出站發送（<code>[Send]</code> 日誌行附加 <code>[trace:...]</code>，<code>message.sending/sent</code> 鈎子的 <code>trace_id</code> 欄位）</li>
+<li>生命週期鈎子資料（dict 自動補 <code>_trace_id</code>）</li>
+<li>定向事件（<code>lifecycle.emit(..., to=...)</code>）與訊息事務回執</li>
+</ul>
+<p>當一條訊息被多個模組接力處理時，全鏈路可使用同一 ID 串聯（日誌 / 慢查詢 / 審計）。</p>
+<h2 id="與其他系統的關係">與其他系統的關係</h2>
+<ul>
+<li><strong>歸屬權</strong>：等待 / 租約 / 定時器全部記錄 owner，卸載即回收（<a href="/docs/zh-TW/advanced/ownership.html">歸屬權系統</a>）</li>
+<li><strong>作用域</strong>：回應命中複查身份 + 模組維度；跨模組呼叫審計走出站維度（<a href="/docs/zh-TW/advanced/scope.html">作用域</a>）</li>
+<li><strong>Conversation</strong>：多輪對話是交互會話之上的分支狀態機（<a href="/docs/zh-TW/advanced/conversation.html">Conversation</a>），
+其等待同樣享有本頁全部取消 / 複查 / 歸屬語義</li>
+</ul>
+<h2 id="相關文件">相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a> - 分支狀態機、自動檢查點與重新啟動恢復</li>
+<li><a href="/docs/zh-TW/advanced/ownership.html">歸屬權（owner）系統</a> - 歸屬清理的全景與設計邊界</li>
+<li><a href="/docs/zh-TW/advanced/scope.html">作用域（scope）</a> - 權限復查與出站審計的配置方式</li>
+<li><a href="/docs/zh-TW/advanced/module-communication.html">模組間通訊</a> - 跨模組呼叫與定向事件</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/ownership.html"><small>Previous</small><br>所有权（owner）系統</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/shadow.html"><small>Next</small><br>影子模組與灰度轉正</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>架構概覽 - ErisPulse 文档中心</title>
+    <meta name="description" content="本文檔透過可視化圖表介紹 ErisPulse SDK 的技術架構，幫助你快速理解框架的設計理念和模組關係。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/architecture.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/architecture.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/architecture.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/architecture.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/architecture.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/architecture.html" />
+    <meta property="og:title" content="架構概覽 - ErisPulse 文档中心" />
+    <meta property="og:description" content="本文檔透過可視化圖表介紹 ErisPulse SDK 的技術架構，幫助你快速理解框架的設計理念和模組關係。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/architecture.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"架構概覽","description":"本文檔透過可視化圖表介紹 ErisPulse SDK 的技術架構，幫助你快速理解框架的設計理念和模組關係。","url":"https://www.erisdev.com/docs/zh-TW/architecture.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 快速開始
+        <span class="doc-crumb-sep">/</span> <span>架構概覽</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/architecture.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/architecture.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/architecture.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/architecture.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/architecture.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/architecture.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="架構概覽">架構概覽</h1>
+<p>本文檔透過可視化圖表介紹 ErisPulse SDK 的技術架構，幫助你快速理解框架的設計理念和模組關係。</p>
+<h2 id="sdk-核心架構">SDK 核心架構</h2>
+<p>下圖展示了 SDK 的核心模組組成及其關係：</p>
+<pre><code class="language-mermaid">graph TB
+    SDK["sdk&lt;br/&gt;統一入口"]
+
+    SDK --&gt; Event["Event&lt;br/&gt;事件系統"]
+    SDK --&gt; Lifecycle["Lifecycle&lt;br/&gt;生命週期管理"]
+    SDK --&gt; Logger["Logger&lt;br/&gt;日誌管理"]
+    SDK --&gt; Storage["Storage / env&lt;br/&gt;儲存管理"]
+    SDK --&gt; Config["Config&lt;br/&gt;配置管理"]
+    SDK --&gt; AdapterMgr["Adapter&lt;br/&gt;適配器管理"]
+    SDK --&gt; ModuleMgr["Module&lt;br/&gt;模組管理"]
+    SDK --&gt; Router["Router&lt;br/&gt;路由管理"]
+    SDK --&gt; Client["Client&lt;br/&gt;HTTP 客戶端"]
+    Event --&gt; Command["command"]
+    Event --&gt; Message["message"]
+    Event --&gt; Notice["notice"]
+    Event --&gt; Request["request"]
+    Event --&gt; Meta["meta"]
+    Event --&gt; Conversation["Conversation&lt;br/&gt;分支 + 持久化"]
+
+    AdapterMgr --&gt; BaseAdapter["BaseAdapter"]
+    BaseAdapter --&gt; P1["雲湖"]
+    BaseAdapter --&gt; P2["Telegram"]
+    BaseAdapter --&gt; P3["OneBot11/12"]
+    BaseAdapter --&gt; PN["..."]
+
+    ModuleMgr --&gt; BaseModule["BaseModule"]
+    BaseModule --&gt; CM["自訂模組"]
+
+    BaseAdapter -.-&gt; SendDSL["SendDSL&lt;br/&gt;訊息發送"]
+</code></pre>
+<h3 id="核心模組說明">核心模組說明</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>模組</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Event</strong></td>
+<td>事件系統，提供 command / message / notice / request / meta 五類事件處理，以及 Conversation 多輪對話</td>
+</tr>
+<tr>
+<td><strong>Adapter</strong></td>
+<td>適配器管理器，管理多平台適配器的註冊、啟動和關閉</td>
+</tr>
+<tr>
+<td><strong>Module</strong></td>
+<td>模組管理器，管理插件的註冊、加載和卸載，支援依賴聲明和拓撲排序</td>
+</tr>
+<tr>
+<td><strong>Lifecycle</strong></td>
+<td>生命週期管理器，提供事件驅動的生命週期鉤子</td>
+</tr>
+<tr>
+<td><strong>Storage</strong></td>
+<td>基於 SQLite 的鍵值儲存系統，支援通用 SQL 串流查詢</td>
+</tr>
+<tr>
+<td><strong>Config</strong></td>
+<td>TOML 格式的配置檔案管理</td>
+</tr>
+<tr>
+<td><strong>Logger</strong></td>
+<td>模組化日誌系統，支援子日誌器</td>
+</tr>
+<tr>
+<td><strong>Router</strong></td>
+<td>HTTP/WebSocket 路由管理，透過抽象層封裝底層後端（目前為 FastAPI + Uvicorn），支援裝飾器路由、中間件、分組、限流、CORS</td>
+</tr>
+<tr>
+<td><strong>Client</strong></td>
+<td>統一 HTTP/WS 客戶端（2.8.0 前為 <code>HttpClient</code>，保留相容別名），透過抽象層封裝底層請求庫（目前為 aiohttp），提供請求統計、重試、日誌、WebSocket 客戶端、ErisPulse 異常體系等功能。客戶端和伺服器 WebSocket 共享 <code>WebSocketConnectionBase</code> 基類</td>
+</tr>
+</tbody></table></div>
+<h2 id="初始化流程">初始化流程</h2>
+<p>下圖展示了 <code>sdk.init()</code> 的完整初始化過程：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["sdk.init()"] --&gt; B["準備執行環境"]
+    B --&gt; B1["載入配置檔案"]
+    B1 --&gt; B2["設定全域異常處理"]
+    B2 --&gt; C["適配器 &amp; 模組發現"]
+    C --&gt; D{"並行加載"}
+    D --&gt; D1["從 PyPI 加載適配器"]
+    D --&gt; D2["從 PyPI 加載模組"]
+    D1 &amp; D2 --&gt; E["註冊適配器"]
+    E --&gt; E1["啟動適配器"]
+    E1 --&gt; F["註冊模組"]
+    F --&gt; F1{"依賴驗證"}
+    F1 --&gt;|"缺失依賴"| F2["跳過該模組並記錄警告"]
+    F1 --&gt;|"依賴滿足"| F3["拓撲排序&lt;br/&gt;（Kahn 算法 + 優先級）"]
+    F3 --&gt; G["按序初始化模組&lt;br/&gt;（實例化 + on_load）"]
+    F2 --&gt; G
+    G --&gt; H["啟動路由伺服器"]
+    H --&gt; K["運行就緒"]
+</code></pre>
+<h3 id="初始化階段詳解">初始化階段詳解</h3>
+<blockquote>
+<p>完整的初始化鏈路拆解（Finder / Loader / Manager / Router）、底層入口（<code>init()</code> / <code>init_task()</code> / <code>init_sync()</code>）與手動完整啟動見 <a href="/docs/zh-TW/advanced/startup.html">啟動流程與手動控制</a>。</p>
+</blockquote>
+<h2 id="事件處理流程">事件處理流程</h2>
+<p>下圖展示了訊息從平台到處理器的完整轉流路徑：</p>
+<pre><code class="language-mermaid">flowchart LR
+    A["平台原始訊息"] --&gt; B["適配器接收"]
+    B --&gt; C["轉換為 OneBot12 標準"]
+    C --&gt; D["adapter.emit()"]
+    D --&gt; E["執行中間件鏈"]
+    E --&gt; F{"事件分發"}
+    F --&gt; G1["command&lt;br/&gt;命令處理器"]
+    F --&gt; G2["message&lt;br/&gt;訊息處理器"]
+    F --&gt; G3["notice&lt;br/&gt;通知處理器"]
+    F --&gt; G4["request&lt;br/&gt;請求處理器"]
+    F --&gt; G5["meta&lt;br/&gt;元事件處理器"]
+    G1 &amp; G2 &amp; G3 &amp; G4 &amp; G5 --&gt; H["處理器回調執行"]
+    H --&gt; I["event.reply()&lt;br/&gt;透過 SendDSL 回覆"]
+    I --&gt; J["適配器發送至平台"]
+</code></pre>
+<h3 id="事件處理鏈路詳解">事件處理鏈路詳解</h3>
+<p>上面這張圖是「結果」；下面拆開 <code>adapter.emit()</code> 之後框架<strong>在背後做了什麼</strong>——這是一條三層分發的鏈路：</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant P as 平台
+    participant A as 適配器總線層&lt;br/&gt;AdapterManager.emit
+    participant T as 處理器 Task 層&lt;br/&gt;_dispatch_handler_task
+    participant E as Event 模組層&lt;br/&gt;_process_event
+
+    P-&gt;&gt;A: 原生事件
+    A-&gt;&gt;A: 提取 platform/type/detail_type + 原始字段
+    A-&gt;&gt;A: [Recv] 接收日誌
+    A-&gt;&gt;A: lifecycle.adapter.event.receive（最早期鉤子）
+    A-&gt;&gt;A: 處理 self 字段（meta 分支 / Bot 自動註冊）
+    A-&gt;&gt;A: 中間件鏈（串行，可改寫事件資料）
+    A-&gt;&gt;A: 收集 handler（具體類型 + 通配符 *）
+    A-&gt;&gt;A: 身份准入 + 作用域過濾（建立 Task 前，靜默丟棄/跳過）
+    A-&gt;&gt;T: asyncio.create_task（fire-and-forget）
+    A-&gt;&gt;A: lifecycle.adapter.event.dispatched（最末鉤子）
+    T-&gt;&gt;T: 獲取併發信號量（預設上限 64）
+    T-&gt;&gt;E: 調用 Event 模組掛載的處理器
+    E-&gt;&gt;E: lifecycle.event.pre_process
+    E-&gt;&gt;E: ignore_self（訊息事件預設忽略自身）
+    E-&gt;&gt;E: 按優先級分組：高→低、組間串行、組內併發
+    E-&gt;&gt;E: 組內副本執行 + 字段合併（衝突告警）
+    E-&gt;&gt;E: 組後檢查 stop() 阻斷更低優先級
+    T-&gt;&gt;T: 慢日誌（超過 1s 告警，wait_reply 時間白名單）
+</code></pre>
+<p><strong>每一步框架做了什麼、你能干預什麼：</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>階段</th>
+<th>框架做了什麼</th>
+<th>你能干預的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>接收</td>
+<td>提取標準字段，保留 <code>{platform}_raw</code> 原始資料；寫 <code>[Recv]</code> 日誌</td>
+<td>監聽 <code>adapter.event.receive</code> 拿到最早期事件</td>
+</tr>
+<tr>
+<td>self 字段</td>
+<td>meta 事件走 connect/disconnect/heartbeat 分支；普通事件自動註冊 Bot 並觸發 <code>adapter.bot.online</code></td>
+<td>監聽 <code>adapter.bot.online</code> / <code>bot.offline</code></td>
+</tr>
+<tr>
+<td>中間件</td>
+<td><strong>串行</strong>執行，返回值非 None 則取代事件資料</td>
+<td>註冊中間件改寫/攔截事件</td>
+</tr>
+<tr>
+<td>分發收集</td>
+<td>先取具體類型 handler，再取 <code>*</code> 通配符 handler</td>
+<td>—</td>
+</tr>
+<tr>
+<td>身份維度</td>
+<td>分發入口按 用戶&gt;會話&gt;Bot&gt;適配器 判定事件收不收（<code>scope.is_identity_allowed</code>），<strong>拒絕則整個事件丟棄</strong></td>
+<td><code>ErisPulse.scope.identity</code> 綁定</td>
+</tr>
+<tr>
+<td>作用域過濾</td>
+<td>按模組 owner 判定 <code>scope.is_allowed</code>（會話級&gt;Bot級&gt;平台級），<strong>不通過則靜默跳過</strong></td>
+<td>配置作用域白名單/黑名單</td>
+</tr>
+<tr>
+<td>調度</td>
+<td>每個匹配 handler 獨立 <code>asyncio.Task</code>，<code>emit()</code> <strong>不等待</strong> handler 完成即返回</td>
+<td>—</td>
+</tr>
+<tr>
+<td>優先級</td>
+<td>高優先級組先執行；<strong>組間串行、組內併發</strong>（組內各自持有事件副本，改字段合併回原事件，衝突打 WARNING）</td>
+<td><code>@command(..., priority=N)</code> / 註冊時指定 priority</td>
+</tr>
+<tr>
+<td>阻斷</td>
+<td>每處理完一組檢查 <code>event.is_stopped()</code>，命中則<strong>不再執行更低優先級</strong></td>
+<td><code>event.mark_processed(stop=True)</code> / <code>event.done()</code></td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>常見誤區</strong>：</p>
+<ol>
+<li><strong>作用域過濾是靜默的</strong>——被屏蔽的 handler 不報錯不回應，只在 TRACE 級日誌可見（<code>core.scope.denied</code>）。「我的模組沒收到訊息」優先排查作用域綁定。</li>
+<li><strong>handler 天然併發</strong>——框架已為每個 handler 建立獨立 Task，你<strong>不需要</strong>再自己 <code>asyncio.create_task</code> 包一層。</li>
+<li><strong>同優先級組內不阻斷</strong>——<code>mark_processed(stop=True)</code> 只阻止更低優先級組，同組內已併發的 handler 不會中途被打斷。</li>
+<li><strong>慢日誌閾值固定 1 秒</strong>——處理器耗時超過 1s 會在日誌打 WARNING（<code>wait_reply</code> 等待時間已從耗時中剔除），但不中斷執行。</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>作用域（scope）的模組維度三級綁定、身份維度准入與出站動作限制細節見 <a href="/docs/zh-TW/advanced/scope.html">作用域（scope）</a>；事件作用域文字過濾與命令使用者 ACL 見 <a href="/docs/zh-TW/getting-started/event-handling.html">事件處理入門</a>；併發上限配置見 <a href="/docs/zh-TW/user-guide/configuration.html#%E6%A1%86%E6%9E%B6%E9%85%8D%E7%BD%AE">配置指南</a>。</p>
+</blockquote>
+<h2 id="生命週期事件">生命週期事件</h2>
+<p>下圖展示了框架各組件的生命週期事件觸發順序：</p>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Core["核心"]
+        direction LR
+        C1["core.init.start"] --&gt; C2["core.init.complete"]
+    end
+
+    subgraph AdapterLife["適配器"]
+        direction LR
+        A1["adapter.start"] --&gt; A2["adapter.status.change"] --&gt; A3["adapter.stop"] --&gt; A4["adapter.stopped"]
+    end
+
+    subgraph ModuleLife["模組"]
+        direction LR
+        M1["module.load"] --&gt; M2["module.init"] --&gt; M3["module.unload"]
+    end
+
+    subgraph BotLife["Bot"]
+        direction LR
+        B1["adapter.bot.online"] --&gt; B2["adapter.bot.offline"]
+    end
+
+    Core --&gt; AdapterLife
+    AdapterLife --&gt; ModuleLife
+    AdapterLife -.-&gt; BotLife
+</code></pre>
+<h3 id="監聽生命週期事件">監聽生命週期事件</h3>
+<blockquote>
+<p>完整的事件監聽方法（<code>lifecycle.on()</code> / <code>once()</code> / <code>has_handlers()</code>）、全部生命週期事件列表與資料格式見 <a href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a>。</p>
+</blockquote>
+<h2 id="模組加載策略">模組加載策略</h2>
+<p>ErisPulse 支援三種模組加載策略，由 <code>get_load_strategy()</code> 返回的 <code>ModuleLoadStrategy</code> 聲明：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["模組註冊到 ModuleManager"] --&gt; B{"加載策略"}
+    B --&gt;|"lazy_load = true&lt;br/&gt;+ activate_on 聲明"| C["建立 ModuleActivator 代理"]
+    B --&gt;|"lazy_load = true&lt;br/&gt;無 activate_on"| D["建立 LazyModule 代理"]
+    B --&gt;|"lazy_load = false"| E["立即建立實例"]
+    C --&gt; F["註冊事件/命令 stub 到分發器"]
+    F --&gt; G["掛載到 sdk 屬性"]
+    G --&gt; H["事件到達觸發激活"]
+    H --&gt; I["實例化 + on_load() + 注銷 stub"]
+    D --&gt; J["掛載到 sdk 屬性"]
+    J --&gt; K["首次屬性存取時初始化"]
+    E --&gt; L["呼叫 on_load()"]
+    L --&gt; M["掛載到 sdk 屬性"]
+</code></pre>
+<blockquote>
+<p>更多詳情請參考 <a href="/docs/zh-TW/advanced/lazy-loading.html">懶加載系統</a>、<a href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a> 與模組文件。</p>
+</blockquote>
+<h3 id="事件驅動懶激活activate_on觸發架構">事件驅動懶激活（<code>activate_on</code>）觸發架構</h3>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本特性需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p><code>activate_on</code> 允許模組在<strong>首個匹配事件/命令到達時</strong>才加載，避免常駐記憶體，同時確保事件不丟失：</p>
+<pre><code class="language-mermaid">flowchart LR
+    subgraph Declare["模組聲明"]
+        S1["get_load_strategy() 返回&lt;br/&gt;ModuleLoadStrategy(activate_on=...)"] --&gt; S2["activate_on 語法：&lt;br/&gt;str / dict / list 自由混合"]
+        S2 --&gt; S2a["'message' → 事件類型級"]
+        S2 --&gt; S2b["{'notice': 'group_member_increase'}&lt;br/&gt;→ 類型 + detail_type"]
+        S2 --&gt; S2c["{'command': 'roll'}&lt;br/&gt;→ 命令觸發（簡寫/列表）"]
+        S2 --&gt; S2d["{'command': {'name': 'dice', 'help': ...,&lt;br/&gt;'aliases': [...], 'hidden': ...}}&lt;br/&gt;→ 命令觸發（dict 聲明）"]
+    end
+
+    subgraph Runtime["運行期"]
+        R1["ModuleActivator 註冊 stub"] --&gt; R1a["事件 stub → message/notice/request/meta 管理器&lt;br/&gt;優先級 ACTIVATION_STUB_PRIORITY（極低）"]
+        R1 --&gt; R1b["命令 stub → 命令管理器&lt;br/&gt;佔位命令（鏡像 dict 聲明的 help/usage/group/aliases/hidden）"]
+        R1a --&gt; R2{"觸發事件到達"}
+        R1b --&gt; R2
+        R2 --&gt; R3["按 owner 過作用域過濾"]
+        R3 --&gt; R4["asyncio.Lock 防止重複激活"]
+        R4 --&gt; R5["實例化模組 + 呼叫 on_load()"]
+        R5 --&gt; R6["註銷全部 stub"]
+        R6 --&gt; R7["事件轉發到真實處理器"]
+    end
+
+    Declare --&gt; Runtime
+</code></pre>
+<p><strong>觸發語義要點：</strong></p>
+<blockquote>
+<p>完整的 <code>activate_on</code> 語法（str / dict / list）、命令 dict 聲明、佔位命令 help 回退鏈、作用域過濾與失敗語義見 <a href="/docs/zh-TW/advanced/lazy-loading.html#%E4%BA%8B%E4%BB%B6%E9%A9%85%E5%8B%95%E6%87%B6%E6%BF%80%E6%B4%BBactivate_on">懶加載系統</a>。</p>
+</blockquote>
+<h2 id="本地插件檔案夾架構">本地插件檔案夾架構</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本特性需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p>本地插件（<code>plugins/</code> 目錄）無需打包發布，框架啟動時自動發現並加載：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["專案 plugins/ 目錄&lt;br/&gt;（ErisPulse.framework.plugins_dir，支援多目錄）"] --&gt; B{"PluginFolderLoader.discover()"}
+    B --&gt; C["單檔案：dice.py → 插件名 = 檔案名"]
+    B --&gt; D["包形式：weather/（含 __init__.py）→ 插件名 = 目錄名"]
+    B --&gt; E["忽略：__pycache__ / _ 開頭 / 非 .py / 無 __init__.py 目錄"]
+    C --&gt; F["導入模組（spec_from_file_location）"]
+    D --&gt; G["導入模組（sys.path + import_module）"]
+    F --&gt; H["識別模組類：Main（BaseModule 子類）優先，回落首個子類"]
+    G --&gt; H
+    H --&gt; I["構造與 entry-point 一致的 moduleInfo"]
+    I --&gt; J["ModuleLoader.load() 合併&lt;br/&gt;本地優先覆蓋 PyPI 同名安裝包"]
+    J --&gt; K["與安裝包模組共用：&lt;br/&gt;啟用狀態 / 作用域 / meta / i18n / 上下文"]
+</code></pre>
+<p><strong>約定與特性：</strong></p>
+<ul>
+<li>插件名來源：單檔案取檔案名，包形式取目錄名</li>
+<li>本地插件 <code>moduleInfo.meta.source == "plugin_folder"</code>，與 PyPI 安裝包模組無縫共存</li>
+<li>同名時本地優先（便於本地覆蓋調試），被禁用時同時移除同名 entry-point 條目</li>
+</ul>
+<h2 id="模組熱重載架構">模組熱重載架構</h2>
+<p>熱重載對<strong>全部模組來源</strong>一致：本地插件可監控檔案變更自動觸發，任意模組也可透過 <code>sdk.reload_module()</code> / <code>sdk.module.reload()</code> 手動重載（PyPI 安裝包模組在 pip 升級後呼叫即可生效）；<code>sdk.reload_all_modules()</code> / <code>sdk.module.reload_all()</code> 可一次全量重載所有已註冊模組（pip 批量升級後呼叫即可全部生效）：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["sdk.enable_plugin_hot_reload()&lt;br/&gt;（自動監控，僅本地插件目錄）"] --&gt; B["PluginReloadWatcher 啟動"]
+    B --&gt; C["PollingObserver（後台守護執行緒）&lt;br/&gt;定期比較 .py 檔案 mtime"]
+    C --&gt; D{"插件檔案變更"}
+    D --&gt; E["變更去抖（預設 1 秒）"]
+    E --&gt; F["_handle_change 解析插件名&lt;br/&gt;（單檔案 / 包形式）"]
+    F --&gt; G["asyncio.run_coroutine_threadsafe&lt;br/&gt;調度回主事件迴圈"]
+    G --&gt; H["sdk.reload_module(name, full=…)&lt;br/&gt;（也可對任意模組手動呼叫）"]
+    H --&gt; I["卸載舊實例（觸發 on_unload）&lt;br/&gt;收集依賴者準備級聯重載"]
+    I --&gt; J{"模組來源？"}
+    J --&gt;|"plugin_folder"| K["清理註冊與插件 sys.modules&lt;br/&gt;重掃描 plugins/ 目錄"]
+    J --&gt;|"PyPI 安裝包"| L["清理註冊 + 按 top_level 清理包&lt;br/&gt;sys.modules 子樹（full=True 時疊加&lt;br/&gt;舊模組物件頂層段兜底）&lt;br/&gt;刷新導入快取後重查 entry-point"]
+    K --&gt; M["重新 register + load"]
+    L --&gt; M
+    M --&gt; N["掛載新實例到 sdk 屬性"]
+    N --&gt; O["級聯重載依賴者&lt;br/&gt;（插件完整重載 / PyPI 重新實例化；&lt;br/&gt;full=True 時依賴者同樣重導程式碼）"]
+    K -.-&gt;|"檔案已刪除"| P["從加載結果移除"]
+    L -.-&gt;|"entry-point 已消失（已卸載）"| P
+</code></pre>
+<p><strong>兩種來源的差異僅在發現階段</strong>，註冊、加載、級聯重載完全一致：</p>
+<ul>
+<li><strong>本地插件</strong>（<code>moduleInfo.meta.source == "plugin_folder"</code>）：清理插件名對應 <code>sys.modules</code> 後重掃描 <code>plugins/</code> 目錄；檔案已刪除則從加載結果移除</li>
+<li><strong>PyPI 安裝包</strong>：按 <code>meta.top_level</code> 清理包的 <code>sys.modules</code> 子樹，刷新導入快取（突破 entry-point 60 秒快取）後重查並重新導入；entry-point 已消失（pip 卸載）則從加載結果移除</li>
+</ul>
+<p><strong>全量重載（<code>full=True</code>）與整體重載（<code>reload_all_modules</code>）：</strong></p>
+<ul>
+<li><code>top_level</code> 元數據缺失且無法推導時，預設重載<strong>不清理</strong> import 快取（重導入複用舊模組物件，即"假重載"），框架會顯式告警並建議改用 <code>full=True</code>——全量重載會疊加舊模組物件頂層包名兜底清理，確保重載後運行最新程式碼</li>
+<li><code>full=True</code> 時 PyPI 依賴者級聯走完整重載（重導程式碼），預設模式僅重新實例化（既有語義）</li>
+<li>重載會把原本懶加載的模組強制激活（無提示的差異已改為顯式日誌）；<code>reload_all_modules()</code> 則保持懶加載策略、僅將重載前處於已加載態的模組重新激活</li>
+<li><code>reload_all_modules()</code> 按依賴拓撲序重新加載，單模組失敗僅記錄診斷並跳過（無整體回滾——on_unload 副作用不可撤銷，與單模組熱重載的盡力而為語義一致）；重載失敗已回滾的場景同樣如此，日誌會明確提示舊實例處於已收尾狀態</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/quick-start.html"><small>Previous</small><br>快速開始</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/bug-tracker.html"><small>Next</small><br>Bug 追蹤器</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

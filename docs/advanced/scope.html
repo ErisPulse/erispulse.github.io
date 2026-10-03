@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>作用域（scope） - ErisPulse 文档中心</title>
+    <meta name="description" content="作用域回答四个问题：哪些模块可用、谁的事件收不收、某模块处理什么文本、 模块能向外做什么。 控制权完全交给用户：在模块 / 适配器 / 处理器 / 出站调用注册的上层（配置 ErisPulse.scope 或运行时 sdk.scope）统一声明，事件管线在入口、处理器过滤 与出站闸口自动读取并执行。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/advanced/scope.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/scope.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/scope.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/scope.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/scope.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/scope.html" />
+    <meta property="og:title" content="作用域（scope） - ErisPulse 文档中心" />
+    <meta property="og:description" content="作用域回答四个问题：哪些模块可用、谁的事件收不收、某模块处理什么文本、 模块能向外做什么。 控制权完全交给用户：在模块 / 适配器 / 处理器 / 出站调用注册的上层（配置 ErisPulse.scope 或运行时 sdk.scope）统一声明，事件管线在入口、处理器过滤 与出站闸口自动读取并执行。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/advanced/scope.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"作用域（scope）","description":"作用域回答四个问题：哪些模块可用、谁的事件收不收、某模块处理什么文本、 模块能向外做什么。 控制权完全交给用户：在模块 / 适配器 / 处理器 / 出站调用注册的上层（配置 ErisPulse.scope 或运行时 sdk.scope）统一声明，事件管线在入口、处理器过滤 与出站闸口自动读取并执行。","url":"https://www.erisdev.com/docs/advanced/scope.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 高级主题
+        <span class="doc-crumb-sep">/</span> <span>作用域（scope）</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/advanced/scope.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/scope.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/scope.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/scope.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/scope.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/scope.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="作用域scope">作用域（scope）</h1>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本特性需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p>作用域回答四个问题：<strong>哪些模块可用、谁的事件收不收、某模块处理什么文本、
+模块能向外做什么</strong>。
+控制权完全交给用户：在模块 / 适配器 / 处理器 / 出站调用注册的<strong>上层</strong>（配置
+<code>ErisPulse.scope</code> 或运行时 <code>sdk.scope</code>）统一声明，事件管线在入口、处理器过滤
+与出站闸口自动读取并执行。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>控制什么</th>
+<th>拒绝行为</th>
+<th>配置路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>① 模块</strong></td>
+<td>哪些模块可用（平台 / Bot / 会话三级）</td>
+<td>被过滤模块不触发、不回复（拦截广播 <code>scope.blocked</code> 事件；命中的命令仍被认领阻断）</td>
+<td><code>scope.platforms / bots / sessions</code></td>
+</tr>
+<tr>
+<td><strong>② 身份</strong></td>
+<td>事件收不收（适配器 / Bot / 会话 / 用户四级）</td>
+<td>入口完全丢弃（拦截广播 <code>scope.blocked</code> 事件）</td>
+<td><code>scope.identity.*</code></td>
+</tr>
+<tr>
+<td><strong>③ 出站</strong></td>
+<td>模块能发起哪些出站调用（消息 / API / 请求，方法级白黑名单）</td>
+<td>失败响应（<code>retcode=34601</code>）</td>
+<td><code>scope.actions</code></td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>相关系统</strong>：命令是特殊的消息事件处理器，其用户黑白名单（ACL）与
+实现参数覆写由命令系统自持（<code>ErisPulse.event.command</code>），
+见 <a href="/docs/getting-started/event-handling.html">事件处理入门</a> 与 <a href="/docs/user-guide/configuration.html">配置指南</a>。</p>
+</blockquote>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>通过 <code>from ErisPulse.Core import scope</code> 导入单例（<code>sdk.scope</code> 同对象）</li>
+<li>判定：<code>scope.is_allowed(...)</code> / <code>scope.is_identity_allowed(...)</code> /
+<code>scope.is_action_allowed(...)</code> 对应 ①②③ 三个闸口</li>
+<li>读写：维度化参数方法（IDE 可补全）——
+<code>scope.set_module(...)</code> / <code>scope.set_identity(...)</code> / <code>scope.set_action(...)</code>；
+另有字典式兜底 <code>scope.get(path)</code> / <code>scope.set(path, v)</code> / <code>scope.delete(path)</code></li>
+<li>事件处理器文本条件覆写见
+<a href="/docs/getting-started/event-handling.html#%E4%BA%8B%E4%BB%B6%E8%A6%86%E5%86%99%E4%B8%8D%E6%94%B9%E6%A8%A1%E5%9D%97%E4%BB%A3%E7%A0%81%E8%A6%86%E5%86%99%E4%BB%BB%E6%84%8F%E4%BA%8B%E4%BB%B6%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%A1%8C%E4%B8%BA">事件处理入门 · 事件覆写</a>；
+命令 ACL / 参数覆写见<a href="/docs/getting-started/event-handling.html">事件处理入门</a>
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="匹配条目语法全系统统一">匹配条目语法（全系统统一）</h2>
+<p>作用域所有"名字列表"（模块名、身份键、出站条目）共用同一套匹配语法
+（<code>ErisPulse.Core.text_match</code>）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>语法</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>精确名</td>
+<td><code>"Chat"</code></td>
+<td>全值比较，<strong>大小写不敏感</strong></td>
+</tr>
+<tr>
+<td>glob</td>
+<td><code>"Tool*"</code>、<code>"spam_*"</code></td>
+<td><code>*</code> 任意串 / <code>?</code> 单字符 / <code>[seq]</code> 字符集，大小写不敏感</td>
+</tr>
+<tr>
+<td>正则</td>
+<td><code>"re:^Danger.*"</code></td>
+<td>以 <code>re:</code> 前缀声明，正则 <code>search</code> 匹配，默认大小写不敏感</td>
+</tr>
+</tbody></table></div>
+<ul>
+<li>非法正则<strong>静默降级</strong>为"不匹配"（不抛错、不崩溃）</li>
+<li>装饰器参数（<code>pattern=</code> / <code>regex=</code>）为固定语义：<code>pattern</code> 是 glob、<code>regex</code> 是正则源码
+（不加 <code>re:</code> 前缀）；作用域配置里的正则条目<strong>必须</strong>带 <code>re:</code> 前缀</li>
+</ul>
+<h2 id="全局兜底default_allow">全局兜底：<code>default_allow</code></h2>
+<p><code>default_allow</code> 是<strong>全局唯一</strong>的兜底开关（默认 <code>true</code>），
+对两个判定维度统一生效：</p>
+<ul>
+<li><strong>模块维度</strong>：未命中任何绑定 → <code>default_allow</code> 决定放行 / 拒绝</li>
+<li><strong>身份维度</strong>：未命中任何策略 → <code>default_allow</code> 决定放行 / 拒绝</li>
+</ul>
+<p>设为 <code>false</code> 即开启"隐式拒绝"严格模式：白名单式管理，
+<strong>没显式允许的一律拒绝</strong>。</p>
+<blockquote>
+<p><strong>例外</strong>：③ 出站维度<strong>不受</strong> <code>default_allow</code> 影响——它是独立的收紧开关，
+默认全允许，仅显式规则才限制（框架层 owner 为空的调用恒放行）。
+这样严格的全局模式不会意外掐断所有模块的消息回复。
+命令 ACL 有独立的 <code>ErisPulse.event.command.default_allow</code> 兜底，互不影响。</p>
+</blockquote>
+<h2 id="配置文件">配置文件</h2>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope</span><span class="token punctuation">]</span>
+<span class="token key property">default_allow</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>        <span class="token comment"># 全局兜底（false = 隐式拒绝严格模式）</span>
+<span class="token key property">cache_size</span> <span class="token punctuation">=</span> <span class="token number">1024</span>           <span class="token comment"># LRU 缓存大小</span>
+
+<span class="token comment"># ── ① 模块维度（优先级：会话 &gt; Bot &gt; 平台）──</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.platforms.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"Tool*"</span><span class="token punctuation">]</span>   <span class="token comment"># 白名单：精确名 / glob / re: 正则</span>
+<span class="token key property">blocked</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"re:^Danger"</span><span class="token punctuation">]</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.bots.onebot11."123456"</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span>
+<span class="token key property">merge</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>                  <span class="token comment"># 在平台级绑定基础上追加（默认整体覆盖）</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.sessions.onebot11."789012345"</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span>
+
+<span class="token comment"># ── ② 身份维度（优先级：用户 &gt; 会话 &gt; Bot &gt; 适配器）──</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.adapters.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>                   <span class="token comment"># 整个适配器的事件全部丢弃</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.bots.onebot11."123456"</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.sessions.onebot11."g_blocked"</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.users.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"u_admin"</span><span class="token punctuation">]</span>           <span class="token comment"># 用户键支持 glob / re: 正则</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"u_bad"</span><span class="token punctuation">,</span> <span class="token string">"spam_*"</span><span class="token punctuation">]</span>
+
+<span class="token comment"># ── ③ 出站维度（默认全允许，显式收紧才禁）──</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.actions.MyModule</span><span class="token punctuation">]</span>
+<span class="token key property">send</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                                    <span class="token comment"># 全禁发送</span>
+<span class="token key property">api</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"get_*"</span><span class="token punctuation">]</span> <span class="token punctuation">}</span>                               <span class="token comment"># 仅允许查询类标准 API</span>
+<span class="token key property">request</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                                 <span class="token comment"># 禁止处理请求</span>
+</code></pre>
+<h2 id="①-模块维度">① 模块维度</h2>
+<p>回答"某个上下文里，哪些模块可用"。默认全部开放；配置绑定后才开始过滤，
+<strong>模块与适配器无需任何改动</strong>。</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["事件到达某模块的处理器/命令"] --&gt; B{"scope.is_allowed&lt;br/&gt;(platform, bot, module, session)"}
+    B --&gt; C{"解析链：会话级 &gt; Bot 级 &gt; 平台级&lt;br/&gt;（子级 merge = true 时逐级并集）"}
+    C --&gt;|"命中"| D["blocked 命中 → 拒绝&lt;br/&gt;modules 非空 → 仅白名单放行&lt;br/&gt;都空 → default_allow"]
+    C --&gt;|"未命中"| E["default_allow（默认 true = 放行）"]
+    D --&gt;|"拒绝"| Z["不回复&lt;br/&gt;（拦截广播 `scope.blocked` 事件；命中的命令仍被认领阻断）"]
+</code></pre>
+<ul>
+<li><strong>解析优先级：会话级 &gt; Bot 级 &gt; 平台级</strong>，高优先级绑定<strong>整体覆盖</strong>低优先级；
+子级绑定写 <code>merge = true</code> 时改为与低优先级<strong>逐条目并集</strong>（modules / blocked 各自合并，
+<code>merge</code> 本身是控制键，不算条目）</li>
+<li><strong>默认语义</strong>：被过滤模块的命令与处理器不触发、不回复，TRACE 级日志可见
+（<code>core.scope.denied</code>）；拦截同时广播 <code>scope.blocked</code> 生命周期事件（订阅
+即可观测谁被拦、为何被拦）；命中的<strong>命令</strong>仍会被认领阻断——命令文本不再漏给
+低优先级消息处理器，消除"命令被拒后消息处理器又响应一次"的双重响应歧义</li>
+<li><strong>框架级处理器</strong>（<code>scope_exempt=True</code> 或 owner 为空）不受影响；模块名为空（框架层资源）始终放行</li>
+<li><strong>会话感知帮助与命令查询</strong>：命令查询 API（<code>command.help</code> /
+<code>get_command</code> / <code>get_commands</code> / <code>get_group_commands</code> / <code>get_visible_commands</code>，
+以及 <code>module.get_commands_overview</code>）均支持可选 <code>event=</code> 或显式
+<code>platform=</code> / <code>bot_id=</code> / <code>session_id=</code> 关键字——当前会话不可用模块的命令
+不再出现在结果中（<code>get_command</code> 返回 None、单命令帮助按"未注册"处理，
+与默认语义一致）；不传上下文则保持全量行为</li>
+</ul>
+<h3 id="绑定继承merge">绑定继承（merge）</h3>
+<p>默认整体覆盖的语义清晰可预测；需要在上级基础上<strong>追加</strong>时，在子级写 <code>merge = true</code>：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.platforms.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"Tool"</span><span class="token punctuation">]</span>      <span class="token comment"># 平台级：允许 Chat、Tool</span>
+
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.bots.onebot11."123456"</span><span class="token punctuation">]</span>
+<span class="token key property">modules</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Music"</span><span class="token punctuation">]</span>
+<span class="token key property">merge</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>                    <span class="token comment"># 该 Bot 实际生效 = ["Chat", "Tool", "Music"]</span>
+</code></pre>
+<ul>
+<li>合并规则：<code>modules</code> 与 <code>blocked</code> 各自取<strong>并集</strong>；绑定内 <code>blocked</code> 仍优先于 <code>modules</code></li>
+<li>链式合并：平台 → Bot → 会话逐级叠加，每一级独立决定 <code>merge</code> 或覆盖</li>
+</ul>
+<h2 id="②-身份维度事件准入">② 身份维度（事件准入）</h2>
+<p>回答"谁的事件收不收"。被拒绝的事件在<strong>分发入口完全丢弃</strong>——
+不进入中间件与任何处理器（含框架级），仅 TRACE 级日志可见（<code>core.scope.identity_denied</code>）。</p>
+<ul>
+<li><strong>解析优先级：用户 &gt; 会话 &gt; Bot &gt; 适配器</strong>，取最具体的已配置策略；deny 优先于 allow</li>
+<li>每级绑定是二元策略：<code>{ allow = true }</code> 或 <code>{ deny = true }</code></li>
+<li>用户键支持 glob / 正则（如 <code>"spam_*"</code> 拉黑一批垃圾用户）</li>
+<li>典型用法——上级 deny、个人 allow 做"例外放行"：</li>
+</ul>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.adapters.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.identity.users.onebot11</span><span class="token punctuation">]</span>
+<span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"u_admin"</span><span class="token punctuation">]</span>   <span class="token comment"># 即使适配器级拒绝，u_admin 的事件仍然放行</span>
+</code></pre>
+<h2 id="③-出站维度限制模块发起出站调用">③ 出站维度（限制模块发起出站调用）</h2>
+<p>约束模块<strong>发起的出站动作</strong>：消息发送 / 标准 API 动作 / 请求操作。
+三类动作对应底层 DSL：<code>Event.reply</code> 与 <code>Send</code>（send）、<code>Api</code> / <code>call_api</code>（api）、
+<code>Request</code> 的 accept/reject（request）。模块在事件 handler 执行期发起的出站调用
+携带模块 owner，由本维度统一判定。</p>
+<h3 id="规则形态内联表">规则形态（内联表）</h3>
+<p>每个动作的规则是一张内联表：<code>{ allow = [...], deny = true|[...] }</code>。
+同一动作只能有一种规则（TOML 键不可重复，全禁与细粒度二选一）：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.actions.MyModule</span><span class="token punctuation">]</span>
+<span class="token key property">send</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                                  <span class="token comment"># 全禁发送（Event.reply / Send DSL）</span>
+<span class="token comment"># 或方法级细粒度：send = { allow = ["Text", "Image*"], deny = ["File"] }</span>
+<span class="token key property">api</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">allow</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"get_*"</span><span class="token punctuation">]</span> <span class="token punctuation">}</span>                             <span class="token comment"># 仅放行查询类标准 API</span>
+<span class="token comment"># 或动作级黑名单：api = { deny = ["set_*", "leave_*"] }</span>
+<span class="token key property">request</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>                               <span class="token comment"># 禁止处理请求 accept/reject</span>
+</code></pre>
+<ul>
+<li><code>send</code> 的条目匹配<strong>发送方法名</strong>（<code>Text</code> / <code>Image</code> / <code>File</code> ...），
+<code>api</code> 的条目匹配<strong>标准动作名</strong>（<code>get_group_info</code> / <code>set_group_name</code> ...）</li>
+<li>条目支持精确名 / glob / <code>re:</code> 正则（与全系统统一语法一致，大小写不敏感）</li>
+<li><code>allow</code> 写单个字符串等价于单条目列表：<code>send = { allow = "Text" }</code></li>
+</ul>
+<h3 id="判定语义">判定语义</h3>
+<p><strong>默认全允许</strong>——未配置、或 owner 为空（框架层内部调用）均放行。
+配置规则后按以下顺序判定：</p>
+<ol>
+<li><code>deny = true</code> → 拒绝</li>
+<li><code>deny</code> 列表命中调用名 → 拒绝</li>
+<li><code>allow</code> 列表非空且调用名未命中（或调用无名称）→ 拒绝</li>
+<li>其余放行</li>
+</ol>
+<p>被拒调用不发起任何网络请求，直接返回标准失败响应
+（<code>retcode = 34601</code>，见 <a href="/docs/standards/api-response.html#53-%E6%A1%86%E6%9E%B6%E6%89%A9%E5%B1%95%E8%BF%94%E5%9B%9E%E7%A0%8134xxx-%E5%B9%B3%E5%8F%B0%E9%94%99%E8%AF%AF%E6%AE%B5%E7%9A%84%E4%BD%8E%E4%B8%89%E4%BD%8D%E8%87%AA%E5%AE%9A%E4%B9%89">api-response §5.3</a>）。
+三个动作互相独立，可只限其一。</p>
+<pre><code class="language-python"><span class="token comment"># 运行时 API</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>              <span class="token comment"># 全禁发消息</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> allow<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>         <span class="token comment"># 仅允许发文本</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span>    <span class="token comment"># False</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"api"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"get_user_info"</span><span class="token punctuation">)</span>  <span class="token comment"># 按规则判定</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>delete_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>                      <span class="token comment"># 恢复允许</span>
+sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>get_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>                         <span class="token comment"># 该动作当前规则</span>
+</code></pre>
+<h2 id="运行时-api">运行时 API</h2>
+<p>作用域运行时 API 分三层：<strong>判定</strong>（三问）、<strong>维度化读写</strong>（每维 <code>set</code> / <code>get</code> / <code>delete</code>
+参数化方法，签名全类型标注，IDE 可补全）、<strong>字典式兜底</strong>（点分路径直达任意节）。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+scope <span class="token operator">=</span> sdk<span class="token punctuation">.</span>scope
+</code></pre>
+<h3 id="判定三问">判定（三问）</h3>
+<pre><code class="language-python">scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token string">"Chat"</span><span class="token punctuation">)</span>                 <span class="token comment"># ① 模块维度</span>
+scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"789012345"</span><span class="token punctuation">)</span>    <span class="token comment"># 含会话级</span>
+scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">)</span>                   <span class="token comment"># 框架层资源 -&gt; True</span>
+
+scope<span class="token punctuation">.</span>is_identity_allowed<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">,</span> <span class="token string">"group_9"</span><span class="token punctuation">,</span> <span class="token string">"u1"</span><span class="token punctuation">)</span>   <span class="token comment"># ② 身份维度</span>
+
+scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>                    <span class="token comment"># ④ 出站维度</span>
+scope<span class="token punctuation">.</span>is_action_allowed<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span>      <span class="token comment"># 方法级细粒度</span>
+</code></pre>
+<h3 id="①-模块维度-2">① 模块维度</h3>
+<pre><code class="language-python"><span class="token comment"># 绑定（层级由参数决定：session_id &gt; bot_id &gt; 平台级）</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"Tool*"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> blocked<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"re:^Danger"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>                       <span class="token comment"># 平台级</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> session_id<span class="token operator">=</span><span class="token string">"g9"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># 会话级</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Music"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> merge<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>      <span class="token comment"># 与现有条目并集</span>
+scope<span class="token punctuation">.</span>set_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> modules<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> persist<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>    <span class="token comment"># 仅运行时</span>
+
+<span class="token comment"># 读 / 删</span>
+scope<span class="token punctuation">.</span>get_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">)</span>   <span class="token comment"># {"modules": ["Chat"], "blocked": []}</span>
+scope<span class="token punctuation">.</span>delete_module<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><code>merge=True</code> 是<strong>写时并集</strong>（与该级现有绑定合并条目）；跨级解析期的
+<code>merge = true</code> 配置键见上文<a href="#%E7%BB%91%E5%AE%9A%E7%BB%A7%E6%89%BFmerge">绑定继承</a>——两者是独立机制。</p>
+</blockquote>
+<blockquote>
+<p><strong>运行时绑定（<code>persist=False</code>）语义</strong>：运行时绑定保存在独立的覆盖层中，
+<strong>任意后续配置写入 / 配置文件热更新都不会冲掉它们</strong>（配置树重建后按写入顺序
+自动重放，含运行时删除）。它们不落盘，进程重启后丢失；模块卸载时该模块写入的
+运行时绑定会被兜底清理。随后对同一路径执行 <code>persist=True</code> 写入（用户持久化语义）
+将取代运行时规则。</p>
+</blockquote>
+<h3 id="②-身份维度">② 身份维度</h3>
+<pre><code class="language-python"><span class="token comment"># 绑定策略（层级由参数决定：user &gt; session &gt; bot &gt; adapter；allow / deny 二选一）</span>
+scope<span class="token punctuation">.</span>set_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"u_bad"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>set_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"spam_*"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>    <span class="token comment"># 键支持 glob / re: 正则</span>
+scope<span class="token punctuation">.</span>set_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> bot_id<span class="token operator">=</span><span class="token string">"123456"</span><span class="token punctuation">,</span> session_id<span class="token operator">=</span><span class="token string">"g9"</span><span class="token punctuation">,</span> allow<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 读 / 删</span>
+scope<span class="token punctuation">.</span>get_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"u_bad"</span><span class="token punctuation">)</span>   <span class="token comment"># {"deny": True}</span>
+scope<span class="token punctuation">.</span>delete_identity<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"u_bad"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="③-出站维度">③ 出站维度</h3>
+<pre><code class="language-python"><span class="token comment"># 设置限制规则（allow: str|list；deny: bool|str|list；整规则替换语义）</span>
+scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>                    <span class="token comment"># 全禁发送</span>
+scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">,</span> allow<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"Text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>               <span class="token comment"># 仅允许发文本</span>
+scope<span class="token punctuation">.</span>set_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"api"</span><span class="token punctuation">,</span> deny<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"set_*"</span><span class="token punctuation">,</span> <span class="token string">"leave_*"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>     <span class="token comment"># 禁管理类 API</span>
+
+<span class="token comment"># 读 / 删</span>
+scope<span class="token punctuation">.</span>get_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>       <span class="token comment"># {"allow": ["Text"]} 原始规则</span>
+scope<span class="token punctuation">.</span>delete_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"send"</span><span class="token punctuation">)</span>    <span class="token comment"># 移除单动作</span>
+scope<span class="token punctuation">.</span>delete_action<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>            <span class="token comment"># 移除该模块全部动作限制</span>
+</code></pre>
+<h3 id="通用">通用</h3>
+<pre><code class="language-python">scope<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platforms"</span><span class="token punctuation">)</span>   <span class="token comment"># 字典式兜底：点分路径读任意节</span>
+scope<span class="token punctuation">.</span>topology<span class="token punctuation">(</span><span class="token punctuation">)</span>         <span class="token comment"># 全量配置树（供 Dashboard）</span>
+scope<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {"module_calls": .., "module_filtered": .., "identity_checks": .., "identity_denied": ..,</span>
+<span class="token comment">#  "action_checks": .., "action_denied": .., "cache_hits": .., "cache_misses": ..}</span>
+scope<span class="token punctuation">.</span>reset_stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>clear<span class="token punctuation">(</span><span class="token punctuation">)</span>           <span class="token comment"># 清空全部配置（仅内存生效）</span>
+</code></pre>
+<h3 id="高级字典式点分路径兜底">高级：字典式点分路径兜底</h3>
+<p>维度化方法覆盖日常场景；需要直达任意节点（或未来新增的维度）时，
+可用字典式 API——<code>get</code> / <code>set</code> / <code>delete</code> 接受点分路径（dict 深合并、写后立读），
+并提供 <code>scope[path]</code> / <code>scope[path] = v</code> / <code>del scope[path]</code> / <code>path in scope</code> 协议：</p>
+<pre><code class="language-python">scope<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string">"bots.onebot11.123456"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"modules"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"Chat"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"blocked"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span><span class="token builtin">set</span><span class="token punctuation">(</span><span class="token string">"identity.users.onebot11.u_bad"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"deny"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+scope<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"actions.MyModule.send"</span><span class="token punctuation">)</span>
+
+scope<span class="token punctuation">[</span><span class="token string">"platforms.onebot11"</span><span class="token punctuation">]</span>        <span class="token comment"># 读（不存在抛 KeyError）</span>
+scope<span class="token punctuation">[</span><span class="token string">"platforms.onebot11"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span>  <span class="token comment"># 写</span>
+<span class="token keyword">del</span> scope<span class="token punctuation">[</span><span class="token string">"platforms.onebot11"</span><span class="token punctuation">]</span>      <span class="token comment"># 删</span>
+<span class="token string">"actions.MyModule"</span> <span class="token keyword">in</span> scope          <span class="token comment"># 存在性</span>
+</code></pre>
+<h2 id="拦截可观测scopeblocked-事件">拦截可观测：<code>scope.blocked</code> 事件</h2>
+<p>作用域拦截（模块过滤 / 身份拒绝）发生时会广播生命周期事件 **<code>scope.blocked</code>**，
+让"谁被拦、在哪一层被拦"可订阅、可统计、可在 Dashboard 呈现——拦截默认
+不回复，但不再是不可知的黑盒。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>dimension</code></td>
+<td><code>"module"</code>（模块维度过滤）/ <code>"identity"</code>（身份准入拒绝）</td>
+</tr>
+<tr>
+<td><code>module</code></td>
+<td>被过滤的模块名（仅模块维度）</td>
+</tr>
+<tr>
+<td><code>platform</code> / <code>bot_id</code> / <code>session_id</code> / <code>user_id</code></td>
+<td>拦截发生的来源上下文</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>lifecycle <span class="token keyword">import</span> lifecycle
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"scope.blocked"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_blocked</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"已拦截：</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'dimension'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'module'</span><span class="token punctuation">)</span> <span class="token keyword">or</span> data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'user_id'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>事件经 <code>fire</code> 后台广播（无监听者时零开销，不拖热路径）</li>
+<li>缓存命中的重复拦截<strong>不</strong>重复广播——同一组合只在缓存失效时广播一次</li>
+<li>与 <code>adapter.event.blocked</code>（中间件否决）相区分：那个是事件级丢弃，本
+事件是作用域准入门的模块 / 身份过滤</li>
+</ul>
+<h2 id="缓存与热更新">缓存与热更新</h2>
+<ul>
+<li><code>is_allowed</code> / <code>is_identity_allowed</code> / <code>is_action_allowed</code> 结果带 <strong>LRU 缓存</strong>
+（<code>scope.cache_size</code> 可调），<code>set</code> / <code>delete</code> /
+配置热更新（<code>config.updated</code> / <code>config.set</code>）自动失效</li>
+<li>所有维度配置改了<strong>立即生效</strong>，无需重启</li>
+<li>作用域是"逐事件"判断，不跨事件记忆：配置变了，下一条事件即按新规则</li>
+</ul>
+<h2 id="配置格式校验">配置格式校验</h2>
+<p>加载 / 热更新时逐节校验配置格式：类型错误的节（如 <code>platforms</code> 写成了字符串）、
+非法的出站规则（如 <code>allow</code> 写成数字）、未知动作名、未知的顶层键（如 <code>alow</code> 拼写错误）
+会输出 <strong>WARNING</strong> 并忽略对应节 / 条目，其余合法配置照常生效——写错不再静默失效。</p>
+<h2 id="常见问题与注意事项">常见问题与注意事项</h2>
+<h3 id="1-配置层级与覆盖">1. 配置层级与覆盖</h3>
+<ul>
+<li>模块维度：会话级 &gt; Bot 级 &gt; 平台级，<strong>整体覆盖</strong>（子级 <code>merge = true</code> 时逐条目并集）。
+想"平台允许 Chat，Bot 再加 Music"，可在 Bot 级写 <code>merge = true</code>，或同时列出两者</li>
+<li>身份维度：用户 &gt; 会话 &gt; Bot &gt; 适配器，取<strong>最具体</strong>的已配置策略（可做例外放行）</li>
+<li>命令用户黑白名单：精确命令名优先于 glob 键（见 <code>event.command.acl</code>）</li>
+</ul>
+<h3 id="2-模块命令没反应">2. 模块/命令没反应</h3>
+<p>先怀疑作用域而不是模块本身：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_allowed<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> <span class="token string">"MyModule"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>is_identity_allowed<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>   <span class="token comment"># module_filtered / identity_denied &gt; 0 说明有拦截记录</span>
+</code></pre>
+<p>被过滤默认不回复（模块维度与身份维度，避免暴露规则），但会广播 <code>scope.blocked</code> 生命周期事件、统计持续累计；
+命令维度被 ACL 拒绝会显式回复"权限不足"。</p>
+<h3 id="3-出站动作被拒时排查">3. 出站动作被拒时排查</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"actions.MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>scope<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>   <span class="token comment"># action_denied &gt; 0 说明有调用被拦截</span>
+</code></pre>
+<p>拦截是<strong>显式</strong>的：被拒调用返回 <code>retcode = 34601</code> 的标准失败响应（不发起网络请求）。</p>
+<h3 id="4-会话标识跨平台隔离">4. 会话标识跨平台隔离</h3>
+<p><code>(platform, session_id)</code> 组合才是唯一标识。<code>scope.sessions.onebot11."789"</code>
+只作用于 onebot11，不影响 telegram 上同为 <code>789</code> 的会话。身份维度的用户键同理。</p>
+<h2 id="拓扑树-api">拓扑树 API</h2>
+<p><code>ModuleManager.get_topology()</code> 与 <code>AdapterManager.get_topology()</code> 提供模块/适配器归属关系数据，
+<code>sdk.get_topology()</code> 一键聚合（含作用域 <code>scope</code>）：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+topology <span class="token operator">=</span> sdk<span class="token punctuation">.</span>get_topology<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {</span>
+<span class="token comment">#   "modules": {                                   # 模块 → 拥有的资源</span>
+<span class="token comment">#     "Chat": {</span>
+<span class="token comment">#       "loaded": True, "enabled": True,</span>
+<span class="token comment">#       "commands": ["chat", "translate"],</span>
+<span class="token comment">#       "handlers": {"message": 2, "notice": 1},</span>
+<span class="token comment">#       "routes": {"http": ["/Chat/api"], "ws": [], "sse": []},</span>
+<span class="token comment">#       "lifecycle_hooks": 3,</span>
+<span class="token comment">#     }</span>
+<span class="token comment">#   },</span>
+<span class="token comment">#   "adapters": {                                  # 适配器 → Bot → 作用域</span>
+<span class="token comment">#     "onebot11": {</span>
+<span class="token comment">#       "status": "started", "enabled": True,</span>
+<span class="token comment">#       "bots": {"123456": {"status": "online", "scope": {...}}},</span>
+<span class="token comment">#       "scope": {"modules": [...], "blocked": [...]},</span>
+<span class="token comment">#     }</span>
+<span class="token comment">#   },</span>
+<span class="token comment">#   "scope": {                                     # 作用域（模块 / 身份 / 出站动作）</span>
+<span class="token comment">#     "platforms": {...}, "bots": {...}, "sessions": {...},</span>
+<span class="token comment">#     "identity": {"adapters": {...}, "bots": {...}, "sessions": {...}, "users": {...}},</span>
+<span class="token comment">#     "actions": {...},</span>
+<span class="token comment">#   },</span>
+<span class="token comment"># }</span>
+</code></pre>
+<ul>
+<li>模块拓扑聚合了该模块注册的命令、事件处理器、HTTP/WS/SSE 路由与生命周期钩子，便于绘制模块资源树。</li>
+<li>适配器拓扑聚合了各适配器状态、下属 Bot 状态及平台级/Bot 级作用域绑定（模块维度）。</li>
+<li><strong>JSON 安全输出</strong>：<code>get_topology(json_safe=...)</code> 默认 <code>True</code>，返回的结构可直接 <code>json.dumps</code>——模块 <code>info</code> 仅保留纯数据的 <code>meta</code> 子表（丢弃 <code>module_class</code> / <code>strategy</code> 等运行时对象），并对其余节点（含适配器作者塞入 Bot <code>info</code> 的任意对象）做兜底净化（类对象取 <code>__name__</code>、不可序列化对象退化 <code>str()</code>）。Dashboard / WebUI 可直接序列化返回；需要原始对象时传 <code>json_safe=False</code>。</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/advanced/i18n.html"><small>上一篇</small><br>国际化 (i18n) 系统</a>
+        <a class="doc-pager-next" href="/docs/advanced/ownership.html"><small>下一篇</small><br>归属权（owner）系统</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

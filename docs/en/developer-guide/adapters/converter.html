@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Event Converter Implementation Guide - ErisPulse 文档中心</title>
+    <meta name="description" content="The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse&#39;s unified On..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/converter.html" />
+    <meta property="og:title" content="Event Converter Implementation Guide - ErisPulse 文档中心" />
+    <meta property="og:description" content="The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse&#39;s unified On..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Event Converter Implementation Guide","description":"The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse's unified On...","url":"https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Developer Guide <span class="doc-crumb-sep">/</span> Adapters
+        <span class="doc-crumb-sep">/</span> <span>Event Converter Implementation Guide</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/adapters/converter.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/converter.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/converter.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/adapters/converter.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="event-converter-implementation-guide">Event Converter Implementation Guide</h1>
+<p>The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse's unified OneBot12 standard event format.</p>
+<h2 id="converter-responsibilities">Converter Responsibilities</h2>
+<pre><code>Platform-native event ──→ Converter.convert() ──→ OneBot12 standard event
+</code></pre>
+<p>The Converter is only responsible for <strong>forward conversion</strong> (receiving direction), transforming platform-native event data into the OneBot12 standard format. Reverse conversion (sending direction) is handled by the <code>Send.Raw_ob12()</code> method.</p>
+<h3 id="core-principles">Core Principles</h3>
+<ol>
+<li><strong>Lossless conversion</strong>: Original data must be fully retained in the <code>{platform}_raw</code> field</li>
+<li><strong>Standard compatibility</strong>: The converted event must conform to the OneBot12 standard format</li>
+<li><strong>Platform extension</strong>: Platform-specific data is stored in fields with the <code>{platform}_</code> prefix</li>
+</ol>
+<h2 id="baseconverter-base-class-recommended">BaseConverter Base Class (Recommended)</h2>
+<p>Starting from version 2.7.0, the framework provides the <code>BaseConverter</code> base class (<code>ErisPulse.Core.Bases</code>), which encapsulates the <strong>common field construction</strong> and <strong>common message segment utilities</strong> for OneBot12 events, allowing converters to focus only on type mapping:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConverter
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyConverter</span><span class="token punctuation">(</span>BaseConverter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>platform<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span> <span class="token operator">|</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> <span class="token boolean">None</span>
+        event_type <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        base <span class="token operator">=</span> self<span class="token punctuation">.</span>build_base_event<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> event_type<span class="token punctuation">)</span>  <span class="token comment"># id/time/platform/self/raw</span>
+        <span class="token keyword">if</span> event_type <span class="token operator">==</span> <span class="token string">"message"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"message"</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group"</span> <span class="token keyword">if</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">)</span> <span class="token keyword">else</span> <span class="token string">"private"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"sender_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">[</span>self<span class="token punctuation">.</span>text<span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
+            base<span class="token punctuation">[</span><span class="token string">"alt_message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> base
+        <span class="token keyword">return</span> <span class="token boolean">None</span>
+</code></pre>
+<p><code>build_base_event()</code> already fills the following common fields:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>raw_event["event_id"]</code>, UUID generated if missing</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td><code>raw_event["timestamp"]</code>, current time if missing</td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td><code>platform</code> passed during initialization</td>
+</tr>
+<tr>
+<td><code>self</code></td>
+<td><code>{"platform": ..., "user_id": raw_event["bot_id"]}</code></td>
+</tr>
+<tr>
+<td><code>{platform}_raw</code></td>
+<td>Raw event (satisfies "lossless conversion" principle)</td>
+</tr>
+<tr>
+<td><code>{platform}_raw_type</code></td>
+<td>Raw event type</td>
+</tr>
+</tbody></table></div>
+<p>Common message segment utility methods (all static methods, directly reusable):</p>
+<pre><code class="language-python">converter<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"hi"</span><span class="token punctuation">)</span>          <span class="token comment"># {"type": "text", "data": {"text": "hi"}}</span>
+converter<span class="token punctuation">.</span>at<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span>        <span class="token comment"># {"type": "at", "data": {"user_id": "123456"}}</span>
+converter<span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"file.png"</span><span class="token punctuation">)</span>   <span class="token comment"># {"type": "image", "data": {"file": "file.png"}}</span>
+</code></pre>
+<blockquote>
+<p>When manually implementing, the common field construction in <code>build_base_event</code> is boilerplate code that must be repeatedly written. Using <code>BaseConverter</code> eliminates this, and naturally ensures "lossless conversion" (the raw event always goes into <code>{platform}_raw</code>).</p>
+</blockquote>
+<h2 id="convert-method">convert() Method</h2>
+<h3 id="method-signature">Method Signature</h3>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    Converts platform-native event data to OneBot12 standard format.
+
+    :param raw_event: Platform-native event data
+    :return: OneBot12 standard event dictionary
+    """</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<h3 id="return-value-structure">Return Value Structure</h3>
+<p>The converted event dictionary should include the following standard fields:</p>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique event ID"</span><span class="token punctuation">,</span>
+    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>           <span class="token comment"># Unix timestamp (seconds)</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>             <span class="token comment"># Event type</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>      <span class="token comment"># Detailed type</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>      <span class="token comment"># Platform name</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"bot_user_id"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+    <span class="token comment"># Message event fields</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"sender_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">]</span><span class="token punctuation">,</span>              <span class="token comment"># OneBot12 message segment list</span>
+    <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"plain text content"</span><span class="token punctuation">,</span>
+
+    <span class="token comment"># Original data must be preserved</span>
+    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>     <span class="token comment"># Platform-native event complete data</span>
+    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"native event type name"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="required-field-mapping">Required Field Mapping</h2>
+<h3 id="common-fields-all-event-types">Common Fields (All Event Types)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OB12 Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>str</td>
+<td>Unique event identifier</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>int</td>
+<td>Unix timestamp (seconds)</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>str</td>
+<td>Event type: <code>message</code> / <code>notice</code> / <code>request</code> / <code>meta</code></td>
+</tr>
+<tr>
+<td><code>detail_type</code></td>
+<td>str</td>
+<td>Detailed type: <code>private</code> / <code>group</code> / <code>friend</code> etc.</td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td>str</td>
+<td>Platform name, consistent with adapter registration name</td>
+</tr>
+<tr>
+<td><code>self</code></td>
+<td>dict</td>
+<td>Bot information: <code>{"platform": "...", "user_id": "..."}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="message-event-additional-fields">Message Event Additional Fields</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OB12 Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user_id</code></td>
+<td>str</td>
+<td>Sender ID</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>list[dict]</td>
+<td>OneBot12 message segment list</td>
+</tr>
+<tr>
+<td><code>alt_message</code></td>
+<td>str</td>
+<td>Plain text fallback content</td>
+</tr>
+</tbody></table></div>
+<h3 id="notice-event-additional-fields">Notice Event Additional Fields</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OB12 Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user_id</code></td>
+<td>str</td>
+<td>Related user ID</td>
+</tr>
+<tr>
+<td><code>operator_id</code></td>
+<td>str</td>
+<td>Operator ID (e.g., group member changes)</td>
+</tr>
+</tbody></table></div>
+<h2 id="message-segment-conversion">Message Segment Conversion</h2>
+<p>OneBot12 standard defines the following message segment types:</p>
+<pre><code class="language-python"><span class="token comment"># Text</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># Image</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/img.jpg"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># Audio</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"audio"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/audio.mp3"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># Video</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"video"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/video.mp4"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># File</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"file"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/doc.pdf"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># Mention</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># Mention All</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention_all"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># Reply</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"reply"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"msg_123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+</code></pre>
+<p>If the platform does not support certain message segment types, you can omit the segment or convert it to the closest standard type.</p>
+<h2 id="platform-extension-fields">Platform Extension Fields</h2>
+<p>Platform-specific data should be stored using the <code>{platform}_</code> prefix to avoid conflicts with standard fields:</p>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token comment"># Standard fields</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"group"</span><span class="token punctuation">,</span>
+    <span class="token comment"># ...</span>
+
+    <span class="token comment"># Platform extension fields</span>
+    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># Raw event data (required)</span>
+    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"chat"</span><span class="token punctuation">,</span>      <span class="token comment"># Raw event type (required)</span>
+
+    <span class="token comment"># Other platform-specific fields</span>
+    <span class="token string">"myplatform_group_name"</span><span class="token punctuation">:</span> <span class="token string">"Group Name"</span><span class="token punctuation">,</span>
+    <span class="token string">"myplatform_sender_role"</span><span class="token punctuation">:</span> <span class="token string">"admin"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p><strong>Important</strong>: The <code>{platform}_raw</code> field is required, as ErisPulse's event system and modules may depend on it to access platform-native data.</p>
+</blockquote>
+<h2 id="complete-example">Complete Example</h2>
+<p>Here is a complete implementation of a Converter:</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyConverter</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> platform<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>platform <span class="token operator">=</span> platform
+
+    <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        event_type <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        base_event <span class="token operator">=</span> <span class="token punctuation">{</span>
+            <span class="token string">"id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"time"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"timestamp"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+            <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+                <span class="token string">"user_id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"self_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">,</span>
+            <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> event_type<span class="token punctuation">,</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token keyword">if</span> event_type <span class="token operator">==</span> <span class="token string">"chat"</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_convert_message<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> base_event<span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> event_type <span class="token operator">==</span> <span class="token string">"notification"</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_convert_notice<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> base_event<span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> event_type <span class="token operator">==</span> <span class="token string">"request"</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_convert_request<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> base_event<span class="token punctuation">)</span>
+
+        <span class="token keyword">return</span> base_event
+
+    <span class="token keyword">def</span> <span class="token function">_convert_message</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span> base<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"message"</span>
+        base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group"</span> <span class="token keyword">if</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">)</span> <span class="token keyword">else</span> <span class="token string">"private"</span>
+        base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"sender_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        base<span class="token punctuation">[</span><span class="token string">"message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> self<span class="token punctuation">.</span>_convert_message_segments<span class="token punctuation">(</span>raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        base<span class="token punctuation">[</span><span class="token string">"alt_message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span>
+
+        <span class="token keyword">return</span> base
+
+    <span class="token keyword">def</span> <span class="token function">_convert_message_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> content<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">:</span>
+        segments <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        <span class="token keyword">if</span> content<span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> content<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> segments
+
+    <span class="token keyword">def</span> <span class="token function">_convert_notice</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span> base<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"notice"</span>
+        notification_type <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"notification_type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> notification_type <span class="token operator">==</span> <span class="token string">"member_join"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group_member_increase"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"operator_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"operator_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> notification_type <span class="token operator">==</span> <span class="token string">"friend_add"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"friend_increase"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">return</span> base
+
+    <span class="token keyword">def</span> <span class="token function">_convert_request</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span> base<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"request"</span>
+        request_type <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"request_type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> request_type <span class="token operator">==</span> <span class="token string">"friend"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"friend"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"comment"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> request_type <span class="token operator">==</span> <span class="token string">"group_invite"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group"</span>
+            base<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"inviter_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">return</span> base
+</code></pre>
+<h2 id="rich-media-message-conversion-example">Rich Media Message Conversion Example</h2>
+<p>Platform messages often contain rich media such as images, mentions, and replies. Here is an example of <code>_convert_message_segments</code> handling multiple message types:</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_message_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_content<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""Converts platform-native message segment list into OneBot12 standard message segments"""</span>
+    segments <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> item <span class="token keyword">in</span> raw_content<span class="token punctuation">:</span>
+        item_type <span class="token operator">=</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> item_type <span class="token operator">==</span> <span class="token string">"text"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"image"</span><span class="token punctuation">:</span>
+            file_url <span class="token operator">=</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"url"</span><span class="token punctuation">)</span> <span class="token keyword">or</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"file_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> file_url<span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"at"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"target_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"reply"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"reply"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"reply_to_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"at_all"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention_all"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"[Unsupported message type: </span><span class="token interpolation"><span class="token punctuation">{</span>item_type<span class="token punctuation">}</span></span><span class="token string">]"</span></span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> segments
+</code></pre>
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<h3 id="1-missing-platform_raw-field">1. Missing <code>{platform}_raw</code> Field</h3>
+<p>This is the most common mistake. Missing the raw data field will prevent modules from accessing platform-specific information.</p>
+<pre><code class="language-python">base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw_event        <span class="token comment"># Required!</span>
+base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> event_type   <span class="token comment"># Required!</span>
+</code></pre>
+<h3 id="2-incorrect-timestamp-format">2. Incorrect Timestamp Format</h3>
+<p>OneBot12 requires the <code>time</code> field to be a Unix timestamp in seconds (integer). If your platform returns milliseconds or an ISO format string, you must convert it:</p>
+<pre><code class="language-python"><span class="token keyword">import</span> time
+
+<span class="token comment"># Milliseconds → seconds</span>
+<span class="token string">"time"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"timestamp"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">//</span> <span class="token number">1000</span>
+
+<span class="token comment"># ISO string → seconds</span>
+<span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>mktime<span class="token punctuation">(</span>time<span class="token punctuation">.</span>strptime<span class="token punctuation">(</span>raw_event<span class="token punctuation">[</span><span class="token string">"created_at"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"%Y-%m-%dT%H:%M:%S"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-missing-self-field">3. Missing <code>self</code> Field</h3>
+<p>The <code>self</code> field contains bot information, with <code>user_id</code> being the bot's account ID. This field is crucial in multi-bot scenarios:</p>
+<pre><code class="language-python"><span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>   <span class="token comment"># Bot's own ID</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="4-using-non-standard-detail_type-values">4. Using Non-standard <code>detail_type</code> Values</h3>
+<p><code>detail_type</code> must use the values defined by OneBot12, such as <code>private</code>, <code>group</code>, <code>friend_increase</code>, <code>group_member_increase</code>, etc. Do not use platform-specific naming.</p>
+<h3 id="5-round-trip-consistency">5. Round-trip Consistency</h3>
+<p>Ensure that the message segment types generated by the Converter correspond to the methods supported by the Send end. For example, if the Converter converts a platform image message to <code>{"type": "image", ...}</code>, then the Send end's <code>Image()</code> method must be able to handle image sending.</p>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Always preserve raw data</strong>: The <code>{platform}_raw</code> field must not be omitted</li>
+<li><strong>Use standard message segments</strong>: Convert platform messages to OneBot12 standard message segments whenever possible</li>
+<li><strong>Set <code>detail_type</code> appropriately</strong>: Use standard types (<code>private</code>/<code>group</code>/<code>channel</code> etc.), do not define custom ones</li>
+<li><strong>Handle edge cases</strong>: Raw events may lack certain fields; use <code>.get()</code> with reasonable default values</li>
+<li><strong>Performance considerations</strong>: <code>convert()</code> is called for every event; avoid performing time-consuming operations within it</li>
+</ol>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="/docs/en/developer-guide/adapters/core-concepts.html">Adapter Core Concepts</a> - Overall adapter architecture</li>
+<li><a href="/docs/en/developer-guide/adapters/send-dsl.html">SendDSL Guide</a> - Reverse conversion (sending direction)</li>
+<li><a href="/docs/en/standards/event-conversion.html">Event Conversion Standard</a> - Formal event conversion specification</li>
+<li><a href="/docs/en/standards/session-types.html">Session Type System</a> - Session type mapping rules</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/developer-guide/adapters/best-practices.html"><small>Previous</small><br>Adapter Development Best Practices</a>
+        <a class="doc-pager-next" href="/docs/en/platform-guide/README.html"><small>Next</small><br>ErisPulse PlatformFeatures Documentation</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

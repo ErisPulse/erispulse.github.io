@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse.Core.Event.governance 模块 - ErisPulse 文档中心</title>
+    <meta name="description" content="命令治理（EPRFC-2026-001 方向七）的声明解析与运行时判定，自 CommandHandler 拆分： 注册期解析（parse_rate_limit / parse_usage / usage_period_key）、冷却作用域键计算， 以及分发期三段判定——冷却（cooldown=）/ 滑动窗口限流（..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/governance.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/Event/governance.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/governance.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/governance.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/governance.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/governance.html" />
+    <meta property="og:title" content="ErisPulse.Core.Event.governance 模块 - ErisPulse 文档中心" />
+    <meta property="og:description" content="命令治理（EPRFC-2026-001 方向七）的声明解析与运行时判定，自 CommandHandler 拆分： 注册期解析（parse_rate_limit / parse_usage / usage_period_key）、冷却作用域键计算， 以及分发期三段判定——冷却（cooldown=）/ 滑动窗口限流（..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/governance.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.Core.Event.governance 模块","description":"命令治理（EPRFC-2026-001 方向七）的声明解析与运行时判定，自 CommandHandler 拆分： 注册期解析（parse_rate_limit / parse_usage / usage_period_key）、冷却作用域键计算， 以及分发期三段判定——冷却（cooldown=）/ 滑动窗口限流（...","url":"https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/governance.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> API <span class="doc-crumb-sep">/</span> 核心模块
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse.Core.Event.governance 模块</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/Event/governance.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/governance.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/governance.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/governance.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/governance.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/api-reference/auto_api/ErisPulse/Core/Event/governance.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulsecoreeventgovernance-模块"><code>ErisPulse.Core.Event.governance</code> 模块</h1>
+<hr>
+<h2 id="模块概述">模块概述</h2>
+<p>ErisPulse 命令治理模块</p>
+<p>命令治理（EPRFC-2026-001 方向七）的声明解析与运行时判定，自 CommandHandler 拆分：
+注册期解析（parse_rate_limit / parse_usage / usage_period_key）、冷却作用域键计算，
+以及分发期三段判定——冷却（cooldown=）/ 滑动窗口限流（rate_limit=）/ 自然周期配额
+（usage_limit=）。状态表由 :class:<code>GovernanceGate</code> 持有，CommandHandler 以组合方式
+挂载并经同名 property 透出，既有访问路径不变。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li>注册期：parse_rate_limit("5/minute") / parse_usage("3/day") 解析声明（fail-fast）</li>
+<li>分发期：gate.check_cooldown / check_rate_limit / check_usage 返回 True 即已拦截（静默或已回复）</li>
+<li>键粒度白名单复用 <code>constants.GOVERNANCE_KEY_KINDS</code>（与 throttle 共用，本模块不重复定义）</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="parse_rate_limitspec-str"><code>parse_rate_limit(spec: str)</code></h3>
+<p>解析限流声明（如 <code>"5/minute"</code>、<code>"10/s"</code>）为 (次数, 窗口秒)</p>
+<p>滑动窗口语义：窗口内至多放行 <code>次数</code> 次，超出静默丢弃。单位支持
+second / minute / hour / day（含单字母缩写与可选数值前缀，大小写不敏感）。</p>
+<ul>
+<li><strong>spec</strong> (<code>限流声明字符串</code>): <strong>返回值</strong> (<code>(limit,</code>): window_seconds)
+<strong>异常</strong>: <code>ValueError</code> - 语法非法或数值非正时</li>
+</ul>
+<hr>
+<h3 id="parse_usagespec-str"><code>parse_usage(spec: str)</code></h3>
+<p>解析配额声明（如 <code>"3/day"</code>）为 (次数, 周期单位)</p>
+<p>自然周期语义：周期边界对齐本地时区的自然分钟 / 小时 / 日（如 day 为
+当日 00:00 起，次日自动重置），与 :func:<code>parse_rate_limit</code> 的滑动窗口
+相区分（rate_limit 防瞬时刷屏，usage_limit 管业务配额）。</p>
+<ul>
+<li><strong>spec</strong> (<code>配额声明字符串</code>): <strong>返回值</strong> (<code>(limit,</code>): unit)；语法非法时返回错误描述字符串（调用方包装 ValueError）</li>
+</ul>
+<hr>
+<h3 id="usage_period_keyunit-str"><code>usage_period_key(unit: str)</code></h3>
+<p>计算当前自然周期的标识键（本地时区）</p>
+<blockquote>
+<p><strong>内部方法</strong>
+供分发期配额判定使用；周期切换键随之变化即自动重置</p>
+</blockquote>
+<ul>
+<li><strong>unit</strong> (<code>周期单位（minute</code>): / hour / day）
+<strong>返回值</strong> (<code>周期键（如</code>): <code>"2026-09-21"</code>）</li>
+</ul>
+<hr>
+<h3 id="cooldown_scope_keykind-str-event-event"><code>cooldown_scope_key(kind: str, event: 'Event')</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+计算冷却作用域键（复用 <code>platform:bot:目标</code> 会话键体系）</p>
+</blockquote>
+<ul>
+<li><strong>kind</strong> (<code>粒度（user</code>): / session / global，注册期已校验）</li>
+<li><strong>event</strong> (<code>事件数据</code>): <strong>返回值</strong>: 作用域键字符串</li>
+</ul>
+<hr>
+<h2 id="类列表">类列表</h2>
+<h3 id="class-governancegate"><code>class GovernanceGate</code></h3>
+<p>命令治理状态与判定</p>
+<p>持有冷却 / 限流 / 配额三张进程内状态表，提供分发期三段判定与生命周期清理。
+由 CommandHandler 组合持有（<code>self._gate</code>），状态表经其同名 property 透出。</p>
+<blockquote>
+<p><strong>内部方法</strong>
+判定均位于全部权限检查与参数解析通过之后、实际执行之前：
+无权限用户不触发计时，参数错误不消耗；命中默认静默丢弃
+（命令已认领，不漏给低优先级消息处理器），声明了 <code>*_reply=</code> 时在
+状态翻转后的首次命中回复一次（边沿触发：同窗口 / 同周期的后续命中
+保持静默，避免连击时治理回复本身刷屏）。</p>
+</blockquote>
+<h4 id="方法列表">方法列表</h4>
+<h5 id="clear_commandmain_name-str"><code>clear_command(main_name: str)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+按命令主名前缀清理三张状态表（模块卸载自动清理）</p>
+</blockquote>
+<ul>
+<li><strong>main_name</strong>: 命令主名</li>
+</ul>
+<hr>
+<h5 id="clear_all"><code>clear_all()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong> 清空全部治理状态（_clear_commands 调用）</p>
+</blockquote>
+<hr>
+<h5 id="async-check_cooldownmain_name-str-actual_cmd_name-str-effective-dictstr-any-event-event-send_reply-any"><code>async check_cooldown(main_name: str, actual_cmd_name: str, effective: dict[str, Any], event: 'Event', send_reply: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+冷却判定（cooldown=）：执行前即开始计时，实际冷却窗口不受处理耗时影响</p>
+</blockquote>
+<ul>
+<li><strong>main_name</strong> (<code>命令主名（状态表键前缀）</code>): - <strong>actual_cmd_name</strong>: 实际调用的命令名（日志 / trace 展示）</li>
+<li><strong>effective</strong> (<code>合并覆写后的命令生效参数</code>): - <strong>event</strong>: 事件数据</li>
+<li><strong>send_reply</strong> (<code>回复回调（``await</code>): send_reply(event, text)``）
+<strong>返回值</strong> (<code>True</code>): 表示已拦截（静默丢弃或已回复）</li>
+</ul>
+<hr>
+<h5 id="async-check_rate_limitmain_name-str-actual_cmd_name-str-effective-dictstr-any-event-event-send_reply-any"><code>async check_rate_limit(main_name: str, actual_cmd_name: str, effective: dict[str, Any], event: 'Event', send_reply: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+限流判定（rate_limit=，滑动窗口）：与冷却同位次序——权限与参数通过后、
+实际执行前计数；窗口满时默认静默丢弃（可选回复）</p>
+</blockquote>
+<ul>
+<li><strong>main_name</strong> (<code>命令主名（状态表键前缀）</code>): - <strong>actual_cmd_name</strong>: 实际调用的命令名（日志 / trace 展示）</li>
+<li><strong>effective</strong> (<code>合并覆写后的命令生效参数</code>): - <strong>event</strong>: 事件数据</li>
+<li><strong>send_reply</strong> (<code>回复回调（``await</code>): send_reply(event, text)``）
+<strong>返回值</strong> (<code>True</code>): 表示已拦截（静默丢弃或已回复）</li>
+</ul>
+<hr>
+<h5 id="async-check_usagemain_name-str-actual_cmd_name-str-effective-dictstr-any-event-event-send_reply-any"><code>async check_usage(main_name: str, actual_cmd_name: str, effective: dict[str, Any], event: 'Event', send_reply: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+配额判定（usage=，自然周期）：与限流同位次序；计数经 storage KV
+持久化（重启不丢），存储异常时回退进程内内存计数（不阻塞命令）</p>
+</blockquote>
+<ul>
+<li><strong>main_name</strong> (<code>命令主名（状态表键前缀）</code>): - <strong>actual_cmd_name</strong>: 实际调用的命令名（日志 / trace 展示）</li>
+<li><strong>effective</strong> (<code>合并覆写后的命令生效参数</code>): - <strong>event</strong>: 事件数据</li>
+<li><strong>send_reply</strong> (<code>回复回调（``await</code>): send_reply(event, text)``）
+<strong>返回值</strong> (<code>True</code>): 表示已拦截（静默丢弃或已回复）</li>
+</ul>
+<hr>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/api-reference/auto_api/ErisPulse/Core/Event/conversation.html"><small>Previous</small><br>`ErisPulse.Core.Event.conversation` 模块</a>
+        <a class="doc-pager-next" href="/docs/en/api-reference/auto_api/ErisPulse/Core/Event/interaction.html"><small>Next</small><br>`ErisPulse.Core.Event.interaction` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

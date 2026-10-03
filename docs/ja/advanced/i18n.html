@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>国際化 (i18n) システム - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse v2.5.0 以降、完全な国際化 (i18n) 機能が内蔵されています。フレームワークのコアおよび CLI インターフェースは、システムの言語に応じて表示テキストを自動的に切り替えることができ、外部モジュールが独自の翻訳を登録することも可能です。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/i18n.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/i18n.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/i18n.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/i18n.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/i18n.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/i18n.html" />
+    <meta property="og:title" content="国際化 (i18n) システム - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse v2.5.0 以降、完全な国際化 (i18n) 機能が内蔵されています。フレームワークのコアおよび CLI インターフェースは、システムの言語に応じて表示テキストを自動的に切り替えることができ、外部モジュールが独自の翻訳を登録することも可能です。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/i18n.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"国際化 (i18n) システム","description":"ErisPulse v2.5.0 以降、完全な国際化 (i18n) 機能が内蔵されています。フレームワークのコアおよび CLI インターフェースは、システムの言語に応じて表示テキストを自動的に切り替えることができ、外部モジュールが独自の翻訳を登録することも可能です。","url":"https://www.erisdev.com/docs/ja/advanced/i18n.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>国際化 (i18n) システム</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/i18n.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/i18n.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/i18n.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/i18n.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/i18n.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/i18n.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="国際化-i18n-システム">国際化 (i18n) システム</h1>
+<p>ErisPulse v2.5.0 以降、完全な国際化 (i18n) 機能が内蔵されています。フレームワークのコアおよび CLI インターフェースは、システムの言語に応じて表示テキストを自動的に切り替えることができ、外部モジュールが独自の翻訳を登録することも可能です。</p>
+<h2 id="支援言語">支援言語</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>言語</th>
+<th>コード</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>简体中文</td>
+<td><code>zh-CN</code></td>
+<td>デフォルト言語（フレームワークの原生言語）</td>
+</tr>
+<tr>
+<td>繁體中文</td>
+<td><code>zh-TW</code></td>
+<td>繁体中文（香港/澳门/台湾）</td>
+</tr>
+<tr>
+<td>English</td>
+<td><code>en</code></td>
+<td>英文（一般的フォールバック言語）</td>
+</tr>
+<tr>
+<td>日本語</td>
+<td><code>ja</code></td>
+<td>日本語</td>
+</tr>
+<tr>
+<td>Русский</td>
+<td><code>ru</code></td>
+<td>ロシア語</td>
+</tr>
+</tbody></table></div>
+<h2 id="早速体験">早速体験</h2>
+<h3 id="環境変数による切り替え">環境変数による切り替え</h3>
+<pre><code class="language-bash"><span class="token comment"># Windows PowerShell</span>
+<span class="token variable">$env</span>:ERISPULSE_LANG <span class="token operator">=</span> <span class="token string">"en"</span>
+epsdk run
+
+<span class="token comment"># macOS / Linux</span>
+<span class="token assign-left variable">ERISPULSE_LANG</span><span class="token operator">=</span>ja epsdk run
+</code></pre>
+<h3 id="設定ファイルによる切り替え">設定ファイルによる切り替え</h3>
+<p><code>config/config.toml</code> に以下を追加します：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.i18n</span><span class="token punctuation">]</span>
+<span class="token key property">language</span> <span class="token punctuation">=</span> <span class="token string">"zh-TW"</span>
+</code></pre>
+<p><code>"auto"</code>（デフォルト値）に設定すると、システム言語を自動検出します。</p>
+<h3 id="コード内で手動で切り替え">コード内で手動で切り替え</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> i18n
+
+<span class="token comment"># 言語を手動で設定</span>
+i18n<span class="token punctuation">.</span>set_language<span class="token punctuation">(</span><span class="token string">"en"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>i18n<span class="token punctuation">.</span>get_language<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment"># "en"</span>
+
+<span class="token comment"># 自動検出に戻す</span>
+i18n<span class="token punctuation">.</span>reset_language<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="言語検出メカニズム">言語検出メカニズム</h2>
+<p>フレームワークは、以下の優先順位でユーザーの言語を検出します：</p>
+<ol>
+<li><strong>環境変数 <code>ERISPULSE_LANG</code></strong> — 最も高い優先順位で、テストや一時的な切り替えに使用</li>
+<li><strong>Windows API</strong> — <code>GetUserDefaultLocaleName</code>（Windowsに限定、Git Bashなどのツールが <code>LANG</code> を上書きする影響を受けない）</li>
+<li><strong>環境変数</strong> — <code>LANGUAGE</code> &gt; <code>LC_ALL</code> &gt; <code>LC_MESSAGES</code> &gt; <code>LANG</code>（Unix/macOSの標準）</li>
+<li><strong>システムロケール</strong> — <code>locale.getlocale()</code> / <code>locale.getdefaultlocale()</code></li>
+<li><strong>デフォルト</strong> — en（英語）</li>
+</ol>
+<h3 id="近接マッピング原則">近接マッピング原則</h3>
+<p>検出された言語が正確に一致しない場合、サポートされている言語に近接する原則でマッピングされます：</p>
+<ul>
+<li><code>zh-TW</code>, <code>zh-HK</code>, <code>zh-MO</code>, <code>zh-Hant</code> → <strong>繁体中国語</strong></li>
+<li>その他のすべての <code>zh-*</code>（例: <code>zh-CN</code>, <code>zh-SG</code>）→ <strong>簡体中国語</strong></li>
+<li><code>en-US</code>, <code>en-GB</code>, <code>en-AU</code> など → <strong>英語</strong></li>
+<li><code>ja-JP</code> → <strong>日本語</strong></li>
+<li><code>ru-RU</code> → <strong>ロシア語</strong></li>
+<li>その他の未認識の言語 → <strong>簡体中国語（デフォルト）</strong></li>
+</ul>
+<h2 id="モジュールでの-i18n-の使用">モジュールでの i18n の使用</h2>
+<p>独自のモジュールに翻訳テキストを登録することで、多言語をサポートできます。</p>
+<h3 id="推奨方法i18nclass-を使って翻訳キーを宣言するv270">推奨方法：I18nClass を使って翻訳キーを宣言する（v2.7.0+）</h3>
+<p>v2.7.0 以降、モジュールやアダプターは <code>ConfigClass</code> を宣言するのと同じように、ネストされたクラス <code>I18nClass</code> を使って翻訳キーを宣言できます。フレームワークはロード時に<strong>自動的に</strong>宣言されたすべての翻訳キーを登録します。手動で <code>i18n.register()</code> を呼び出す必要はありません。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
+
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig<span class="token punctuation">,</span> BaseI18n<span class="token punctuation">,</span> BaseModule<span class="token punctuation">,</span> I18nKey
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 設定クラス（オプション）</span>
+    <span class="token decorator annotation punctuation">@dataclass</span>
+    <span class="token keyword">class</span> <span class="token class-name">ConfigClass</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        welcome_msg<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
+            default<span class="token operator">=</span><span class="token string">"欢迎"</span><span class="token punctuation">,</span>
+            metadata<span class="token operator">=</span><span class="token punctuation">{</span>
+                <span class="token comment"># ここでは i18n キー mymodule.welcome_msg を参照</span>
+                <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"mymodule.welcome_msg"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"欢迎消息"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token comment"># 翻訳キー集合クラス（オプション）</span>
+    <span class="token comment"># 宣言されたキーはフレームワークによって自動的に登録され、</span>
+    <span class="token comment"># ConfigClass がデフォルト設定を生成するよりも優先されます</span>
+    <span class="token keyword">class</span> <span class="token class-name">I18nClass</span><span class="token punctuation">(</span>BaseI18n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 属性名が自動的に結合されて完全なキー経路 &lt;モジュール名&gt;.&lt;属性名&gt; になります</span>
+        welcome_msg<span class="token punctuation">:</span> I18nKey <span class="token operator">=</span> I18nKey<span class="token punctuation">(</span>
+            default<span class="token operator">=</span><span class="token string">"Welcome Message"</span><span class="token punctuation">,</span>   <span class="token comment"># 言語に依存しないデフォルト値、どの言語にも登録されません</span>
+            zh_CN<span class="token operator">=</span><span class="token string">"欢迎消息"</span><span class="token punctuation">,</span>
+            en<span class="token operator">=</span><span class="token string">"Welcome Message"</span><span class="token punctuation">,</span>
+            ja<span class="token operator">=</span><span class="token string">"ウェルカムメッセージ"</span><span class="token punctuation">,</span>
+            ru<span class="token operator">=</span><span class="token string">"Приветственное сообщение"</span><span class="token punctuation">,</span>
+            zh_TW<span class="token operator">=</span><span class="token string">"歡迎訊息"</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+        <span class="token comment"># 业务で使用する他の翻訳キー</span>
+        hello<span class="token punctuation">:</span> I18nKey <span class="token operator">=</span> I18nKey<span class="token punctuation">(</span>
+            default<span class="token operator">=</span><span class="token string">"Hello, {name}!"</span><span class="token punctuation">,</span>
+            zh_CN<span class="token operator">=</span><span class="token string">"你好，{name}！"</span><span class="token punctuation">,</span>
+            zh_TW<span class="token operator">=</span><span class="token string">"你好，{name}！"</span><span class="token punctuation">,</span>
+            en<span class="token operator">=</span><span class="token string">"Hello, {name}!"</span><span class="token punctuation">,</span>
+            ja<span class="token operator">=</span><span class="token string">"こんにちは、{name}！"</span><span class="token punctuation">,</span>
+            ru<span class="token operator">=</span><span class="token string">"Привет, {name}!"</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+
+        <span class="token comment"># 完全なキー経路を明示的に指定することもできます（属性名の結合を使わない）</span>
+        custom<span class="token punctuation">:</span> I18nKey <span class="token operator">=</span> I18nKey<span class="token punctuation">(</span>
+            key<span class="token operator">=</span><span class="token string">"mymodule.deep.nested.key"</span><span class="token punctuation">,</span>
+            default<span class="token operator">=</span><span class="token string">"Default text"</span><span class="token punctuation">,</span>
+            zh_CN<span class="token operator">=</span><span class="token string">"默认文本"</span><span class="token punctuation">,</span>
+            zh_TW<span class="token operator">=</span><span class="token string">"預設文本"</span><span class="token punctuation">,</span>
+            en<span class="token operator">=</span><span class="token string">"Default text"</span><span class="token punctuation">,</span>
+            ja<span class="token operator">=</span><span class="token string">"デフォルトテキスト"</span><span class="token punctuation">,</span>
+            ru<span class="token operator">=</span><span class="token string">"Текст по умолчанию"</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h4 id="なぜ-i18nclass-が推奨されるのか">なぜ I18nClass が推奨されるのか？</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>シナリオ</th>
+<th>手動 i18n.register()</th>
+<th>I18nClass 宣言式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>設定の説明に参照される i18n キー</td>
+<td>手動で登録する必要があり、設定生成前に登録する必要がある</td>
+<td>フレームワークが設定生成前に自動的に登録する</td>
+</tr>
+<tr>
+<td>多言語翻訳の宣言</td>
+<td>on_load() 内に散在する</td>
+<td>クラス内で一括して宣言され、一目瞭然</td>
+</tr>
+<tr>
+<td>キー名の命名の一貫性</td>
+<td>拼写ミスが発生しやすい</td>
+<td>属性名がキー名の接尾辞として使用され、IDE による補完が可能</td>
+</tr>
+<tr>
+<td>アンロード時のクリーンアップ</td>
+<td>手動で unregister_domain() を呼び出す必要がある</td>
+<td>フレームワークが統一されたドメインで登録する</td>
+</tr>
+</tbody></table></div>
+<h4 id="i18nclass-のキー経路ルール">I18nClass のキー経路ルール</h4>
+<ul>
+<li><strong>デフォルト</strong>：<code>&lt;モジュール登録名&gt;.&lt;属性名&gt;</code> を完全なキー経路として使用<ul>
+<li>例：モジュール名が <code>MyModule</code>、属性 <code>welcome</code> → キー経路 <code>MyModule.welcome</code></li>
+</ul>
+</li>
+<li><strong>明示的</strong>：<code>I18nKey(key="...")</code> パラメータを使って任意のドット区切り経路を指定<ul>
+<li>深層ネストされたキー名（例：<code>mymodule.config.basic.token</code>）に適している</li>
+</ul>
+</li>
+</ul>
+<h4 id="アダプターでの使用">アダプターでの使用</h4>
+<p>アダプターも <code>I18nClass</code> をサポートしており、使用方法は完全に同じです：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> BaseAdapter
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig<span class="token punctuation">,</span> BaseI18n<span class="token punctuation">,</span> I18nKey
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@dataclass</span>
+    <span class="token keyword">class</span> <span class="token class-name">ConfigClass</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
+            default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span>
+            metadata<span class="token operator">=</span><span class="token punctuation">{</span>
+                <span class="token comment"># 設定の説明は adapter.MyAdapter.endpoint キーを参照</span>
+                <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"MyAdapter.endpoint"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"API 地址"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token keyword">class</span> <span class="token class-name">I18nClass</span><span class="token punctuation">(</span>BaseI18n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 集中して設定の説明に参照されるキーとその他の業務用キーの多言語訳を宣言</span>
+        endpoint<span class="token punctuation">:</span> I18nKey <span class="token operator">=</span> I18nKey<span class="token punctuation">(</span>
+            default<span class="token operator">=</span><span class="token string">"API Endpoint"</span><span class="token punctuation">,</span>
+            zh_CN<span class="token operator">=</span><span class="token string">"API 地址"</span><span class="token punctuation">,</span>
+            zh_TW<span class="token operator">=</span><span class="token string">"API 位址"</span><span class="token punctuation">,</span>
+            en<span class="token operator">=</span><span class="token string">"API Endpoint"</span><span class="token punctuation">,</span>
+            ja<span class="token operator">=</span><span class="token string">"APIアドレス"</span><span class="token punctuation">,</span>
+            ru<span class="token operator">=</span><span class="token string">"API адрес"</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<p>アダプターの <code>I18nClass</code> は <code>__init__</code> 階段（つまり設定テンプレート生成の前）に自動的に登録され、設定の説明に参照される i18n キーが利用可能になります。</p>
+<h3 id="手動でカスタム翻訳を登録する旧方法">手動でカスタム翻訳を登録する（旧方法）</h3>
+<p><code>I18nClass</code> を使用しない場合、<code>i18n.register()</code> を直接呼び出して翻訳テキストを登録することもできます。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> i18n
+
+<span class="token comment"># 中文翻訳を登録</span>
+i18n<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"zh-CN"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"my_module.welcome"</span><span class="token punctuation">:</span> <span class="token string">"欢迎使用我的模块！"</span><span class="token punctuation">,</span>
+    <span class="token string">"my_module.goodbye"</span><span class="token punctuation">:</span> <span class="token string">"再见！"</span><span class="token punctuation">,</span>
+    <span class="token string">"my_module.hello"</span><span class="token punctuation">:</span> <span class="token string">"你好，{name}！"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> domain<span class="token operator">=</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 英文翻訳を登録</span>
+i18n<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"en"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"my_module.welcome"</span><span class="token punctuation">:</span> <span class="token string">"Welcome to my module!"</span><span class="token punctuation">,</span>
+    <span class="token string">"my_module.goodbye"</span><span class="token punctuation">:</span> <span class="token string">"Goodbye!"</span><span class="token punctuation">,</span>
+    <span class="token string">"my_module.hello"</span><span class="token punctuation">:</span> <span class="token string">"Hello, {name}!"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> domain<span class="token operator">=</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="翻訳の使用">翻訳の使用</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> i18n
+
+<span class="token comment"># 簡単な翻訳</span>
+i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"my_module.welcome"</span><span class="token punctuation">)</span>  <span class="token comment"># 現在の言語が自動的に使用されます</span>
+
+<span class="token comment"># フォーマットパラメータ付き</span>
+i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"my_module.hello"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># デフォルト値を指定（翻訳キーが存在しない場合に返される）</span>
+i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"my_module.unknown_key"</span><span class="token punctuation">,</span> default<span class="token operator">=</span><span class="token string">"默认文本"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="モジュールクラスでの使用">モジュールクラスでの使用</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> i18n
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig<span class="token punctuation">,</span> BaseModule
+
+<span class="token decorator annotation punctuation">@dataclass</span>
+<span class="token keyword">class</span> <span class="token class-name">MyModuleConfig</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    welcome_msg<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
+        default<span class="token operator">=</span><span class="token string">"欢迎"</span><span class="token punctuation">,</span>
+        metadata<span class="token operator">=</span><span class="token punctuation">{</span>
+            <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_module.welcome_msg"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"欢迎消息"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"ui"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"widget"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"basic"</span><span class="token punctuation">,</span> <span class="token string">"order"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ConfigClass <span class="token operator">=</span> MyModuleConfig
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 実時で設定を読み取る（各アクセスで最新値が反映される）</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span>self<span class="token punctuation">.</span>cfg<span class="token punctuation">.</span>welcome_msg<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span>i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"my_module.welcome"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        name <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_nickname<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">or</span> <span class="token string">"friend"</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span>i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"my_module.hello"</span><span class="token punctuation">,</span> name<span class="token operator">=</span>name<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">pass</span>
+</code></pre>
+<h3 id="翻訳のアンロード">翻訳のアンロード</h3>
+<pre><code class="language-python"><span class="token comment"># ドメイン全体の翻訳をアンロード</span>
+i18n<span class="token punctuation">.</span>unregister_domain<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h2 id="設定フィールドの多言語対応">設定フィールドの多言語対応</h2>
+<p>v2.5.2 以降、設定の Schema は i18n を全面的にサポートします。ユーザーが見られるすべてのテキストフィールドは i18n キーを参照でき、WebUI およびその他の消費者は、現在の言語に応じて自動的に対応するテキストに解析します。</p>
+<h3 id="対応する-i18n-フィールド">対応する i18n フィールド</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>位置</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>description</code></td>
+<td>field metadata</td>
+<td>フィールドの説明</td>
+</tr>
+<tr>
+<td><code>options[].label</code></td>
+<td><code>ui.options</code></td>
+<td>select コントロールのオプションラベル</td>
+</tr>
+<tr>
+<td><code>placeholder</code></td>
+<td><code>ui.placeholder</code></td>
+<td>入力欄のプレースホルダー</td>
+</tr>
+<tr>
+<td><code>group_labels</code></td>
+<td><code>_schema_meta</code></td>
+<td>グループ表示名（Dashboard のセクションタイトル）</td>
+</tr>
+</tbody></table></div>
+<p>すべての i18n フィールドは <code>{"i18n": "key", "default": "テキスト"}</code> の形式を採用し、純粋な文字列はそのまま透過されます（後方互換性を保つため）。</p>
+<h3 id="i18n-フィールドの宣言">i18n フィールドの宣言</h3>
+<p>すべてのユーザーが見られるテキストフィールドは i18n をサポートします：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig
+
+<span class="token decorator annotation punctuation">@dataclass</span>
+<span class="token keyword">class</span> <span class="token class-name">MyAdapterConfig</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># description i18n</span>
+    token<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
+        default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span>
+        metadata<span class="token operator">=</span><span class="token punctuation">{</span>
+            <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.token"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"プラットフォーム Token"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
+            <span class="token string">"secret"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
+            <span class="token string">"ui"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                <span class="token string">"widget"</span><span class="token punctuation">:</span> <span class="token string">"password"</span><span class="token punctuation">,</span>
+                <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"basic"</span><span class="token punctuation">,</span>
+                <span class="token string">"order"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+                <span class="token comment"># placeholder i18n</span>
+                <span class="token string">"placeholder"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.token.ph"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Token を入力してください"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    <span class="token comment"># options label i18n</span>
+    mode<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
+        default<span class="token operator">=</span><span class="token string">"a"</span><span class="token punctuation">,</span>
+        metadata<span class="token operator">=</span><span class="token punctuation">{</span>
+            <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.mode"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"実行モード"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"ui"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                <span class="token string">"widget"</span><span class="token punctuation">:</span> <span class="token string">"select"</span><span class="token punctuation">,</span>
+                <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"basic"</span><span class="token punctuation">,</span>
+                <span class="token string">"order"</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+                <span class="token string">"options"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+                    <span class="token punctuation">{</span><span class="token string">"label"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.mode.a"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"モードA"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">:</span> <span class="token string">"a"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+                    <span class="token punctuation">{</span><span class="token string">"label"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.mode.b"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"モードB"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">:</span> <span class="token string">"b"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+                <span class="token punctuation">]</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># group_labels i18n（グループ表示名）</span>
+    _schema_meta <span class="token operator">=</span> <span class="token punctuation">{</span>
+        <span class="token string">"group_labels"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+            <span class="token string">"basic"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.group.basic"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"基本設定"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+</code></pre>
+<p><code>default</code> はバックアップテキストです。翻訳が登録されていない場合、または検索に失敗した場合に表示されます。</p>
+<h3 id="secret-脱敏と設定検証">secret 脱敏と設定検証</h3>
+<p><code>"secret": True</code> とマークされたフィールドは、2.7.0 以降、<strong>脱敏保護</strong>が自動で適用されます：</p>
+<ul>
+<li><strong>テンプレート生成時の脱敏</strong>：<code>dataclass_to_toml_with_comments()</code> が設定テンプレートを生成する際、secret フィールドの実際の値はファイルに書き込まれません（空のプレースホルダーとして表示され、機密情報がディスク上に残らないようにします）。</li>
+<li><strong>一般的な脱敏ツール</strong>：<code>redact_secret(value)</code> は非空値を <code>***</code> に置き換え、空値はそのまま返します。これはログ出力などの場面で使用できます。</li>
+</ul>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>config_schema <span class="token keyword">import</span> redact_secret
+
+redact_secret<span class="token punctuation">(</span><span class="token string">"sk-xxxxxx"</span><span class="token punctuation">)</span>  <span class="token comment"># '***'</span>
+redact_secret<span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span>           <span class="token comment"># ''</span>
+</code></pre>
+<p><strong>設定検証</strong>（<code>validate_config()</code>）は、<code>required</code> の非空チェックに加えて、2.7.0 以降、以下の検証もサポートします：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>検証項目</th>
+<th>メタデータ</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>型の一致</td>
+<td>フィールドの宣言型</td>
+<td><code>int</code> 型のフィールドに文字列を渡すとエラーになります</td>
+</tr>
+<tr>
+<td>列挙制約</td>
+<td><code>ui.options</code> またはトップレベルの <code>options</code></td>
+<td>値は許可されたオプションに属している必要があります</td>
+</tr>
+<tr>
+<td>数値範囲</td>
+<td>トップレベルの <code>min</code> / <code>max</code></td>
+<td><code>metadata={"min": 1, "max": 65535}</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>config_schema <span class="token keyword">import</span> validate_config
+
+<span class="token decorator annotation punctuation">@dataclass</span>
+<span class="token keyword">class</span> <span class="token class-name">C</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    mode<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">"a"</span><span class="token punctuation">,</span> metadata<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"ui"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"widget"</span><span class="token punctuation">:</span> <span class="token string">"select"</span><span class="token punctuation">,</span> <span class="token string">"options"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"a"</span><span class="token punctuation">,</span> <span class="token string">"b"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+    port<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">80</span><span class="token punctuation">,</span> metadata<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"min"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token string">"max"</span><span class="token punctuation">:</span> <span class="token number">65535</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+errors <span class="token operator">=</span> validate_config<span class="token punctuation">(</span>C<span class="token punctuation">(</span>mode<span class="token operator">=</span><span class="token string">"x"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">70000</span><span class="token punctuation">)</span><span class="token punctuation">)</span>  <span class="token comment"># 2つのエラー：列挙制約と範囲制約</span>
+</code></pre>
+<h3 id="設定の翻訳登録">設定の翻訳登録</h3>
+<p>設定フィールドの i18n キーは、通常の翻訳キーと同じように <code>i18n.register()</code> を使って登録できます：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> i18n
+
+<span class="token comment"># 登録する中国語（default と同じでも、異なるものでも可）</span>
+i18n<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"zh-CN"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"my_adapter.token"</span><span class="token punctuation">:</span> <span class="token string">"プラットフォーム Token"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> domain<span class="token operator">=</span><span class="token string">"my_adapter"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 登録する英語</span>
+i18n<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"en"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"my_adapter.token"</span><span class="token punctuation">:</span> <span class="token string">"Platform Token"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> domain<span class="token operator">=</span><span class="token string">"my_adapter"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>推奨方法</strong>：<code>I18nClass</code> を使って翻訳キーを宣言し、フレームワークが自動的に登録します（上記「推奨方法」の章を参照）。<br>手動で <code>i18n.register()</code> や <code>register_config_i18n()</code> を呼び出す必要はありません。</p>
+</blockquote>
+<p>また、便利な関数 <code>register_config_i18n()</code> も提供されており、設定クラスからキーを自動的に抽出して登録できます：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>config_schema <span class="token keyword">import</span> register_config_i18n
+
+<span class="token comment"># 自動的に description.default を zh-CN の翻訳として登録</span>
+register_config_i18n<span class="token punctuation">(</span>MyAdapterConfig<span class="token punctuation">,</span> <span class="token string">"zh-CN"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 手動で英語の翻訳を提供</span>
+register_config_i18n<span class="token punctuation">(</span>MyAdapterConfig<span class="token punctuation">,</span> <span class="token string">"en"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"my_adapter.token"</span><span class="token punctuation">:</span> <span class="token string">"Platform Token"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="webui-での消費方法">WebUI での消費方法</h3>
+<p><code>get_config_schema()</code> が返す schema では、i18n ディクショナリはそのまま透過されます。WebUI のフロントエンドは、現在の言語に応じて <code>i18n.t()</code> を呼び出して解析できます。</p>
+<p>i18n をサポートしないフロントエンドに直接文字列を返す必要がある場合、<code>resolve_config_schema()</code> を使用します。この関数は、<code>description</code>、<code>options[].label</code>、<code>placeholder</code>、<code>group_labels</code> をすべて現在の言語の文字列に解析します：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>config_schema <span class="token keyword">import</span> resolve_config_schema
+
+<span class="token comment"># すべての i18n フィールドが現在の言語の文字列に解析されています</span>
+schema <span class="token operator">=</span> resolve_config_schema<span class="token punctuation">(</span>MyAdapterConfig<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>schema<span class="token punctuation">[</span><span class="token string">"fields"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"token"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"description"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>    <span class="token comment"># "プラットフォーム Token" または "Platform Token"</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>schema<span class="token punctuation">[</span><span class="token string">"fields"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"token"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"placeholder"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>   <span class="token comment"># "Token を入力してください" または "Enter Token"</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>schema<span class="token punctuation">[</span><span class="token string">"fields"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"mode"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"options"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"label"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># "モードA" または "Mode A"</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>schema<span class="token punctuation">[</span><span class="token string">"group_labels"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"basic"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>             <span class="token comment"># "基本設定" または "Basic"</span>
+</code></pre>
+<blockquote>
+<p><code>BaseConfig</code>、<code>BotAccountConfig</code>、<code>register_config_i18n()</code>、<code>resolve_config_schema()</code><br>などの型とツール関数の実際の定義は <code>ErisPulse.Core.Bases.config_schema</code> にあります。<br><code>ErisPulse.runtime.config_schema</code> は互換性のための shims として残されています。<br><strong>推奨は <code>ErisPulse.Core.Bases</code> から一括でインポートすること</strong>（i18n 翻訳キーに関連する型は例外で、<code>ErisPulse.Core.Bases.i18n_schema</code> にあります）。</p>
+</blockquote>
+<h2 id="api-リファレンス">API リファレンス</h2>
+<h3 id="i18nmanager">I18nManager</h3>
+<h4 id="核心メソッド">核心メソッド</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>t(key, default=None, **kwargs)</code></td>
+<td>翻訳テキストを取得する（<code>gettext()</code> はエイリアス）</td>
+</tr>
+<tr>
+<td><code>set_language(lang)</code></td>
+<td>手動で言語を設定する</td>
+</tr>
+<tr>
+<td><code>get_language()</code></td>
+<td>現在の言語を取得する</td>
+</tr>
+<tr>
+<td><code>reset_language()</code></td>
+<td>自動検出にリセットし、環境を再検出する</td>
+</tr>
+<tr>
+<td><code>get_supported_languages()</code></td>
+<td>すべてのサポート言語のリストを取得する</td>
+</tr>
+<tr>
+<td><code>has_translation(key, lang=None)</code></td>
+<td>翻訳キーが存在するか確認する</td>
+</tr>
+<tr>
+<td><code>register(lang, translations, domain)</code></td>
+<td>自定義翻訳を登録する</td>
+</tr>
+<tr>
+<td><code>unregister_domain(domain)</code></td>
+<td>指定されたドメインのすべての翻訳をアンロードする</td>
+</tr>
+<tr>
+<td><code>reload()</code></td>
+<td>内部翻訳を再読み込みし、言語を再検出する</td>
+</tr>
+</tbody></table></div>
+<h4 id="t-メソッドの詳細"><code>t()</code> メソッドの詳細</h4>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">t</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> key<span class="token punctuation">,</span> <span class="token operator">/</span><span class="token punctuation">,</span> default<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+</code></pre>
+<ul>
+<li><code>key</code> — 翻訳キー（位置引数のみ、<code>**kwargs</code> の <code>key=</code> と衝突しない）</li>
+<li><code>default</code> — 翻訳が存在しない場合に返すデフォルト値、デフォルトは <code>None</code>（キー名そのものを返す）</li>
+<li><code>**kwargs</code> — 翻訳値中の <code>{placeholder}</code> を埋め込むためのフォーマットパラメータ</li>
+</ul>
+<p>例：</p>
+<pre><code class="language-python"><span class="token comment"># 翻訳定義: "greeting": "你好，{name}！欢迎来到{place}。"</span>
+i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"greeting"</span><span class="token punctuation">,</span> name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">,</span> place<span class="token operator">=</span><span class="token string">"ErisPulse"</span><span class="token punctuation">)</span>
+<span class="token comment"># 戻り値: "你好，Alice！欢迎来到ErisPulse。"</span>
+</code></pre>
+<h3 id="basei18n-i18nkey宣言的翻訳キー">BaseI18n / I18nKey（宣言的翻訳キー）</h3>
+<p>v2.7.0 から、<code>ErisPulse.Core.Bases</code> はクラス属性に基づく翻訳キーの宣言ツールを提供しています（<code>ErisPulse.Core.Bases</code> から統一的にインポートすることを推奨します）：</p>
+<blockquote>
+<p><code>I18nKey.default</code> は<strong>言語に依存しないデフォルトテキスト</strong>であり、どの言語にも登録されません。<br>翻訳を有効にするには、少なくとも1つの言語パラメータ（<code>zh_CN=</code> / <code>en=</code> / <code>ja=</code> など）を明示的に渡す必要があります。<br>これにより、各国の開発者は <code>default</code> を自分の母国語で自由に記入でき、フレームワークはその内容を一切仮定しません。</p>
+</blockquote>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>I18nKey(default, *, key=None, zh_CN, zh_TW, en, ja, ru)</code></td>
+<td>単一の翻訳キーの宣言、<code>default</code> は言語に依存しないデフォルト</td>
+</tr>
+<tr>
+<td><code>BaseI18n</code></td>
+<td>翻訳キー集合の基底クラス（<code>BaseConfig</code> と命名を揃える）、子クラスはクラス属性で複数の <code>I18nKey</code> を宣言する</td>
+</tr>
+<tr>
+<td><code>BaseI18n.register(prefix="", domain="app")</code></td>
+<td>クラスメソッド：宣言されたすべてのキーを i18n システムに登録する</td>
+</tr>
+<tr>
+<td><code>key</code></td>
+<td><code>I18nKey</code> のエイリアス（より簡潔な書き方）</td>
+</tr>
+</tbody></table></div>
+<p>使用例：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseI18n<span class="token punctuation">,</span> key
+
+<span class="token keyword">class</span> <span class="token class-name">MyKeys</span><span class="token punctuation">(</span>BaseI18n<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 簡潔なエイリアス書き方</span>
+    hello <span class="token operator">=</span> key<span class="token punctuation">(</span>
+        default<span class="token operator">=</span><span class="token string">"Hello"</span><span class="token punctuation">,</span>
+        zh_CN<span class="token operator">=</span><span class="token string">"你好"</span><span class="token punctuation">,</span>
+        zh_TW<span class="token operator">=</span><span class="token string">"你好"</span><span class="token punctuation">,</span>
+        en<span class="token operator">=</span><span class="token string">"Hello"</span><span class="token punctuation">,</span>
+        ja<span class="token operator">=</span><span class="token string">"こんにちは"</span><span class="token punctuation">,</span>
+        ru<span class="token operator">=</span><span class="token string">"Привет"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+    bye <span class="token operator">=</span> key<span class="token punctuation">(</span>
+        default<span class="token operator">=</span><span class="token string">"Bye"</span><span class="token punctuation">,</span>
+        zh_CN<span class="token operator">=</span><span class="token string">"再见"</span><span class="token punctuation">,</span>
+        zh_TW<span class="token operator">=</span><span class="token string">"再見"</span><span class="token punctuation">,</span>
+        en<span class="token operator">=</span><span class="token string">"Bye"</span><span class="token punctuation">,</span>
+        ja<span class="token operator">=</span><span class="token string">"さようなら"</span><span class="token punctuation">,</span>
+        ru<span class="token operator">=</span><span class="token string">"До свидания"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+
+<span class="token comment"># 独立使用（手動で登録）</span>
+MyKeys<span class="token punctuation">.</span>register<span class="token punctuation">(</span>prefix<span class="token operator">=</span><span class="token string">"myapp."</span><span class="token punctuation">,</span> domain<span class="token operator">=</span><span class="token string">"myapp"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="sdk-インスタンスからのアクセス">SDK インスタンスからのアクセス</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># sdk.i18n は直接インポートした i18n と同じオブジェクト</span>
+sdk<span class="token punctuation">.</span>i18n<span class="token punctuation">.</span>set_language<span class="token punctuation">(</span><span class="token string">"en"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"core.sdk.init.starting"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="実行時設定">実行時設定</h2>
+<h3 id="設定apiを介してi18n設定を読み取る">設定APIを介してi18n設定を読み取る</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> I18nConfig
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> get_i18n_config
+
+config <span class="token operator">=</span> get_i18n_config<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>config<span class="token punctuation">[</span><span class="token string">"language"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># "auto" または具体的な言語コード</span>
+
+<span class="token comment"># I18nConfig は dataclass であり、設定テンプレートの生成に使用可能</span>
+schema <span class="token operator">=</span> I18nConfig<span class="token punctuation">.</span>__dataclass_fields__
+</code></pre>
+<h3 id="設定項目の説明">設定項目の説明</h3>
+<p><code>config/config.toml</code> の <code>[ErisPulse.i18n]</code> 部分で：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.i18n</span><span class="token punctuation">]</span>
+<span class="token comment"># 表示言語。選択可能な値:</span>
+<span class="token comment"># - "auto"      — システム言語を自動検出（デフォルト）</span>
+<span class="token comment"># - "zh-CN"     — 簡体字中国語</span>
+<span class="token comment"># - "zh-TW"     — 繁体字中国語</span>
+<span class="token comment"># - "en"        — 英語</span>
+<span class="token comment"># - "ja"        — 日本語</span>
+<span class="token comment"># - "ru"        — ロシア語</span>
+<span class="token key property">language</span> <span class="token punctuation">=</span> <span class="token string">"auto"</span>
+</code></pre>
+<hr>
+<h2 id="最佳実践">最佳実践</h2>
+<h3 id="翻訳キーの命名">翻訳キーの命名</h3>
+<p>ドットで区切られた名前空間形式の命名を推奨します：</p>
+<pre><code>&lt;モジュール名&gt;.&lt;カテゴリ&gt;.&lt;説明&gt;
+</code></pre>
+<p>例：<code>my_module.command.hello_desc</code>、<code>core.adapter.start_failed</code></p>
+<h3 id="多言語のカバー">多言語のカバー</h3>
+<p>すべての言語の翻訳を一度に提供する必要はありません。不足している言語は自動的に英語にフォールバックされ、英語もなければキー名そのものが表示されます。</p>
+<h3 id="動的コンテンツ">動的コンテンツ</h3>
+<p>ユーザー名、数値などの動的に生成されるコンテンツについては、<code>{placeholder}</code> 形式でフォーマットします：</p>
+<pre><code class="language-python"><span class="token comment"># 翻訳定義</span>
+<span class="token string">"user_count"</span><span class="token punctuation">:</span> <span class="token string">"現在オンラインのユーザー：{count} 人"</span>
+
+<span class="token comment"># 使用</span>
+i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"user_count"</span><span class="token punctuation">,</span> count<span class="token operator">=</span><span class="token builtin">len</span><span class="token punctuation">(</span>users<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="ログメッセージ">ログメッセージ</h3>
+<p>モジュールがフレームワークの Logger を使用している場合、これらのメッセージも自動的に現在の言語で表示されます：</p>
+<pre><code class="language-python">self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span>i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</span><span class="token string">"my_module.startup"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="cli-i18n-との関係">CLI i18n との関係</h2>
+<p>CLI には<strong>独立</strong>した国際化モジュール (<code>ErisPulse.CLI.i18n</code>) があり、フレームワークのコアの国際化モジュールとは完全に分離されています。</p>
+<ul>
+<li><strong>Core i18n</strong> — フレームワークのコアモジュールで使用され、外部モジュールは翻訳を登録できます。</li>
+<li><strong>CLI i18n</strong> — コマンドラインインターフェース内で使用され、Core と翻訳データを共有しません。</li>
+</ul>
+<p>この設計により、CLI の翻訳の変更がフレームワークのコアの安定性に影響を与えることがありません。</p>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/sql-builder.html"><small>Previous</small><br>SQL クエリビルダー</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/scope.html"><small>Next</small><br>スコープ (scope)</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

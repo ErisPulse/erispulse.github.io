@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse 發送方法規範 - ErisPulse 文档中心</title>
+    <meta name="description" content="本文檔定義了 ErisPulse 適配器中 Send 類發送方法的命名規範、參數規範和反向轉換要求。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/standards/send-method-spec.html" />
+    <meta property="og:title" content="ErisPulse 發送方法規範 - ErisPulse 文档中心" />
+    <meta property="og:description" content="本文檔定義了 ErisPulse 適配器中 Send 類發送方法的命名規範、參數規範和反向轉換要求。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/standards/send-method-spec.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse 發送方法規範","description":"本文檔定義了 ErisPulse 適配器中 Send 類發送方法的命名規範、參數規範和反向轉換要求。","url":"https://www.erisdev.com/docs/zh-TW/standards/send-method-spec.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 技術標準
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse 發送方法規範</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/standards/send-method-spec.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/standards/send-method-spec.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/standards/send-method-spec.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/standards/send-method-spec.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/standards/send-method-spec.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/standards/send-method-spec.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulse-發送方法規範">ErisPulse 發送方法規範</h1>
+<p>本文檔定義了 ErisPulse 適配器中 Send 類發送方法的命名規範、參數規範和反向轉換要求。</p>
+<h2 id="0-關鍵詞約定">0. 關鍵詞約定</h2>
+<p>本文檔中的 <strong>必須（MUST）</strong>、<strong>應當（SHOULD）</strong>、<strong>可以（MAY）</strong> 按以下語義解釋（參照 RFC 2119）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>關鍵詞</th>
+<th>語義</th>
+<th>違反後果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>必須</strong></td>
+<td>強制要求，框架行為/跨平台一致性依賴它</td>
+<td>適配器視為不符合標準，模組代碼可能無法工作</td>
+</tr>
+<tr>
+<td><strong>應當</strong></td>
+<td>強烈推薦；除非有充分理由，否則遵循</td>
+<td>偏離時須在適配器文件中說明原因與替代行為</td>
+</tr>
+<tr>
+<td><strong>可以</strong></td>
+<td>可選項，按平台能力自行決定</td>
+<td>無</td>
+</tr>
+</tbody></table></div>
+<h2 id="1-標準方法命名">1. 標準方法命名</h2>
+<p>所有發送方法使用 <strong>大駝峰命名法（PascalCase）</strong>，首字母大寫。</p>
+<h3 id="11-標準發送方法">1.1 標準發送方法</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>說明</th>
+<th>參數類型</th>
+<th>實現要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Text</code></td>
+<td>發送文本消息</td>
+<td><code>str</code></td>
+<td>必須</td>
+</tr>
+<tr>
+<td><code>Image</code></td>
+<td>發送圖片</td>
+<td><code>str</code> | <code>bytes</code></td>
+<td>必須（基類已內置，見 §6.4）</td>
+</tr>
+<tr>
+<td><code>Voice</code></td>
+<td>發送語音</td>
+<td><code>str</code> | <code>bytes</code></td>
+<td>必須（基類已內置；平台不支援語音時按 §2.1.5 降級）</td>
+</tr>
+<tr>
+<td><code>Video</code></td>
+<td>發送影片</td>
+<td><code>str</code> | <code>bytes</code></td>
+<td>必須（基類已內置；平台不支援影片時按 §2.1.5 降級）</td>
+</tr>
+<tr>
+<td><code>File</code></td>
+<td>發送檔案</td>
+<td><code>str</code> | <code>bytes</code>，<code>filename: str | None = None</code></td>
+<td>必須（基類已內置）</td>
+</tr>
+<tr>
+<td><code>At</code></td>
+<td>@使用者/群組</td>
+<td><code>str</code> (user_id)</td>
+<td>修飾方法，按需</td>
+</tr>
+<tr>
+<td><code>Face</code></td>
+<td>發送表情</td>
+<td><code>str</code> (emoji)</td>
+<td>可以</td>
+</tr>
+<tr>
+<td><code>Reply</code></td>
+<td>回覆訊息</td>
+<td><code>str</code> (message_id)</td>
+<td>修飾方法，按需</td>
+</tr>
+<tr>
+<td><code>Forward</code></td>
+<td>轉發訊息</td>
+<td><code>str</code> (message_id)</td>
+<td>可以</td>
+</tr>
+<tr>
+<td><code>Markdown</code></td>
+<td>發送 Markdown 消息</td>
+<td><code>str</code></td>
+<td>可以</td>
+</tr>
+<tr>
+<td><code>HTML</code></td>
+<td>發送 HTML 消息</td>
+<td><code>str</code></td>
+<td>可以</td>
+</tr>
+<tr>
+<td><code>Card</code></td>
+<td>發送卡片消息</td>
+<td><code>dict</code></td>
+<td>可以</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>標準方法（<code>Text</code>/<code>Image</code>/<code>Voice</code>/<code>Video</code>/<code>File</code>）由基類 <code>SendDSL</code> 內置並預設委派 <code>Raw_ob12</code>，適配器<strong>無需重複實現</strong>即可獲得類型簽名；僅當平台需要特殊邏輯時才覆蓋單個方法（見 §6.4）。</p>
+</blockquote>
+<h3 id="12-鏈式修飾方法">1.2 鏈式修飾方法</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>說明</th>
+<th>參數類型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>At</code></td>
+<td>@使用者（可多次呼叫）</td>
+<td><code>str</code> (user_id)</td>
+</tr>
+<tr>
+<td><code>AtAll</code></td>
+<td>@全體成員</td>
+<td>無</td>
+</tr>
+<tr>
+<td><code>Reply</code></td>
+<td>回覆訊息</td>
+<td><code>str</code> (message_id)</td>
+</tr>
+</tbody></table></div>
+<h3 id="13-協議方法">1.3 協議方法</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>說明</th>
+<th>是否必須</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Raw_ob12</code></td>
+<td>發送 OneBot12 格式訊息段</td>
+<td>必須</td>
+</tr>
+</tbody></table></div>
+<p><strong><code>Raw_ob12</code> 是必須實現的方法</strong>。這是適配器的核心職責之一：接收 OneBot12 標準訊息段並將其轉換為平台原生 API 呼叫。<code>Raw_ob12</code> 是反向轉換（OneBot12 → 平台）的統一入口，確保模組可以不依賴平台特有方法，直接使用標準訊息段發送訊息。</p>
+<p><strong>未重寫 <code>Raw_ob12</code> 時的行為</strong>：基類預設實現會記錄 <strong>error 級別</strong>日誌並返回標準錯誤回應格式（<code>status: "failed"</code>, <code>retcode: 10002</code>），提示適配器開發者必須實現此方法。</p>
+<h3 id="14-推薦的擴展命名約定">1.4 推薦的擴展命名約定</h3>
+<p>適配器如需支援發送非 OneBot12 格式的原始資料（如平台特定 JSON、XML 等），推薦使用以下命名約定：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>推薦方法名</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Raw_json</code></td>
+<td>發送任意 JSON 資料</td>
+</tr>
+<tr>
+<td><code>Raw_xml</code></td>
+<td>發送任意 XML 資料</td>
+</tr>
+</tbody></table></div>
+<p><strong>注意</strong>：這些方法<strong>不是</strong>基類提供的預設方法，也不強制要求實現。它們僅作為命名約定，適配器可依需要自行定義。如果適配器不支援這些格式，則無需定義。</p>
+<p><strong>訊息建構器（MessageBuilder）</strong>：ErisPulse 提供了 <code>MessageBuilder</code> 工具類，用於方便地建構 OneBot12 訊息段列表，配合 <code>Raw_ob12</code> 使用。詳見 <a href="#11-%E8%A8%8A%E6%81%AF%E5%BB%BA%E6%A7%8B%E5%99%A8-messagebuilder">訊息建構器</a> 章節。</p>
+<h2 id="2-參數規範詳解">2. 參數規範詳解</h2>
+<h3 id="21-媒體訊息發送協定image-voice-video-file">2.1 媒體訊息發送協定（<code>Image</code> / <code>Voice</code> / <code>Video</code> / <code>File</code>）</h3>
+<p>本節是媒體發送的<strong>統一協定標準</strong>：模組以同一份程式碼呼叫四個媒體方法，適配器負責將
+<code>file</code> 參數的各種形態轉換為平台原生的上傳/發送行為。</p>
+<h4 id="211-file-參數的合法形態">2.1.1 <code>file</code> 參數的合法形態</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>形態</th>
+<th>示例</th>
+<th>適配器要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTP(S) URL</td>
+<td><code>https://example.com/image.jpg</code></td>
+<td><strong>必須</strong>接受</td>
+</tr>
+<tr>
+<td>本地檔案路徑</td>
+<td><code>/path/to/file.jpg</code>、<code>C:\path\to\file.jpg</code></td>
+<td><strong>必須</strong>接受</td>
+</tr>
+<tr>
+<td>二進位數據</td>
+<td><code>b"\x89PNG..."</code></td>
+<td><strong>必須</strong>接受</td>
+</tr>
+<tr>
+<td><code>file://</code> URI</td>
+<td><code>file:///path/to/file.jpg</code></td>
+<td><strong>應當</strong>接受（可轉發為本地路徑處理）</td>
+</tr>
+<tr>
+<td>Base64 字串 / Data URI</td>
+<td><code>iVBORw0KGgo=...</code>、<code>data:image/png;base64,...</code></td>
+<td><strong>應當</strong>接受（與 OneBot12 生態慣例相容）</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>適配器<strong>必須</strong>在三種必須形態上行為一致——模組無論傳 URL、路徑還是 bytes，
+收到的都是同一條訊息。平台無法直接使用某形態時（如平台 API 不支援引用外部 URL），
+由適配器自行下載/讀取後上傳，<strong>不得</strong>要求模組換形態重試。</p>
+</blockquote>
+<h4 id="212-形態判定順序">2.1.2 形態判定順序</h4>
+<p>適配器實作媒體參數處理時，<strong>應當</strong>按以下順序判定形態：</p>
+<ol>
+<li><code>bytes</code> 類型 → 直接上傳</li>
+<li>字串以 <code>http://</code> / <code>https://</code> 開頭 → 按 URL 處理（直接引用或下載後上傳，按平台能力）</li>
+<li>字串以 <code>file://</code> 開頭 → 剝離前綴按本地路徑處理</li>
+<li>其餘字串 → 按本地路徑處理（存在則讀取上傳；不存在則返回標準錯誤回應）</li>
+</ol>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_resolve_media</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token builtin">file</span><span class="token punctuation">:</span> <span class="token string">"str | bytes"</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">bytes</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""形態判定與歸一化（示例）"""</span>
+    <span class="token keyword">if</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token builtin">bytes</span><span class="token punctuation">,</span> <span class="token builtin">bytearray</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">bytes</span><span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token builtin">file</span><span class="token punctuation">.</span>startswith<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">"http://"</span><span class="token punctuation">,</span> <span class="token string">"https://"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>_download<span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">)</span>          <span class="token comment"># 平台不能引用 URL 時下載</span>
+    <span class="token keyword">if</span> <span class="token builtin">file</span><span class="token punctuation">.</span>startswith<span class="token punctuation">(</span><span class="token string">"file://"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">file</span> <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">[</span><span class="token builtin">len</span><span class="token punctuation">(</span><span class="token string">"file://"</span><span class="token punctuation">)</span><span class="token punctuation">:</span><span class="token punctuation">]</span>
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>              <span class="token comment"># 本地路徑</span>
+        <span class="token keyword">return</span> f<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h4 id="213-file-的檔案名語義">2.1.3 <code>File</code> 的檔案名語義</h4>
+<p><code>File</code> 方法簽名：<code>File(file, filename=None)</code>（<code>filename</code> 為可選參數，基類已內建）。</p>
+<p>檔案名<strong>推導順序</strong>（適配器在未顯式提供 <code>filename</code> 時按此生成）：</p>
+<ol>
+<li>显式 <code>filename</code> 參數（最高優先）</li>
+<li>URL 的 basename（如 <code>https://host/a/b/report.pdf</code> → <code>report.pdf</code>，須剝離 query string）</li>
+<li>本地路徑的 basename（如 <code>/tmp/data/backup.zip</code> → <code>backup.zip</code>）</li>
+<li>平台預設生成（如 <code>file_{timestamp}</code>；<strong>應當</strong>保留真實副檔名——副檔名影響平台側的
+類型識別與預覽行為）</li>
+</ol>
+<blockquote>
+<p><code>Image</code> / <code>Voice</code> / <code>Video</code> 同樣<strong>可以</strong>接受 <code>filename</code>（經訊息段 <code>data.filename</code> 傳遞），
+但僅 <code>File</code> 的檔案名有跨平台語義保證。</p>
+</blockquote>
+<h4 id="214-平台限制的聲明義務">2.1.4 平台限制的聲明義務</h4>
+<p>各平台對媒體的大小上限、格式（MIME）、時長（音訊/視訊）等限制不同。適配器<strong>應當</strong>：</p>
+<ul>
+<li>在適配器文件中聲明支援的媒體類型與限制範圍</li>
+<li>超限或不支援的輸入返回<strong>標準錯誤回應</strong>（<code>status: "failed"</code>；<code>retcode</code> 使用
+<code>10002</code> 或平台語義化錯誤碼，<code>message</code> 說明原因），<strong>不得</strong>拋出例外中斷模組邏輯</li>
+</ul>
+<h4 id="215-能力降級階梯">2.1.5 能力降級階梯</h4>
+<p>平台不支援某個媒體<strong>類型</strong>時，按以下階梯降級（遵循總綱"能力降級不報錯"原則）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>場景</th>
+<th>降級行為</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Voice</code> 不支援語音訊息</td>
+<td><strong>應當</strong>按 <code>File</code>（或平台近緣形態）發送；無法表達時返回 <code>retcode=10002</code></td>
+</tr>
+<tr>
+<td><code>Video</code> 不支援視訊訊息</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>媒體類型完全不支援（無檔案能力）</td>
+<td>返回 <code>retcode=10002</code>，<code>message</code> 注明不支援的資料類型</td>
+</tr>
+<tr>
+<td>形態不支援（如無法處理 base64）</td>
+<td>返回 <code>retcode=10002</code>，<strong>可以</strong>在 <code>message</code> 中提示模組改用 URL/bytes</td>
+</tr>
+</tbody></table></div>
+<p><strong>禁止</strong>的行為：靜默丟棄（無回應）、拋出例外、要求模組編寫平台分支處理。</p>
+<h3 id="22-使用者參數規範">2.2 @使用者參數規範</h3>
+<p><strong>方法：</strong> <code>At</code>（修飾方法）</p>
+<p><strong>參數：</strong> <code>user_id</code> (<code>str</code>)</p>
+<p><strong>要求：</strong></p>
+<ul>
+<li><code>user_id</code> 應為字串類型的使用者標識符</li>
+<li>不同平台的 <code>user_id</code> 格式可能不同（數字、UUID、字串等）</li>
+<li>適配器負責將 <code>user_id</code> 轉換為平台特定的格式</li>
+<li>注意需要把真正的發送方法呼叫放在最後的位置</li>
+</ul>
+<p><strong>示例：</strong></p>
+<pre><code class="language-python"><span class="token comment"># 單個 @ 使用者</span>
+Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 多個 @ 使用者（鏈式呼叫）</span>
+send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789012"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"大家好"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="23-回覆訊息參數規範">2.3 回覆訊息參數規範</h3>
+<p><strong>方法：</strong> <code>Reply</code>（修飾方法）</p>
+<p><strong>參數：</strong> <code>message_id</code> (<code>str</code>)</p>
+<p><strong>要求：</strong></p>
+<ul>
+<li><code>message_id</code> 應為字串類型的訊息標識符</li>
+<li>應為之前收到的訊息的 ID</li>
+<li>某些平台可能不支援回覆功能，適配器應優雅降級</li>
+</ul>
+<p><strong>示例：</strong></p>
+<pre><code class="language-python">send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"收到"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="3-平台特有方法命名">3. 平台特有方法命名</h2>
+<p><strong>不建議</strong>在 Send 類中直接添加平台前綴方法。建議使用通用方法名或 <code>Raw_{協議}</code> 方法。</p>
+<p><strong>不建議：</strong></p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">YunhuForm</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> form_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ❌ 不建議</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">TelegramSticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ❌ 不建議</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<p><strong>建議：</strong></p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">Form</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> form_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ✅ 通用方法名</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">Sticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ✅ 通用方法名</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ✅ 發送 OneBot12 格式</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<p><strong>擴展方法要求</strong>：</p>
+<ul>
+<li>方法名使用 PascalCase，不加平台前綴</li>
+<li>必須返回 <code>asyncio.Task</code> 對象</li>
+<li>必須提供完整的類型註解和文件字串</li>
+<li>參數設計應盡量與標準方法風格一致</li>
+</ul>
+<h2 id="4-參數命名規範">4. 參數命名規範</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>參數名</th>
+<th>說明</th>
+<th>類型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text</code></td>
+<td>文本內容</td>
+<td><code>str</code></td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>媒體內容（URL / 路徑 / 二進制，見 §2.1.1）</td>
+<td><code>str</code> / <code>bytes</code></td>
+</tr>
+<tr>
+<td><code>filename</code></td>
+<td>檔案名（<code>File</code> 可選，見 §2.1.3）</td>
+<td><code>str</code> / <code>None</code></td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>用戶 ID</td>
+<td><code>str</code> / <code>int</code></td>
+</tr>
+<tr>
+<td><code>group_id</code></td>
+<td>群組 ID</td>
+<td><code>str</code> / <code>int</code></td>
+</tr>
+<tr>
+<td><code>message_id</code></td>
+<td>消息 ID</td>
+<td><code>str</code></td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>數據物件（如卡片數據）</td>
+<td><code>dict</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="5-返回值規範">5. 返回值規範</h2>
+<ul>
+<li><strong>發送方法</strong>（例如 <code>Text</code>, <code>Image</code>）：必須返回 <code>asyncio.Task</code> 物件</li>
+<li><strong>修飾方法</strong>（例如 <code>At</code>, <code>Reply</code>, <code>AtAll</code>）：必須返回 <code>self</code> 以支援鏈式呼叫</li>
+</ul>
+<hr>
+<h2 id="6-反向轉換規範onebot12-平台">6. 反向轉換規範（OneBot12 → 平台）</h2>
+<p>適配器不僅需要將平台原生事件轉換為 OneBot12 格式（正向轉換），還<strong>必須</strong>提供將 OneBot12 消息段轉換回平台原生 API 調用的能力（反向轉換）。反向轉換的統一入口是 <code>Raw_ob12</code> 方法。</p>
+<h3 id="61-轉換模型">6.1 轉換模型</h3>
+<pre><code>正向轉換（接收方向）                反向轉換（發送方向）
+─────────────────                ─────────────────
+平台原生事件                       OneBot12 消息段列表
+    │                                  │
+    ▼                                  ▼
+Converter.convert()               Send.Raw_ob12()
+    │                                  │
+    ▼                                  ▼
+OneBot12 標準事件                  平台原生 API 調用
+（含 {platform}_raw）             （返回標準響應格式）
+</code></pre>
+<p><strong>核心對稱性</strong>：正向轉換保留原始數據在 <code>{platform}_raw</code> 中，反向轉換接受 OneBot12 標準格式並還原為平台調用。</p>
+<h3 id="62-raw_ob12-實現規範">6.2 <code>Raw_ob12</code> 實現規範</h3>
+<p><code>Raw_ob12</code> 接收 OneBot12 標準消息段列表，必須將其轉換為平台原生 API 調用。</p>
+<p><strong>方法簽名</strong>：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message_segments<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    發送 OneBot12 標準消息段
+
+    :param message_segments: OneBot12 消息段列表
+        [
+            {"type": "text", "data": {"text": "Hello"}},
+            {"type": "image", "data": {"file": "https://..."}},
+            {"type": "mention", "data": {"user_id": "123"}},
+        ]
+    :return: asyncio.Task，await 後返回標準響應格式
+    """</span>
+</code></pre>
+<p><strong>實現要求</strong>：</p>
+<ol>
+<li><strong>必須處理所有標準消息段類型</strong>：至少支援 <code>text</code>、<code>image</code>、<code>audio</code>、<code>video</code>、<code>file</code>、<code>mention</code>、<code>reply</code></li>
+<li><strong>必須處理平台擴展消息段</strong>：對於 <code>{platform}_xxx</code> 類型的消息段，轉換為平台對應的原生調用</li>
+<li><strong>必須返回標準響應格式</strong>：遵循 <a href="/docs/zh-TW/standards/api-response.html">API 響應標準</a></li>
+<li><strong>不支援的消息段應跳過並記錄警告</strong>，不應拋出異常導致整條消息發送失敗</li>
+</ol>
+<h3 id="63-消息段轉換規則">6.3 消息段轉換規則</h3>
+<h4 id="631-標準消息段轉換">6.3.1 標準消息段轉換</h4>
+<p>適配器必須實現以下標準消息段的轉換：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OneBot12 消息段</th>
+<th>轉換要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text</code></td>
+<td>直接使用 <code>data.text</code></td>
+</tr>
+<tr>
+<td><code>image</code></td>
+<td><code>data.file</code> 按 §2.1 媒體協議處理（三必須形態 + 判定順序）</td>
+</tr>
+<tr>
+<td><code>audio</code></td>
+<td>同 image 處理邏輯</td>
+</tr>
+<tr>
+<td><code>video</code></td>
+<td>同 image 處理邏輯</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>同 image 處理邏輯；檔案名按 §2.1.3 推導順序處理 <code>data.filename</code></td>
+</tr>
+<tr>
+<td><code>mention</code></td>
+<td>轉換為平台的 @使用者 機制（如 Telegram 的 <code>entities</code>，雲湖的 <code>at_uid</code>）</td>
+</tr>
+<tr>
+<td><code>reply</code></td>
+<td>轉換為平台的回覆引用機制</td>
+</tr>
+<tr>
+<td><code>face</code></td>
+<td>轉換為平台的表情發送機制，不支援則跳過</td>
+</tr>
+<tr>
+<td><code>location</code></td>
+<td>轉換為平台的位置發送機制，不支援則跳過</td>
+</tr>
+</tbody></table></div>
+<h4 id="632-平台擴展消息段轉換">6.3.2 平台擴展消息段轉換</h4>
+<p>對於帶平台前綴的消息段，適配器應識別並轉換：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_ob12_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> segments<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> Any<span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""將 OneBot12 消息段轉換為平台原生格式"""</span>
+    platform_prefix <span class="token operator">=</span> <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_"</span></span>
+    
+    <span class="token keyword">for</span> segment <span class="token keyword">in</span> segments<span class="token punctuation">:</span>
+        seg_type <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span>
+        seg_data <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span>
+        
+        <span class="token keyword">if</span> seg_type<span class="token punctuation">.</span>startswith<span class="token punctuation">(</span>platform_prefix<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token comment"># 平台擴展消息段 → 平台原生調用</span>
+            self<span class="token punctuation">.</span>_handle_platform_segment<span class="token punctuation">(</span>seg_type<span class="token punctuation">,</span> seg_data<span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> seg_type <span class="token keyword">in</span> self<span class="token punctuation">.</span>_standard_segment_handlers<span class="token punctuation">:</span>
+            <span class="token comment"># 標準消息段 → 平台等價操作</span>
+            self<span class="token punctuation">.</span>_standard_segment_handlers<span class="token punctuation">[</span>seg_type<span class="token punctuation">]</span><span class="token punctuation">(</span>seg_data<span class="token punctuation">)</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            <span class="token comment"># 未知消息段 → 記錄警告並跳過</span>
+            logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"不支援的消息段類型: </span><span class="token interpolation"><span class="token punctuation">{</span>seg_type<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h4 id="633-複合消息段處理">6.3.3 複合消息段處理</h4>
+<p>一條訊息可能包含多個消息段，適配器需要正確處理複合訊息：</p>
+<pre><code class="language-python"><span class="token comment"># 模組發送包含文字+圖片+@使用者 的訊息</span>
+<span class="token keyword">await</span> send<span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"你好"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/img.jpg"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+<span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p><strong>處理策略</strong>：</p>
+<ul>
+<li><strong>優先合併</strong>：如果平台支援在一條訊息中同時包含文字、圖片、@等，應合併發送</li>
+<li><strong>退而拆分</strong>：如果平台不支援合併，按順序拆分為多條訊息發送</li>
+<li><strong>保持順序</strong>：消息段的發送順序應與列表順序一致</li>
+</ul>
+<h3 id="64-raw_ob12-與標準方法的關係">6.4 <code>Raw_ob12</code> 與標準方法的關係</h3>
+<p>適配器的標準發送方法（<code>Text</code>、<code>Image</code> 等）**已由 <code>SendDSL</code> 基類內建實現並預設委託給 <code>Raw_ob12</code>**，適配器子類無需重複實現：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>SendDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message_segments<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""核心實現：OneBot12 消息段 → 平台 API（必須實現）"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_send_ob12<span class="token punctuation">(</span>message_segments<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Text/Image/Voice/Video/File 已從基類繼承，自動委託 Raw_ob12</span>
+    <span class="token comment"># 如需平台特定邏輯，可覆蓋單個方法：</span>
+    <span class="token comment"># def Text(self, text: str) -&gt; asyncio.Task:</span>
+    <span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
+</code></pre>
+<p><strong>好處</strong>：</p>
+<ul>
+<li>轉換邏輯集中在 <code>Raw_ob12</code> 一處，減少重複程式碼</li>
+<li>標準方法和 <code>Raw_ob12</code> 行為完全一致</li>
+<li>模組無論使用 <code>Text()</code> 還是 <code>Raw_ob12()</code> 都能得到相同結果</li>
+<li>基類提供類型簽名，IDE 能補全標準方法</li>
+</ul>
+<h3 id="65-實現範例">6.5 實現範例</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">YunhuSend</span><span class="token punctuation">(</span>SendDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""雲湖平台 Send 實現"""</span>
+    
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message_segments<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""OneBot12 消息段 → 雲湖 API 調用"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_do_send<span class="token punctuation">(</span>message_segments<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> segments<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""實際發送邏輯"""</span>
+        <span class="token comment"># 1. 解析修飾器狀態</span>
+        at_users <span class="token operator">=</span> self<span class="token punctuation">.</span>_at_users <span class="token keyword">or</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        reply_to <span class="token operator">=</span> self<span class="token punctuation">.</span>_reply_to
+        at_all <span class="token operator">=</span> self<span class="token punctuation">.</span>_at_all
+        
+        <span class="token comment"># 2. 轉換消息段</span>
+        yunhu_elements <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        <span class="token keyword">for</span> seg <span class="token keyword">in</span> segments<span class="token punctuation">:</span>
+            seg_type <span class="token operator">=</span> seg<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span>
+            seg_data <span class="token operator">=</span> seg<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span>
+            
+            <span class="token keyword">if</span> seg_type <span class="token operator">==</span> <span class="token string">"text"</span><span class="token punctuation">:</span>
+                yunhu_elements<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> seg_data<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"image"</span><span class="token punctuation">:</span>
+                yunhu_elements<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span> <span class="token string">"url"</span><span class="token punctuation">:</span> seg_data<span class="token punctuation">[</span><span class="token string">"file"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"mention"</span><span class="token punctuation">:</span>
+                at_users<span class="token punctuation">.</span>append<span class="token punctuation">(</span>seg_data<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"reply"</span><span class="token punctuation">:</span>
+                reply_to <span class="token operator">=</span> seg_data<span class="token punctuation">[</span><span class="token string">"message_id"</span><span class="token punctuation">]</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"yunhu_form"</span><span class="token punctuation">:</span>
+                <span class="token comment"># 平台擴展消息段</span>
+                yunhu_elements<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"form"</span><span class="token punctuation">,</span> <span class="token string">"form_id"</span><span class="token punctuation">:</span> seg_data<span class="token punctuation">[</span><span class="token string">"form_id"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+            <span class="token keyword">else</span><span class="token punctuation">:</span>
+                logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"雲湖不支援的消息段: </span><span class="token interpolation"><span class="token punctuation">{</span>seg_type<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token comment"># 3. 調用雲湖 API</span>
+        response <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_call_yunhu_api<span class="token punctuation">(</span>yunhu_elements<span class="token punctuation">,</span> at_users<span class="token punctuation">,</span> reply_to<span class="token punctuation">,</span> at_all<span class="token punctuation">)</span>
+        
+        <span class="token comment"># 4. 返回標準響應格式</span>
+        <span class="token keyword">return</span> <span class="token punctuation">{</span>
+            <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span> <span class="token keyword">if</span> response<span class="token punctuation">[</span><span class="token string">"code"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token keyword">else</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+            <span class="token string">"retcode"</span><span class="token punctuation">:</span> response<span class="token punctuation">[</span><span class="token string">"code"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+            <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"message_id"</span><span class="token punctuation">:</span> response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+            <span class="token string">"yunhu_raw"</span><span class="token punctuation">:</span> response
+        <span class="token punctuation">}</span>
+</code></pre>
+<hr>
+<h2 id="7-方法發現">7. 方法發現</h2>
+<p>模組開發者可以透過 API 查詢適配器支援的發送方法（<strong>不要</strong>在模組中硬編碼某平台的方法清單——各適配器的擴展方法會隨版本演進，請以執行時發現為準）：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> adapter
+
+<span class="token comment"># 列出所有發送方法</span>
+methods <span class="token operator">=</span> adapter<span class="token punctuation">.</span>list_sends<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+<span class="token comment"># ["Batch", "Form", "Image", "Recall", "Sticker", "Text", ...]</span>
+
+<span class="token comment"># 查看方法詳情</span>
+info <span class="token operator">=</span> adapter<span class="token punctuation">.</span>send_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"Form"</span><span class="token punctuation">)</span>
+<span class="token comment"># {</span>
+<span class="token comment">#     "name": "Form",</span>
+<span class="token comment">#     "parameters": [{"name": "form_id", "type": "str", ...}],</span>
+<span class="token comment">#     "return_type": "Awaitable[Any]",</span>
+<span class="token comment">#     "docstring": "發送雲湖表單"</span>
+<span class="token comment"># }</span>
+</code></pre>
+<hr>
+<h2 id="9-適配器開發注意事項">9. 適配器開發注意事項</h2>
+<p>關於如何正確重寫 <code>BaseAdapter</code>、<code>Send</code>、<code>Request</code> 的 <code>__init__</code>，詳見 <a href="/docs/zh-TW/developer-guide/adapters/getting-started.html#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85">適配器開發入門 - <code>__init__</code> 注意事項</a>。</p>
+<h2 id="10-适配器實現檢查清單">10. 适配器實現檢查清單</h2>
+<h3 id="發送方法">發送方法</h3>
+<ul>
+<li><input disabled type="checkbox"> 標準方法（<code>Text</code>, <code>Image</code> 等）已實現</li>
+<li><input disabled type="checkbox"> 返回值均為 <code>asyncio.Task</code></li>
+<li><input disabled type="checkbox"> 修飾方法（<code>At</code>, <code>Reply</code>, <code>AtAll</code>）返回 <code>self</code></li>
+<li><input disabled type="checkbox"> 平台擴展方法使用 PascalCase，無平台前綴</li>
+<li><input disabled type="checkbox"> 所有方法有完整的類型註解和文件字串</li>
+</ul>
+<h3 id="媒體發送協議">媒體發送協議</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>file</code> 參數<strong>必須形態</strong>全部支援：HTTP(S) URL / 本地路徑 / <code>bytes</code>（見 §2.1.1）</li>
+<li><input disabled type="checkbox"> 形態判定順序符合 §2.1.2（bytes → URL → <code>file://</code> → 路徑）</li>
+<li><input disabled type="checkbox"> <code>File</code> 的檔案名推導順序符合 §2.1.3（顯式 <code>filename</code> &gt; URL basename &gt; 路徑 basename &gt; 平台預設）</li>
+<li><input disabled type="checkbox"> 平台的媒體限制（大小 / MIME / 時長）已在適配器文件中聲明（§2.1.4）</li>
+<li><input disabled type="checkbox"> 不支援的媒體類型按 §2.1.5 降級階梯處理：近緣類型降級或返回 <code>retcode=10002</code>，不拋異常、不靜默丟棄</li>
+</ul>
+<h3 id="反向轉換">反向轉換</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code> <strong>已實現</strong>（必須，不可跳過）</li>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code> 能處理所有標準訊息段（<code>text</code>, <code>image</code>, <code>audio</code>, <code>video</code>, <code>file</code>, <code>mention</code>, <code>reply</code>）</li>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code> 能處理平台擴展訊息段（<code>{platform}_xxx</code> 類型）</li>
+<li><input disabled type="checkbox"> 標準發送方法（<code>Text</code>, <code>Image</code> 等）內部委託給 <code>Raw_ob12</code>，而非獨立實現轉換邏輯</li>
+<li><input disabled type="checkbox"> 不支援的訊息段跳過並記錄警告，不拋出異常</li>
+<li><input disabled type="checkbox"> 複合訊息段正確處理（合併或按序拆分）</li>
+</ul>
+<h2 id="11-消息建構器messagebuilder">11. 消息建構器（MessageBuilder）</h2>
+<p><code>MessageBuilder</code> 是 ErisPulse 提供的消息段建構工具，配合 <code>Raw_ob12</code> 使用，簡化 OneBot12 消息段的建構過程。</p>
+<h3 id="111-導入">11.1 導入</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> MessageBuilder
+<span class="token comment"># 或</span>
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> MessageBuilder
+</code></pre>
+<h3 id="112-鏈式呼叫建構">11.2 鏈式呼叫建構</h3>
+<pre><code class="language-python"><span class="token comment"># 建構包含文字、圖片、@使用者的消息</span>
+segments <span class="token operator">=</span> <span class="token punctuation">(</span>
+    MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>mention<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"你好，看看這張圖"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"https://example.com/img.jpg"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"msg_789"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 發送</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>segments<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="113-快速建構單段">11.3 快速建構單段</h3>
+<pre><code class="language-python"><span class="token comment"># 快速建構單個消息段（返回 list[dict]，可直接傳給 Raw_ob12）</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"https://..."</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>mention<span class="token punctuation">(</span><span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>at_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="114-配合-eventreply_ob12-使用">11.4 配合 Event.reply_ob12 使用</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> MessageBuilder
+
+<span class="token decorator annotation punctuation">@message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>event<span class="token punctuation">:</span> Event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply_ob12<span class="token punctuation">(</span>
+        MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>mention<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"收到你的消息"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">)</span>
+</code></pre>
+<h3 id="115-支援的消息段方法">11.5 支援的消息段方法</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>說明</th>
+<th>data 字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text(text)</code></td>
+<td>文字</td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>image(file)</code></td>
+<td>圖片</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>audio(file)</code></td>
+<td>音頻</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>video(file)</code></td>
+<td>視頻</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>file(file, filename=None)</code></td>
+<td>文件</td>
+<td><code>file</code>, <code>filename</code>(可選)</td>
+</tr>
+<tr>
+<td><code>mention(user_id, user_name=None)</code></td>
+<td>@使用者</td>
+<td><code>user_id</code>, <code>user_name</code>(可選)</td>
+</tr>
+<tr>
+<td><code>at(user_id, user_name=None)</code></td>
+<td>@使用者（<code>mention</code> 的別名）</td>
+<td>同 <code>mention</code></td>
+</tr>
+<tr>
+<td><code>reply(message_id)</code></td>
+<td>回覆</td>
+<td><code>message_id</code></td>
+</tr>
+<tr>
+<td><code>at_all()</code></td>
+<td>@全體成員</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>custom(type, data)</code></td>
+<td>自定義/平台擴展</td>
+<td>自定義</td>
+</tr>
+</tbody></table></div>
+<h3 id="116-工具方法">11.6 工具方法</h3>
+<pre><code class="language-python">builder <span class="token operator">=</span> MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"基礎內容"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 複製（深拷貝）</span>
+msg1 <span class="token operator">=</span> builder<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"img1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+msg2 <span class="token operator">=</span> builder<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"img2"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 清空</span>
+builder<span class="token punctuation">.</span>clear<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"新內容"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 判斷是否為空</span>
+<span class="token keyword">if</span> builder<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"包含 </span><span class="token interpolation"><span class="token punctuation">{</span><span class="token builtin">len</span><span class="token punctuation">(</span>builder<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string"> 個消息段"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="12-相關文件">12. 相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/standards/event-conversion.html">事件轉換標準</a> - 完整的事件轉換規範、擴展命名和訊息段標準</li>
+<li><a href="/docs/zh-TW/standards/api-response.html">API 回應標準</a> - 適配器 API 回應格式標準</li>
+<li><a href="/docs/zh-TW/standards/session-types.html">會話類型標準</a> - 會話類型定義和映射關係</li>
+<li><a href="/docs/zh-TW/standards/request-action-spec.html">請求操作規範</a> - 請求事件欄位要求、HandleRequest DSL 及適配器實現要求</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/standards/event-conversion.html"><small>Previous</small><br>適配器標準化轉換規範</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/standards/request-action-spec.html"><small>Next</small><br>ErisPulse 請求操作規範</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

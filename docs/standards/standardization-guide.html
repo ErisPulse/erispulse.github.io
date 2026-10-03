@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>适配器标准化指南（总纲） - ErisPulse 文档中心</title>
+    <meta name="description" content="本文档是 ErisPulse 适配器标准化的总纲：确立跨平台标准化的原则、标准地图、 差异处理模式、新能力进入标准的流程，并给出交互组件标准（按钮/键盘、下拉选择等） 与交互回调事件的完整定义。任何适配器开发者在实现新功能时应优先采用标准定义， 使模块开发者用同一份代码在任意平台获得一致的体验——命名一致、参数一..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/standards/standardization-guide.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/standards/standardization-guide.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/standards/standardization-guide.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/standards/standardization-guide.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/standards/standardization-guide.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/standards/standardization-guide.html" />
+    <meta property="og:title" content="适配器标准化指南（总纲） - ErisPulse 文档中心" />
+    <meta property="og:description" content="本文档是 ErisPulse 适配器标准化的总纲：确立跨平台标准化的原则、标准地图、 差异处理模式、新能力进入标准的流程，并给出交互组件标准（按钮/键盘、下拉选择等） 与交互回调事件的完整定义。任何适配器开发者在实现新功能时应优先采用标准定义， 使模块开发者用同一份代码在任意平台获得一致的体验——命名一致、参数一..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/standards/standardization-guide.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"适配器标准化指南（总纲）","description":"本文档是 ErisPulse 适配器标准化的总纲：确立跨平台标准化的原则、标准地图、 差异处理模式、新能力进入标准的流程，并给出交互组件标准（按钮/键盘、下拉选择等） 与交互回调事件的完整定义。任何适配器开发者在实现新功能时应优先采用标准定义， 使模块开发者用同一份代码在任意平台获得一致的体验——命名一致、参数一...","url":"https://www.erisdev.com/docs/standards/standardization-guide.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 技术标准
+        <span class="doc-crumb-sep">/</span> <span>适配器标准化指南（总纲）</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/standards/standardization-guide.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/standards/standardization-guide.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/standards/standardization-guide.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/standards/standardization-guide.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/standards/standardization-guide.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/standards/standardization-guide.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="适配器标准化指南总纲">适配器标准化指南（总纲）</h1>
+<p>本文档是 ErisPulse 适配器标准化的<strong>总纲</strong>：确立跨平台标准化的原则、标准地图、
+差异处理模式、新能力进入标准的流程，并给出<strong>交互组件标准</strong>（按钮/键盘、下拉选择等）
+与<strong>交互回调事件</strong>的完整定义。任何适配器开发者在实现新功能时应<strong>优先采用标准定义</strong>，
+使模块开发者用同一份代码在任意平台获得一致的体验——命名一致、参数一致、返回一致。</p>
+<hr>
+<h2 id="1-标准化原则">1. 标准化原则</h2>
+<ol>
+<li><strong>命名一致</strong>：同一概念在所有平台使用同一命名（如撤回统一 <code>delete_message</code>，
+按钮段统一 <code>keyboard</code>），不因平台而异</li>
+<li><strong>参数一致</strong>：标准动作/段/方法的参数结构在所有平台保持一致；平台特有参数
+以<strong>可选扩展参数</strong>或<strong>扩展字段</strong>提供，不污染标准签名</li>
+<li><strong>返回一致</strong>：所有 API/发送调用返回标准响应结构（<code>status/retcode/data/message_id/message</code>），
+<code>data</code> 内的标准字段（如 <code>user_id/user_name</code>）语义一致；平台原始数据放 <code>{platform}_raw</code></li>
+<li><strong>扩展有据</strong>：平台特有能力按 <code>{platform}_</code> 前缀命名（段：<code>yunhu_form</code>；
+动作：<code>yunhu.board</code>；事件字段：<code>qqbot_button_id</code>），明确标识非跨平台</li>
+<li><strong>差异在适配器层吸收</strong>：模块代码面向标准编程，平台差异由适配器转换
+（参数映射、字段标准化、能力降级），不要求模块写平台分支</li>
+<li><strong>能力降级不报错</strong>：平台不支持某标准能力时，优雅降级（返回 <code>retcode=10002</code>、
+组件文本化进 <code>alt_message</code>），不抛异常中断模块逻辑</li>
+</ol>
+<h2 id="2-标准地图">2. 标准地图</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>领域</th>
+<th>标准文档</th>
+<th>覆盖内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>事件转换</td>
+<td><a href="/docs/standards/event-conversion.html">事件转换标准</a></td>
+<td>事件结构、标准消息段（text/image/mention/reply/keyboard 等）、平台扩展段规范</td>
+</tr>
+<tr>
+<td>交互组件</td>
+<td><strong>本文档 §5</strong></td>
+<td>按钮/键盘、下拉选择、卡片、交互回调事件标准字段、修饰器约定、各平台映射</td>
+</tr>
+<tr>
+<td>API 动作</td>
+<td><a href="/docs/standards/api-action-spec.html">API 动作标准</a></td>
+<td>OneBot12 标准动作（用户/群/频道/消息管理/元动作）的统一接口与 <code>ApiDSL</code></td>
+</tr>
+<tr>
+<td>请求操作</td>
+<td><a href="/docs/standards/request-action-spec.html">请求操作规范</a></td>
+<td>请求事件字段（request_id）与 Request DSL（approve/reject）</td>
+</tr>
+<tr>
+<td>发送方法</td>
+<td><a href="/docs/standards/send-method-spec.html">发送方法规范</a></td>
+<td>Send 类方法命名、参数、修饰器、反向转换（OB12→平台）</td>
+</tr>
+<tr>
+<td>会话类型</td>
+<td><a href="/docs/standards/session-types.html">会话类型标准</a></td>
+<td>user/group/channel/guild/dms 等会话类型定义与映射</td>
+</tr>
+<tr>
+<td>API 响应</td>
+<td><a href="/docs/standards/api-response.html">API 响应标准</a></td>
+<td>标准响应结构与 retcode 约定</td>
+</tr>
+</tbody></table></div>
+<h2 id="3-标准化工作流新能力如何进入标准">3. 标准化工作流（新能力如何进入标准）</h2>
+<pre><code>平台特有能力（{platform}_ 前缀）
+        │  ≥2 个平台出现同类能力
+        ▼
+识别共性（抽取通用概念与参数子集）
+        │
+        ▼
+标准草案（命名 + 参数 + 返回 + 各平台映射表）
+        │  评审
+        ▼
+写入本总纲/各领域标准文档 + 框架基类/适配器实现兼容层
+        │
+        ▼
+标准段/动作（无前缀）——模块可跨平台使用
+</code></pre>
+<p><strong>示例</strong>：按钮最初各平台独立实现（<code>telegram_inline_keyboard</code> / 云湖 buttons /
+QQBot keyboard）→ 出现在 ≥3 个平台 → 抽取通用结构（<code>label/type/data</code> + rows）
+→ 发布标准 <code>keyboard</code> 段 → 各适配器实现兼容层（修饰器接受通用结构 + 标准段转换 + 原生段透传）。</p>
+<h3 id="31-命名规则">3.1 命名规则</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>对象</th>
+<th>规则</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标准消息段</td>
+<td>小写，通用概念无前缀</td>
+<td><code>keyboard</code>、<code>select</code>、<code>mention</code></td>
+</tr>
+<tr>
+<td>平台扩展段</td>
+<td><code>{platform}_</code> 前缀</td>
+<td><code>telegram_sticker</code>、<code>yunhu_form</code></td>
+</tr>
+<tr>
+<td>标准Api动作</td>
+<td>OB12 标准名（snake_case）</td>
+<td><code>get_group_info</code>、<code>delete_message</code></td>
+</tr>
+<tr>
+<td>平台扩展动作</td>
+<td><code>{platform}.</code> 前缀或协议通用名</td>
+<td><code>yunhu.board</code>、<code>send_poke</code>（OB11 扩展）</td>
+</tr>
+<tr>
+<td>修饰器</td>
+<td>PascalCase，通用能力进框架基类</td>
+<td><code>.Keyboard(rows)</code>、<code>.At(uid)</code></td>
+</tr>
+<tr>
+<td>事件标准字段</td>
+<td>通用概念无前缀</td>
+<td><code>interaction_id</code>、<code>button_data</code>、<code>request_id</code></td>
+</tr>
+<tr>
+<td>事件平台字段</td>
+<td><code>{platform}_</code> 前缀</td>
+<td><code>qqbot_event_id</code>、<code>telegram_chat_id</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="32-参数与返回规则">3.2 参数与返回规则</h3>
+<ul>
+<li>标准参数在所有平台<strong>同名同义</strong>；单位/格式在标准文档中明确（如秒级时间戳、字符串ID）</li>
+<li>必填参数取各平台能力的<strong>公共子集</strong>；平台增强能力为可选参数</li>
+<li>平台强约束（如 QQBot 富媒体不能与 event_id 混发）由适配器自动处理/降级，不暴露给模块</li>
+<li>返回 <code>data</code> 的标准字段全平台一致；平台额外信息放 <code>data</code> 内平台命名字段或 <code>{platform}_raw</code></li>
+</ul>
+<h2 id="4-差异处理模式适配器层">4. 差异处理模式（适配器层）</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>参数映射</strong></td>
+<td>标准参数 → 平台原生参数</td>
+<td><code>delete_message(message_id)</code> → TG <code>deleteMessage(chat_id, message_id)</code>（登记表补全 chat_id）</td>
+</tr>
+<tr>
+<td><strong>结构转换</strong></td>
+<td>标准段 → 平台原生结构</td>
+<td><code>keyboard</code> 段 → <code>inline_keyboard</code> / buttons / QQBot keyboard</td>
+</tr>
+<tr>
+<td><strong>动作映射</strong></td>
+<td>标准动作名 → 平台动作名</td>
+<td><code>get_self_info</code> → <code>get_login_info</code>（OB11）</td>
+</tr>
+<tr>
+<td><strong>字段标准化</strong></td>
+<td>平台响应 → 标准字段</td>
+<td><code>getMe()</code> → <code>{user_id, user_name, user_displayname}</code></td>
+</tr>
+<tr>
+<td><strong>合成标识</strong></td>
+<td>平台无原生标识时生成确定性ID</td>
+<td>TG join request 无ID → <code>tjr_{chat}_{user}_{date}</code></td>
+</tr>
+<tr>
+<td><strong>能力降级</strong></td>
+<td>不支持时文本化/返回10002</td>
+<td>Kook 无 keyboard → alt_message 文本化；<code>get_friend_list</code> → 10002</td>
+</tr>
+<tr>
+<td><strong>归一化</strong></td>
+<td>平台脏数据 → 标准格式</td>
+<td>QQBot @标记 openid → bot_id（名称归一化）</td>
+</tr>
+<tr>
+<td><strong>双轨兼容</strong></td>
+<td>标准结构与平台原生结构同时接受</td>
+<td><code>.Keyboard()</code> 接受通用 rows 或原生结构</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h2 id="5-交互组件标准">5. 交互组件标准</h2>
+<h3 id="51-组件清单与状态">5.1 组件清单与状态</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>标准段 type</th>
+<th>状态</th>
+<th>已支持平台</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>按钮/键盘（keyboard）</td>
+<td><code>keyboard</code></td>
+<td>✅ 已标准化</td>
+<td>Telegram / 云湖 / QQBot</td>
+</tr>
+<tr>
+<td>下拉选择（select）</td>
+<td><code>select</code></td>
+<td>📋 预留（结构见 §5.4）</td>
+<td>Discord / Telegram(bot)</td>
+</tr>
+<tr>
+<td>卡片（card）</td>
+<td><code>card</code></td>
+<td>📋 预留（见 §5.5）</td>
+<td>Kook / 云湖(html)</td>
+</tr>
+<tr>
+<td>模态框（modal）</td>
+<td><code>modal</code></td>
+<td>📋 预留</td>
+<td>Discord</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>修饰器层级约定：通用交互组件的 Send 修饰器由<strong>适配器 Send 类实现</strong>（框架基类
+不内置），命名遵循 §5.2 约定，参数遵循本文档标准结构。</p>
+</blockquote>
+<h3 id="52-keyboard-按钮内联键盘">5.2 keyboard 按钮/内联键盘</h3>
+<h4 id="消息段结构发送方向">消息段结构（发送方向）</h4>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"keyboard"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"rows"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token punctuation">[</span>
+        <span class="token punctuation">{</span><span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"选项A"</span><span class="token punctuation">,</span> <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"callback"</span><span class="token punctuation">,</span> <span class="token property">"data"</span><span class="token operator">:</span> <span class="token string">"vote:A"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">{</span><span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"官网"</span><span class="token punctuation">,</span>   <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"link"</span><span class="token punctuation">,</span>     <span class="token property">"data"</span><span class="token operator">:</span> <span class="token string">"https://example.com"</span><span class="token punctuation">}</span>
+      <span class="token punctuation">]</span>
+    <span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>data.rows</code></td>
+<td>二维数组</td>
+<td>是</td>
+<td>每个子数组为一行按钮</td>
+</tr>
+<tr>
+<td><code>rows[][].label</code></td>
+<td>str</td>
+<td>是</td>
+<td>按钮显示文本</td>
+</tr>
+<tr>
+<td><code>rows[][].type</code></td>
+<td>str</td>
+<td>是</td>
+<td><code>callback</code>（点击回传数据）/ <code>link</code>（跳转URL）</td>
+</tr>
+<tr>
+<td><code>rows[][].data</code></td>
+<td>str</td>
+<td>是</td>
+<td>回调数据（callback）或跳转地址（link）</td>
+</tr>
+<tr>
+<td><code>rows[][].*</code></td>
+<td>Any</td>
+<td>否</td>
+<td>平台特有可选字段（如 <code>web_app</code>、<code>menus</code>），适配器按能力映射或忽略</td>
+</tr>
+</tbody></table></div>
+<h4 id="各平台映射对照">各平台映射对照</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>标准段 → 原生结构</th>
+<th>原生结构参考</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Telegram</td>
+<td><code>reply_markup.inline_keyboard</code>：<code>[{text, callback_data | url}]</code></td>
+<td>callback→<code>callback_data</code>（≤64字节），link→<code>url</code></td>
+</tr>
+<tr>
+<td>云湖</td>
+<td><code>content.buttons</code>：<code>[{label, action_type}]</code></td>
+<td>callback→<code>action_type:2</code> + <code>action</code> + <code>value</code>，link→<code>action_type:1</code> + <code>url</code></td>
+</tr>
+<tr>
+<td>QQBot</td>
+<td><code>keyboard.content.rows</code>：<code>[{label, type, data}]</code></td>
+<td>callback→<code>type:2</code> + <code>data</code>，link→<code>type:0</code> + <code>data</code>（消息须为 markdown 类型）</td>
+</tr>
+<tr>
+<td>Kook</td>
+<td>卡片 <code>action-group</code> 模块：<code>[{type, text, value, click}]</code></td>
+<td>callback→<code>click:return</code> + <code>value</code>，link→<code>click:link</code> + <code>url</code></td>
+</tr>
+<tr>
+<td>Discord</td>
+<td><code>components[].components</code>：<code>[{label, style, custom_id | url}]</code></td>
+<td>callback→<code>style:1</code> + <code>custom_id</code>，link→<code>style:5</code> + <code>url</code></td>
+</tr>
+</tbody></table></div>
+<h4 id="send-修饰器各适配器-send-类实现">Send 修饰器（各适配器 Send 类实现）</h4>
+<p>通用修饰器由<strong>各适配器在自己的 Send 类中实现</strong>（不修改框架基类）：</p>
+<ul>
+<li><code>.Keyboard(rows)</code>：标准命名，接受 §5.2 通用 rows 结构，内部生成标准 <code>keyboard</code>
+消息段（或直接转换为平台原生结构），由 <code>Raw_ob12</code> 统一处理</li>
+<li><code>.Buttons(rows)</code>：可选语义别名，行为一致</li>
+<li><strong>向后兼容</strong>：检测到平台原生结构时直接透传（不报错、不转换）</li>
+<li>平台原生扩展段（如 <code>telegram_inline_keyboard</code>）继续透传，不受影响</li>
+</ul>
+<pre><code class="language-python"><span class="token comment"># 同一份代码，任意平台（各适配器提供修饰器与转换）</span>
+rows <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"label"</span><span class="token punctuation">:</span> <span class="token string">"赞"</span><span class="token punctuation">,</span> <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"callback"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token string">"like:1"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+         <span class="token punctuation">{</span><span class="token string">"label"</span><span class="token punctuation">:</span> <span class="token string">"主页"</span><span class="token punctuation">,</span> <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"link"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com"</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">]</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> gid<span class="token punctuation">)</span><span class="token punctuation">.</span>Keyboard<span class="token punctuation">(</span>rows<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"请选择"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>适配器兼容清单：QQBot / Telegram / 云湖 已实现（修饰器 + 标准段转换）；
+新适配器按本文档实现即可（见 §7 Checklist）。</p>
+</blockquote>
+<h3 id="53-交互回调事件点击按钮之后">5.3 交互回调事件（点击按钮之后）</h3>
+<p>用户点击按钮后，平台推送的事件<strong>必须</strong>提供以下标准字段（detail_type 可保留平台命名）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>标准字段</th>
+<th>类型</th>
+<th>必填</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>interaction_id</code></td>
+<td>str</td>
+<td>是</td>
+<td>本次交互的ID（可用于回应，如转圈/提示）</td>
+</tr>
+<tr>
+<td><code>button_data</code></td>
+<td>str</td>
+<td>是</td>
+<td>按钮回传数据（即 §5.2 的 <code>data</code>）</td>
+</tr>
+<tr>
+<td><code>button_label</code></td>
+<td>str</td>
+<td>否</td>
+<td>按钮显示文本</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>str</td>
+<td>是</td>
+<td>点击者</td>
+</tr>
+<tr>
+<td><code>message_id</code></td>
+<td>str</td>
+<td>否</td>
+<td>按钮所在消息</td>
+</tr>
+<tr>
+<td><code>group_id</code> / <code>channel_id</code></td>
+<td>str</td>
+<td>否</td>
+<td>来源会话</td>
+</tr>
+</tbody></table></div>
+<p><strong>detail_type 约定</strong>：保留各平台现有命名（<code>qqbot_interaction</code> / <code>telegram_callback_query</code> /
+<code>yunhu_a2ui_button</code> 等），但<strong>标准字段必须齐备</strong>——模块用 <code>event.get("button_data")</code> 即可跨平台取值。</p>
+<p><strong>Event 扩展方法建议</strong>（适配器 EventMixin 提供）：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">get_button_data</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token comment"># button_data</span>
+<span class="token keyword">def</span> <span class="token function">get_interaction_id</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># interaction_id</span>
+</code></pre>
+<p><strong>回应交互</strong>（按平台能力）：<code>adapter.reply_interaction(interaction_id, code=0)</code>（QQBot）/
+<code>answerCallbackQuery</code>（Telegram）等，命名跟随平台方法族，不强制统一。</p>
+<h4 id="各平台回调事件映射">各平台回调事件映射</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>平台</th>
+<th>原生事件</th>
+<th>detail_type</th>
+<th>interaction_id 来源</th>
+<th>button_data 来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Telegram</td>
+<td><code>callback_query</code></td>
+<td><code>telegram_callback_query</code>（notice）</td>
+<td><code>callback_query.id</code></td>
+<td><code>callback_query.data</code></td>
+</tr>
+<tr>
+<td>云湖</td>
+<td>按钮点击事件</td>
+<td><code>yunhu_button_click</code> / <code>yunhu_a2ui_button</code></td>
+<td><code>buttonId</code> / <code>sourceComponentId</code></td>
+<td><code>value</code> / <code>actionName</code></td>
+</tr>
+<tr>
+<td>QQBot</td>
+<td><code>INTERACTION_CREATE</code></td>
+<td><code>qqbot_interaction</code></td>
+<td><code>interaction.id</code></td>
+<td><code>data.resolved.button_data</code></td>
+</tr>
+<tr>
+<td>Kook</td>
+<td>按钮 点击事件</td>
+<td><code>kook_button_click</code></td>
+<td><code>msg_id</code>+<code>value</code></td>
+<td><code>value</code></td>
+</tr>
+<tr>
+<td>Discord</td>
+<td><code>INTERACTION_CREATE</code></td>
+<td><code>discord_interaction</code></td>
+<td><code>interaction.id</code></td>
+<td><code>data.custom_id</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="54-select-下拉选择预留">5.4 select 下拉选择（预留）</h3>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"select"</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"placeholder"</span><span class="token operator">:</span> <span class="token string">"请选择"</span><span class="token punctuation">,</span>
+    <span class="token property">"options"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+      <span class="token punctuation">{</span><span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"选项A"</span><span class="token punctuation">,</span> <span class="token property">"data"</span><span class="token operator">:</span> <span class="token string">"opt:A"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">{</span><span class="token property">"label"</span><span class="token operator">:</span> <span class="token string">"选项B"</span><span class="token punctuation">,</span> <span class="token property">"data"</span><span class="token operator">:</span> <span class="token string">"opt:B"</span><span class="token punctuation">}</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token property">"min_values"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"max_values"</span><span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>回调事件复用 §5.3 字段（<code>button_data</code> = 所选 <code>data</code>，多选时为 JSON 数组）。
+首批实现平台：Discord（select menu）、Telegram（keyboard 切换）。未实现平台收到该段
+应在 <code>alt_message</code> 中降级为文本列表。</p>
+<h3 id="55-card-卡片预留暂缓标准化">5.5 card 卡片（预留，暂缓标准化）</h3>
+<p>卡片结构差异极大（Kook 全功能卡片模块 vs 云湖 html vs QQ markdown+keyboard），
+暂不做强标准。建议：</p>
+<ul>
+<li>富文本卡片用 <code>text</code> + <code>keyboard</code> 组合表达（多数场景足够）</li>
+<li>平台全功能卡片继续用 <code>{platform}_card</code> 扩展段（如 <code>kook_card</code>）</li>
+<li>待出现 ≥2 个平台的同构卡片能力再评审提升</li>
+</ul>
+<hr>
+<h2 id="6-未来候选roadmap">6. 未来候选（Roadmap）</h2>
+<p>以下能力已在 ≥2 平台出现或预期出现，按优先级推进标准化：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>候选</th>
+<th>涉及平台</th>
+<th>优先级</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>select 下拉选择</td>
+<td>Discord / Telegram</td>
+<td>高</td>
+<td>结构草案见 §5.4</td>
+</tr>
+<tr>
+<td>表态/表情回应（reactions）</td>
+<td>QQBot / Telegram / Discord / Kook</td>
+<td>高</td>
+<td>动作 + 事件两侧标准化</td>
+</tr>
+<tr>
+<td>群管理动作（禁言/踢人/审批）</td>
+<td>QQBot / 云湖 / OB11</td>
+<td>高</td>
+<td>多数已实现为平台动作，待抽取标准签名</td>
+</tr>
+<tr>
+<td>公告/看板</td>
+<td>云湖 / Telegram / Discord</td>
+<td>中</td>
+<td><code>set_announcement</code> 类动作</td>
+</tr>
+<tr>
+<td>文件资源模型（file_id 两段式）</td>
+<td>各平台</td>
+<td>低（暂缓）</td>
+<td>发送直传 <code>SendDSL.File(file, filename)</code> 已是标准路径（URL/路径/bytes 直传，见<a href="/docs/standards/send-method-spec.html">发送方法规范 §2.1</a>）；file_id 模型仅当后端天然具备时透传，见 <a href="/docs/standards/api-action-spec.html">API 动作标准 §3.5</a></td>
+</tr>
+<tr>
+<td>卡片 card</td>
+<td>Kook / 云湖</td>
+<td>低</td>
+<td>结构差异大，见 §5.5</td>
+</tr>
+<tr>
+<td>表单 form</td>
+<td>云湖</td>
+<td>低</td>
+<td>平台特有，保持 <code>{platform}_</code> 前缀</td>
+</tr>
+<tr>
+<td>媒体转码/大小探测</td>
+<td>各平台</td>
+<td>低</td>
+<td>适配器内部实现，不对外标准化</td>
+</tr>
+</tbody></table></div>
+<h2 id="7-新适配器开发者的标准-checklist">7. 新适配器开发者的标准 Checklist</h2>
+<p>开发新适配器时，按此清单对照实现（★ 为必须，其余推荐）：</p>
+<ul>
+<li><input disabled type="checkbox"> ★ 事件转换为 OneBot12 标准结构，继承 <code>BaseConverter</code></li>
+<li><input disabled type="checkbox"> ★ 标准消息段收发支持（text/image/mention/reply/keyboard…；媒体段按
+<a href="/docs/standards/send-method-spec.html">发送方法规范 §2.1</a> 的形态分级与降级阶梯处理）</li>
+<li><input disabled type="checkbox"> ★ 实现 <code>Raw_ob12</code>（含标准段 → 平台结构转换；标准 <code>keyboard</code> 段必做）</li>
+<li><input disabled type="checkbox"> ★ 返回标准响应结构（<code>make_response</code>/<code>make_error</code>）</li>
+<li><input disabled type="checkbox"> ★ 多账户：<code>AccountConfigClass(BotAccountConfig)</code> + <code>_resolve_account</code></li>
+<li><input disabled type="checkbox"> ★ Send 类继承 <code>BaseAdapter.Send</code>，用 <code>_apply_modifiers</code>/<code>send_context</code></li>
+<li><input disabled type="checkbox"> ☆ Api DSL：标准动作映射到平台API（见 API 动作标准）</li>
+<li><input disabled type="checkbox"> ☆ Request DSL：请求事件含 <code>request_id</code> + <code>accept/reject</code></li>
+<li><input disabled type="checkbox"> ☆ 交互组件：<code>keyboard</code> 段转换 + 交互回调标准字段 + <code>.Keyboard()</code>/<code>.Buttons()</code> 修饰器（适配器 Send 类实现）</li>
+<li><input disabled type="checkbox"> ☆ EventMixin：<code>get_raw_event()</code> / <code>get_button_data()</code> 等平台扩展方法</li>
+<li><input disabled type="checkbox"> ☆ 生命周期任务用 <code>runtime.spawn_background</code></li>
+<li><input disabled type="checkbox"> ☆ 配置读取用 <code>self.cfg</code></li>
+<li><input disabled type="checkbox"> ☆ 框架软依赖：不声明 ErisPulse 硬依赖 + 运行时版本检测</li>
+<li><input disabled type="checkbox"> ☆ i18n：配置字段与日志多语言</li>
+<li><input disabled type="checkbox"> ☆ platform-guide 平台文档 + 适配器仓库 platform-features.md</li>
+</ul>
+<h2 id="8-相关文档">8. 相关文档</h2>
+<ul>
+<li>各领域标准见 §2 标准地图</li>
+<li>框架内置适配器可作参考实现：QQBot（v5 范式全量）、OneBot11（Api DSL 映射）、云湖（BaseConverter + Web API 扩展）</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/standards/api-action-spec.html"><small>上一篇</small><br>ErisPulse API 动作标准</a>
+        <a class="doc-pager-next" href="/docs/api-reference/auto_api/ErisPulse/__init__.html"><small>下一篇</small><br>`ErisPulse.__init__` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL 查询构建器 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 的 Storage 模块提供链式调用风格的通用 SQL 查询构建器，支持自定义表的创建、查询、更新和删除操作。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/advanced/sql-builder.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/sql-builder.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/sql-builder.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/sql-builder.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/sql-builder.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/sql-builder.html" />
+    <meta property="og:title" content="SQL 查询构建器 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 的 Storage 模块提供链式调用风格的通用 SQL 查询构建器，支持自定义表的创建、查询、更新和删除操作。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/advanced/sql-builder.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"SQL 查询构建器","description":"ErisPulse 的 Storage 模块提供链式调用风格的通用 SQL 查询构建器，支持自定义表的创建、查询、更新和删除操作。","url":"https://www.erisdev.com/docs/advanced/sql-builder.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 高级主题
+        <span class="doc-crumb-sep">/</span> <span>SQL 查询构建器</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/advanced/sql-builder.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/sql-builder.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/sql-builder.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/sql-builder.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/sql-builder.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/sql-builder.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="sql-查询构建器">SQL 查询构建器</h1>
+<p>ErisPulse 的 Storage 模块提供链式调用风格的通用 SQL 查询构建器，支持自定义表的创建、查询、更新和删除操作。</p>
+<h2 id="架构设计">架构设计</h2>
+<pre><code>Bases/storage.py                    Core/storage.py
+┌─────────────────────┐             ┌──────────────────────────┐
+│  BaseStorage (ABC)  │◄────────────│  StorageManager          │
+│  BaseQueryBuilder   │             │  (SQLite concrete impl)  │
+│    (ABC)            │             │                          │
+└─────────────────────┘             │  SQLiteQueryBuilder      │
+                                    │  AlterTableBuilder       │
+                                    └──────────────────────────┘
+</code></pre>
+<ul>
+<li><code>BaseStorage</code> / <code>BaseQueryBuilder</code> 是抽象基类，定义统一接口，支持未来拓展其他存储介质（Redis、MySQL 等）</li>
+<li><code>StorageManager</code> 是当前 SQLite 具体实现，完全向后兼容</li>
+</ul>
+<h2 id="导入">导入</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token comment"># 或</span>
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> storage
+
+<span class="token comment"># ABC 基类（用于类型标注或自定义实现）</span>
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>storage <span class="token keyword">import</span> BaseStorage<span class="token punctuation">,</span> BaseQueryBuilder
+</code></pre>
+<h2 id="表管理">表管理</h2>
+<h3 id="创建表">创建表</h3>
+<pre><code class="language-python">sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>CreateTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"INTEGER PRIMARY KEY AUTOINCREMENT"</span><span class="token punctuation">,</span>
+    <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"TEXT NOT NULL"</span><span class="token punctuation">,</span>
+    <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token string">"INTEGER DEFAULT 0"</span><span class="token punctuation">,</span>
+    <span class="token string">"email"</span><span class="token punctuation">:</span> <span class="token string">"TEXT"</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="检查表是否存在">检查表是否存在</h3>
+<pre><code class="language-python"><span class="token keyword">if</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>HasTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"users 表已存在"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="删除表">删除表</h3>
+<pre><code class="language-python">sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>DropTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="修改表结构">修改表结构</h3>
+<pre><code class="language-python"><span class="token comment"># 添加列</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>AlterTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AddColumn<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">,</span> <span class="token string">"TEXT"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 重命名表</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>AlterTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>RenameTo<span class="token punctuation">(</span><span class="token string">"members"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 链式多个操作</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>AlterTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>AddColumn<span class="token punctuation">(</span><span class="token string">"phone"</span><span class="token punctuation">,</span> <span class="token string">"TEXT"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>AddColumn<span class="token punctuation">(</span><span class="token string">"address"</span><span class="token punctuation">,</span> <span class="token string">"TEXT"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="链式查询">链式查询</h2>
+<h3 id="插入数据">插入数据</h3>
+<pre><code class="language-python"><span class="token comment"># 单行插入（传入字典）</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Insert<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">30</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 批量插入（传入字典列表）</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>InsertMulti<span class="token punctuation">(</span><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Bob"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">25</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Charlie"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">35</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Dave"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">40</span><span class="token punctuation">}</span>
+<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="查询数据">查询数据</h3>
+<blockquote>
+<p><strong>重要</strong>：<code>Select()</code> 返回的是 <code>list[tuple]</code>（元组列表），不是字典。你需要按列顺序用索引访问。</p>
+</blockquote>
+<pre><code class="language-python"><span class="token comment"># 查询所有列</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># rows: [(1, "Alice", 30), (2, "Bob", 25), ...]</span>
+
+<span class="token comment"># 查询指定列</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># rows: [("Alice", 30), ("Bob", 25), ...]</span>
+
+<span class="token comment"># 按索引取值</span>
+<span class="token keyword">for</span> row <span class="token keyword">in</span> rows<span class="token punctuation">:</span>
+    name <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>   <span class="token comment"># "Alice"</span>
+    age <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>    <span class="token comment"># 30</span>
+</code></pre>
+<h4 id="将元组转为字典">将元组转为字典</h4>
+<p>推荐直接在链上调用 <code>ToDict()</code>，SELECT 结果自动以字典返回（列名 → 值）：</p>
+<pre><code class="language-python"><span class="token comment"># ToDict 链：结果为 list[dict]，列名自动取自查询元数据（SELECT * 同样支持）</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ToDict<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># rows: [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}, ...]</span>
+
+<span class="token keyword">for</span> row <span class="token keyword">in</span> rows<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>row<span class="token punctuation">[</span><span class="token string">"name"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> row<span class="token punctuation">[</span><span class="token string">"age"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+<span class="token comment"># ExecuteOne 同样生效</span>
+row <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>ToDict<span class="token punctuation">(</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>ExecuteOne<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># row: {"name": "Alice", "age": 30} 或 None</span>
+</code></pre>
+<blockquote>
+<p><code>ToDict()</code> 是链式标记（返回 self）：未调用它的链保持原有 <code>list[tuple]</code> 行为，完全向后兼容；<code>copy()</code> 会保留该标志。</p>
+</blockquote>
+<p>手动 zip 方式（与 ToDict 等价，适合无法改链的场景）：</p>
+<pre><code class="language-python">columns <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"id"</span><span class="token punctuation">,</span> <span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">]</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token operator">*</span>columns<span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 方式一：循环中 zip</span>
+<span class="token keyword">for</span> row <span class="token keyword">in</span> rows<span class="token punctuation">:</span>
+    record <span class="token operator">=</span> <span class="token builtin">dict</span><span class="token punctuation">(</span><span class="token builtin">zip</span><span class="token punctuation">(</span>columns<span class="token punctuation">,</span> row<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>record<span class="token punctuation">[</span><span class="token string">"name"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> record<span class="token punctuation">[</span><span class="token string">"age"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 方式二：一次性转为字典列表</span>
+records <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">(</span><span class="token builtin">zip</span><span class="token punctuation">(</span>columns<span class="token punctuation">,</span> row<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">for</span> row <span class="token keyword">in</span> rows<span class="token punctuation">]</span>
+</code></pre>
+<h4 id="获取单条记录">获取单条记录</h4>
+<pre><code class="language-python">row <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>ExecuteOne<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># row 是 tuple 或 None</span>
+<span class="token keyword">if</span> row <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+    name <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  <span class="token comment"># "Alice"</span>
+    age <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>   <span class="token comment"># 30</span>
+</code></pre>
+<h3 id="条件过滤">条件过滤</h3>
+<blockquote>
+<p><code>Where(condition, *params)</code> 支持传入多个参数，对应多个 <code>?</code> 占位符。</p>
+</blockquote>
+<pre><code class="language-python"><span class="token comment"># 单条件（一个占位符，一个参数）</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 一个 Where 中使用多个占位符</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">,</span> <span class="token number">40</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 多次调用 Where（AND 连接）</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">40</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="排序分页">排序、分页</h3>
+<pre><code class="language-python"><span class="token comment"># 升序</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>OrderBy<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 降序</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>OrderBy<span class="token punctuation">(</span><span class="token string">"age"</span><span class="token punctuation">,</span> desc<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 分页</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>OrderBy<span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Limit<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Offset<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="更新数据">更新数据</h3>
+<pre><code class="language-python"><span class="token comment"># 条件更新</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Update<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">31</span><span class="token punctuation">}</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 全量更新</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Update<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"active"</span><span class="token punctuation">}</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="删除数据">删除数据</h3>
+<pre><code class="language-python"><span class="token comment"># 条件删除</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Delete<span class="token punctuation">(</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Bob"</span><span class="token punctuation">)</span> \
+    <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 全量删除</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Delete<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="计数与存在性检查">计数与存在性检查</h3>
+<pre><code class="language-python"><span class="token comment"># 计数</span>
+count <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Count<span class="token punctuation">(</span><span class="token punctuation">)</span>
+count <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Count<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 存在性检查</span>
+exists <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Exists<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="复用查询条件">复用查询条件</h2>
+<p>使用 <code>copy()</code> 深拷贝构建器，复用基础条件：</p>
+<pre><code class="language-python">base <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 基于相同条件查询</span>
+rows <span class="token operator">=</span> base<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>OrderBy<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Limit<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 基于相同条件计数</span>
+count <span class="token operator">=</span> base<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Count<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 基于相同条件检查存在性</span>
+exists <span class="token operator">=</span> base<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Exists<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="重置构建器">重置构建器</h2>
+<pre><code class="language-python">builder <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span>
+builder<span class="token punctuation">.</span>clear<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 重新构建查询</span>
+builder<span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span>
+rows <span class="token operator">=</span> builder<span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="事务中使用">事务中使用</h2>
+<p>链式操作完全支持事务：</p>
+<pre><code class="language-python"><span class="token comment"># 提交事务</span>
+<span class="token keyword">with</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>transaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Insert<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Eve"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">22</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Update<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">23</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Eve"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 回滚示例</span>
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token keyword">with</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>transaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Delete<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">raise</span> Exception<span class="token punctuation">(</span><span class="token string">"force rollback"</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> Exception<span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+<span class="token comment"># Alice 的记录仍然存在</span>
+</code></pre>
+<h2 id="异步原生-api">异步原生 API</h2>
+<p>2.8.0 起存储层以异步为原生主接口，所有终止方法都有对应的 a 前缀异步版本，
+异步 handler 内推荐使用（避免同步兼容层短暂阻塞事件循环）：</p>
+<pre><code class="language-python"><span class="token comment"># 异步事务</span>
+<span class="token keyword">async</span> <span class="token keyword">with</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>atransaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"key1"</span><span class="token punctuation">,</span> <span class="token string">"value1"</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"key2"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"nested"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 异步链式查询</span>
+rows <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ToDict<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+row <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"*"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecuteOne<span class="token punctuation">(</span><span class="token punctuation">)</span>
+total <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aCount<span class="token punctuation">(</span><span class="token punctuation">)</span>
+exists <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExists<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 异步 KV</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"app.name"</span><span class="token punctuation">,</span> <span class="token string">"MyApp"</span><span class="token punctuation">)</span>
+value <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aget<span class="token punctuation">(</span><span class="token string">"app.name"</span><span class="token punctuation">)</span>
+keys <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aget_all_keys<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>同步（兼容层）</th>
+<th>异步原生</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get</code> / <code>set</code> / <code>delete</code></td>
+<td><code>aget</code> / <code>aset</code> / <code>adelete</code></td>
+</tr>
+<tr>
+<td><code>get_all_keys</code> / <code>clear</code></td>
+<td><code>aget_all_keys</code> / <code>aclear</code></td>
+</tr>
+<tr>
+<td><code>get_multi</code> / <code>set_multi</code> / <code>delete_multi</code></td>
+<td><code>aget_multi</code> / <code>aset_multi</code> / <code>adelete_multi</code></td>
+</tr>
+<tr>
+<td><code>transaction()</code></td>
+<td><code>atransaction()</code></td>
+</tr>
+<tr>
+<td><code>CreateTable</code> / <code>DropTable</code> / <code>HasTable</code></td>
+<td><code>aCreateTable</code> / <code>aDropTable</code> / <code>aHasTable</code></td>
+</tr>
+<tr>
+<td><code>Execute</code> / <code>ExecuteOne</code> / <code>Count</code> / <code>Exists</code></td>
+<td><code>aExecute</code> / <code>aExecuteOne</code> / <code>aCount</code> / <code>aExists</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="返回值说明">返回值说明</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>返回类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Select().Execute()</code></td>
+<td><code>list[tuple]</code></td>
+<td>元组列表，按列顺序排列</td>
+</tr>
+<tr>
+<td><code>Select().ExecuteOne()</code></td>
+<td><code>tuple | None</code></td>
+<td>单条元组或 None</td>
+</tr>
+<tr>
+<td><code>Insert().Execute()</code></td>
+<td><code>int</code></td>
+<td>受影响行数</td>
+</tr>
+<tr>
+<td><code>InsertMulti().Execute()</code></td>
+<td><code>int</code></td>
+<td>插入行数</td>
+</tr>
+<tr>
+<td><code>Update().Execute()</code></td>
+<td><code>int</code></td>
+<td>受影响行数</td>
+</tr>
+<tr>
+<td><code>Delete().Execute()</code></td>
+<td><code>int</code></td>
+<td>受影响行数</td>
+</tr>
+<tr>
+<td><code>Count()</code></td>
+<td><code>int</code></td>
+<td>匹配行数</td>
+</tr>
+<tr>
+<td><code>Exists()</code></td>
+<td><code>bool</code></td>
+<td>是否存在</td>
+</tr>
+</tbody></table></div>
+<h3 id="返回值处理示例">返回值处理示例</h3>
+<pre><code class="language-python"><span class="token comment"># Select 返回元组，按索引取值</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+first_name <span class="token operator">=</span> rows<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  <span class="token comment"># 第一行第一列 name</span>
+first_age <span class="token operator">=</span> rows<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>   <span class="token comment"># 第一行第二列 age</span>
+
+<span class="token comment"># 推荐：用列名列表 + zip 转为字典，代码更可读</span>
+cols <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">]</span>
+rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token operator">*</span>cols<span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">for</span> row <span class="token keyword">in</span> rows<span class="token punctuation">:</span>
+    d <span class="token operator">=</span> <span class="token builtin">dict</span><span class="token punctuation">(</span><span class="token builtin">zip</span><span class="token punctuation">(</span>cols<span class="token punctuation">,</span> row<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>d<span class="token punctuation">[</span><span class="token string">"name"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> d<span class="token punctuation">[</span><span class="token string">"age"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+<span class="token comment"># ExecuteOne 返回单条元组或 None</span>
+row <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ExecuteOne<span class="token punctuation">(</span><span class="token punctuation">)</span>
+name <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token keyword">if</span> row <span class="token keyword">else</span> <span class="token boolean">None</span>
+
+<span class="token comment"># Insert/Update/Delete 返回受影响行数</span>
+affected <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Delete<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"删除了 </span><span class="token interpolation"><span class="token punctuation">{</span>affected<span class="token punctuation">}</span></span><span class="token string"> 条记录"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="参数化查询">参数化查询</h2>
+<p>所有 WHERE 参数使用 <code>?</code> 占位符，参数作为 <code>Where()</code> 的后续参数传入（<strong>不是</strong>元组或列表）：</p>
+<pre><code class="language-python"><span class="token comment"># 正确 ✓ — 多个参数逐一传入</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND name = ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 正确 ✓ — 多次 Where 调用</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 错误 ✗ — 不要传入元组</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND name = ?"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token number">18</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># 这会把整个元组当成第一个占位符的值</span>
+
+<span class="token comment"># 错误 ✗ — 存在 SQL 注入风险</span>
+sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"name = '</span><span class="token interpolation"><span class="token punctuation">{</span>user_input<span class="token punctuation">}</span></span><span class="token string">'"</span></span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="where-参数传递规则">Where 参数传递规则</h3>
+<pre><code class="language-python"><span class="token comment"># Where(condition: str, *params: Any)</span>
+<span class="token comment"># params 是可变参数，逐个传入即可</span>
+
+<span class="token comment"># 单个参数</span>
+<span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 多个参数</span>
+<span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">,</span> <span class="token number">60</span><span class="token punctuation">)</span>
+
+<span class="token comment"># LIKE 查询</span>
+<span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name LIKE ?"</span><span class="token punctuation">,</span> <span class="token string">"A%"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># IN 查询（需要手动构造占位符）</span>
+<span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name IN (?, ?, ?)"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"Bob"</span><span class="token punctuation">,</span> <span class="token string">"Charlie"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="自定义存储后端">自定义存储后端</h2>
+<p>2.8.0 起抽象层以<strong>异步方法为原生契约</strong>：继承 <code>BaseStorage</code> 实现异步抽象方法，
+同步 <code>get/set/Execute</code> 等由基类自动桥接提供：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>storage <span class="token keyword">import</span> BaseStorage<span class="token punctuation">,</span> BaseQueryBuilder
+
+<span class="token keyword">class</span> <span class="token class-name">MyQueryBuilder</span><span class="token punctuation">(</span>BaseQueryBuilder<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">aExecute</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 实现具体执行逻辑</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">aExecuteOne</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">aCount</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">aExists</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyStorage</span><span class="token punctuation">(</span>BaseStorage<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">aget</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> key<span class="token punctuation">,</span> default<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">aset</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token comment"># 实现其他异步抽象方法与事务连接 hook ...</span>
+    <span class="token keyword">def</span> <span class="token function">Table</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> table_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> MyQueryBuilder<span class="token punctuation">(</span>self<span class="token punctuation">,</span> table_name<span class="token punctuation">)</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p>若不想实现事务连接路由（<code>conn</code> 关键字参数），保持类属性
+<code>_SUPPORTS_CONN_ROUTING = False</code>（默认）即可，事务功能仍可用（隔离性受限）。
+纯 SQL 后端可直接继承 <code>Core/Bases/sql_base.py</code> 的 <code>SQLStorageBase</code> +
+<code>SQLQueryBuilder</code>，只需提供连接管理与方言执行漏斗，详见
+<a href="/docs/advanced/storage-backends.html">存储后端</a>。</p>
+</div>
+<h2 id="相关文档">相关文档</h2>
+<ul>
+<li><a href="/docs/advanced/storage-backends.html">存储后端</a> - sqlite / mysql / postgres 后端选择与配置</li>
+<li><a href="/docs/api-reference/core-modules.html">核心模块 API</a> - Storage 模块完整 API</li>
+<li><a href="/docs/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">存储基类 API</a> - BaseStorage/BaseQueryBuilder 抽象接口</li>
+<li><a href="/docs/advanced/message-builder.html">消息构建器</a> - MessageBuilder 链式调用风格参考</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/advanced/http-client.html"><small>上一篇</small><br>网络客户端</a>
+        <a class="doc-pager-next" href="/docs/advanced/i18n.html"><small>下一篇</small><br>国际化 (i18n) 系统</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse.Core.Event.base 模块 - ErisPulse 文档中心</title>
+    <meta name="description" content="内部维护与适配器事件总线的连接状态（_linked_to_adapter_bus）， 确保 _process_event 在适配器总线被清空（如 shutdown/restart）后能重新挂载。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/base.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/Event/base.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/base.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/base.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/base.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/base.html" />
+    <meta property="og:title" content="ErisPulse.Core.Event.base 模块 - ErisPulse 文档中心" />
+    <meta property="og:description" content="内部维护与适配器事件总线的连接状态（_linked_to_adapter_bus）， 确保 _process_event 在适配器总线被清空（如 shutdown/restart）后能重新挂载。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/base.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.Core.Event.base 模块","description":"内部维护与适配器事件总线的连接状态（_linked_to_adapter_bus）， 确保 _process_event 在适配器总线被清空（如 shutdown/restart）后能重新挂载。","url":"https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/base.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> API <span class="doc-crumb-sep">/</span> 核心模块
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse.Core.Event.base 模块</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/Event/base.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/Event/base.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/base.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/base.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/base.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/api-reference/auto_api/ErisPulse/Core/Event/base.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulsecoreeventbase-模块"><code>ErisPulse.Core.Event.base</code> 模块</h1>
+<hr>
+<h2 id="模块概述">模块概述</h2>
+<p>ErisPulse 事件处理基础模块</p>
+<p>提供事件处理的核心功能，包括事件注册和处理</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li>所有事件处理都基于OneBot12标准事件格式</li>
+<li>通过适配器系统进行事件分发和接收</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="async-_invoke_handlerhandler_info-dict-event-event"><code>async _invoke_handler(handler_info: dict, event: Event)</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+执行单个事件处理器</p>
+</blockquote>
+<ul>
+<li><strong>handler_info</strong> (<code>处理器信息字典</code>): - <strong>event</strong>: 事件对象</li>
+</ul>
+<hr>
+<h2 id="类列表">类列表</h2>
+<h3 id="class-baseeventhandler"><code>class BaseEventHandler</code></h3>
+<p>基础事件处理器</p>
+<p>提供事件处理的基本功能，包括处理器注册和注销</p>
+<p>内部维护与适配器事件总线的连接状态（_linked_to_adapter_bus），
+确保 _process_event 在适配器总线被清空（如 shutdown/restart）后能重新挂载。</p>
+<h4 id="方法列表">方法列表</h4>
+<h5 id="__init__event_type-str-module_name-str-none-none"><code>__init__(event_type: str, module_name: str | None = None)</code></h5>
+<p>初始化事件处理器</p>
+<ul>
+<li><strong>event_type</strong> (<code>事件类型</code>): - <strong>module_name</strong>: 模块名称</li>
+</ul>
+<hr>
+<h5 id="registerhandler-callable-priority-int-default_handler_priority-condition-callable-none-none-scope_exempt-bool-false"><code>register(handler: Callable, priority: int = DEFAULT_HANDLER_PRIORITY, condition: Callable | None = None, scope_exempt: bool = False)</code></h5>
+<p>注册事件处理器</p>
+<ul>
+<li><strong>handler</strong> (<code>事件处理器函数</code>): - <strong>priority</strong>: 处理器优先级，数值越大优先级越高</li>
+<li><strong>condition</strong> (<code>处理器条件函数，返回True时才会执行处理器</code>): - <strong>scope_exempt</strong>: 是否豁免作用域过滤（框架级处理器专用，默认 False）。
+               为 True 时不参与模块作用域判断，始终执行。</li>
+</ul>
+<hr>
+<h5 id="unregisterhandler-callable"><code>unregister(handler: Callable)</code></h5>
+<p>注销事件处理器</p>
+<ul>
+<li><strong>handler</strong> (<code>要注销的事件处理器</code>): <strong>返回值</strong>: 是否成功注销</li>
+</ul>
+<hr>
+<h5 id="async-dispatch_to_ownerowner-str-event-event"><code>async dispatch_to_owner(owner: str, event: 'Event')</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+回放分发：将合成事件只投递给指定归属者（模块）的处理器</p>
+</blockquote>
+<p>用于冷启动事件回放（<code>get_load_strategy(replay=...)</code>）——
+新装模块通过回放快速获得会话上下文，其他模块不受回放影响。</p>
+<ul>
+<li><strong>owner</strong> (<code>归属者（模块名）</code>): - <strong>event</strong>: 合成事件（带 <code>replayed: True</code> 标志）
+<strong>返回值</strong>: 实际投递的处理器数量</li>
+</ul>
+<hr>
+<h5 id="unregister_by_ownerowner-str"><code>unregister_by_owner(owner: str)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+按归属者精确移除事件处理器</p>
+</blockquote>
+<ul>
+<li><strong>owner</strong> (<code>归属者（模块名）</code>): <strong>返回值</strong>: 移除的处理器数量</li>
+</ul>
+<hr>
+<h5 id="__call__priority-int-default_handler_priority-condition-callable-none-none"><code>__call__(priority: int = DEFAULT_HANDLER_PRIORITY, condition: Callable | None = None)</code></h5>
+<p>装饰器方式注册事件处理器</p>
+<ul>
+<li><strong>priority</strong> (<code>处理器优先级，数值越大优先级越高</code>): - <strong>condition</strong>: 处理器条件函数
+<strong>返回值</strong>: 装饰器函数</li>
+</ul>
+<hr>
+<h5 id="async-_process_eventevent-dictstr-any"><code>async _process_event(event: dict[str, Any])</code></h5>
+<p>处理事件</p>
+<blockquote>
+<p><strong>内部方法</strong>
+同优先级处理器并行执行，不同优先级按顺序串行执行。
+同优先级处理器的修改冲突采用后者覆盖前者的策略。</p>
+</blockquote>
+<ul>
+<li><strong>event</strong>: 事件数据</li>
+</ul>
+<hr>
+<h5 id="_is_scope_allowedhandler_info-dict-platform-str-bot_id-str-session_id-str"><code>_is_scope_allowed(handler_info: dict, platform: str, bot_id: str, session_id: str)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+判断处理器是否通过模块作用域检查</p>
+</blockquote>
+<p>框架级处理器（<code>scope_exempt</code> 或 owner 为空）始终放行；
+模块级处理器按 owner 与当前事件所属平台/Bot/会话判定。</p>
+<ul>
+<li><strong>handler_info</strong> (<code>处理器信息字典</code>): - <strong>platform</strong>: 事件平台名称</li>
+<li><strong>bot_id</strong> (<code>事件</code>): Bot 标识（可能为空字符串）</li>
+<li><strong>session_id</strong> (<code>事件会话标识（群</code>): / 频道 / 私聊，可能为空字符串）
+<strong>返回值</strong>: 是否允许执行</li>
+</ul>
+<hr>
+<h5 id="_is_scope_handler_okhandler_info-dict-event"><code>_is_scope_handler_ok(handler_info: dict, event)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+判断处理器是否通过事件覆写过滤（event.overrides.&lt;本事件类型&gt;.<module>）</module></p>
+</blockquote>
+<p>框架级处理器（scope_exempt 或 owner 为空）始终放行；
+模块级处理器按其 owner 在<strong>所属事件类型</strong>的覆写节中的
+detail_types / pattern / regex 条件过滤（与代码内条件 AND，需同时满足）。</p>
+<ul>
+<li><strong>handler_info</strong> (<code>处理器信息字典</code>): - <strong>event</strong>: 事件对象
+<strong>返回值</strong>: 是否允许执行</li>
+</ul>
+<hr>
+<h5 id="_clear_handlers"><code>_clear_handlers()</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+清除所有已注册的事件处理器，并断开与适配器事件总线的连接</p>
+</blockquote>
+<p>断开连接后，下次调用 register() 时会自动重新挂载 _process_event 到适配器总线，
+以适配 shutdown/restart 等场景下适配器总线被清空的情况。</p>
+<p><strong>返回值</strong>: 被清除的处理器数量</p>
+<hr>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/api-reference/auto_api/ErisPulse/Core/Event/__init__.html"><small>Previous</small><br>`ErisPulse.Core.Event.__init__` 模块</a>
+        <a class="doc-pager-next" href="/docs/en/api-reference/auto_api/ErisPulse/Core/Event/command.html"><small>Next</small><br>`ErisPulse.Core.Event.command` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse.runtime.owner_cleanup 模块 - ErisPulse 文档中心</title>
+    <meta name="description" content="允许框架外部（工具模块 / 适配器）参与归属权清理链：工具模块替其它 模块托管资源时（如定时任务模块持有其回调、注册表类模块持有其条目）， 可在对方注册资源的瞬间通过 on_cleanup 登记一个清理钩子；该模块被 卸载 / 禁用（或适配器关闭）时，框架在归属权清理链内统一触发钩子， 工具模块借此抛弃内部持有的..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html" />
+    <meta property="og:title" content="ErisPulse.runtime.owner_cleanup 模块 - ErisPulse 文档中心" />
+    <meta property="og:description" content="允许框架外部（工具模块 / 适配器）参与归属权清理链：工具模块替其它 模块托管资源时（如定时任务模块持有其回调、注册表类模块持有其条目）， 可在对方注册资源的瞬间通过 on_cleanup 登记一个清理钩子；该模块被 卸载 / 禁用（或适配器关闭）时，框架在归属权清理链内统一触发钩子， 工具模块借此抛弃内部持有的..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.runtime.owner_cleanup 模块","description":"允许框架外部（工具模块 / 适配器）参与归属权清理链：工具模块替其它 模块托管资源时（如定时任务模块持有其回调、注册表类模块持有其条目）， 可在对方注册资源的瞬间通过 on_cleanup 登记一个清理钩子；该模块被 卸载 / 禁用（或适配器关闭）时，框架在归属权清理链内统一触发钩子， 工具模块借此抛弃内部持有的...","url":"https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> API <span class="doc-crumb-sep">/</span> 运行时
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse.runtime.owner_cleanup 模块</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulseruntimeowner_cleanup-模块"><code>ErisPulse.runtime.owner_cleanup</code> 模块</h1>
+<hr>
+<h2 id="模块概述">模块概述</h2>
+<p>归属清理钩子（owner cleanup hooks）</p>
+<p>允许<strong>框架外部</strong>（工具模块 / 适配器）参与归属权清理链：工具模块替其它
+模块托管资源时（如定时任务模块持有其回调、注册表类模块持有其条目），
+可在对方注册资源的瞬间通过 <code>on_cleanup</code> 登记一个清理钩子；该模块被
+卸载 / 禁用（或适配器关闭）时，框架在归属权清理链内统一触发钩子，
+工具模块借此<strong>抛弃内部持有的句柄</strong>，让已卸载模块的实例可被正常回收。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li><code>on_cleanup(cb)</code> 在当前 owner（模块/适配器）上下文内登记清理钩子，
+卸载时框架回调 <code>cb(owner)</code></li>
+<li>回调支持同步 / 异步（异步回调带超时保护），异常被隔离、不影响其余清理</li>
+<li><code>off_cleanup(cb)</code> 供工具模块在自身 <code>on_unload</code> 中注销自己的钩子</li>
+<li>框架在模块 unload / disable 与适配器 shutdown 清理链内调用
+<code>run_owner_cleanups(owner)</code> 触发钩子（每步失败仅记日志，不中断清理）</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="on_cleanupcallback-callablestr-any"><code>on_cleanup(callback: Callable[[str], Any])</code></h3>
+<p>登记归属清理钩子：<code>owner</code> 被卸载/禁用时由框架回调 <code>callback(owner)</code></p>
+<p>供工具模块在替其它模块托管资源时使用——在对方注册资源的调用路径内
+登记钩子，框架在该模块卸载链内触发回调，工具模块据此抛弃内部持有的
+句柄，避免已卸载模块无法被 GC。</p>
+<p>owner 解析优先级：显式 <code>owner=</code> 参数 &gt; <code>current_caller</code>（经
+<code>module.call</code> 被调用期间，owner 已归因到本模块，调用方身份在
+caller 上下文）&gt; <code>current_owner</code>（对方 <code>on_load</code> 等直接调用场景）。</p>
+<ul>
+<li><strong>callback</strong> (<code>清理回调，签名</code>): <code>callback(owner: str)</code>，支持同步/异步</li>
+<li><strong>owner</strong> (<code>目标归属者（模块名/平台名），缺省按上述优先级自动解析</code>): <strong>返回值</strong> (<code>str</code>): 解析并登记的目标 owner（可直接用作自有句柄的记名键）
+<strong>异常</strong>: <code>ValueError</code> - 无法确定目标 owner 时抛出</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># 工具模块（如定时任务）托管外部回调时按 owner 记名并登记钩子</span>
+<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">def</span> <span class="token function">register_handler</span><span class="token punctuation">(</span>handler<span class="token punctuation">)</span><span class="token punctuation">:</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     owner <span class="token operator">=</span> on_cleanup<span class="token punctuation">(</span><span class="token keyword">lambda</span> o<span class="token punctuation">:</span> _drop_owner_handlers<span class="token punctuation">(</span>o<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     _handlers<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">(</span>owner<span class="token punctuation">,</span> handler<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h3 id="off_cleanupcallback-callablestr-any-owner-str-none-none"><code>off_cleanup(callback: Callable[[str], Any], owner: str | None = None)</code></h3>
+<p>注销归属清理钩子</p>
+<p>工具模块应在自身 <code>on_unload</code> 中调用 <code>off_cleanup(cb)</code> 注销自己
+登记过的钩子，避免钩子表持有自身实例引用导致无法被回收。</p>
+<ul>
+<li><strong>callback</strong> (<code>已登记的清理回调</code>): - <strong>owner</strong>: 仅注销该 owner 名下的钩子；None 表示注销该回调的全部
+<strong>返回值</strong> (<code>int</code>): 实际注销的条目数</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     off_cleanup<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_owner_guard<span class="token punctuation">)</span>  <span class="token comment"># 移除本模块登记的全部钩子</span>
+</code></pre>
+<hr>
+<h3 id="async-run_owner_cleanupsowner-str"><code>async run_owner_cleanups(owner: str)</code></h3>
+<p>触发并移除指定 owner 的全部清理钩子（框架清理链内部调用）</p>
+<p>依次执行钩子并从表中移除；异步回调带超时保护（超时视同失败），
+单个回调异常被隔离、仅记日志，不中断其余钩子与清理链。</p>
+<blockquote>
+<p><strong>内部方法</strong>
+由模块卸载/禁用与适配器关闭的清理链调用；重复调用同一 owner 时
+首次后即为空操作。</p>
+</blockquote>
+<ul>
+<li><strong>owner</strong> (<code>归属者（模块名/适配器平台名）</code>): <strong>返回值</strong> (<code>int</code>): 成功执行的回调数</li>
+</ul>
+<hr>
+<h3 id="_log_failureowner-str-callback-callablestr-any"><code>_log_failure(owner: str, callback: Callable[[str], Any])</code></h3>
+<p>记录钩子执行失败（惰性导入框架日志/i18n，避免运行时层的循环依赖）</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/memory.html"><small>Previous</small><br>`ErisPulse.runtime.memory` 模块</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html"><small>Next</small><br>`ErisPulse.runtime.plugin_reload` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

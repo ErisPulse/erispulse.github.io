@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lifecycle Management - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse provides a unified hook/lifecycle system for monitoring the operational status of system components and enabling extensions such as auditing, stati..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/lifecycle.html" />
+    <meta property="og:title" content="Lifecycle Management - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse provides a unified hook/lifecycle system for monitoring the operational status of system components and enabling extensions such as auditing, stati..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/lifecycle.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Lifecycle Management","description":"ErisPulse provides a unified hook/lifecycle system for monitoring the operational status of system components and enabling extensions such as auditing, stati...","url":"https://www.erisdev.com/docs/en/advanced/lifecycle.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Advanced Topics
+        <span class="doc-crumb-sep">/</span> <span>Lifecycle Management</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/lifecycle.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/advanced/lifecycle.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/lifecycle.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/lifecycle.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/lifecycle.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/lifecycle.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="lifecycle-management">Lifecycle Management</h1>
+<p>ErisPulse provides a unified hook/lifecycle system for monitoring the operational status of system components and enabling extensions such as auditing, statistics, and custom logic.</p>
+<p>The system supports three trigger methods:</p>
+<ul>
+<li><code>await lifecycle.emit("event", data)</code> — A concise version, passing arbitrary data (directed delivery when <code>to="Owner"</code>)</li>
+<li><code>lifecycle.emit_sync("event", data)</code> — Synchronous version (for non-async contexts)</li>
+<li><code>await lifecycle.submit_event("event", ...)</code> — Backward compatible, automatically constructs standard event format</li>
+</ul>
+<h2 id="event-handling-mechanism">Event Handling Mechanism</h2>
+<h3 id="registering-handlers">Registering Handlers</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># Decorator pattern</span>
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_module_load</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Module loaded: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># Programmatic registration</span>
+sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">,</span> on_module_load<span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Unregister</span>
+sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>unregister<span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">,</span> on_module_load<span class="token punctuation">)</span>
+
+<span class="token comment"># Batch unregister by owner (automatically called by framework during module/unloader adapter)</span>
+removed <span class="token operator">=</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>unregister_by_owner<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Cleaned up </span><span class="token interpolation"><span class="token punctuation">{</span>removed<span class="token punctuation">}</span></span><span class="token string"> lifecycle hooks"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="priority">Priority</h3>
+<p>Handlers support the <code>priority</code> parameter, with higher values executed first (consistent with module loader):</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span>  <span class="token comment"># Executed first</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">first_handler</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>  <span class="token comment"># Executed later</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">second_handler</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<h3 id="dot-structure-events">Dot-Structure Events</h3>
+<p>When a specific event is triggered, its parent events are also triggered:</p>
+<ul>
+<li>Triggering <code>module.load</code> also triggers <code>module</code></li>
+<li>Triggering <code>adapter.event.receive</code> also triggers <code>adapter.event</code> and <code>adapter</code></li>
+</ul>
+<h3 id="wildcards">Wildcards</h3>
+<p>Register <code>*</code> to capture all events:</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"*"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_anything</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Received event: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="directed-propagation-emit-to">Directed Propagation (emit to=)</h3>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>This feature requires ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>When <code>emit()</code> specifies the <code>to</code> parameter, it enters directed propagation: events are only distributed to handlers registered with that owner (module hooks registered in <code>on_load</code> automatically belong to the module), other modules and wildcard <code>*</code> handlers do not receive them.</p>
+<pre><code class="language-python"><span class="token comment"># Emitter: events only delivered to hooks registered by Chat module</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"hi"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> to<span class="token operator">=</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Subscriber (within Chat module): register same event name, owner is automatically recorded during registration</span>
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_message_received</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>   <span class="token comment"># Dot-structure parent prefixes also apply (filtered by owner)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_any</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<ul>
+<li>If the target owner has no registered hooks → the event is <strong>not consumed</strong> (can be probed beforehand using <code>has_handlers()</code>)</li>
+<li>When <code>data</code> is a dict, <code>_trace_id</code> is automatically included (without overriding existing values)</li>
+<li><code>emit_sync</code> / <code>submit_event</code> also support the <code>to=</code> parameter</li>
+<li>Three-layer model for inter-module communication (RPC / directed / broadcast) is detailed in
+<a href="/docs/en/advanced/module-communication.html">Module Communication</a></li>
+</ul>
+<h3 id="one-time-registration-once">One-Time Registration (once)</h3>
+<p>Since 2.7.0, handlers registered with <code>lifecycle.once()</code> are automatically unregistered after being triggered once, suitable for "first ready" type hooks:</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>once</span><span class="token punctuation">(</span><span class="token string">"core.init.complete"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_first_ready</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"First ready, will not trigger again"</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>Same priority semantics as <code>on()</code> (higher <code>priority</code> value means earlier execution)</li>
+<li>Automatically unregistered, no need for manual <code>unregister</code></li>
+<li>Supported for both synchronous and asynchronous handlers</li>
+</ul>
+<h3 id="listener-query-has_handlers">Listener Query (has_handlers)</h3>
+<p>In hot-path short-circuit scenarios, <code>has_handlers()</code> can be used to check if listeners exist beforehand, avoiding unnecessary event traversal and task scheduling:</p>
+<pre><code class="language-python"><span class="token keyword">if</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>has_handlers<span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">,</span> send_ctx<span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>Covers <strong>exact event name</strong>, <strong>wildcard <code>*</code></strong>, and <strong>parent event</strong> matching</li>
+<li>Returns <code>False</code> if there are no listeners, allowing safe skipping of <code>emit</code></li>
+</ul>
+<h2 id="hook-breakpoints-overview">Hook Breakpoints Overview</h2>
+<p>A typical sequence of lifecycle events for a message from platform entry into the framework until processing completion:</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant P as Platform
+    participant A as Adapter
+    participant F as Framework Core
+    participant M as Module Processor
+
+    P-&gt;&gt;A: Native event arrives
+    A-&gt;&gt;F: adapter.event.receive (earliest)
+    F-&gt;&gt;F: event.pre_process (before handler execution)
+    F-&gt;&gt;M: Dispatch to processor (commands/messages/notifications, etc.)
+    M-&gt;&gt;M: command.matched / command.executed
+    M-&gt;&gt;F: event.reply()
+    F-&gt;&gt;F: message.sending (before sending)
+    F-&gt;&gt;A: SendDSL send
+    A-&gt;&gt;P: Send to platform
+    A-&gt;&gt;F: message.sent (after sending)
+    F-&gt;&gt;F: adapter.event.dispatched (after dispatch)
+</code></pre>
+<p>The framework provides the following built-in hook breakpoints, which users can listen to with <code>@sdk.lifecycle.on()</code> to implement custom logic.</p>
+<h3 id="core-initialization">Core Initialization</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>core.init.start</code></td>
+<td>SDK initialization starts</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>core.init.stage</code></td>
+<td>Each initialization stage starts (emitted in background)</td>
+<td><code>{"stage": str}</code>, values: <code>discovery</code> / <code>adapter_register</code> / <code>adapter_start</code> / <code>module_register</code> / <code>module_init</code> / <code>adapter_start_deferred</code> / <code>router_start</code></td>
+</tr>
+<tr>
+<td><code>core.init.complete</code></td>
+<td>SDK initialization completes</td>
+<td><code>{"duration": float, "success": bool, "stages": {stage: float}, "adapters": {"enabled": [str], "disabled": [str]}, "modules": {"enabled": [str], "disabled": [str]}, "error": str (only on failure)}</code></td>
+</tr>
+<tr>
+<td><code>core.uninit.complete</code></td>
+<td>SDK deinitialization completes</td>
+<td><code>{"duration": float, "success": bool, "adapters_closed": int, "modules_unloaded": int, "module_properties_cleared": int, "module_properties_to_clear": [str], "error": str (only on failure)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: Displaying Startup Progress</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"core.init.stage"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">show_stage</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Startup] Entering stage: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'stage'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="configuration-changes">Configuration Changes</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>config.set</code></td>
+<td>A configuration item is modified</td>
+<td><code>{"key": str, "old_value": Any, "new_value": Any}</code></td>
+</tr>
+<tr>
+<td><code>config.updated</code></td>
+<td>Entire config tree is updated after external edit to config.toml</td>
+<td><code>{"old_config": dict, "new_config": dict, "config_file": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: Configuration Audit</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"config.set"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">audit_config</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Audit] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'key'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'old_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'new_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="module-lifecycle">Module Lifecycle</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>module.register</code></td>
+<td>Module class is registered to manager</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.load</code></td>
+<td>Module loading completes (successful instantiation)</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.init</code></td>
+<td>Module initialization completes (including lazy loading)</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.unload</code></td>
+<td>Module is unloaded</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.reload</code></td>
+<td>Module hot reload completes (including cascading reload of dependencies)</td>
+<td><code>{"module_name": str, "success": bool, "full": bool}</code>; when full reload (<code>reload_all</code>) occurs, <code>module_name</code> is <code>"All"</code>, payload additionally contains <code>"results": dict[str, bool]</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="adapter-lifecycle">Adapter Lifecycle</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>adapter.load</code></td>
+<td>Adapter registration completes</td>
+<td><code>{"platform": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>adapter.start</code></td>
+<td>Adapter starts</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.status.change</code></td>
+<td>Adapter status changes</td>
+<td><code>{"platform": str, "status": str, "retry_count": int, "error": str (only on failure)}</code>; complete status values: <code>starting</code> / <code>started</code> / <code>start_failed</code> / <code>stopping</code> / <code>stopped</code> / <code>stop_failed</code> / <code>skipped-dependency</code> / <code>disabled</code></td>
+</tr>
+<tr>
+<td><code>adapter.stop</code></td>
+<td>Adapter stops</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.stopped</code></td>
+<td>Adapter stop completes</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.bot.online</code></td>
+<td>Bot goes online</td>
+<td><code>{"platform": str, "bot_id": str, "info": dict, "status": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.bot.offline</code></td>
+<td>Bot goes offline</td>
+<td><code>{"platform": str, "bot_id": str, "status": str}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="event-reception-and-processing">Event Reception and Processing</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>adapter.event.receive</code></td>
+<td>External platform event is received (earliest)</td>
+<td><code>{"platform": str, "event_type": str, "raw_event_type": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.event.blocked</code></td>
+<td>Middleware rejects event (returns <code>False</code>, event is discarded and not passed to any handler)</td>
+<td><code>{"middleware": str, "platform": str, "event_type": str, "detail_type": str, "event": dict, "_trace_id": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.event.dispatched</code></td>
+<td>Event dispatch completes</td>
+<td><code>{"platform": str, "event_type": str, "raw_event_type": str, "onebot_handlers_count": int}</code></td>
+</tr>
+<tr>
+<td><code>event.pre_process</code></td>
+<td>Event handler begins execution</td>
+<td><code>{"event_type": str, "platform": str, "detail_type": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: Event Counting</strong></p>
+<pre><code class="language-python">event_counter <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">count_events</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    platform <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">"platform"</span><span class="token punctuation">]</span>
+    event_counter<span class="token punctuation">[</span>platform<span class="token punctuation">]</span> <span class="token operator">=</span> event_counter<span class="token punctuation">.</span>get<span class="token punctuation">(</span>platform<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.dispatched"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_unhandled</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> data<span class="token punctuation">[</span><span class="token string">"onebot_handlers_count"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Unhandled] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'event_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="message-sending">Message Sending</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>message.sending</code></td>
+<td>Message is about to be sent</td>
+<td><code>{"platform": str, "method": str, "detail_type": str, "target_id": str, "bot_id": str}</code></td>
+</tr>
+<tr>
+<td><code>message.sent</code></td>
+<td>Message sending completes</td>
+<td><code>{"platform": str, "method": str, "detail_type": str, "target_id": str, "bot_id": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: Message Sending Audit</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_sending</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Sending] -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'detail_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'target_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> via </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="command-system">Command System</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>command.matched</code></td>
+<td>Command is matched and about to execute</td>
+<td><code>{"command": str, "args": list[str], "platform": str, "user_id": str}</code></td>
+</tr>
+<tr>
+<td><code>command.executed</code></td>
+<td>Command execution completes</td>
+<td><code>{"command": str, "args": list[str], "platform": str, "user_id": str, "success": bool, "error": str (only on failure)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: Command Counting</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"command.matched"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">count_commands</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Command] /</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'command'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> from </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'user_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">@</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="http-routing">HTTP Routing</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server.request</code></td>
+<td>HTTP request is received</td>
+<td><code>{"method": str, "path": str, "client_ip": str}</code></td>
+</tr>
+<tr>
+<td><code>server.response</code></td>
+<td>HTTP response is sent</td>
+<td><code>{"method": str, "path": str, "status_code": int, "client_ip": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: Request Logging</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.response"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_http</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[HTTP] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'status_code'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="websocket">WebSocket</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server.start</code></td>
+<td>Route server starts</td>
+<td><code>{"base_url": str, "host": str, "port": int, "success": bool, "error": str (only on failure)}</code></td>
+</tr>
+<tr>
+<td><code>server.stop</code></td>
+<td>Route server stops</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>server.websocket.connect</code></td>
+<td>WebSocket connection established</td>
+<td><code>{"path": str, "module_name": str, "client_ip": str}</code></td>
+</tr>
+<tr>
+<td><code>server.websocket.disconnect</code></td>
+<td>WebSocket connection disconnected</td>
+<td><code>{"path": str, "module_name": str, "reason": str, "error": str (only on abnormal disconnection)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: WebSocket Connection Monitoring</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.websocket.connect"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_ws_connect</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[WS] Connection: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> from </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'client_ip'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.websocket.disconnect"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_ws_disconnect</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[WS] Disconnection: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> (</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'reason'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">)"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="storage-connection-status">Storage Connection Status</h3>
+<p>Establishment, failure, and recovery of storage backend connection pools (all emitted in background, do not block storage operations):</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>storage.ready</code></td>
+<td>Storage backend connection pool is ready (first successful pool creation per event loop)</td>
+<td><code>{"backend": str}</code></td>
+</tr>
+<tr>
+<td><code>storage.unreachable</code></td>
+<td>Connection retries exhausted, entering cooldown period (operations fail quickly during cooldown)</td>
+<td><code>{"backend": str, "error": str, "cooldown": float}</code></td>
+</tr>
+<tr>
+<td><code>storage.recovered</code></td>
+<td>Cooldown ends, reconnection successful, storage becomes available again</td>
+<td><code>{"backend": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Example: Storage Failure Alert</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"storage.unreachable"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">alert_storage_down</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Alert] Storage backend </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'backend'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> unreachable: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'error'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">, automatic reconnection in </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'cooldown'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">s"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"storage.recovered"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">notify_storage_back</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Recovery] Storage backend </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'backend'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> is available again"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="http-client">HTTP Client</h3>
+<p>Events related to <code>sdk.client</code> requests and connections (all emitted in background):</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client.request.success</code></td>
+<td>HTTP request succeeds</td>
+<td><code>{"method": str, "url": str, "status": int, "elapsed": float}</code></td>
+</tr>
+<tr>
+<td><code>client.request.failed</code></td>
+<td>HTTP request fails after exhausting retries</td>
+<td><code>{"method": str, "url": str, "error": str, "attempts": int, "elapsed": float}</code></td>
+</tr>
+<tr>
+<td><code>client.ws.connect</code></td>
+<td>WebSocket connection established</td>
+<td><code>{"url": str}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="internationalization">Internationalization</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Hook Name</th>
+<th>Trigger Timing</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i18n.language.changed</code></td>
+<td>Framework language switch (via <code>i18n.set_language</code>)</td>
+<td><code>{"language": str, "previous": str}</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="standard-event-definitions">Standard Event Definitions</h2>
+<pre><code class="language-python">STANDARD_EVENTS <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token string">"core"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"init.start"</span><span class="token punctuation">,</span> <span class="token string">"init.stage"</span><span class="token punctuation">,</span> <span class="token string">"init.complete"</span><span class="token punctuation">,</span> <span class="token string">"uninit.complete"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"module"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"load"</span><span class="token punctuation">,</span> <span class="token string">"init"</span><span class="token punctuation">,</span> <span class="token string">"unload"</span><span class="token punctuation">,</span> <span class="token string">"register"</span><span class="token punctuation">,</span> <span class="token string">"reload"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"adapter"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"load"</span><span class="token punctuation">,</span> <span class="token string">"start"</span><span class="token punctuation">,</span> <span class="token string">"status.change"</span><span class="token punctuation">,</span> <span class="token string">"stop"</span><span class="token punctuation">,</span> <span class="token string">"stopped"</span><span class="token punctuation">,</span>
+        <span class="token string">"event.receive"</span><span class="token punctuation">,</span> <span class="token string">"event.dispatched"</span><span class="token punctuation">,</span>
+        <span class="token string">"bot.online"</span><span class="token punctuation">,</span> <span class="token string">"bot.offline"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"server"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"start"</span><span class="token punctuation">,</span> <span class="token string">"stop"</span><span class="token punctuation">,</span>
+        <span class="token string">"request"</span><span class="token punctuation">,</span> <span class="token string">"response"</span><span class="token punctuation">,</span>
+        <span class="token string">"websocket.connect"</span><span class="token punctuation">,</span> <span class="token string">"websocket.disconnect"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"event"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"pre_process"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"sending"</span><span class="token punctuation">,</span> <span class="token string">"sent"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"matched"</span><span class="token punctuation">,</span> <span class="token string">"executed"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"config"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"set"</span><span class="token punctuation">,</span> <span class="token string">"updated"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"storage"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"ready"</span><span class="token punctuation">,</span> <span class="token string">"unreachable"</span><span class="token punctuation">,</span> <span class="token string">"recovered"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"client"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"request.success"</span><span class="token punctuation">,</span> <span class="token string">"request.failed"</span><span class="token punctuation">,</span> <span class="token string">"ws.connect"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"language.changed"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="complete-api-reference">Complete API Reference</h2>
+<h3 id="registration-and-unregistration">Registration and Unregistration</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@lifecycle.on(event, *, priority=0)</code></td>
+<td>Decorator registration of handler</td>
+</tr>
+<tr>
+<td><code>lifecycle.register(event, handler, *, priority=0)</code></td>
+<td>Programmatic registration</td>
+</tr>
+<tr>
+<td><code>lifecycle.unregister(event, handler=None)</code></td>
+<td>Unregister (if handler=None, unregister all handlers for that event)</td>
+</tr>
+</tbody></table></div>
+<h3 id="triggering">Triggering</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await lifecycle.emit(event, data=None, *, to=None)</code></td>
+<td>Asynchronous trigger, handlers execute <strong>in parallel</strong> (non-blocking, returns when all complete), returns non-None values in priority order for chained data replacement; <code>to</code> specifies owner for directed delivery</td>
+</tr>
+<tr>
+<td><code>lifecycle.fire(event, data=None, *, to=None)</code></td>
+<td><strong>Fire in background (fire and forget)</strong>: handlers execute in background tasks in parallel, no wait, no return value; zero overhead if no listeners; suitable for high-frequency hot paths and pure observation events; for shutdown sequences and ordered consumption (e.g., <code>config.set</code>) use <code>emit</code></td>
+</tr>
+<tr>
+<td><code>lifecycle.emit_sync(event, data=None, *, to=None)</code></td>
+<td>Synchronous trigger, asynchronous handlers scheduled via create_task</td>
+</tr>
+<tr>
+<td><code>await lifecycle.submit_event(event_type, *, source, msg, data, to=None, background=False)</code></td>
+<td>Backward compatible, automatically constructs standard event format; if <code>background=True</code>, uses <code>fire</code> background firing</td>
+</tr>
+</tbody></table></div>
+<h3 id="utilities">Utilities</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lifecycle.start_timer(timer_id)</code></td>
+<td>Start timing</td>
+</tr>
+<tr>
+<td><code>lifecycle.get_duration(timer_id)</code></td>
+<td>Get elapsed duration (seconds)</td>
+</tr>
+<tr>
+<td><code>lifecycle.stop_timer(timer_id)</code></td>
+<td>Stop timing and return elapsed duration</td>
+</tr>
+<tr>
+<td><code>lifecycle.list_hooks()</code></td>
+<td>List all registered hooks and handler counts</td>
+</tr>
+<tr>
+<td><code>lifecycle.clear()</code></td>
+<td>Clear all handlers and timers</td>
+</tr>
+</tbody></table></div>
+<h2 id="module-usage-examples">Module Usage Examples</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token keyword">class</span> <span class="token class-name">Main</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># Implement simple message statistics</span>
+        self<span class="token punctuation">.</span>msg_count <span class="token operator">=</span> <span class="token number">0</span>
+        
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">count</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> data<span class="token punctuation">[</span><span class="token string">"event_type"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"message"</span><span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>msg_count <span class="token operator">+=</span> <span class="token number">1</span>
+        
+        <span class="token comment"># Monitor all commands</span>
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"command.matched"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">log_cmd</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Command executed: /</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'command'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> by </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'user_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token comment"># Configuration change audit</span>
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"config.set"</span><span class="token punctuation">)</span>
+        <span class="token keyword">def</span> <span class="token function">audit</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Configuration change: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'key'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> = </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'new_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="background-task-ownership-and-automatic-cancellation">Background Task Ownership and Automatic Cancellation</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>This feature requires ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>Background tasks created by modules that are not canceled in <code>on_unload</code> will hold a reference to <code>self</code>, preventing the module instance from being recycled (old instances remain after hot reload). The framework provides the following fallback mechanism:</p>
+<ul>
+<li><strong><code>self.spawn(coro)</code></strong> (recommended within modules): Tasks are automatically assigned to the module name, and the framework cancels unfinished tasks and logs warnings after <code>on_unload</code> when the module is unloaded</li>
+<li><strong><code>spawn_background(coro)</code></strong> (on <code>ErisPulse.runtime</code>): Automatically captures the current <code>owner_scope</code> context; <code>cancel_owner_tasks(owner)</code> cancels tasks by assignment, <code>cancel_all_background_tasks()</code> is provided for <code>sdk.uninit()</code> fallback</li>
+<li><strong>Adapters</strong>: When closing, background tasks under the platform name are also canceled as a fallback</li>
+</ul>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Recommended: Use self.spawn() for background tasks, framework automatically cancels as fallback after unload</span>
+    self<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_poll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># For fine-grained control, still recommend manually canceling and waiting for completion</span>
+    <span class="token keyword">if</span> self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">.</span>cancel<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>gather<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">,</span> return_exceptions<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_poll</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">60</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-important"><p class="markdown-alert-title"><i class="fas fa-comment-dots" aria-hidden="true"></i>Important</p>
+<p>The framework's fallback is <strong>forced cancellation</strong> (<code>cancel_owner_tasks</code>), which occurs after <code>on_unload</code> returns. Therefore, tasks requiring graceful termination (flush buffers, persist state, close connections) <strong>must</strong> be manually canceled and awaited in <code>on_unload</code>—do not rely on the fallback to preserve termination logic. The framework only guarantees that "tasks holding <code>self</code> are not left behind," not that they terminate "gracefully." Tasks requiring <code>await</code> results should be awaited directly, not thrown into background tasks.</p>
+</div>
+<h2 id="notes">Notes</h2>
+<ol>
+<li><strong>Handlers can be synchronous or asynchronous</strong>: The system automatically identifies and correctly calls them</li>
+<li><strong>Data passing</strong>: In <code>emit()</code> mode, handlers returning non-None values modify the data passed to subsequent handlers</li>
+<li><strong>Event naming convention</strong>: It is recommended to use dot-structure naming for events, which facilitates listening to parent events</li>
+<li><strong>Error isolation</strong>: An exception in a single handler does not affect the execution of other handlers</li>
+<li><strong>Synchronous trigger limitation</strong>: In <code>emit_sync()</code>, asynchronous handlers are scheduled in a fire-and-forget manner, and return values cannot be returned</li>
+<li><strong>Lifecycle cleanup</strong>: When <code>sdk.uninit()</code> is called, all registered handlers and timers are cleared</li>
+<li><strong>Load priority</strong>: If you need to listen to events during the framework initialization phase, it is recommended to set a high priority and disable lazy loading</li>
+</ol>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="/docs/en/developer-guide/modules/getting-started.html">Module Development Guide</a> - Learn about module lifecycle methods</li>
+<li><a href="/docs/en/developer-guide/modules/best-practices.html">Best Practices</a> - Lifecycle event usage recommendations</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/advanced/README.html"><small>Previous</small><br>Advanced Topics</a>
+        <a class="doc-pager-next" href="/docs/en/advanced/lazy-loading.html"><small>Next</small><br>Lazy-Loaded Module System</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>
