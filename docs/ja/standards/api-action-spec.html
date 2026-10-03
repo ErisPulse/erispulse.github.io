@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse API 動作標準 - ErisPulse 文档中心</title>
+    <meta name="description" content="本文書では、ErisPulse アダプターにおける OneBot12 標準 API 動作の統一インターフェース仕様を定義し、モジュール開発者が標準インターフェースを対象にプログラミングできるようにし、アダプターがプラットフォームのネイティブ API にマッピングする責任を負います。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/standards/api-action-spec.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/standards/api-action-spec.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/standards/api-action-spec.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/standards/api-action-spec.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/standards/api-action-spec.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/standards/api-action-spec.html" />
+    <meta property="og:title" content="ErisPulse API 動作標準 - ErisPulse 文档中心" />
+    <meta property="og:description" content="本文書では、ErisPulse アダプターにおける OneBot12 標準 API 動作の統一インターフェース仕様を定義し、モジュール開発者が標準インターフェースを対象にプログラミングできるようにし、アダプターがプラットフォームのネイティブ API にマッピングする責任を負います。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/standards/api-action-spec.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse API 動作標準","description":"本文書では、ErisPulse アダプターにおける OneBot12 標準 API 動作の統一インターフェース仕様を定義し、モジュール開発者が標準インターフェースを対象にプログラミングできるようにし、アダプターがプラットフォームのネイティブ API にマッピングする責任を負います。","url":"https://www.erisdev.com/docs/ja/standards/api-action-spec.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 技術標準
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse API 動作標準</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/standards/api-action-spec.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/standards/api-action-spec.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/standards/api-action-spec.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/standards/api-action-spec.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/standards/api-action-spec.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/standards/api-action-spec.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulse-api-動作標準">ErisPulse API 動作標準</h1>
+<p>本文書では、ErisPulse アダプターにおける <strong>OneBot12 標準 API 動作</strong>の統一インターフェース仕様を定義し、モジュール開発者が標準インターフェースを対象にプログラミングできるようにし、アダプターがプラットフォームのネイティブ API にマッピングする責任を負います。</p>
+<blockquote>
+<p><strong>対象範囲</strong>：OneBot12 標準動作において、<code>ApiDSL</code> はユーザー / グループ / チャンネル（Guild）/
+メッセージ管理 / 元（Meta）の一般的なインターフェースを強型メソッドとして提供します（<code>send_message</code> は
+<code>SendDSL.Raw_ob12</code> が担当します）。ファイルリソース動作（<code>upload_file</code> / <code>get_file</code> / フラグメント）は、
+降格透かし転送としてのみ保持されます。詳細は §3.5 を参照してください。プラットフォーム拡張動作は、
+<code>Api.call("prefix.action", ...)</code> を使用したエスケープハッチで呼び出されます。動作のパラメータと返り値の構造は、OneBot12 規格（リポジトリ内の <code>onebot/specs/interface/</code>）に準拠します。</p>
+</blockquote>
+<h2 id="1-設計の背景">1. 設計の背景</h2>
+<p>ErisPulse では、メッセージセグメント（メッセージの送受信）とイベント形式は既に完全に OneBot12 標準に準拠していますが、<strong>API アクションの呼び出し</strong>（例：ユーザー情報の取得、グループリストの取得、メッセージの撤回など）は、以前は統一されていませんでした。モジュール開発者は、各プラットフォームごとに異なる <code>call_api</code> の呼び出しを書く必要がありました。</p>
+<p><code>ApiDSL</code> は、強タイプの標準アクションメソッドを提供することで、この問題を解決します：</p>
+<pre><code>モジュールコード（プラットフォーム間で統一）        适配器実装（プラットフォーム固有）
+─────────────────              ──────────────────
+adapter.Api.get_user_info("123")  →  适配器 call_api / オーバーライド
+adapter.Api.get_group_list()      →  适配器 call_api / オーバーライド
+adapter.Api.delete_message("id")  →  适配器 call_api / オーバーライド
+</code></pre>
+<h2 id="2-3層のdsl並列構造">2. 3層のDSL並列構造</h2>
+<p>ErisPulse アダプタには、それぞれ異なる役割を持つ3つの並列のDSL内部クラスがあります：</p>
+<pre><code>BaseAdapter
+├── Send(SendDSL)       ← メッセージ送信（Text/Image/Raw_ob12）
+├── Request(RequestDSL)  ← 要求操作（accept/reject）
+└── Api(ApiDSL)          ← 標準APIアクション（ユーザー/グループ/チャンネル/メッセージ管理/ファイル/メタ）★
+</code></pre>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>DSL</th>
+<th>職責</th>
+<th>メソッドスタイル</th>
+<th>戻り値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Send</code></td>
+<td>メッセージ送信</td>
+<td>チェーン式 + <code>asyncio.Task</code></td>
+<td>標準レスポンス</td>
+</tr>
+<tr>
+<td><code>Request</code></td>
+<td>要求イベントの処理</td>
+<td><code>asyncio.Task</code></td>
+<td>標準レスポンス</td>
+</tr>
+<tr>
+<td><code>Api</code></td>
+<td>クエリ/管理操作</td>
+<td><code>async</code> メソッド</td>
+<td>標準レスポンス</td>
+</tr>
+</tbody></table></div>
+<h2 id="3-標準アクション一覧">3. 標準アクション一覧</h2>
+<h3 id="31-ユーザー関連">3.1 ユーザー関連</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>OB12 アクション</th>
+<th>パラメータ</th>
+<th>data 返却値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_self_info()</code></td>
+<td><code>get_self_info</code></td>
+<td>無</td>
+<td><code>user_id</code>, <code>user_name</code>, <code>user_displayname</code></td>
+</tr>
+<tr>
+<td><code>get_user_info(user_id)</code></td>
+<td><code>get_user_info</code></td>
+<td><code>user_id: str</code></td>
+<td><code>user_id</code>, <code>user_name</code>, <code>user_displayname</code>, <code>user_remark</code></td>
+</tr>
+<tr>
+<td><code>get_friend_list()</code></td>
+<td><code>get_friend_list</code></td>
+<td>無</td>
+<td><code>list[get_user_info 応答]</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="32-グループ関連">3.2 グループ関連</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>OB12 アクション</th>
+<th>パラメータ</th>
+<th>data 返却値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_group_info(group_id)</code></td>
+<td><code>get_group_info</code></td>
+<td><code>group_id: str</code></td>
+<td><code>group_id</code>, <code>group_name</code></td>
+</tr>
+<tr>
+<td><code>get_group_list()</code></td>
+<td><code>get_group_list</code></td>
+<td>無</td>
+<td><code>list[get_group_info 応答]</code></td>
+</tr>
+<tr>
+<td><code>get_group_member_info(group_id, user_id)</code></td>
+<td><code>get_group_member_info</code></td>
+<td><code>group_id: str</code>, <code>user_id: str</code></td>
+<td><code>user_id</code>, <code>user_name</code>, <code>user_displayname</code></td>
+</tr>
+<tr>
+<td><code>get_group_member_list(group_id)</code></td>
+<td><code>get_group_member_list</code></td>
+<td><code>group_id: str</code></td>
+<td><code>list[get_group_member_info 応答]</code></td>
+</tr>
+<tr>
+<td><code>set_group_name(group_id, group_name)</code></td>
+<td><code>set_group_name</code></td>
+<td><code>group_id: str</code>, <code>group_name: str</code></td>
+<td>無</td>
+</tr>
+<tr>
+<td><code>leave_group(group_id)</code></td>
+<td><code>leave_group</code></td>
+<td><code>group_id: str</code></td>
+<td>無</td>
+</tr>
+</tbody></table></div>
+<h3 id="33-メッセージ管理">3.3 メッセージ管理</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>OB12 アクション</th>
+<th>パラメータ</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>delete_message(message_id)</code></td>
+<td><code>delete_message</code></td>
+<td><code>message_id: str</code></td>
+<td>メッセージの撤回/削除</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>メッセージ送信</strong>（<code>send_message</code>）は <code>SendDSL</code> の <code>Raw_ob12</code> で処理され、<code>ApiDSL</code> には重複して記載されていない。</p>
+</blockquote>
+<h3 id="34-チャンネルguild関連">3.4 チャンネル（Guild）関連</h3>
+<p>OneBot12 のチャンネル体系は二段階構造：<strong>チャンネル（guild）</strong> と <strong>サブチャンネル（channel）</strong>。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>OB12 アクション</th>
+<th>パラメータ</th>
+<th>data 返却値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_guild_info(guild_id)</code></td>
+<td><code>get_guild_info</code></td>
+<td><code>guild_id: str</code></td>
+<td><code>guild_id</code>, <code>guild_name</code></td>
+</tr>
+<tr>
+<td><code>get_guild_list()</code></td>
+<td><code>get_guild_list</code></td>
+<td>無</td>
+<td><code>list[get_guild_info 応答]</code></td>
+</tr>
+<tr>
+<td><code>set_guild_name(guild_id, guild_name)</code></td>
+<td><code>set_guild_name</code></td>
+<td><code>guild_id: str</code>, <code>guild_name: str</code></td>
+<td>無</td>
+</tr>
+<tr>
+<td><code>get_guild_member_info(guild_id, user_id)</code></td>
+<td><code>get_guild_member_info</code></td>
+<td><code>guild_id: str</code>, <code>user_id: str</code></td>
+<td><code>user_id</code>, <code>user_name</code>, <code>user_displayname</code></td>
+</tr>
+<tr>
+<td><code>get_guild_member_list(guild_id)</code></td>
+<td><code>get_guild_member_list</code></td>
+<td><code>guild_id: str</code></td>
+<td><code>list[get_guild_member_info 応答]</code></td>
+</tr>
+<tr>
+<td><code>leave_guild(guild_id)</code></td>
+<td><code>leave_guild</code></td>
+<td><code>guild_id: str</code></td>
+<td>無</td>
+</tr>
+<tr>
+<td><code>get_channel_info(guild_id, channel_id)</code></td>
+<td><code>get_channel_info</code></td>
+<td><code>guild_id: str</code>, <code>channel_id: str</code></td>
+<td><code>channel_id</code>, <code>channel_name</code></td>
+</tr>
+<tr>
+<td><code>get_channel_list(guild_id, *, joined_only)</code></td>
+<td><code>get_channel_list</code></td>
+<td><code>guild_id: str</code>, <code>joined_only: bool=false</code></td>
+<td><code>list[get_channel_info 応答]</code></td>
+</tr>
+<tr>
+<td><code>set_channel_name(guild_id, channel_id, channel_name)</code></td>
+<td><code>set_channel_name</code></td>
+<td><code>guild_id</code>, <code>channel_id</code>, <code>channel_name</code></td>
+<td>無</td>
+</tr>
+<tr>
+<td><code>get_channel_member_info(guild_id, channel_id, user_id)</code></td>
+<td><code>get_channel_member_info</code></td>
+<td><code>guild_id</code>, <code>channel_id</code>, <code>user_id</code></td>
+<td><code>user_id</code>, <code>user_name</code>, <code>user_displayname</code></td>
+</tr>
+<tr>
+<td><code>get_channel_member_list(guild_id, channel_id)</code></td>
+<td><code>get_channel_member_list</code></td>
+<td><code>guild_id</code>, <code>channel_id</code></td>
+<td><code>list[get_channel_member_info 応答]</code></td>
+</tr>
+<tr>
+<td><code>leave_channel(guild_id, channel_id)</code></td>
+<td><code>leave_channel</code></td>
+<td><code>guild_id</code>, <code>channel_id</code></td>
+<td>無</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>チャンネル体系はグループ（group）とは独立：Discord / QQ チャンネル / Kook などのプラットフォームはチャンネルインターフェースを実装し、従来の QQ / WeChat はグループインターフェースを実装する。両者は同時に存在するか、またはそのいずれかのみが存在する。</p>
+</blockquote>
+<h3 id="35-ファイルリソース操作">3.5 ファイルリソース操作</h3>
+<blockquote>
+<p><strong>[!WARNING]</strong>
+<strong>ファイルリソースモデル（file_id 二段階式）は ErisPulse では「降格利用可能」</strong>：
+ErisPulse のファイル送受信は「先に file_id を取得してから参照」のモデルを経由しない。モジュールがファイルを送信する際は <code>SendDSL.File(file, filename)</code> を使用する（URL / パス / バイナリ<strong>送信時に直接送信</strong>、<a href="/docs/ja/standards/send-method-spec.html">送信方法規格</a>を参照）。本節の <code>upload_file</code> / <code>get_file</code> / 分片アクションは、プラットフォーム固有の <code>file_id</code> ファイルリソース機能に依存しており、<strong>汎用性が不足</strong>している。適切なアダプタが後端でその機能を備えている場合にのみ透過的に実装可能であり、フレームワークに内蔵されたアダプタは実装せず、実装を推奨しない。呼び出し時には通常 <code>retcode=10002</code> を返す。モジュールが複数のプラットフォーム間でファイルを送信する必要がある場合は、<code>SendDSL.File</code> を使用し、file_id に依存しないようにする。</p>
+<p><strong>展望</strong>：<code>file_id</code> リソースモデルをフレームワーク層に標準化することが将来の方向性であるが、現時点では提供されていない。</p>
+</blockquote>
+<p>整包転送（小ファイル）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>OB12 アクション</th>
+<th>パラメータ</th>
+<th>data 返却値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>upload_file(*, type, name, ...)</code></td>
+<td><code>upload_file</code></td>
+<td><code>type</code>, <code>name</code>, <code>url</code>/<code>path</code>/<code>data</code>, <code>headers?</code>, <code>sha256?</code></td>
+<td><code>file_id</code></td>
+</tr>
+<tr>
+<td><code>get_file(file_id, type)</code></td>
+<td><code>get_file</code></td>
+<td><code>file_id: str</code>, <code>type: str</code></td>
+<td><code>name</code>, <code>url</code>/<code>path</code>/<code>data</code></td>
+</tr>
+</tbody></table></div>
+<p><code>upload_file</code> の <code>type</code> パラメータ：</p>
+<ul>
+<li><code>"url"</code>：URL からアップロード（<code>url</code> を提供する必要がある）</li>
+<li><code>"path"</code>：ローカルパスからアップロード（<code>path</code> を提供する必要がある）</li>
+<li><code>"data"</code>：バイナリデータからアップロード（<code>data</code> を提供する必要がある）</li>
+</ul>
+<h4 id="351-分片転送大ファイル上記の降格範囲に属する">3.5.1 分片転送（大ファイル、上記の降格範囲に属する）</h4>
+<p>OneBot12 の分片アクションは <code>stage</code> で段階を区別する。<code>ApiDSL</code> では同一アクションの三段階または二段階を独立したメソッドに分割し（<code>offset</code> はバイトオフセット、<code>data</code> は JSON 中で Base64 で表現される）、下表は参照用に残すのみであり、アダプタは実装する必要も義務もありません：</p>
+<p><strong>分片アップロード三段階</strong>：<code>prepare</code> → <code>transfer</code>（各片を繰り返し送信）→ <code>finish</code></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>対応 stage</th>
+<th>パラメータ</th>
+<th>data 返却値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>upload_file_fragmented_prepare(name, total_size)</code></td>
+<td><code>prepare</code></td>
+<td><code>name: str</code>, <code>total_size: int</code></td>
+<td><code>file_id</code>（転送中使用）</td>
+</tr>
+<tr>
+<td><code>upload_file_fragmented_transfer(file_id, offset, data)</code></td>
+<td><code>transfer</code></td>
+<td><code>file_id</code>, <code>offset: int</code>, <code>data: bytes</code></td>
+<td>無</td>
+</tr>
+<tr>
+<td><code>upload_file_fragmented_finish(file_id, sha256)</code></td>
+<td><code>finish</code></td>
+<td><code>file_id</code>, <code>sha256: str</code>（ファイル全体の検証）</td>
+<td><code>file_id</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python">total <span class="token operator">=</span> os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>getsize<span class="token punctuation">(</span>path<span class="token punctuation">)</span>
+r <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>upload_file_fragmented_prepare<span class="token punctuation">(</span>os<span class="token punctuation">.</span>path<span class="token punctuation">.</span>basename<span class="token punctuation">(</span>path<span class="token punctuation">)</span><span class="token punctuation">,</span> total<span class="token punctuation">)</span>
+fid <span class="token operator">=</span> r<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"file_id"</span><span class="token punctuation">]</span>
+offset <span class="token operator">=</span> <span class="token number">0</span>
+<span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>path<span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>
+    <span class="token keyword">while</span> chunk <span class="token operator">:=</span> f<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token number">65536</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>upload_file_fragmented_transfer<span class="token punctuation">(</span>fid<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> chunk<span class="token punctuation">)</span>
+        offset <span class="token operator">+=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>chunk<span class="token punctuation">)</span>
+sha256 <span class="token operator">=</span> hashlib<span class="token punctuation">.</span>sha256<span class="token punctuation">(</span><span class="token builtin">open</span><span class="token punctuation">(</span>path<span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>hexdigest<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>upload_file_fragmented_finish<span class="token punctuation">(</span>fid<span class="token punctuation">,</span> sha256<span class="token punctuation">)</span>
+</code></pre>
+<p><strong>分片ダウンロード二段階</strong>：<code>prepare</code> → <code>transfer</code>（各片を繰り返し取得）</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>対応 stage</th>
+<th>パラメータ</th>
+<th>data 返却値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_file_fragmented_prepare(file_id)</code></td>
+<td><code>prepare</code></td>
+<td><code>file_id</code></td>
+<td><code>name</code>, <code>total_size</code>, <code>sha256</code></td>
+</tr>
+<tr>
+<td><code>get_file_fragmented_transfer(file_id, offset, size)</code></td>
+<td><code>transfer</code></td>
+<td><code>file_id</code>, <code>offset: int</code>, <code>size: int</code></td>
+<td><code>data</code>（今回の分片のバイト）</td>
+</tr>
+</tbody></table></div>
+<h3 id="36-メタmetaアクション">3.6 メタ（Meta）アクション</h3>
+<p>メタアクションは具体的なアカウントに依存せず、<code>Using()</code> で Bot を指定する必要がない。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>OB12 アクション</th>
+<th>パラメータ</th>
+<th>data 返却値</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_latest_events(limit, timeout)</code></td>
+<td><code>get_latest_events</code></td>
+<td><code>limit: int=0</code>, <code>timeout: int=0</code></td>
+<td>イベントオブジェクト配列（メタイベントを含まない）</td>
+</tr>
+<tr>
+<td><code>get_supported_actions()</code></td>
+<td><code>get_supported_actions</code></td>
+<td>無</td>
+<td><code>list[str]</code> 支持するアクション名</td>
+</tr>
+<tr>
+<td><code>get_status()</code></td>
+<td><code>get_status</code></td>
+<td>無</td>
+<td><code>good: bool</code>, <code>bots: list[{self, online, ...}]</code></td>
+</tr>
+<tr>
+<td><code>get_version()</code></td>
+<td><code>get_version</code></td>
+<td>無</td>
+<td><code>impl</code>, <code>version</code>, <code>onebot_version</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="37-一般拡張アクション">3.7 一般拡張アクション</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>call(action, **params)</code></td>
+<td>プラットフォーム拡張アクションのエスケープハッチであり、OB12 拡張命名規則 <code>{prefix}.{action}</code> に従う</td>
+</tr>
+</tbody></table></div>
+<h2 id="4-使用方法">4. 使用方法</h2>
+<h3 id="41-基本呼び出し">4.1 基本呼び出し</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> adapter
+
+<span class="token comment"># ユーザー情報を取得（プラットフォーム間で統一）</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_user_info<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> result<span class="token punctuation">[</span><span class="token string">"status"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"ok"</span><span class="token punctuation">:</span>
+    user_name <span class="token operator">=</span> result<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"user_name"</span><span class="token punctuation">]</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"ユーザー名: </span><span class="token interpolation"><span class="token punctuation">{</span>user_name<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># グループリストを取得</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_group_list<span class="token punctuation">(</span><span class="token punctuation">)</span>
+groups <span class="token operator">=</span> result<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span>
+
+<span class="token comment"># メッセージの撤回</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>delete_message<span class="token punctuation">(</span><span class="token string">"msg_123456"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="42-指定-bot-アカウント複数アカウントモード">4.2 指定 Bot アカウント（複数アカウントモード）</h3>
+<pre><code class="language-python"><span class="token comment"># 指定された Bot アカウントを使用して操作を実行</span>
+info <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get_self_info<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="43-プラットフォーム拡張アクション">4.3 プラットフォーム拡張アクション</h3>
+<pre><code class="language-python"><span class="token comment"># プラットフォーム固有の拡張アクションを呼び出す（{prefix}.{action} の命名を推奨）</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>telegram<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>call<span class="token punctuation">(</span>
+    <span class="token string">"telegram.send_sticker"</span><span class="token punctuation">,</span>
+    sticker_id<span class="token operator">=</span><span class="token string">"CAACAgIAAxkBAA..."</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="44-イベントハンドラ内で使用">4.4 イベントハンドラ内で使用</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message
+
+<span class="token decorator annotation punctuation">@message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 送信者の詳細情報を取得</span>
+    user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    platform <span class="token operator">=</span> event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    result <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token builtin">getattr</span><span class="token punctuation">(</span>adapter<span class="token punctuation">,</span> platform<span class="token punctuation">)</span><span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_user_info<span class="token punctuation">(</span>user_id<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> result<span class="token punctuation">[</span><span class="token string">"status"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"ok"</span><span class="token punctuation">:</span>
+        user_name <span class="token operator">=</span> result<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"user_name"</span><span class="token punctuation">]</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"こんにちは、</span><span class="token interpolation"><span class="token punctuation">{</span>user_name<span class="token punctuation">}</span></span><span class="token string">！"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="5-アダプターの実装">5. アダプターの実装</h2>
+<h3 id="51-デフォルト動作ゼロ設定">5.1 デフォルト動作（ゼロ設定）</h3>
+<p><code>ApiDSL</code> のデフォルト実装は、標準アクション名を <code>endpoint</code> として <code>adapter.call_api()</code> に直接渡します：</p>
+<pre><code class="language-python"><span class="token comment"># ApiDSL のデフォルト実装は以下のコードと同等です：</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_user_info</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> user_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"get_user_info"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span>user_id<span class="token punctuation">,</span> account_id<span class="token operator">=</span>self<span class="token punctuation">.</span>_account_id<span class="token punctuation">)</span>
+</code></pre>
+<p><strong>適用場面</strong>：アダプターの下層バックエンドが OneBot12 標準アクションプロトコルに従っている場合、
+<code>call_api</code> は標準アクション名（例：プロトコルに従うサービスに直接接続）を天然にサポートします。</p>
+<h3 id="52-標準メソッドのオーバーライドプラットフォーム固有の-api-へのマッピング">5.2 標準メソッドのオーバーライド（プラットフォーム固有の API へのマッピング）</h3>
+<p>アダプターは個々の標準メソッドをオーバーライドし、プラットフォーム固有の API にマッピングできます：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+
+    <span class="token keyword">class</span> <span class="token class-name">Api</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Api<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""MyPlatform 標準 API アクションの実装"""</span>
+
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_user_info</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> user_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+            <span class="token comment"># プラットフォーム固有の API にマッピング</span>
+            raw <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>_request<span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> <span class="token string-interpolation"><span class="token string">f"/users/</span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword">if</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">:</span>
+                <span class="token keyword">return</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">34600</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"ユーザーが存在しません"</span><span class="token punctuation">)</span>
+
+            user <span class="token operator">=</span> raw<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>make_response<span class="token punctuation">(</span>
+                data<span class="token operator">=</span><span class="token punctuation">{</span>
+                    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>user<span class="token punctuation">[</span><span class="token string">"id"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token string">"user_name"</span><span class="token punctuation">:</span> user<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"nick"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token string">"user_displayname"</span><span class="token punctuation">:</span> user<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"display_name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token string">"user_remark"</span><span class="token punctuation">:</span> user<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"remark"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                <span class="token punctuation">}</span><span class="token punctuation">,</span>
+                raw<span class="token operator">=</span>raw<span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_friend_list</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+            raw <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>_request<span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> <span class="token string">"/friends"</span><span class="token punctuation">)</span>
+            friends <span class="token operator">=</span> <span class="token punctuation">[</span>
+                <span class="token punctuation">{</span>
+                    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>u<span class="token punctuation">[</span><span class="token string">"id"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token string">"user_name"</span><span class="token punctuation">:</span> u<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"nick"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token string">"user_displayname"</span><span class="token punctuation">:</span> u<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"display_name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token string">"user_remark"</span><span class="token punctuation">:</span> u<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"remark"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                <span class="token punctuation">}</span>
+                <span class="token keyword">for</span> u <span class="token keyword">in</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            <span class="token punctuation">]</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>make_response<span class="token punctuation">(</span>data<span class="token operator">=</span>friends<span class="token punctuation">,</span> raw<span class="token operator">=</span>raw<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="53-未サポートのアクション">5.3 未サポートのアクション</h3>
+<p>アダプターがカバーしていない標準メソッドはデフォルト実装（<code>call_api</code> に委譲）を実行します。もし <code>call_api</code> がそのアクションをサポートしていない場合、標準のエラーレスポンスを返す必要があります：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> endpoint <span class="token keyword">not</span> <span class="token keyword">in</span> self<span class="token punctuation">.</span>_supported_endpoints<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">10002</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string-interpolation"><span class="token string">f"サポートされていないアクション: </span><span class="token interpolation"><span class="token punctuation">{</span>endpoint<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token comment"># ... プラットフォーム API 呼び出し</span>
+</code></pre>
+<p>モジュール開発者は、返り値の <code>retcode</code> を使ってサポート状況を判断できます：</p>
+<pre><code class="language-python">result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_friend_list<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> result<span class="token punctuation">[</span><span class="token string">"retcode"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token number">10002</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"このプラットフォームは友達リストの取得をサポートしていません"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="6-応答形式">6. 応答形式</h2>
+<p>すべての <code>ApiDSL</code> メソッドは、標準的な API 応答形式を返します（詳細は <a href="/docs/ja/standards/api-response.html">API 応答の標準</a> を参照してください）。</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span>
+    <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span> ... <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"myplatform_raw"</span><span class="token operator">:</span> <span class="token punctuation">{</span> ... <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p><strong>注意</strong>：情報照会系のアクションでは <code>message_id</code> は空文字列になります（<code>message_id</code> はメッセージ送信系のアクションにのみ存在します）。</p>
+</blockquote>
+<h2 id="7-senddsl-requestdsl-との関係">7. SendDSL / RequestDSL との関係</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>ステージ</th>
+<th>DSL の使用</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>メッセージの送信</td>
+<td><code>Send</code></td>
+<td><code>adapter.Send.To("group", "123").Text("hi")</code></td>
+</tr>
+<tr>
+<td>リクエストの承認/拒否</td>
+<td><code>Request</code></td>
+<td><code>adapter.Request("req_id").accept()</code></td>
+</tr>
+<tr>
+<td>ユーザー/グループ情報の取得</td>
+<td><code>Api</code></td>
+<td><code>adapter.Api.get_user_info("123")</code></td>
+</tr>
+<tr>
+<td>メッセージの撤回</td>
+<td><code>Api</code></td>
+<td><code>adapter.Api.delete_message("msg_id")</code></td>
+</tr>
+<tr>
+<td>グループからの退出</td>
+<td><code>Api</code></td>
+<td><code>adapter.Api.leave_group("group_id")</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="8-アダプター実装チェックリスト">8. アダプター実装チェックリスト</h2>
+<h3 id="標準アクション">標準アクション</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>call_api</code> は標準アクション名を処理できる（または対応する <code>ApiDSL</code> メソッドをオーバーライド）</li>
+<li><input disabled type="checkbox"> 対応しないアクションは <code>retcode=10002</code> を返す</li>
+<li><input disabled type="checkbox"> 戻り値は標準 API 応答形式に従う</li>
+<li><input disabled type="checkbox"> <code>data</code> フィールドには OB12 で定義されたフィールドを含む</li>
+<li><input disabled type="checkbox"> チャンネルプラットフォームは <code>get_guild_*</code> / <code>get_channel_*</code> / <code>leave_guild</code> / <code>leave_channel</code> を実装する</li>
+<li><input disabled type="checkbox"> 元アクション（<code>get_status</code> / <code>get_version</code> / <code>get_supported_actions</code>）は推奨実装</li>
+<li><input disabled type="checkbox"> <strong>ファイル送信は <code>SendDSL.File</code>（直接送信）を使用</strong>；ファイルリソースアクション（upload_file/get_file/分割）は<strong>必須実装ではなく、バックエンドに <code>file_id</code> リソース能力がある場合にのみ透過する</strong></li>
+</ul>
+<h3 id="拡張アクション">拡張アクション</h3>
+<ul>
+<li><input disabled type="checkbox"> プラットフォーム拡張アクションは <code>{prefix}.{action}</code> の命名を使用</li>
+<li><input disabled type="checkbox"> 拡張アクションのパラメータと応答は、OB12 アクションリクエスト/応答構造に従う</li>
+</ul>
+<h2 id="9-関連ドキュメント">9. 関連ドキュメント</h2>
+<ul>
+<li><a href="/docs/ja/standards/api-response.html">API 応答標準</a> - アダプタ API 応答形式の標準</li>
+<li><a href="/docs/ja/standards/send-method-spec.html">送信メソッド規格</a> - Send クラスのメソッド命名とパラメータ規格</li>
+<li><a href="/docs/ja/standards/request-action-spec.html">リクエスト操作規格</a> - Request DSL の使用方法</li>
+<li><a href="/docs/ja/standards/event-conversion.html">イベント変換標準</a> - イベント形式とメッセージセグメントの標準</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/standards/request-action-spec.html"><small>Previous</small><br>ErisPulse リクエスト操作規格</a>
+        <a class="doc-pager-next" href="/docs/ja/standards/standardization-guide.html"><small>Next</small><br>アダプター標準化ガイドライン（概要）</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

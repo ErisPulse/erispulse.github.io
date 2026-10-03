@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>網路客戶端 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 提供了統一的網路客戶端，聚合了 HTTP 請求、WebSocket 連接和連接池管理。模組和適配器必須優先使用此客戶端，而非自行導入 aiohttp / httpx / requests 等第三方庫。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/http-client.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/http-client.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/http-client.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/http-client.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/http-client.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/http-client.html" />
+    <meta property="og:title" content="網路客戶端 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 提供了統一的網路客戶端，聚合了 HTTP 請求、WebSocket 連接和連接池管理。模組和適配器必須優先使用此客戶端，而非自行導入 aiohttp / httpx / requests 等第三方庫。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/http-client.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"網路客戶端","description":"ErisPulse 提供了統一的網路客戶端，聚合了 HTTP 請求、WebSocket 連接和連接池管理。模組和適配器必須優先使用此客戶端，而非自行導入 aiohttp / httpx / requests 等第三方庫。","url":"https://www.erisdev.com/docs/zh-TW/advanced/http-client.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 進階主題
+        <span class="doc-crumb-sep">/</span> <span>網路客戶端</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/http-client.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/http-client.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/http-client.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/http-client.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/http-client.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/http-client.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="網路客戶端">網路客戶端</h1>
+<p>ErisPulse 提供了統一的網路客戶端，聚合了 HTTP 請求、WebSocket 連接和連接池管理。模組和適配器<strong>必須優先使用</strong>此客戶端，而非自行導入 <code>aiohttp</code> / <code>httpx</code> / <code>requests</code> 等第三方庫。</p>
+<h2 id="概述">概述</h2>
+<p>網路客戶端的主要功能：</p>
+<ul>
+<li><strong>統一介面</strong>：提供 <code>get</code> / <code>post</code> / <code>put</code> / <code>delete</code> / <code>patch</code> / <code>request</code> 方法</li>
+<li><strong>WebSocket 客戶端</strong>：透過 <code>ws_connect</code> 建立客戶端 WebSocket 連接</li>
+<li><strong>自動日誌</strong>：所有請求自動記錄日誌和統計資訊</li>
+<li><strong>生命週期整合</strong>：每次請求觸發 <code>client.request</code> 生命週期事件，WS 連觸發 <code>client.ws.connect</code> 事件</li>
+<li><strong>重試支援</strong>：可設定自動重試次數和間隔</li>
+<li><strong>超時控制</strong>：獨立的連接超時和請求超時</li>
+<li><strong>連接池重用</strong>：基於 aiohttp.ClientSession 的連接池管理</li>
+<li><strong>異常體系</strong>：aiohttp 異常自動轉換為 ErisPulse 異常 (ClientError 體系)</li>
+</ul>
+<h2 id="快速開始">快速開始</h2>
+<h3 id="http-請求">HTTP 請求</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+<span class="token comment"># GET 請求</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://httpbin.org/get"</span><span class="token punctuation">)</span>
+data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>resp<span class="token punctuation">.</span>status<span class="token punctuation">)</span>  <span class="token comment"># 200</span>
+
+<span class="token comment"># POST 請求</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+    <span class="token string">"https://httpbin.org/post"</span><span class="token punctuation">,</span>
+    json<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"key"</span><span class="token punctuation">:</span> <span class="token string">"value"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="websocket-連接">WebSocket 連接</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">for</span> text <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="httpresponse">HttpResponse</h2>
+<p>所有請求方法返回 <code>HttpResponse</code> 對象：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://httpbin.org/get"</span><span class="token punctuation">)</span>
+
+resp<span class="token punctuation">.</span>status       <span class="token comment"># int - HTTP 狀態碼 (如 200, 404)</span>
+resp<span class="token punctuation">.</span>reason       <span class="token comment"># str | None - 狀態描述 (如 "OK")</span>
+resp<span class="token punctuation">.</span>headers      <span class="token comment"># 响應頭 (大小寫不敏感)</span>
+resp<span class="token punctuation">.</span>content_type <span class="token comment"># str | None - Content-Type</span>
+resp<span class="token punctuation">.</span>url          <span class="token comment"># 最終 URL (可能因重定向變化)</span>
+resp<span class="token punctuation">.</span>raw          <span class="token comment"># 底層原生響應物件 (目前為 aiohttp.ClientResponse)</span>
+
+<span class="token comment"># 讀取響應體</span>
+body <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>       <span class="token comment"># bytes</span>
+text <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token punctuation">)</span>       <span class="token comment"># str</span>
+data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>       <span class="token comment"># 解析 JSON</span>
+text <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"gbk"</span><span class="token punctuation">)</span>  <span class="token comment"># 指定編碼</span>
+</code></pre>
+<h2 id="請求方法">請求方法</h2>
+<h3 id="get">GET</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span>
+    <span class="token string">"https://api.example.com/users"</span><span class="token punctuation">,</span>
+    params<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"page"</span><span class="token punctuation">:</span> <span class="token string">"1"</span><span class="token punctuation">,</span> <span class="token string">"limit"</span><span class="token punctuation">:</span> <span class="token string">"10"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    headers<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"Authorization"</span><span class="token punctuation">:</span> <span class="token string">"Bearer token"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="post">POST</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+<span class="token comment"># JSON 請求體</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+    <span class="token string">"https://api.example.com/users"</span><span class="token punctuation">,</span>
+    json<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">30</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 表單請求體</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+    <span class="token string">"https://api.example.com/login"</span><span class="token punctuation">,</span>
+    data<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"username"</span><span class="token punctuation">:</span> <span class="token string">"admin"</span><span class="token punctuation">,</span> <span class="token string">"password"</span><span class="token punctuation">:</span> <span class="token string">"123"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 原始數據</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+    <span class="token string">"https://api.example.com/upload"</span><span class="token punctuation">,</span>
+    data<span class="token operator">=</span><span class="token string">b"raw bytes"</span><span class="token punctuation">,</span>
+    headers<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"Content-Type"</span><span class="token punctuation">:</span> <span class="token string">"application/octet-stream"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 文件上傳 (使用 files 參數, 無需導入 aiohttp)</span>
+<span class="token comment"># 格式: {字段名: 文件物件/bytes/(檔名, 檔)/(檔名, 檔, content_type)}</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+    <span class="token string">"https://api.example.com/upload"</span><span class="token punctuation">,</span>
+    data<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"頭像"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>            <span class="token comment"># 可選: 同時攜帶普通表單字段</span>
+    files<span class="token operator">=</span><span class="token punctuation">{</span>
+        <span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token punctuation">(</span><span class="token string">"photo.png"</span><span class="token punctuation">,</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token string">"photo.png"</span><span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"image/png"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 簡化寫法: 直接傳文件物件</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+    <span class="token string">"https://api.example.com/upload"</span><span class="token punctuation">,</span>
+    files<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token string">"photo.png"</span><span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 內存數據直接上傳 (無需落盤)</span>
+<span class="token keyword">import</span> io
+
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+    <span class="token string">"https://api.example.com/upload"</span><span class="token punctuation">,</span>
+    files<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token punctuation">(</span><span class="token string">"data.txt"</span><span class="token punctuation">,</span> io<span class="token punctuation">.</span>BytesIO<span class="token punctuation">(</span><span class="token string">b"file content"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"text/plain"</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="put-delete-patch">PUT / DELETE / PATCH</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>put<span class="token punctuation">(</span><span class="token string">"https://api.example.com/users/1"</span><span class="token punctuation">,</span> json<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Bob"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token string">"https://api.example.com/users/1"</span><span class="token punctuation">)</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>patch<span class="token punctuation">(</span><span class="token string">"https://api.example.com/users/1"</span><span class="token punctuation">,</span> json<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">31</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="通用-request">通用 request</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>request<span class="token punctuation">(</span>
+    <span class="token string">"OPTIONS"</span><span class="token punctuation">,</span>
+    <span class="token string">"https://api.example.com/resource"</span><span class="token punctuation">,</span>
+    headers<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"Origin"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<h2 id="參數說明">參數說明</h2>
+<h3 id="http-請求參數">HTTP 請求參數</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>參數</th>
+<th>類型</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>url</code></td>
+<td><code>str</code></td>
+<td>請求 URL</td>
+</tr>
+<tr>
+<td><code>params</code></td>
+<td><code>dict[str, str]</code></td>
+<td>查詢參數 (可選)</td>
+</tr>
+<tr>
+<td><code>headers</code></td>
+<td><code>dict[str, str]</code></td>
+<td>預設請求頭 (可選)</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td><code>Any</code></td>
+<td>請求體 (表單或原始數據) (可選)</td>
+</tr>
+<tr>
+<td><code>json</code></td>
+<td><code>Any</code></td>
+<td>JSON 請求體 (可選)</td>
+</tr>
+<tr>
+<td><code>files</code></td>
+<td><code>dict[str, Any]</code></td>
+<td>文件上傳字段 (可選, 自動建構 multipart/form-data)</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td><code>float</code></td>
+<td>本次請求超時 (秒) (可選, 覆蓋預設值)</td>
+</tr>
+<tr>
+<td><code>max_retries</code></td>
+<td><code>int</code></td>
+<td>本次最大重試次數 (可選, 覆蓋預設值)</td>
+</tr>
+</tbody></table></div>
+<h3 id="ws_connect-參數">ws_connect 參數</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>參數</th>
+<th>類型</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>url</code></td>
+<td><code>str</code></td>
+<td>WebSocket 伺服器 URL</td>
+</tr>
+<tr>
+<td><code>headers</code></td>
+<td><code>dict[str, str]</code></td>
+<td>預設請求頭 (可選)</td>
+</tr>
+<tr>
+<td><code>heartbeat</code></td>
+<td><code>float</code></td>
+<td>心跳間隔秒數 (可選)</td>
+</tr>
+</tbody></table></div>
+<h2 id="超時與重試">超時與重試</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> Client
+
+<span class="token comment"># 建立帶自訂超時的客戶端</span>
+client <span class="token operator">=</span> Client<span class="token punctuation">(</span>
+    timeout<span class="token operator">=</span><span class="token number">60</span><span class="token punctuation">,</span>           <span class="token comment"># 請求總超時 60s</span>
+    connect_timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">,</span>    <span class="token comment"># 連接超時 5s</span>
+    max_retries<span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">,</span>        <span class="token comment"># 失敗自動重試 3 次</span>
+    retry_delay<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">,</span>        <span class="token comment"># 重試間隔 2s</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 單次請求覆蓋超時</span>
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://slow-api.example.com/data"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">120</span><span class="token punctuation">)</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>客戶端類從 2.8.0 起更名為 <code>Client</code>（<code>sdk.client</code> 屬性名不變）；舊名 <code>HttpClient</code> 保留為相容別名，老代碼無需修改。</p>
+</div>
+<h2 id="自訂預設頭">自訂預設頭</h2>
+<pre><code class="language-python">client <span class="token operator">=</span> Client<span class="token punctuation">(</span>
+    headers<span class="token operator">=</span><span class="token punctuation">{</span>
+        <span class="token string">"Authorization"</span><span class="token punctuation">:</span> <span class="token string">"Bearer token"</span><span class="token punctuation">,</span>
+        <span class="token string">"X-App-Id"</span><span class="token punctuation">:</span> <span class="token string">"my-app"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    user_agent<span class="token operator">=</span><span class="token string">"MyBot/1.0"</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<h2 id="請求統計">請求統計</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+<span class="token comment"># 查看統計</span>
+stats <span class="token operator">=</span> client<span class="token punctuation">.</span>stats
+<span class="token comment"># {"total_requests": 42, "total_errors": 1, "total_bytes_sent": 0, "total_bytes_received": 0}</span>
+
+<span class="token comment"># 重置統計</span>
+client<span class="token punctuation">.</span>reset_stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="生命週期事件">生命週期事件</h2>
+<h3 id="http-請求事件">HTTP 請求事件</h3>
+<p>每次請求完成後觸發 <code>client.request</code> 事件，可用於監控：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> lifecycle
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"client.request"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_request</span><span class="token punctuation">(</span>event_data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>event_data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>event_data<span class="token punctuation">[</span><span class="token string">'url'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>event_data<span class="token punctuation">[</span><span class="token string">'status'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> (</span><span class="token interpolation"><span class="token punctuation">{</span>event_data<span class="token punctuation">[</span><span class="token string">'elapsed'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">s)"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="websocket-連接事件">WebSocket 連接事件</h3>
+<p>每次 WebSocket 連接建立後觸發 <code>client.ws.connect</code> 事件：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> lifecycle
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"client.ws.connect"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_ws_connect</span><span class="token punctuation">(</span>event_data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"WS 連接: </span><span class="token interpolation"><span class="token punctuation">{</span>event_data<span class="token punctuation">[</span><span class="token string">'url'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="上下文管理">上下文管理</h2>
+<pre><code class="language-python"><span class="token comment"># 作為上下文管理器，自動關閉會話</span>
+<span class="token keyword">async</span> <span class="token keyword">with</span> Client<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span> <span class="token keyword">as</span> client<span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://httpbin.org/get"</span><span class="token punctuation">)</span>
+    data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="websocket-客戶端">WebSocket 客戶端</h2>
+<p>透過 <code>client.ws_connect()</code> 建立 WebSocket 客戶端連接，返回 <code>ClientWebSocket</code> 對象。客戶端和伺服器 WebSocket 共享相同的 <code>WebSocketConnectionBase</code> 基類，send/receive/iter 接口完全一致。</p>
+<h3 id="基本用法">基本用法</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">,</span> heartbeat<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_bytes<span class="token punctuation">(</span><span class="token string">b"\x00\x01\x02"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_json<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"ping"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="接收訊息">接收訊息</h3>
+<h4 id="高級方法-推薦">高級方法 (推薦)</h4>
+<p>自動過濾訊息類型，斷開時拋出 <code>WebSocketDisconnect</code>：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> WebSocketDisconnect
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 單條接收</span>
+text <span class="token operator">=</span> <span class="token keyword">await</span> ws<span class="token punctuation">.</span>receive_text<span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token comment"># str</span>
+data <span class="token operator">=</span> <span class="token keyword">await</span> ws<span class="token punctuation">.</span>receive_bytes<span class="token punctuation">(</span><span class="token punctuation">)</span>   <span class="token comment"># bytes</span>
+obj <span class="token operator">=</span> <span class="token keyword">await</span> ws<span class="token punctuation">.</span>receive_json<span class="token punctuation">(</span><span class="token punctuation">)</span>     <span class="token comment"># dict / list</span>
+
+<span class="token comment"># 迭代接收 (自動在斷開時停止)</span>
+<span class="token keyword">async</span> <span class="token keyword">for</span> text <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>text<span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">for</span> data <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_bytes<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">for</span> obj <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_json<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>obj<span class="token punctuation">)</span>
+</code></pre>
+<h4 id="低級方法">低級方法</h4>
+<p>使用 <code>receive()</code> 和 <code>iter_messages()</code> 處理原始訊息類型，可區分 TEXT / BINARY / CLOSE / ERROR：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>websocket <span class="token keyword">import</span> WSMessage
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 單條接收原始訊息</span>
+msg <span class="token operator">=</span> <span class="token keyword">await</span> ws<span class="token punctuation">.</span>receive<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># msg.type  -&gt; WSMessage.TEXT / WSMessage.BINARY / WSMessage.CLOSE / WSMessage.ERROR</span>
+<span class="token comment"># msg.data  -&gt; str | bytes | None</span>
+
+<span class="token comment"># 迭代原始訊息 (CLOSE/ERROR 時自動停止)</span>
+<span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_messages<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> msg<span class="token punctuation">.</span><span class="token builtin">type</span> <span class="token operator">==</span> WSMessage<span class="token punctuation">.</span>TEXT<span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"文本: </span><span class="token interpolation"><span class="token punctuation">{</span>msg<span class="token punctuation">.</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">elif</span> msg<span class="token punctuation">.</span><span class="token builtin">type</span> <span class="token operator">==</span> WSMessage<span class="token punctuation">.</span>BINARY<span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"二進位: </span><span class="token interpolation"><span class="token punctuation">{</span><span class="token builtin">len</span><span class="token punctuation">(</span>msg<span class="token punctuation">.</span>data<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string"> bytes"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="wsmessage">WSMessage</h3>
+<p><code>WSMessage</code> 是統一的 WebSocket 訊息類型，不依賴底層庫：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>屬性</th>
+<th>類型</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>type</code></td>
+<td><code>str</code></td>
+<td>訊息類型: <code>WSMessage.TEXT</code> / <code>WSMessage.BINARY</code> / <code>WSMessage.CLOSE</code> / <code>WSMessage.ERROR</code></td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td><code>Any</code></td>
+<td>訊息數據</td>
+</tr>
+</tbody></table></div>
+<h3 id="clientwebsocket-屬性">ClientWebSocket 屬性</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>屬性</th>
+<th>類型</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>url</code></td>
+<td><code>URL</code></td>
+<td>連接 URL</td>
+</tr>
+<tr>
+<td><code>headers</code></td>
+<td><code>Headers</code></td>
+<td>响應頭</td>
+</tr>
+<tr>
+<td><code>closed</code></td>
+<td><code>bool</code></td>
+<td>連接是否已關閉</td>
+</tr>
+<tr>
+<td><code>raw</code></td>
+<td><code>object</code></td>
+<td>底層原生物件 (aiohttp.ClientWebSocketResponse)</td>
+</tr>
+</tbody></table></div>
+<h3 id="生命週期鈎子">生命週期鈎子</h3>
+<p>與 <code>服務端 WebSocketConnection</code> 一致，支援 <code>on_disconnect</code> 和 <code>on_error</code> 回呼：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@ws<span class="token punctuation">.</span>on_disconnect</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_disconnect</span><span class="token punctuation">(</span>ws<span class="token punctuation">,</span> reason<span class="token operator">=</span><span class="token string">"unknown"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"連接斷開: </span><span class="token interpolation"><span class="token punctuation">{</span>reason<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@ws<span class="token punctuation">.</span>on_error</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_error</span><span class="token punctuation">(</span>ws<span class="token punctuation">,</span> error<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"連接錯誤: </span><span class="token interpolation"><span class="token punctuation">{</span>error<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="關閉連接">關閉連接</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> ws<span class="token punctuation">.</span>close<span class="token punctuation">(</span>code<span class="token operator">=</span><span class="token number">1000</span><span class="token punctuation">,</span> reason<span class="token operator">=</span><span class="token string">"Normal closure"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="異常體系">異常體系</h2>
+<p>ErisPulse 定義了統一的異常層級，透過 <code>sdk.client</code> 發起的請求會自動將底層 aiohttp 異常轉換為 ErisPulse 異常。</p>
+<blockquote>
+<p><strong>向後相容</strong>：直接使用 <code>aiohttp.ClientSession</code> 的舊模組/適配器完全不受影響。異常轉換僅在透過 <code>sdk.client</code> 發起請求時生效，直接使用 aiohttp 的代碼仍然捕獲 <code>aiohttp.ClientError</code> 等原生異常。兩種方式可以共存。</p>
+</blockquote>
+<h3 id="異常層級">異常層級</h3>
+<pre><code>ErisPulseError
+├── ClientError                  # 所有 HTTP/WS 客戶端請求異常的基類
+│   ├── ClientConnectionError    # 連接失敗 (DNS 解析失敗、連接被拒絕、網路不可達)
+│   ├── ClientTimeoutError       # 連接超時或請求超時
+│   └── HTTPStatusError          # HTTP 4xx/5xx 狀態碼錯誤
+└── WebSocketError               # WebSocket 異常基類
+    └── WebSocketDisconnect      # WebSocket 連接斷開 (客戶端和伺服器通用)
+</code></pre>
+<h3 id="異常捕獲">異常捕獲</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> <span class="token punctuation">(</span>
+    ClientError<span class="token punctuation">,</span>
+    ClientConnectionError<span class="token punctuation">,</span>
+    ClientTimeoutError<span class="token punctuation">,</span>
+    HTTPStatusError<span class="token punctuation">,</span>
+    WebSocketDisconnect<span class="token punctuation">,</span>
+    WebSocketError<span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># HTTP 請求異常處理</span>
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://api.example.com/data"</span><span class="token punctuation">)</span>
+    data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientConnectionError<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"無法連接到伺服器"</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"請求超時"</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"請求失敗: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># WebSocket 異常處理</span>
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+    <span class="token keyword">async</span> <span class="token keyword">for</span> text <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> WebSocketDisconnect <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"連接斷開: code=</span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>code<span class="token punctuation">}</span></span><span class="token string">, reason=</span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>reason<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> WebSocketError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"WebSocket 錯誤: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="統一捕獲">統一捕獲</h3>
+<p>使用 <code>ClientError</code> 統一捕獲所有 HTTP/WS 客戶端請求異常：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://api.example.com/data"</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"客戶端錯誤: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="httpstatuserror">HTTPStatusError</h3>
+<p>當需要在請求後檢查狀態碼並拋出異常時，可手動使用：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> HTTPStatusError
+
+resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://api.example.com/data"</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> resp<span class="token punctuation">.</span>status <span class="token operator">&gt;=</span> <span class="token number">400</span><span class="token punctuation">:</span>
+    <span class="token keyword">raise</span> HTTPStatusError<span class="token punctuation">(</span>resp<span class="token punctuation">.</span>status<span class="token punctuation">,</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="適配器中使用">適配器中使用</h2>
+<p>適配器可使用全域客戶端或自行建立客戶端實例發送平台 API 請求：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseAdapter
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">try</span><span class="token punctuation">:</span>
+            resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+                <span class="token string-interpolation"><span class="token string">f"https://api.platform.com/</span><span class="token interpolation"><span class="token punctuation">{</span>endpoint<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span>
+                json<span class="token operator">=</span>params<span class="token punctuation">,</span>
+                headers<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"Authorization"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"Bearer </span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>token<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"API 調用失敗: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword">raise</span>
+</code></pre>
+<blockquote>
+<p>也可透過 <code>from ErisPulse import sdk</code> 使用 <code>sdk.client</code>，效果相同。</p>
+</blockquote>
+<h2 id="最佳實踐">最佳實踐</h2>
+<ol>
+<li><strong>優先使用全域客戶端</strong>：使用 <code>from ErisPulse.Core import client</code> 獲取全域單例，便於框架統一管理和監控</li>
+<li><strong>避免直接導入 aiohttp</strong>：使用 <code>client</code> 替代 <code>aiohttp.ClientSession</code>，未來更換底層實作無需修改代碼。舊代碼直接使用 aiohttp 仍可正常運作，兩種方式可以共存</li>
+<li><strong>使用 ErisPulse 異常體系</strong>：透過 <code>sdk.client</code> 請求時捕獲 <code>ClientError</code> 而非 <code>aiohttp.ClientError</code>，確保代碼不依賴特定 HTTP 庫。直接使用 aiohttp 的舊代碼不受影響</li>
+<li><strong>合理設定超時</strong>：根據 API 回應速度設定合理的超時時間，避免長時間阻塞</li>
+<li><strong>使用重試機制</strong>：對不穩定的 API 啟用重試，提高可靠性</li>
+<li><strong>監控請求統計</strong>：透過 <code>sdk.client.stats</code> 或 <code>client.request</code> 生命週期事件監控請求情況</li>
+<li><strong>WebSocket 使用高級方法</strong>：優先使用 <code>iter_text</code> / <code>iter_json</code> 等高級方法，僅在需要區分訊息類型時使用 <code>iter_messages</code></li>
+</ol>
+<h2 id="相關文件">相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/advanced/router.html">路由管理器</a> - HTTP/WebSocket 伺服器路由（伺服器 WebSocketConnection 與客戶端共享同一基類）</li>
+<li><a href="/docs/zh-TW/developer-guide/adapters/getting-started.html">適配器開發指南</a> - 適配器中使用 HTTP 客戶端</li>
+<li><a href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a> - 監聽請求事件</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/conversation.html"><small>Previous</small><br>Conversation 多輪對話</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/sql-builder.html"><small>Next</small><br>SQL 查詢建構器</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

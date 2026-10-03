@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Система исключений и руководство по обработке - ErisPulse 文档中心</title>
+    <meta name="description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преоб..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/errors.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
+    <meta property="og:title" content="Система исключений и руководство по обработке - ErisPulse 文档中心" />
+    <meta property="og:description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преоб..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/errors.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система исключений и руководство по обработке","description":"Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преоб...","url":"https://www.erisdev.com/docs/ru/advanced/errors.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Продвинутые темы
+        <span class="doc-crumb-sep">/</span> <span>Система исключений и руководство по обработке</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/errors.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/errors.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/errors.html">日本語</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ru/advanced/errors.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/errors.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="система-исключений-и-руководство-по-обработке">Система исключений и руководство по обработке</h1>
+<p>Все пользовательские исключения ErisPulse наследуются от <code>ErisPulseError</code>, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преобразуются во внутренние исключения ErisPulse — код бизнес-логики <strong>не должен зависеть от типов исключений底层 библиотек</strong>.</p>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>Для широкого перехвата: перехватите <code>ErisPulseError</code> (базовый класс всех исключений фреймворка)</li>
+<li>Для точного обработки: перехватите по модулю (например, <code>ModuleCallTimeoutError</code>, <code>StorageUnreachableError</code>)</li>
+<li>Операции с хранилищем по умолчанию не вызывают исключения: при сбое записывается в лог и возвращается <code>False / None / default</code>; изменение состояния подключения подписывается на события <code>storage.unreachable</code> / <code>storage.recovered</code>
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="обзор-исключений">Обзор исключений</h2>
+<pre><code class="language-text">ErisPulseError                      # Базовый класс всех исключений фреймворка
+├── ClientError                     # Базовый класс исключений HTTP/WS клиентов (Core/client)
+│   ├── ClientConnectionError       # Ошибки на уровне соединения: неудача DNS, отказ в соединении, недоступность сети
+│   ├── ClientTimeoutError          # Ошибка таймаута запроса
+│   └── HTTPStatusError             # Ошибки HTTP статус-кода (например, 4xx/5xx и raise_for_status)
+├── WebSocketError                  # Базовый класс исключений WebSocket (WS соединения в Core/client)
+│   └── WebSocketDisconnect         # Отключение WebSocket (общее для сервера и клиента)
+├── StorageError                    # Базовый класс исключений хранилища (Core/storage)
+│   └── StorageUnreachableError     # Недостижимость хранилища (исчерпаны попытки подключения: недоступна база данных, ошибка учетных данных)
+├── InteractionError                # Базовый класс исключений взаимодействия (Core/Event/interaction)
+│   ├── InteractionCancelled        # Отмена ожидания/аренды (wait_reply возвращает None)
+│   └── SessionOccupiedError        # Исключение занятости сессии (hold() не удалось получить аренду)
+├── ModuleError                     # Базовый класс исключений модуля (Core/module)
+│   └── ModuleCallError             # Базовый класс исключений вызова модуля
+│       ├── ModuleNotAvailableError # Целевой модуль не зарегистрирован/не включен/инициализация не удалась (включая ленивую загрузку)
+│       ├── ServiceNotProvidedError # Целевой модуль не объявил эту службу (не в белом списке meta.services)
+│       └── ModuleCallTimeoutError  # Выполнение вызываемого метода превысило таймаут (по умолчанию 30 сек.)
+└── StrictModeError                 # Критическое нарушение строгого режима (прерывает процесс запуска, loaders/strict)
+</code></pre>
+<h2 id="структурированные-атрибуты">Структурированные атрибуты</h2>
+<p>После перехвата исключения можно получить структурированные атрибуты (без разбора текста сообщения):</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Атрибуты</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code> (включая подклассы)</td>
+<td><code>.url</code> URL запроса, <code>.method</code> метод запроса, <code>.attempts</code> количество попыток (когда исчерпаны попытки повтора)</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>.status</code> код статуса, <code>.message</code> сообщение ответа</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td><code>.code</code> код закрытия, <code>.reason</code> причина закрытия</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td><code>.backend</code> имя хранилища (sqlite/mysql/postgres), <code>.cooldown</code> время охлаждения в секундах</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code> (включая подклассы)</td>
+<td><code>.module</code> имя модуля, <code>.method</code> имя метода</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td>Наследует <code>.module/.method</code>, также <code>.timeout</code> лимит таймаута (сек.)</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td><code>.reason</code> причина отмены, <code>.wait_key</code> ключ сессии</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td><code>.wait_key</code> ключ сессии, <code>.owner</code> владелец</td>
+</tr>
+<tr>
+<td><code>StrictModeError</code></td>
+<td><code>.violations</code> список нарушений</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token punctuation">,</span> json<span class="token operator">=</span>payload<span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Запрос не удался </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>method<span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>url<span class="token punctuation">}</span></span><span class="token string">, всего попыток </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>attempts<span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="описание-исключений-и-места-их-возникновения">Описание исключений и места их возникновения</h2>
+<h3 id="клиентские-исключения-coreclientpy-corebasesclientpy">Клиентские исключения — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
+<p>Исключения возникают при отправке запросов через <code>sdk.client</code> / HTTP клиент и WebSocket клиент:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Место возникновения</th>
+<th>Типичные сценарии</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code></td>
+<td>Уровень обертки запросов</td>
+<td>Другие ошибки клиента (исключения底层 aiohttp уже преобразованы)</td>
+</tr>
+<tr>
+<td><code>ClientConnectionError</code></td>
+<td>Этап установки соединения</td>
+<td>Целевой сервис недоступен, DNS неудачен, соединение отклонено</td>
+</tr>
+<tr>
+<td><code>ClientTimeoutError</code></td>
+<td>Этап выполнения запроса</td>
+<td>Время запроса превышено</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>raise_for_status()</code></td>
+<td>Код статуса ответа 4xx/5xx</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientTimeoutError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://api.example.com"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<h3 id="websocket-исключения-coreclientpy-методы-send-receive">WebSocket исключения — <code>Core/client.py</code> (методы <code>send</code> / <code>receive</code>)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Место возникновения</th>
+<th>Типичные сценарии</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>WebSocketError</code></td>
+<td>Методы отправки/приема WebSocket</td>
+<td>Соединение закрыто, получено неожиданное сообщение,底层 WebSocket исключения</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td>Методы отправки/приема WebSocket</td>
+<td>Удаленный узел нормально закрыл соединение (фреймворк автоматически переподключится)</td>
+</tr>
+</tbody></table></div>
+<h3 id="исключения-хранилища-corestorage-corebasessql_basepy">Исключения хранилища — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Место возникновения</th>
+<th>Типичные сценарии</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>StorageError</code></td>
+<td>Уровень хранилища</td>
+<td>Базовый класс исключений хранилища</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td>Этап создания пула</td>
+<td>База данных недоступна / ошибка учетных данных / сетевая изоляция, исчерпаны попытки повтора</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>Поведение при сбое операций с хранилищем</strong>: операции KV и запросов <strong>по умолчанию не вызывают исключений</strong> — при сбое записывается в лог уровня ERROR и возвращается <code>False</code> / <code>None</code> / <code>default</code> (чтобы избежать блокировки работы фреймворка). Следовательно, код бизнес-логики обычно <strong>не перехватывает</strong> <code>StorageUnreachableError</code> (исключение предназначено для прямого доступа к底层 хранилищу или пользовательских backends). Для отслеживания состояния подключения во время выполнения подписывайтесь на события жизненного цикла <code>storage.unreachable</code> / <code>storage.recovered</code> (см. <a href="/docs/ru/advanced/lifecycle.html#%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5-%D0%BF%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D1%8F-%D1%85%D1%80%D0%B0%D0%BD%D0%B8%D0%BB%D0%B8%D1%89%D0%B0">События жизненного цикла</a>).</p>
+</blockquote>
+<p>Поведение при сбое подключения см. <a href="/docs/ru/advanced/storage-backends.html#%D0%BF%D0%BE%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D1%80%D0%B8-%D1%81%D0%B1%D0%BE%D0%B5-%D0%BF%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D1%8F">Backends хранилища → Поведение при сбое подключения</a>.</p>
+<h3 id="исключения-взаимодействия-coreeventinteractionpy">Исключения взаимодействия — <code>Core/Event/interaction.py</code></h3>
+<p>Связанные с <code>wait_reply</code> / арендой сессии / таймером напоминаний:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Место возникновения</th>
+<th>Типичные сценарии</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>InteractionError</code></td>
+<td>Уровень взаимодействия</td>
+<td>Базовый класс исключений взаимодействия</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td>При отмене ожидания</td>
+<td>Устанавливается на future ожидания (ожидающий код может перехватить и получить <code>.reason</code>)</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td>При неудачной аренде <code>hold()</code></td>
+<td>Сессия уже занята другим <code>owner</code> (<code>.owner</code> содержит владельца)</td>
+</tr>
+</tbody></table></div>
+<p>При отмене ожидания (отключение модуля / завершение платформы / новое ожидание в той же сессии) <code>wait_reply</code> <strong>возвращает <code>None</code></strong>, а не вызывает исключение (внутри <code>InteractionCancelled</code> преобразуется); при необходимости различить причину отмены перехватывайте это исключение напрямую.</p>
+<h3 id="исключения-модулей-coremodulepy-sdkmodulecall">Исключения модулей — <code>Core/module.py</code> (<code>sdk.module.call</code>)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Место возникновения</th>
+<th>Типичные сценарии</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ModuleError</code></td>
+<td>Система модулей</td>
+<td>Базовый класс исключений модулей</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code></td>
+<td><code>module.call()</code></td>
+<td>Базовый класс исключений вызова модуля</td>
+</tr>
+<tr>
+<td><code>ModuleNotAvailableError</code></td>
+<td><code>module.call()</code> / ленивое получение атрибута</td>
+<td>Целевой модуль не зарегистрирован / не включен / инициализация не удалась</td>
+</tr>
+<tr>
+<td><code>ServiceNotProvidedError</code></td>
+<td><code>module.call()</code></td>
+<td>Целевой <code>meta.services</code> не объявил этот метод</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td><code>module.call()</code></td>
+<td>Вызываемый корутина превысила лимит таймаута (по умолчанию 30 сек.)</td>
+</tr>
+</tbody></table></div>
+<p>"Целевой модуль недоступен" в разных путях доступа:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Путь доступа</th>
+<th>Исключение</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.module.call("X", "method")</code></td>
+<td><code>ModuleNotAvailableError</code> (типизированное)</td>
+</tr>
+<tr>
+<td><code>sdk.module.X.attr</code> (ленивое получение атрибута, после неудачной инициализации)</td>
+<td><code>ModuleNotAvailableError</code></td>
+</tr>
+<tr>
+<td><code>sdk.module.X</code> (при попытке доступа к неактивированному модулю)</td>
+<td><code>AttributeError</code> (Python-семантика атрибута, <code>hasattr</code> зависит от этой семантики)</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ModuleNotAvailableError<span class="token punctuation">,</span> ServiceNotProvidedError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    history <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ModuleNotAvailableError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Целевой модуль не существует / не включен</span>
+<span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Целевой модуль не предоставляет эту службу</span>
+</code></pre>
+<h3 id="проверка-параметров-фреймворка-valueerror">Проверка параметров фреймворка (ValueError)</h3>
+<p>Проверка параметров построителя запросов хранилища (пустой тип столбца, <code>Insert</code> не dict, небезопасный тип столбца и т.д.) вызывает стандартный <code>ValueError</code> — такие исключения относятся к <strong>ошибкам в коде на этапе разработки</strong>, и обычный бизнес-код не должен их перехватывать, а должен исправлять вызов.</p>
+<p>Неудача стандартных действий адаптера <strong>не вызывает исключений</strong>: возвращается словарь с кодом ответа (протокольная семантика, например, <code>retcode=10002</code> означает, что действие не реализовано) — это параллельный канал ошибок, отличный от канала исключений <code>ClientError</code> в клиентском слое; при разработке адаптера необходимо обрабатывать оба канала.</p>
+<h2 id="рекомендации-по-перехвату">Рекомендации по перехвату</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># Базовый класс экспортируется из Core</span>
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword">except</span> ErisPulseError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Общий перехват: все пользовательские исключения фреймворка</span>
+</code></pre>
+<ul>
+<li>При разработке модулей: перехватывайте по необходимости (см. таблицу выше), в самом внешнем блоке можно использовать <code>ErisPulseError</code> для общего перехвата</li>
+<li>Все исключения экспортируются из <code>ErisPulse.Core</code> (включая <code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code>), также можно импортировать из <code>ErisPulse.Core.Bases.errors</code></li>
+<li>Полное определение см. в <code>src/ErisPulse/Core/Bases/errors.py</code></li>
+</ul>
+<h2 id="скрытие-шума-при-завершении">Скрытие шума при завершении</h2>
+<p>Долгоживущие процессы при завершении (или отмене фоновых циклов) часто генерируют множество бесполезных сообщений от интерпретатора типа <code>Task was destroyed but it is pending!</code>. Фреймворк включает <strong>скрытие подобного шума</strong>: в 2-секундном окне одинаковые сообщения понижаются до уровня TRACE и объединяются с подсчетом, выводится только один раз, с суффиксом «(еще N одинаковых сообщений было скрыто)». Это преднамеренное уменьшение шума — появление суффикса скрытия не означает, что фреймворк "проглотил" реальные исключения, бизнес-исключения (вышеуказанные) выводятся полностью.</p>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ru/advanced/storage-backends.html"><small>Previous</small><br>Системы хранения данных</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/startup.html"><small>Next</small><br>Процесс запуска и ручное управление</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

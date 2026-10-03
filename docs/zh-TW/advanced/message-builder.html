@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MessageBuilder 詳解 - ErisPulse 文档中心</title>
+    <meta name="description" content="MessageBuilder 是 ErisPulse 提供的 OneBot12 標準訊息段建構工具，用於建構結構化的訊息內容，配合 Send.Raw_ob12() 使用。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/message-builder.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/message-builder.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/message-builder.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/message-builder.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/message-builder.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/message-builder.html" />
+    <meta property="og:title" content="MessageBuilder 詳解 - ErisPulse 文档中心" />
+    <meta property="og:description" content="MessageBuilder 是 ErisPulse 提供的 OneBot12 標準訊息段建構工具，用於建構結構化的訊息內容，配合 Send.Raw_ob12() 使用。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/message-builder.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"MessageBuilder 詳解","description":"MessageBuilder 是 ErisPulse 提供的 OneBot12 標準訊息段建構工具，用於建構結構化的訊息內容，配合 Send.Raw_ob12() 使用。","url":"https://www.erisdev.com/docs/zh-TW/advanced/message-builder.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 進階主題
+        <span class="doc-crumb-sep">/</span> <span>MessageBuilder 詳解</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/message-builder.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/message-builder.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/message-builder.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/message-builder.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/message-builder.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/message-builder.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="messagebuilder-詳解">MessageBuilder 詳解</h1>
+<p><code>MessageBuilder</code> 是 ErisPulse 提供的 OneBot12 標準訊息段建構工具，用於建構結構化的訊息內容，配合 <code>Send.Raw_ob12()</code> 使用。</p>
+<h2 id="導入方式">導入方式</h2>
+<p><code>MessageBuilder</code> 支援以下兩種導入方式（效果相同，推薦使用第一種）：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> MessageBuilder        <span class="token comment"># 推薦，透過套件匯出</span>
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event<span class="token punctuation">.</span>message_builder <span class="token keyword">import</span> MessageBuilder  <span class="token comment"># 直接導入模組</span>
+</code></pre>
+<h2 id="雙模式機制">雙模式機制</h2>
+<p>MessageBuilder 提供兩種使用模式，透過 Python 描述符機制（<code>__get__</code>）實現類別層級和實例層級的不同行為：當透過類別呼叫方法時，<code>__get__</code> 返回靜態方法的執行結果；當透過實例呼叫時，返回 <code>self</code> 以支援鏈式呼叫。</p>
+<h3 id="鏈式呼叫模式實例">鏈式呼叫模式（實例）</h3>
+<p>透過實例化 <code>MessageBuilder()</code> 使用，每個方法返回 <code>self</code>，支援鏈式呼叫，最後用 <code>.build()</code> 取得訊息段列表：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event<span class="token punctuation">.</span>message_builder <span class="token keyword">import</span> MessageBuilder
+
+segments <span class="token operator">=</span> <span class="token punctuation">(</span>
+    MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"你好！"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"https://example.com/photo.jpg"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+<span class="token comment"># [</span>
+<span class="token comment">#     {"type": "text", "data": {"text": "你好！"}},</span>
+<span class="token comment">#     {"type": "image", "data": {"file": "https://example.com/photo.jpg"}}</span>
+<span class="token comment"># ]</span>
+</code></pre>
+<h3 id="快速建立模式靜態">快速建立模式（靜態）</h3>
+<p>透過類別直接呼叫方法，每個方法直接返回訊息段列表，適合單段訊息：</p>
+<pre><code class="language-python"><span class="token comment"># 直接返回 list[dict]，無需 .build()</span>
+segments <span class="token operator">=</span> MessageBuilder<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"你好！"</span><span class="token punctuation">)</span>
+<span class="token comment"># [{"type": "text", "data": {"text": "你好！"}}]</span>
+</code></pre>
+<h2 id="消息段類型">消息段類型</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>類型</th>
+<th>數據參數</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text(text)</code></td>
+<td>text</td>
+<td><code>text</code></td>
+<td>文本消息</td>
+</tr>
+<tr>
+<td><code>image(file)</code></td>
+<td>image</td>
+<td><code>file</code></td>
+<td>圖片消息</td>
+</tr>
+<tr>
+<td><code>audio(file)</code></td>
+<td>audio</td>
+<td><code>file</code></td>
+<td>音頻消息</td>
+</tr>
+<tr>
+<td><code>video(file)</code></td>
+<td>video</td>
+<td><code>file</code></td>
+<td>視頻消息</td>
+</tr>
+<tr>
+<td><code>file(file, filename?)</code></td>
+<td>file</td>
+<td><code>file</code>, <code>filename</code></td>
+<td>文件消息</td>
+</tr>
+<tr>
+<td><code>mention(user_id, user_name?)</code></td>
+<td>mention</td>
+<td><code>user_id</code>, <code>user_name</code></td>
+<td>@提及用戶</td>
+</tr>
+<tr>
+<td><code>at(user_id, user_name?)</code></td>
+<td>mention</td>
+<td><code>user_id</code>, <code>user_name</code></td>
+<td><code>mention</code> 的別名</td>
+</tr>
+<tr>
+<td><code>reply(message_id)</code></td>
+<td>reply</td>
+<td><code>message_id</code></td>
+<td>回覆消息</td>
+</tr>
+<tr>
+<td><code>at_all()</code></td>
+<td>mention_all</td>
+<td>-</td>
+<td>@全體成員</td>
+</tr>
+<tr>
+<td><code>custom(type, data)</code></td>
+<td>自定義</td>
+<td>自定義</td>
+<td>自定義消息段</td>
+</tr>
+</tbody></table></div>
+<h2 id="配合-send-使用">配合 Send 使用</h2>
+<p>建構的消息段列表透過 <code>Send.Raw_ob12()</code> 發送：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event<span class="token punctuation">.</span>message_builder <span class="token keyword">import</span> MessageBuilder
+
+<span class="token comment"># 鏈式建構 + 發送</span>
+segments <span class="token operator">=</span> <span class="token punctuation">(</span>
+    MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>mention<span class="token punctuation">(</span><span class="token string">"user123"</span><span class="token punctuation">,</span> <span class="token string">"張三"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">" 請查看這張圖片"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"https://example.com/photo.jpg"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"group456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>segments<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="配合-event-回覆">配合 Event 回覆</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"report"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">report_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply_ob12<span class="token punctuation">(</span>
+        MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"📊 日報彙總\n"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"今日完成任務: 5\n"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"進行中任務: 3"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">)</span>
+</code></pre>
+<h2 id="工具方法">工具方法</h2>
+<h3 id="copy">copy()</h3>
+<p>複製當前的建構器，用於基於相同的基礎內容建立多個訊息變體：</p>
+<pre><code class="language-python">base <span class="token operator">=</span> MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"基礎內容"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>mention<span class="token punctuation">(</span><span class="token string">"admin"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 基於相同的前綴建立不同的訊息</span>
+msg1 <span class="token operator">=</span> base<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">" 變體A"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+msg2 <span class="token operator">=</span> base<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">" 變體B"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"img.jpg"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="clear">clear()</h3>
+<p>清除已添加的訊息段，重用同一個建構器：</p>
+<pre><code class="language-python">builder <span class="token operator">=</span> MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">for</span> user_id <span class="token keyword">in</span> <span class="token punctuation">[</span><span class="token string">"user1"</span><span class="token punctuation">,</span> <span class="token string">"user2"</span><span class="token punctuation">,</span> <span class="token string">"user3"</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+    builder<span class="token punctuation">.</span>clear<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    msg <span class="token operator">=</span> builder<span class="token punctuation">.</span>mention<span class="token punctuation">(</span>user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">" 你好！"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="len-bool">len() / bool()</h3>
+<pre><code class="language-python">builder <span class="token operator">=</span> MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token builtin">bool</span><span class="token punctuation">(</span>builder<span class="token punctuation">)</span><span class="token punctuation">)</span>   <span class="token comment"># False</span>
+
+builder<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token builtin">len</span><span class="token punctuation">(</span>builder<span class="token punctuation">)</span><span class="token punctuation">)</span>    <span class="token comment"># 1</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token builtin">bool</span><span class="token punctuation">(</span>builder<span class="token punctuation">)</span><span class="token punctuation">)</span>   <span class="token comment"># True</span>
+</code></pre>
+<h2 id="自訂消息段">自訂消息段</h2>
+<p>使用 <code>custom()</code> 方法添加平台擴展消息段：</p>
+<pre><code class="language-python"><span class="token comment"># 添加平台特有的消息段</span>
+segments <span class="token operator">=</span> <span class="token punctuation">(</span>
+    MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"請填寫表單："</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>custom<span class="token punctuation">(</span><span class="token string">"yunhu_form"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"form_id"</span><span class="token punctuation">:</span> <span class="token string">"12345"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>自訂消息段只在對應平台的適配器中有效，其他適配器會忽略不認識的消息段。</p>
+</blockquote>
+<h2 id="完整範例">完整範例</h2>
+<h3 id="多元素訊息">多元素訊息</h3>
+<pre><code class="language-python">segments <span class="token operator">=</span> <span class="token punctuation">(</span>
+    MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>reply<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>                    <span class="token comment"># 回覆原訊息</span>
+    <span class="token punctuation">.</span>mention<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>             <span class="token comment"># @發送者</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">" 這是你的查詢結果：\n"</span><span class="token punctuation">)</span>             <span class="token comment"># 文字</span>
+    <span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"https://example.com/chart.png"</span><span class="token punctuation">)</span>   <span class="token comment"># 圖片</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"\n詳細資料見附件："</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token builtin">file</span><span class="token punctuation">(</span><span class="token string">"https://example.com/data.csv"</span><span class="token punctuation">,</span> filename<span class="token operator">=</span><span class="token string">"data.csv"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply_ob12<span class="token punctuation">(</span>segments<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="靜態工廠-鏈式混合">靜態工廠 + 鏈式混合</h3>
+<pre><code class="language-python"><span class="token comment"># 快速建構單段訊息</span>
+simple_msg <span class="token operator">=</span> MessageBuilder<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"簡單文字"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 鏈式建構複雜訊息</span>
+complex_msg <span class="token operator">=</span> <span class="token punctuation">(</span>
+    MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>at_all<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">" 📢 公告："</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"今天下午3點開會"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<h2 id="相關文件">相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">適配器 SendDSL 詳解</a> - Send 鏈式發送介面</li>
+<li><a href="/docs/zh-TW/standards/event-conversion.html">事件轉換標準</a> - 消息段轉換規範</li>
+<li><a href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類</a> - Event.reply_ob12() 方法</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/router.html"><small>Previous</small><br>路由管理器</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/conversation.html"><small>Next</small><br>Conversation 多輪對話</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

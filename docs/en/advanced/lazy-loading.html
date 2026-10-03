@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lazy-Loaded Module System - ErisPulse 文档中心</title>
+    <meta name="description" content="The ErisPulse SDK provides a powerful lazy-loaded module system that allows modules to be initialized only when they are actually needed, significantly impro..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html" />
+    <meta property="og:title" content="Lazy-Loaded Module System - ErisPulse 文档中心" />
+    <meta property="og:description" content="The ErisPulse SDK provides a powerful lazy-loaded module system that allows modules to be initialized only when they are actually needed, significantly impro..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/lazy-loading.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Lazy-Loaded Module System","description":"The ErisPulse SDK provides a powerful lazy-loaded module system that allows modules to be initialized only when they are actually needed, significantly impro...","url":"https://www.erisdev.com/docs/en/advanced/lazy-loading.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Advanced Topics
+        <span class="doc-crumb-sep">/</span> <span>Lazy-Loaded Module System</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/lazy-loading.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/advanced/lazy-loading.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/lazy-loading.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/lazy-loading.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="lazy-loaded-module-system">Lazy-Loaded Module System</h1>
+<p>The ErisPulse SDK provides a powerful lazy-loaded module system that allows modules to be initialized only when they are actually needed, significantly improving application startup speed and memory efficiency.</p>
+<h2 id="overview">Overview</h2>
+<p>The lazy-loaded module system is one of the core features of ErisPulse, which works as follows:</p>
+<ul>
+<li><strong>Lazy Initialization</strong>: Modules are only loaded and initialized when they are first accessed.</li>
+<li><strong>Transparent Usage</strong>: For developers, lazy-loaded modules are almost indistinguishable from regular modules in usage.</li>
+<li><strong>Automatic Dependency Management</strong>: Module dependencies are automatically initialized when they are used.</li>
+<li><strong>Lifecycle Support</strong>: For modules that inherit from <code>BaseModule</code>, lifecycle methods are automatically invoked.</li>
+</ul>
+<h2 id="working-principle">Working Principle</h2>
+<h3 id="lazymodule-class">LazyModule Class</h3>
+<p>The core of the lazy loading system is the <code>LazyModule</code> class, which acts as a wrapper that actually initializes the module only when it is first accessed.</p>
+<h3 id="initialization-process">Initialization Process</h3>
+<p>When a module is first accessed, <code>LazyModule</code> performs the following operations:</p>
+<ol>
+<li>Retrieves the <code>__init__</code> parameter information of the module class.</li>
+<li>Determines whether to pass the <code>sdk</code> reference based on the parameters.</li>
+<li>Sets the <code>moduleInfo</code> attribute of the module.</li>
+<li>For modules that inherit from <code>BaseModule</code>, calls the <code>on_load</code> method.</li>
+<li>Triggers the <code>module.init</code> lifecycle event.</li>
+</ol>
+<h2 id="event-driven-lazy-activation-activate_on">Event-Driven Lazy Activation (<code>activate_on</code>)</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>This feature requires ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>Modules with <code>lazy_load=True</code> are loaded only on their <strong>first attribute access</strong> by default. If a module registers command/event handlers, the traditional approach would require <code>lazy_load=False</code> to load immediately. <code>activate_on</code> provides a third option: <strong>declare triggers, and the module activates automatically when the first matching event/command arrives</strong>—neither staying in memory constantly nor losing the trigger entry.</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+            activate_on<span class="token operator">=</span><span class="token punctuation">[</span>
+                <span class="token comment"># ---- Event triggers (passive arrival, no user awareness) ----</span>
+                <span class="token string">"message"</span><span class="token punctuation">,</span>                                    <span class="token comment"># Type-level: any message event</span>
+                <span class="token punctuation">{</span><span class="token string">"notice"</span><span class="token punctuation">:</span> <span class="token string">"group_member_increase"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># Type + single detail_type</span>
+                <span class="token punctuation">{</span><span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"private"</span><span class="token punctuation">,</span> <span class="token string">"group"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">,</span>            <span class="token comment"># Type + multiple detail_types</span>
+
+                <span class="token comment"># ---- Command triggers (active input, placeholder commands visible in Help) ----</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token string">"roll"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>                          <span class="token comment"># Shorthand: command name</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"roll"</span><span class="token punctuation">,</span> <span class="token string">"dice"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">,</span>                <span class="token comment"># List of command names</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>                                 <span class="token comment"># Dict declaration (name required)</span>
+                    <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"dice"</span><span class="token punctuation">,</span>
+                    <span class="token string">"help"</span><span class="token punctuation">:</span> <span class="token string">"Roll a dice"</span><span class="token punctuation">,</span>
+                    <span class="token string">"usage"</span><span class="token punctuation">:</span> <span class="token string">"/dice"</span><span class="token punctuation">,</span>
+                    <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"Entertainment"</span><span class="token punctuation">,</span>
+                    <span class="token string">"aliases"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"d"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                    <span class="token string">"hidden"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span>
+                <span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h3 id="command-dict-declaration-parameters">Command Dict Declaration Parameters</h3>
+<p>The dict form mirrors the user-level parameters of the <code>@command()</code> decorator, used to register placeholder commands before module loading:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td><strong>Required</strong></td>
+<td>Command name; must match <code>@command(name)</code> in <code>on_load</code>, otherwise the placeholder is unregistered after activation, and the command becomes unavailable</td>
+</tr>
+<tr>
+<td><code>help</code></td>
+<td><code>str</code></td>
+<td>Fallback chain</td>
+<td>Description shown in Help; if not declared, falls back to the chain (see below)</td>
+</tr>
+<tr>
+<td><code>usage</code></td>
+<td><code>str</code></td>
+<td>Auto-generated</td>
+<td>Usage line, defaulting to <code>{prefix}{name}</code></td>
+</tr>
+<tr>
+<td><code>group</code></td>
+<td><code>str</code></td>
+<td><code>None</code></td>
+<td>Command group</td>
+</tr>
+<tr>
+<td><code>aliases</code></td>
+<td><code>list[str]</code></td>
+<td><code>[]</code></td>
+<td>Aliases are registered simultaneously; <strong>inputting an alias also triggers activation</strong></td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>If <code>True</code>, the placeholder command is hidden (aligned with the hidden semantics of the activated real command); users who know the command name can still trigger activation</td>
+</tr>
+</tbody></table></div>
+<p><strong>Not supported</strong>: <code>priority</code> / <code>permission</code> / <code>master</code>: The placeholder command's role is only to trigger activation. Permission checks are performed by the real command after activation (blocking permissions at the placeholder stage would make "activating on command input" ineffective).</p>
+<h3 id="placeholder-command-help-fallback-chain">Placeholder Command Help Fallback Chain</h3>
+<p>When the module is not loaded, the Help displays command descriptions according to the following priority (first match wins):</p>
+<ol>
+<li>The command-level <code>help</code> declared in the dict (most precise)</li>
+<li>The module's <code>get_meta()</code> <code>description</code></li>
+<li>The module's <code>__description__</code> attribute</li>
+<li>The package metadata's <code>Summary</code> (PyPI package summary)</li>
+<li>Generic prompt: "This command comes from a lazy-loaded module X. The module will be automatically loaded on first use."</li>
+</ol>
+<h3 id="trigger-semantics">Trigger Semantics</h3>
+<ul>
+<li><strong>Event stub</strong>: Registered to the corresponding event manager with very low priority (<code>ACTIVATION_STUB_PRIORITY</code>), acting as a fallback after all regular handlers; after activation, the current event is forwarded to the module's real handler</li>
+<li><strong>Command stub</strong>: Registers a placeholder command; after activation, the placeholder is unregistered, and the real command takes over the current trigger</li>
+<li><strong>Reentrancy protection</strong>: An <code>asyncio.Lock</code> ensures activation occurs only once, even under concurrent triggers</li>
+<li><strong>Scope filtering</strong>: The stub includes the module owner identity, and does not trigger if the module is not enabled for the Bot / session / platform</li>
+<li><strong>Failure semantics</strong>: Activation failure does not retry; the stub is also unregistered</li>
+<li><strong>Deduplication</strong>: When mixing shorthand and dict declarations of the same command name, deduplication occurs (dict takes precedence); if the dict is missing <code>name</code> or the event <code>detail_type</code> is incorrectly written as a dict, a warning is issued and it is ignored</li>
+</ul>
+<blockquote>
+<p>For architecture diagrams and full semantics, see <a href="/docs/en/architecture.html#event-driven-lazy-activationactivate_on-trigger-architecture">Architecture Overview</a>.</p>
+</blockquote>
+<h2 id="configuring-lazy-loading">Configuring Lazy Loading</h2>
+<h3 id="global-configuration">Global Configuration</h3>
+<p>Enable or disable global lazy loading in the configuration file:</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.framework</span><span class="token punctuation">]</span>
+<span class="token key property">enable_lazy_loading</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>  <span class="token comment"># true=enable lazy loading (default), false=disable lazy loading</span>
+</code></pre>
+<h3 id="module-level-control">Module-Level Control</h3>
+<p>Modules can control their loading strategy by implementing the <code>get_load_strategy()</code> static method:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""Returns the module loading strategy"""</span>
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>  <span class="token comment"># Return False to indicate immediate loading</span>
+            priority<span class="token operator">=</span><span class="token number">100</span>      <span class="token comment"># Loading priority, higher value means higher priority</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h2 id="using-lazy-loaded-modules">Using Lazy-Loaded Modules</h2>
+<h3 id="basic-usage">Basic Usage</h3>
+<p>For developers, lazy-loaded modules are almost indistinguishable from regular modules in usage:</p>
+<pre><code class="language-python"><span class="token comment"># Accessing a lazy-loaded module through the SDK</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># The following access triggers the module's lazy loading</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="unified-module-access-entry">Unified Module Access Entry</h3>
+<p>Whether accessed through SDK attributes, module manager attributes, or via <code>module.get()</code>, for "registered but not yet loaded" lazy-loaded modules, the same lazy-loading proxy is returned. Accessing its attributes triggers the actual initialization:</p>
+<pre><code class="language-python"><span class="token comment"># All three methods return the same lazy-loading proxy (when the module is not loaded), behaving consistently and transparently to the user</span>
+sdk<span class="token punctuation">.</span>my_module          <span class="token comment"># Entry point that triggers loading</span>
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>my_module   <span class="token comment"># Also returns the lazy-loading proxy</span>
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>  <span class="token comment"># Also returns the lazy-loading proxy, itself does not trigger loading</span>
+
+<span class="token comment"># Accessing any attribute of the proxy triggers the actual initialization of the module</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>module.get()</code> is a <strong>query</strong> interface and does not trigger loading by itself:</p>
+<ul>
+<li>If the module is already loaded → returns the actual instance</li>
+<li>If the module is registered but not yet loaded → returns the lazy-loading proxy (initialization occurs when an attribute is accessed)</li>
+<li>If the module is not registered → returns <code>None</code></li>
+</ul>
+<p>To explicitly trigger loading, use <code>await sdk.load_module("my_module")</code>.</p>
+<h3 id="asynchronous-initialization">Asynchronous Initialization</h3>
+<p>For modules requiring asynchronous initialization, it is recommended to load them explicitly first:</p>
+<pre><code class="language-python"><span class="token comment"># Explicitly load the module first</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Then use the module</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="synchronous-initialization">Synchronous Initialization</h3>
+<p>For modules that do not require asynchronous initialization, you can access them directly:</p>
+<pre><code class="language-python"><span class="token comment"># Direct access will automatically initialize synchronously</span>
+result <span class="token operator">=</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>some_sync_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<p>When choosing a loading strategy, you can refer to the following decision flow:</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["Module Declaration&lt;br/&gt;get_load_strategy()"] --&gt; B{"Do you need it ready at startup&lt;br/&gt;or frequently triggered?"}
+    B --&gt;|"Yes"| C["lazy_load=False&lt;br/&gt;Load Immediately"]
+    B --&gt;|"No"| D{"Registered Command / Event Handlers?"}
+    D --&gt;|"Yes"| E["lazy_load=True + activate_on&lt;br/&gt;Activate when event/command arrives"]
+    D --&gt;|"No"| F["lazy_load=True&lt;br/&gt;Load on first attribute access"]
+    C --&gt; G["Call on_load() at startup"]
+    E --&gt; H["Register stub → Instantiate on trigger"]
+    F --&gt; I["LazyModule Proxy"]
+</code></pre>
+<h3 id="recommended-scenarios-for-lazy-loading-lazy_loadtrue">Recommended Scenarios for Lazy Loading (lazy_load=True)</h3>
+<ul>
+<li>Passive utility modules (e.g., data query modules, format converters, etc., which are only needed when called by other modules)</li>
+<li>Modules that register command/event handlers but are not frequently used — use <code>activate_on</code> to declare triggers, and activate automatically when the first matching event/command arrives, without giving up lazy loading</li>
+</ul>
+<h3 id="recommended-scenarios-for-disabling-lazy-loading-lazy_loadfalse">Recommended Scenarios for Disabling Lazy Loading (lazy_load=False)</h3>
+<ul>
+<li>Modules that need to be ready immediately at startup (e.g., core modules that provide foundational services to other modules)</li>
+<li>High-frequency listeners (e.g., every message must be processed) — <code>activate_on</code> forwarding has some activation overhead, so immediate loading is more direct in high-frequency scenarios</li>
+<li>Scheduled task modules</li>
+<li>Modules that need to be initialized at application startup</li>
+</ul>
+<blockquote>
+<p>The <code>priority</code> parameter controls the initialization order of immediately loaded modules; higher values are initialized first. Modules with the same priority are loaded in registration order.</p>
+</blockquote>
+<h2 id="notes">Notes</h2>
+<ol>
+<li>If your module uses lazy loading, and other modules have never been called within ErisPulse, your module will never be initialized.</li>
+<li>If your module contains modules that listen for Events, or other actively listening modules, you have two options: declare an <code>activate_on</code> trigger (to keep lazy loading and automatically activate when the event arrives), or declare that it needs to be loaded immediately (<code>lazy_load=False</code>), otherwise it may affect the normal operation of your module.</li>
+<li>We do not recommend disabling lazy loading unless there is a special requirement, otherwise it may cause issues such as dependency management and lifecycle events.</li>
+<li>In the <code>activate_on</code> command dict declaration, <code>name</code> must be consistent with the actual command name registered in the module's <code>on_load</code> with <code>@command()</code>—otherwise, after the module is activated, the placeholder command will be unregistered, and a command with inconsistent declaration and implementation will not exist.</li>
+</ol>
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="/docs/en/developer-guide/modules/getting-started.html">Module Development Guide</a> - Learn how to develop modules</li>
+<li><a href="/docs/en/developer-guide/modules/best-practices.html">Best Practices</a> - Learn more about best practices</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/advanced/lifecycle.html"><small>Previous</small><br>Lifecycle Management</a>
+        <a class="doc-pager-next" href="/docs/en/advanced/router.html"><small>Next</small><br>Router Manager</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

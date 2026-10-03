@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ストレージバックエンド - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse には、3 種類の非同期ネイティブストレージバックエンドが内蔵されており、設定を変更することで簡単に切り替えることができます。API は完全に同一であり、コードの変更は一切必要ありません。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/storage-backends.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/storage-backends.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/storage-backends.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/storage-backends.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/storage-backends.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/storage-backends.html" />
+    <meta property="og:title" content="ストレージバックエンド - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse には、3 種類の非同期ネイティブストレージバックエンドが内蔵されており、設定を変更することで簡単に切り替えることができます。API は完全に同一であり、コードの変更は一切必要ありません。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/storage-backends.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ストレージバックエンド","description":"ErisPulse には、3 種類の非同期ネイティブストレージバックエンドが内蔵されており、設定を変更することで簡単に切り替えることができます。API は完全に同一であり、コードの変更は一切必要ありません。","url":"https://www.erisdev.com/docs/ja/advanced/storage-backends.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>ストレージバックエンド</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/storage-backends.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/storage-backends.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/storage-backends.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/storage-backends.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/storage-backends.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/storage-backends.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="ストレージバックエンド">ストレージバックエンド</h1>
+<p>ErisPulse には、3 種類の非同期ネイティブストレージバックエンドが内蔵されており、設定を変更することで簡単に切り替えることができます。<strong>API は完全に同一であり、コードの変更は一切必要ありません</strong>。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>バックエンド</th>
+<th>ドライバー</th>
+<th>インストール</th>
+<th>特徴</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SQLite（デフォルト）</td>
+<td>aiosqlite</td>
+<td>インストール不要</td>
+<td>零設定、単一ファイル、WAL による並行処理</td>
+</tr>
+<tr>
+<td>MySQL / MariaDB</td>
+<td>aiomysql</td>
+<td><code>pip install ErisPulse[mysql]</code></td>
+<td>既存の MySQL インフラストラクチャがある場合、複数インスタンスで共有するのに適しています</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>asyncpg</td>
+<td><code>pip install ErisPulse[postgres]</code></td>
+<td>トランザクション処理が強力、JSONB エコシステム、高並行性</td>
+</tr>
+</tbody></table></div>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>非同期はネイティブの主インターフェース（<code>aget/aset/atransaction/aExecute</code>）であり、同期 API は互換性層です。</li>
+<li>フレームワーク自体の設定の永続化、会話の受信箱、対話のチェックポイントなどはすべて同じストレージバックエンドを経由します。バックエンドを切り替えることで、全体の移行が可能です。
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="バックエンドの選択">バックエンドの選択</h2>
+<p><code>config/config.toml</code> で設定します：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.storage</span><span class="token punctuation">]</span>
+<span class="token key property">backend</span> <span class="token punctuation">=</span> <span class="token string">"sqlite"</span>        <span class="token comment"># "sqlite"（デフォルト）/ "mysql" / "postgres"</span>
+<span class="token key property">use_global_db</span> <span class="token punctuation">=</span> <span class="token boolean">false</span>     <span class="token comment"># SQLite のみ有効：パッケージ内のグローバルデータベース data/config.db を使用</span>
+</code></pre>
+<p>また、Docker / 12-factor アプリケーション仕様に準拠した環境変数による上書きもサポートしています：</p>
+<pre><code class="language-bash"><span class="token assign-left variable">ERISPULSE_STORAGE_BACKEND</span><span class="token operator">=</span>postgres
+<span class="token assign-left variable">ERISPULSE_STORAGE_POSTGRES_HOST</span><span class="token operator">=</span>db.example.com
+<span class="token assign-left variable">ERISPULSE_STORAGE_POSTGRES_PASSWORD</span><span class="token operator">=</span>secret
+</code></pre>
+<p>環境変数の命名規則は、設定パスを大文字にし、ドットをアンダースコアに変換します。
+（<code>ErisPulse.storage.postgres.host</code> → <code>ERISPULSE_STORAGE_POSTGRES_HOST</code>）。</p>
+<h2 id="接続パラメータ">接続パラメータ</h2>
+<h3 id="mysqlerispulsestoragemysql">MySQL（<code>ErisPulse.storage.mysql</code>）</h3>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.storage.mysql</span><span class="token punctuation">]</span>
+<span class="token key property">host</span> <span class="token punctuation">=</span> <span class="token string">"127.0.0.1"</span>
+<span class="token key property">port</span> <span class="token punctuation">=</span> <span class="token number">3306</span>
+<span class="token key property">user</span> <span class="token punctuation">=</span> <span class="token string">"erispulse"</span>
+<span class="token key property">password</span> <span class="token punctuation">=</span> <span class="token string">""</span>
+<span class="token key property">database</span> <span class="token punctuation">=</span> <span class="token string">"erispulse"</span>
+<span class="token key property">charset</span> <span class="token punctuation">=</span> <span class="token string">"utf8mb4"</span>
+<span class="token key property">pool_min</span> <span class="token punctuation">=</span> <span class="token number">1</span>
+<span class="token key property">pool_max</span> <span class="token punctuation">=</span> <span class="token number">10</span>
+</code></pre>
+<h3 id="postgresqlerispulsestoragepostgres">PostgreSQL（<code>ErisPulse.storage.postgres</code>）</h3>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.storage.postgres</span><span class="token punctuation">]</span>
+<span class="token key property">host</span> <span class="token punctuation">=</span> <span class="token string">"127.0.0.1"</span>
+<span class="token key property">port</span> <span class="token punctuation">=</span> <span class="token number">5432</span>
+<span class="token key property">user</span> <span class="token punctuation">=</span> <span class="token string">"erispulse"</span>
+<span class="token key property">password</span> <span class="token punctuation">=</span> <span class="token string">""</span>
+<span class="token key property">database</span> <span class="token punctuation">=</span> <span class="token string">"erispulse"</span>
+<span class="token key property">pool_min</span> <span class="token punctuation">=</span> <span class="token number">1</span>
+<span class="token key property">pool_max</span> <span class="token punctuation">=</span> <span class="token number">10</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>接続パラメータを変更した後は、フレームワークを再起動する必要があります（設定のホット更新時に再起動のリマインダーログが出力されます）。
+接続プールはイベントループに従って惰性作成され、作成時に瞬間的な失敗（ネットワークの揺れ / データベースの再起動期間）が発生した場合、自動的に指数型の退避再試行が行われます。</p>
+</div>
+<h2 id="接続失敗時の動作">接続失敗時の動作</h2>
+<p>フレームワークの起動と実行は<strong>データベースの利用可能性に依存しません</strong>。MySQL / PostgreSQL への接続失敗は、フレームワークのクラッシュや起動不能を引き起こしません。</p>
+<ol>
+<li>プール作成時の瞬時失敗は、指数関数的退避再試行（デフォルト 3 回）で自動的に処理されます。</li>
+<li>再試行回数をすべて使用した場合 → WARNING ログを記録（原因とクールダウン期間を含む）、フレームワークは通常通り起動 / 継続的に動作しますが、ストレージ操作は一時的に利用できません。</li>
+<li>クールダウン期間（デフォルト 30 秒）内では、その後のストレージ操作は<strong>即時失敗</strong>します（ブロックされず、他の機能の遅延もありません）。</li>
+<li>クールダウン終了後は自動的に再接続を試みます。データベースが復旧するとストレージも復旧し、フレームワークの再起動は不要です。</li>
+</ol>
+<p>ログ例: <code>mysql 接続プールの作成が最終的に失敗しました（再試行を 3 回行いました）。30 秒後に自動的に再接続を試みます。この間、ストレージ操作は即時失敗しますが、フレームワークの他の機能には影響しません。</code></p>
+<h2 id="異スレッド-api">異スレッド API</h2>
+<pre><code class="language-python"><span class="token comment"># KV 操作</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"app.name"</span><span class="token punctuation">,</span> <span class="token string">"MyApp"</span><span class="token punctuation">)</span>
+value <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aget<span class="token punctuation">(</span><span class="token string">"app.name"</span><span class="token punctuation">)</span>
+keys <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aget_all_keys<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 表操作</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aCreateTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"INTEGER PRIMARY KEY AUTOINCREMENT"</span><span class="token punctuation">,</span>
+    <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"TEXT NOT NULL"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+rows <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ToDict<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 異スレッドトランザクション</span>
+<span class="token keyword">async</span> <span class="token keyword">with</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>atransaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"key1"</span><span class="token punctuation">,</span> <span class="token string">"value1"</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Insert<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Alice"</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>aExecute<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>同期 API (<code>get/set/transaction/Table(...).Execute()</code>) は引き続き使用可能です。内部では <code>AsyncBridge</code> がバックグラウンドイベントループを橋渡しして実行しています。非同期ハンドラ内で同期 API を呼び出すと、イベントループが一時的にブロックされます。<strong>初回呼び出し時に一回限りの警告</strong>（「a 前置きの非同期メソッドの使用を推奨」）が出力されます。非同期メソッドの使用を推奨します。以下の境界条件に注意してください：</p>
+<ul>
+<li><strong>橋渡しスレッド内では再び同期インターフェースを呼び出せない</strong>：同期インターフェースは橋渡しスレッド内で実行され、この状態で再度同期インターフェースを呼び出すと <code>RuntimeError</code> が発生します（再入防止の保護により、自己デッドロックを回避します）。</li>
+<li><strong>橋渡し対象のループが閉じた後に呼び出すと失敗する</strong>：<code>uninit()</code> の後にストレージインターフェースを呼び出さないでください。</li>
+</ul>
+<p>完全なメソッド対照は <a href="/docs/ja/advanced/sql-builder.html">SQL クエリビルダ</a> を参照してください。</p>
+<h2 id="方言の動作の違い">方言の動作の違い</h2>
+<p>方言の違いはすべてフレームワーク内部で吸収され、呼び出し元のコードはその違いを意識する必要はありません。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>差異点</th>
+<th>SQLite</th>
+<th>MySQL</th>
+<th>PostgreSQL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>プレースホルダ</td>
+<td><code>?</code></td>
+<td><code>%s</code>（自動変換）</td>
+<td><code>$1..$n</code>（自動変換）</td>
+</tr>
+<tr>
+<td>KV UPSERT</td>
+<td><code>INSERT OR REPLACE</code></td>
+<td><code>ON DUPLICATE KEY UPDATE</code></td>
+<td><code>ON CONFLICT DO UPDATE</code></td>
+</tr>
+<tr>
+<td>KV 値の列型</td>
+<td><code>TEXT</code></td>
+<td><code>LONGTEXT</code></td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td>自動増分主キー</td>
+<td>原生サポート</td>
+<td><code>AUTO_INCREMENT</code>（自動変換）</td>
+<td><code>SERIAL</code>（自動変換）</td>
+</tr>
+</tbody></table></div>
+<p>列の定義はすべて SQLite のスタイルを使用します（例: <code>"INTEGER PRIMARY KEY AUTOINCREMENT"</code>、<code>"TEXT NOT NULL"</code>、<code>"DOUBLE DEFAULT 0.0"</code>）。これらの定義は、後端のデータベースに等価な形式に自動的に変換されます。</p>
+<h2 id="自定义-sql-バックエンド">自定义 SQL バックエンド</h2>
+<p>純粋な SQL バックエンドは、共有基底クラスを継承し、接続管理と方言実行ファネルを提供するだけです。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>sql_base <span class="token keyword">import</span> SQLDialect<span class="token punctuation">,</span> SQLStorageBase
+
+<span class="token keyword">class</span> <span class="token class-name">MyDialect</span><span class="token punctuation">(</span>SQLDialect<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    name <span class="token operator">=</span> <span class="token string">"mydb"</span>
+    <span class="token comment"># オーバーライド: プレースホルダ翻訳 / イデンティファイア引用 / UPSERT / タイプマッピング ...</span>
+
+<span class="token keyword">class</span> <span class="token class-name">MyStorage</span><span class="token punctuation">(</span>SQLStorageBase<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    dialect <span class="token operator">=</span> MyDialect<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_create_loop_resource</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>   <span class="token comment"># 接続プール</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_destroy_loop_resource</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> r<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_acquire_resource_conn</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> r<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_release_resource_conn</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> r<span class="token punctuation">,</span> c<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_open_txn_conn</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_close_txn_conn</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> c<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_exec_query_on</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> kind<span class="token punctuation">,</span> sql<span class="token punctuation">,</span> params<span class="token punctuation">,</span> conn<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 実行ファネル</span>
+</code></pre>
+<p>非 SQL バックエンド（例: Redis）は <code>BaseStorage</code> を継承して KV 非同期インターフェースを実装した後、
+<code>KVQueryBuilder</code> を使ってチェーン式の表クエリ機能（メモリ内フィルタ、中小データ量に適している）を直接利用できます。</p>
+<h2 id="関連ドキュメント">関連ドキュメント</h2>
+<ul>
+<li><a href="/docs/ja/advanced/sql-builder.html">SQL クエリビルダー</a> - チェーン式クエリ構文と非同期 API の対照表</li>
+<li><a href="/docs/ja/api-reference/core-modules.html">コアモジュール API</a> - Storage モジュールの完全な API</li>
+<li><a href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">ストレージ基底クラス API</a> - SQLStorageBase / SQLDialect 抽象インターフェース</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/module-communication.html"><small>Previous</small><br>モジュール間通信</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/errors.html"><small>Next</small><br>エラーシステムとキャッチガイド</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

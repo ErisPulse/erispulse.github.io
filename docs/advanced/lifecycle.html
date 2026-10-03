@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>生命周期管理 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 提供统一的钩子/生命周期系统，用于监控系统各组件的运行状态，以及实现审计、统计、自定义逻辑等扩展功能。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/lifecycle.html" />
+    <meta property="og:title" content="生命周期管理 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 提供统一的钩子/生命周期系统，用于监控系统各组件的运行状态，以及实现审计、统计、自定义逻辑等扩展功能。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/advanced/lifecycle.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"生命周期管理","description":"ErisPulse 提供统一的钩子/生命周期系统，用于监控系统各组件的运行状态，以及实现审计、统计、自定义逻辑等扩展功能。","url":"https://www.erisdev.com/docs/advanced/lifecycle.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 高级主题
+        <span class="doc-crumb-sep">/</span> <span>生命周期管理</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/advanced/lifecycle.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/lifecycle.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/lifecycle.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/lifecycle.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/lifecycle.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/lifecycle.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="生命周期管理">生命周期管理</h1>
+<p>ErisPulse 提供统一的钩子/生命周期系统，用于监控系统各组件的运行状态，以及实现审计、统计、自定义逻辑等扩展功能。</p>
+<p>系统支持三种触发方式：</p>
+<ul>
+<li><code>await lifecycle.emit("event", data)</code> — 精简版，传递任意数据（<code>to="Owner"</code> 时定向投递）</li>
+<li><code>lifecycle.emit_sync("event", data)</code> — 同步版（用于非异步上下文）</li>
+<li><code>await lifecycle.submit_event("event", ...)</code> — 兼容旧版，自动构建标准事件格式</li>
+</ul>
+<h2 id="事件处理机制">事件处理机制</h2>
+<h3 id="注册处理器">注册处理器</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># 装饰器模式</span>
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_module_load</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"模块加载: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># 编程式注册</span>
+sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">,</span> on_module_load<span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 取消注册</span>
+sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>unregister<span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">,</span> on_module_load<span class="token punctuation">)</span>
+
+<span class="token comment"># 按所有者批量取消注册（模块/适配器卸载时框架自动调用）</span>
+removed <span class="token operator">=</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>unregister_by_owner<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"清理了 </span><span class="token interpolation"><span class="token punctuation">{</span>removed<span class="token punctuation">}</span></span><span class="token string"> 个生命周期钩子"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="优先级">优先级</h3>
+<p>处理器支持 <code>priority</code> 参数，数值越大越先执行（与模块加载器一致）：</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span>  <span class="token comment"># 最先执行</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">first_handler</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>  <span class="token comment"># 后执行</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">second_handler</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<h3 id="点式结构事件">点式结构事件</h3>
+<p>触发具体事件时，也会触发其父级事件：</p>
+<ul>
+<li>触发 <code>module.load</code> 时，也会触发 <code>module</code></li>
+<li>触发 <code>adapter.event.receive</code> 时，也会触发 <code>adapter.event</code> 和 <code>adapter</code></li>
+</ul>
+<h3 id="通配符">通配符</h3>
+<p>注册 <code>*</code> 捕获所有事件：</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"*"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_anything</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到事件: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="定向传播emit-to">定向传播（emit to=）</h3>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本特性需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p><code>emit()</code> 指定 <code>to</code> 参数后进入定向传播：事件只分发给以该拥有者（owner）身份注册的
+处理器（模块在 <code>on_load</code> 内注册的钩子自动归属本模块），其它模块与通配符 <code>*</code>
+处理器不感知。</p>
+<pre><code class="language-python"><span class="token comment"># 投递方：事件只投给 Chat 模块注册的钩子</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"hi"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> to<span class="token operator">=</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 订阅方（Chat 模块内）：注册同名钩子，owner 在注册时自动记录</span>
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_message_received</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>   <span class="token comment"># 点式父级前缀同样生效（按 owner 过滤）</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_any</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<ul>
+<li>目标 owner 无已注册钩子 → 事件<strong>不被消费</strong>（可用 <code>has_handlers()</code> 提前探测）</li>
+<li><code>data</code> 为 dict 时自动携带 <code>_trace_id</code>（不覆盖已有值）</li>
+<li><code>emit_sync</code> / <code>submit_event</code> 同样支持 <code>to=</code> 参数</li>
+<li>模块间通信的三层模型（RPC / 定向 / 广播）见
+<a href="/docs/advanced/module-communication.html">模块间通信</a></li>
+</ul>
+<h3 id="一次性注册once">一次性注册（once）</h3>
+<p>从 2.7.0 起，<code>lifecycle.once()</code> 注册的处理器在<strong>触发一次后自动注销</strong>，适合"首次就绪"这类一次性钩子：</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>once</span><span class="token punctuation">(</span><span class="token string">"core.init.complete"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_first_ready</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"首次就绪，后续不再触发"</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>与 <code>on()</code> 同优先级参数语义（<code>priority</code> 数值越大越先执行）</li>
+<li>自动注销，无需手动 <code>unregister</code></li>
+<li>同步/异步处理器均支持</li>
+</ul>
+<h3 id="监听者查询has_handlers">监听者查询（has_handlers）</h3>
+<p>热路径短路场景可先用 <code>has_handlers()</code> 判断是否有监听者，避免无谓的事件遍历与任务调度：</p>
+<pre><code class="language-python"><span class="token keyword">if</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>has_handlers<span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">,</span> send_ctx<span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>覆盖<strong>精确事件名、通配符 <code>*</code>、父级事件</strong>三种匹配</li>
+<li>无任何监听者时返回 <code>False</code>，可安全跳过 <code>emit</code></li>
+</ul>
+<h2 id="钩子断点一览">钩子断点一览</h2>
+<p>一条消息从平台进入框架到处理完成的典型生命周期事件时序：</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant P as 平台
+    participant A as 适配器
+    participant F as 框架核心
+    participant M as 模块处理器
+
+    P-&gt;&gt;A: 原生事件到达
+    A-&gt;&gt;F: adapter.event.receive（最早期）
+    F-&gt;&gt;F: event.pre_process（处理器执行前）
+    F-&gt;&gt;M: 分发到处理器（命令/消息/通知等）
+    M-&gt;&gt;M: command.matched / command.executed
+    M-&gt;&gt;F: event.reply()
+    F-&gt;&gt;F: message.sending（发送前）
+    F-&gt;&gt;A: SendDSL 发送
+    A-&gt;&gt;P: 发送到平台
+    A-&gt;&gt;F: message.sent（发送完成）
+    F-&gt;&gt;F: adapter.event.dispatched（分发完成）
+</code></pre>
+<p>框架内置了以下钩子断点，用户可以通过 <code>@sdk.lifecycle.on()</code> 监听任意断点实现自定义逻辑。</p>
+<h3 id="核心初始化">核心初始化</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>core.init.start</code></td>
+<td>SDK 初始化开始</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>core.init.stage</code></td>
+<td>初始化各阶段开始（后台发射）</td>
+<td><code>{"stage": str}</code>，取值 <code>discovery</code> / <code>adapter_register</code> / <code>adapter_start</code> / <code>module_register</code> / <code>module_init</code> / <code>adapter_start_deferred</code> / <code>router_start</code></td>
+</tr>
+<tr>
+<td><code>core.init.complete</code></td>
+<td>SDK 初始化完成</td>
+<td><code>{"duration": float, "success": bool, "stages": {stage: float}, "adapters": {"enabled": [str], "disabled": [str]}, "modules": {"enabled": [str], "disabled": [str]}, "error": str(仅失败时)}</code></td>
+</tr>
+<tr>
+<td><code>core.uninit.complete</code></td>
+<td>SDK 反初始化完成</td>
+<td><code>{"duration": float, "success": bool, "adapters_closed": int, "modules_unloaded": int, "module_properties_cleared": int, "module_properties_to_clear": [str], "error": str(仅失败时)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：启动进度展示</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"core.init.stage"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">show_stage</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[启动] 进入阶段: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'stage'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="配置变更">配置变更</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>config.set</code></td>
+<td>配置项被修改</td>
+<td><code>{"key": str, "old_value": Any, "new_value": Any}</code></td>
+</tr>
+<tr>
+<td><code>config.updated</code></td>
+<td>外部编辑 config.toml 后检测到整树变更</td>
+<td><code>{"old_config": dict, "new_config": dict, "config_file": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：配置审计</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"config.set"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">audit_config</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[审计] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'key'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'old_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'new_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="模块生命周期">模块生命周期</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>module.register</code></td>
+<td>模块类注册到管理器</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.load</code></td>
+<td>模块加载完成（实例化成功）</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.init</code></td>
+<td>模块初始化完毕（含懒加载）</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.unload</code></td>
+<td>模块卸载</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.reload</code></td>
+<td>模块热重载完成（含级联重载依赖者）</td>
+<td><code>{"module_name": str, "success": bool, "full": bool}</code>；全量重载（<code>reload_all</code>）时 <code>module_name</code> 为 <code>"All"</code>，payload 额外携带 <code>"results": dict[str, bool]</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="适配器生命周期">适配器生命周期</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>adapter.load</code></td>
+<td>适配器注册完成</td>
+<td><code>{"platform": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>adapter.start</code></td>
+<td>适配器启动</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.status.change</code></td>
+<td>适配器状态变化</td>
+<td><code>{"platform": str, "status": str, "retry_count": int, "error": str(仅失败时)}</code>；status 完整取值：<code>starting</code> / <code>started</code> / <code>start_failed</code> / <code>stopping</code> / <code>stopped</code> / <code>stop_failed</code> / <code>skipped-dependency</code> / <code>disabled</code></td>
+</tr>
+<tr>
+<td><code>adapter.stop</code></td>
+<td>适配器关闭</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.stopped</code></td>
+<td>适配器关闭完成</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.bot.online</code></td>
+<td>Bot 上线</td>
+<td><code>{"platform": str, "bot_id": str, "info": dict, "status": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.bot.offline</code></td>
+<td>Bot 下线</td>
+<td><code>{"platform": str, "bot_id": str, "status": str}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="事件接收与处理">事件接收与处理</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>adapter.event.receive</code></td>
+<td>收到外部平台事件（最早期）</td>
+<td><code>{"platform": str, "event_type": str, "raw_event_type": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.event.blocked</code></td>
+<td>中间件否决事件（返回 <code>False</code>，事件被丢弃不进入任何处理器）</td>
+<td><code>{"middleware": str, "platform": str, "event_type": str, "detail_type": str, "event": dict, "_trace_id": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.event.dispatched</code></td>
+<td>事件分发完成</td>
+<td><code>{"platform": str, "event_type": str, "raw_event_type": str, "onebot_handlers_count": int}</code></td>
+</tr>
+<tr>
+<td><code>event.pre_process</code></td>
+<td>事件处理器开始执行前</td>
+<td><code>{"event_type": str, "platform": str, "detail_type": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：事件统计</strong></p>
+<pre><code class="language-python">event_counter <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">count_events</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    platform <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">"platform"</span><span class="token punctuation">]</span>
+    event_counter<span class="token punctuation">[</span>platform<span class="token punctuation">]</span> <span class="token operator">=</span> event_counter<span class="token punctuation">.</span>get<span class="token punctuation">(</span>platform<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.dispatched"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_unhandled</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> data<span class="token punctuation">[</span><span class="token string">"onebot_handlers_count"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[未处理] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'event_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="消息发送">消息发送</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>message.sending</code></td>
+<td>消息即将发送</td>
+<td><code>{"platform": str, "method": str, "detail_type": str, "target_id": str, "bot_id": str}</code></td>
+</tr>
+<tr>
+<td><code>message.sent</code></td>
+<td>消息发送完成</td>
+<td><code>{"platform": str, "method": str, "detail_type": str, "target_id": str, "bot_id": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：消息发送审计</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_sending</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[发送] -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'detail_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'target_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> via </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="命令系统">命令系统</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>command.matched</code></td>
+<td>命令被匹配并即将执行</td>
+<td><code>{"command": str, "args": list[str], "platform": str, "user_id": str}</code></td>
+</tr>
+<tr>
+<td><code>command.executed</code></td>
+<td>命令执行完成</td>
+<td><code>{"command": str, "args": list[str], "platform": str, "user_id": str, "success": bool, "error": str(仅失败时)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：命令统计</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"command.matched"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">count_commands</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[命令] /</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'command'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> from </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'user_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">@</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="http-路由">HTTP 路由</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server.request</code></td>
+<td>HTTP 请求接收</td>
+<td><code>{"method": str, "path": str, "client_ip": str}</code></td>
+</tr>
+<tr>
+<td><code>server.response</code></td>
+<td>HTTP 响应发送</td>
+<td><code>{"method": str, "path": str, "status_code": int, "client_ip": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：请求日志</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.response"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_http</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[HTTP] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'status_code'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="websocket">WebSocket</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server.start</code></td>
+<td>路由服务器启动</td>
+<td><code>{"base_url": str, "host": str, "port": int, "success": bool, "error": str(仅失败时)}</code></td>
+</tr>
+<tr>
+<td><code>server.stop</code></td>
+<td>路由服务器停止</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>server.websocket.connect</code></td>
+<td>WebSocket 连接建立</td>
+<td><code>{"path": str, "module_name": str, "client_ip": str}</code></td>
+</tr>
+<tr>
+<td><code>server.websocket.disconnect</code></td>
+<td>WebSocket 连接断开</td>
+<td><code>{"path": str, "module_name": str, "reason": str, "error": str(仅异常时)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：WebSocket 连接监控</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.websocket.connect"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_ws_connect</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[WS] 连接: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> from </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'client_ip'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.websocket.disconnect"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_ws_disconnect</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[WS] 断开: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> (</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'reason'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">)"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="存储连接状态">存储连接状态</h3>
+<p>存储后端连接池的建立、故障与恢复（均后台发射，不阻塞存储操作）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>storage.ready</code></td>
+<td>存储后端连接池就绪（每事件循环首次建池成功）</td>
+<td><code>{"backend": str}</code></td>
+</tr>
+<tr>
+<td><code>storage.unreachable</code></td>
+<td>连接重试耗尽进入冷却期（期间操作快速失败）</td>
+<td><code>{"backend": str, "error": str, "cooldown": float}</code></td>
+</tr>
+<tr>
+<td><code>storage.recovered</code></td>
+<td>冷却结束重连成功，存储恢复可用</td>
+<td><code>{"backend": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>示例：存储故障告警</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"storage.unreachable"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">alert_storage_down</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[告警] 存储后端 </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'backend'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> 不可达: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'error'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">，</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'cooldown'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">s 后自动重连"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"storage.recovered"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">notify_storage_back</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[恢复] 存储后端 </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'backend'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> 已恢复可用"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="http-客户端">HTTP 客户端</h3>
+<p><code>sdk.client</code> 的请求与连接事件（均后台发射）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client.request.success</code></td>
+<td>HTTP 请求成功</td>
+<td><code>{"method": str, "url": str, "status": int, "elapsed": float}</code></td>
+</tr>
+<tr>
+<td><code>client.request.failed</code></td>
+<td>HTTP 请求重试耗尽最终失败</td>
+<td><code>{"method": str, "url": str, "error": str, "attempts": int, "elapsed": float}</code></td>
+</tr>
+<tr>
+<td><code>client.ws.connect</code></td>
+<td>WebSocket 连接建立</td>
+<td><code>{"url": str}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="国际化">国际化</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>钩子名称</th>
+<th>触发时机</th>
+<th>数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i18n.language.changed</code></td>
+<td>框架语言切换（<code>i18n.set_language</code>）</td>
+<td><code>{"language": str, "previous": str}</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="标准事件定义">标准事件定义</h2>
+<pre><code class="language-python">STANDARD_EVENTS <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token string">"core"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"init.start"</span><span class="token punctuation">,</span> <span class="token string">"init.stage"</span><span class="token punctuation">,</span> <span class="token string">"init.complete"</span><span class="token punctuation">,</span> <span class="token string">"uninit.complete"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"module"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"load"</span><span class="token punctuation">,</span> <span class="token string">"init"</span><span class="token punctuation">,</span> <span class="token string">"unload"</span><span class="token punctuation">,</span> <span class="token string">"register"</span><span class="token punctuation">,</span> <span class="token string">"reload"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"adapter"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"load"</span><span class="token punctuation">,</span> <span class="token string">"start"</span><span class="token punctuation">,</span> <span class="token string">"status.change"</span><span class="token punctuation">,</span> <span class="token string">"stop"</span><span class="token punctuation">,</span> <span class="token string">"stopped"</span><span class="token punctuation">,</span>
+        <span class="token string">"event.receive"</span><span class="token punctuation">,</span> <span class="token string">"event.dispatched"</span><span class="token punctuation">,</span>
+        <span class="token string">"bot.online"</span><span class="token punctuation">,</span> <span class="token string">"bot.offline"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"server"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"start"</span><span class="token punctuation">,</span> <span class="token string">"stop"</span><span class="token punctuation">,</span>
+        <span class="token string">"request"</span><span class="token punctuation">,</span> <span class="token string">"response"</span><span class="token punctuation">,</span>
+        <span class="token string">"websocket.connect"</span><span class="token punctuation">,</span> <span class="token string">"websocket.disconnect"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"event"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"pre_process"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"sending"</span><span class="token punctuation">,</span> <span class="token string">"sent"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"matched"</span><span class="token punctuation">,</span> <span class="token string">"executed"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"config"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"set"</span><span class="token punctuation">,</span> <span class="token string">"updated"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"storage"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"ready"</span><span class="token punctuation">,</span> <span class="token string">"unreachable"</span><span class="token punctuation">,</span> <span class="token string">"recovered"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"client"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"request.success"</span><span class="token punctuation">,</span> <span class="token string">"request.failed"</span><span class="token punctuation">,</span> <span class="token string">"ws.connect"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"language.changed"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="完整-api-参考">完整 API 参考</h2>
+<h3 id="注册与取消">注册与取消</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@lifecycle.on(event, *, priority=0)</code></td>
+<td>装饰器注册处理器</td>
+</tr>
+<tr>
+<td><code>lifecycle.register(event, handler, *, priority=0)</code></td>
+<td>编程式注册</td>
+</tr>
+<tr>
+<td><code>lifecycle.unregister(event, handler=None)</code></td>
+<td>取消注册（handler=None 时取消该事件全部处理器）</td>
+</tr>
+</tbody></table></div>
+<h3 id="触发">触发</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await lifecycle.emit(event, data=None, *, to=None)</code></td>
+<td>异步触发，处理器<strong>并行执行</strong>（互不阻塞，返回时全部完成），返回非 None 值按优先级顺序回放链式替换 data；<code>to</code> 指定 owner 时定向投递</td>
+</tr>
+<tr>
+<td><code>lifecycle.fire(event, data=None, *, to=None)</code></td>
+<td><strong>后台发射（扔桶即走）</strong>：处理器在后台任务中并行执行、不等待、无返回值；无监听者时零开销。适用于高频热路径与纯观测事件；关停序列与顺序敏感消费（如 <code>config.set</code>）请用 <code>emit</code></td>
+</tr>
+<tr>
+<td><code>lifecycle.emit_sync(event, data=None, *, to=None)</code></td>
+<td>同步触发，异步处理器以 create_task 调度</td>
+</tr>
+<tr>
+<td><code>await lifecycle.submit_event(event_type, *, source, msg, data, to=None, background=False)</code></td>
+<td>兼容旧版，自动构建标准事件格式；<code>background=True</code> 时走 <code>fire</code> 后台发射</td>
+</tr>
+</tbody></table></div>
+<h3 id="工具">工具</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lifecycle.start_timer(timer_id)</code></td>
+<td>开始计时</td>
+</tr>
+<tr>
+<td><code>lifecycle.get_duration(timer_id)</code></td>
+<td>获取已持续时间（秒）</td>
+</tr>
+<tr>
+<td><code>lifecycle.stop_timer(timer_id)</code></td>
+<td>停止计时并返回持续时间</td>
+</tr>
+<tr>
+<td><code>lifecycle.list_hooks()</code></td>
+<td>列出所有已注册钩子及处理器数量</td>
+</tr>
+<tr>
+<td><code>lifecycle.clear()</code></td>
+<td>清除所有处理器和计时器</td>
+</tr>
+</tbody></table></div>
+<h2 id="模块中使用示例">模块中使用示例</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token keyword">class</span> <span class="token class-name">Main</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 实现简单的消息统计</span>
+        self<span class="token punctuation">.</span>msg_count <span class="token operator">=</span> <span class="token number">0</span>
+        
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">count</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> data<span class="token punctuation">[</span><span class="token string">"event_type"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"message"</span><span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>msg_count <span class="token operator">+=</span> <span class="token number">1</span>
+        
+        <span class="token comment"># 监控所有命令</span>
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"command.matched"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">log_cmd</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"命令执行: /</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'command'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> by </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'user_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token comment"># 配置变更审计</span>
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"config.set"</span><span class="token punctuation">)</span>
+        <span class="token keyword">def</span> <span class="token function">audit</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"配置变更: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'key'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> = </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'new_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="后台任务归属与自动取消">后台任务归属与自动取消</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本特性需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p>模块创建的 asyncio 后台任务若未在 <code>on_unload</code> 中取消，会持有 <code>self</code> 引用导致模块实例无法被回收（热重载后旧实例残留）。框架提供以下兜底机制：</p>
+<ul>
+<li>**<code>self.spawn(coro)</code>**（模块内推荐）：任务自动归属模块名，模块卸载时框架在 <code>on_unload</code> <strong>之后</strong>兜底取消未结束的任务并记录警告</li>
+<li>**<code>spawn_background(coro)</code>**（<code>ErisPulse.runtime</code>）：自动捕获当前 <code>owner_scope</code> 上下文；<code>cancel_owner_tasks(owner)</code> 按归属取消，<code>cancel_all_background_tasks()</code> 供 <code>sdk.uninit()</code> 兜底</li>
+<li><strong>适配器</strong>：关闭时对平台名下的后台任务同样兜底取消</li>
+</ul>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 推荐：后台任务用 self.spawn()，卸载时框架自动兜底取消</span>
+    self<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_poll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 精细控制的场景仍建议自行取消并等待收尾</span>
+    <span class="token keyword">if</span> self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">.</span>cancel<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>gather<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">,</span> return_exceptions<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_poll</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">60</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-important"><p class="markdown-alert-title"><i class="fas fa-comment-dots" aria-hidden="true"></i>Important</p>
+<p>框架兜底是<strong>强制 cancel</strong>（<code>cancel_owner_tasks</code>），它发生在 <code>on_unload</code> 返回之后。因此需要优雅收尾的任务（flush 缓冲、持久化状态、关闭连接）<strong>必须</strong>在 <code>on_unload</code> 里自行 <code>cancel()</code> + <code>await</code> 完成——别指望兜底能保留收尾逻辑。框架只保证「不残留持有 <code>self</code> 的任务」，不保证「优雅」。需要 <code>await</code> 结果的任务请直接 <code>await</code>，不要丢给后台任务。</p>
+</div>
+<h2 id="注意事项">注意事项</h2>
+<ol>
+<li><strong>处理器可以是同步或异步</strong>：系统自动识别并正确调用</li>
+<li><strong>数据传递</strong>：<code>emit()</code> 模式下，处理器返回非 None 值会修改传递给后续处理器的 data</li>
+<li><strong>事件命名规范</strong>：建议使用点式结构命名事件，便于使用父级监听</li>
+<li><strong>错误隔离</strong>：单个处理器异常不会影响其他处理器执行</li>
+<li><strong>同步触发限制</strong>：<code>emit_sync()</code> 中异步处理器以 fire-and-forget 方式调度，返回值无法回传</li>
+<li><strong>生命周期清理</strong>：调用 <code>sdk.uninit()</code> 时，所有已注册的处理器和计时器会被清理</li>
+<li><strong>加载优先性</strong>：如需在框架初始化阶段就监听事件，建议设置高优先级并禁用懒加载</li>
+</ol>
+<h2 id="相关文档">相关文档</h2>
+<ul>
+<li><a href="/docs/developer-guide/modules/getting-started.html">模块开发指南</a> - 了解模块生命周期方法</li>
+<li><a href="/docs/developer-guide/modules/best-practices.html">最佳实践</a> - 生命周期事件使用建议</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/advanced/README.html"><small>上一篇</small><br>高级主题</a>
+        <a class="doc-pager-next" href="/docs/advanced/lazy-loading.html"><small>下一篇</small><br>懒加载模块系统</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

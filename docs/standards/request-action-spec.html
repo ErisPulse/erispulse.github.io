@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse 请求操作规范 - ErisPulse 文档中心</title>
+    <meta name="description" content="本文档定义了 ErisPulse 适配器中请求事件操作的标准化规范，包括请求事件的字段要求、Request DSL 的使用方式和适配器实现要求。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/standards/request-action-spec.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/standards/request-action-spec.html" />
+    <meta property="og:title" content="ErisPulse 请求操作规范 - ErisPulse 文档中心" />
+    <meta property="og:description" content="本文档定义了 ErisPulse 适配器中请求事件操作的标准化规范，包括请求事件的字段要求、Request DSL 的使用方式和适配器实现要求。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/standards/request-action-spec.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse 请求操作规范","description":"本文档定义了 ErisPulse 适配器中请求事件操作的标准化规范，包括请求事件的字段要求、Request DSL 的使用方式和适配器实现要求。","url":"https://www.erisdev.com/docs/standards/request-action-spec.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 技术标准
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse 请求操作规范</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/standards/request-action-spec.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/standards/request-action-spec.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/standards/request-action-spec.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/standards/request-action-spec.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/standards/request-action-spec.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/standards/request-action-spec.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulse-请求操作规范">ErisPulse 请求操作规范</h1>
+<p>本文档定义了 ErisPulse 适配器中请求事件操作的标准化规范，包括请求事件的字段要求、Request DSL 的使用方式和适配器实现要求。</p>
+<h2 id="1-概述">1. 概述</h2>
+<p>请求事件（<code>type: "request"</code>）是 OneBot12 标准中定义的特殊事件类型，代表需要 Bot 做出决策的请求（如好友请求、群邀请等）。</p>
+<p>与消息事件不同，请求事件需要<strong>双向交互</strong>：</p>
+<ol>
+<li><strong>接收</strong>：适配器将平台原生请求转换为标准请求事件</li>
+<li><strong>响应</strong>：模块通过 <code>Request</code> DSL 或 <code>Event.approve()</code>/<code>Event.reject()</code> 执行操作</li>
+</ol>
+<pre><code>平台原生请求事件
+    │
+    ▼
+Converter.convert()        ← 适配器实现（正向转换）
+    │
+    ▼
+标准请求事件 (含 request_id)
+    │
+    ├─→ 模块处理器 @request.on_friend_request()
+    │       │
+    │       ├─→ event.approve()     ← 同意请求
+    │       └─→ event.reject()      ← 拒绝请求
+    │               │
+    │               ▼
+    │       adapter.Request(request_id).accept()
+    │               │
+    │               ▼
+    │       BaseAdapter.Request.accept()  ← 适配器重写
+    │               │
+    │               ▼
+    │       平台 API 调用
+    │
+    └─→ 或直接通过适配器操作
+            await adapter.Request("req_id").accept()
+</code></pre>
+<h2 id="2-请求事件字段要求">2. 请求事件字段要求</h2>
+<h3 id="21-标准字段">2.1 标准字段</h3>
+<p>请求事件除必须包含 OneBot12 标准字段外，还需包含以下字段：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>必选</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>request_id</code></td>
+<td>string</td>
+<td><strong>强烈推荐</strong></td>
+<td>请求标识符，用于同意/拒绝操作</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>string</td>
+<td>是</td>
+<td>请求发起者ID</td>
+</tr>
+<tr>
+<td><code>user_nickname</code></td>
+<td>string</td>
+<td>否</td>
+<td>请求发起者昵称</td>
+</tr>
+<tr>
+<td><code>comment</code></td>
+<td>string</td>
+<td>否</td>
+<td>请求附言</td>
+</tr>
+</tbody></table></div>
+<h3 id="22-request_id-字段">2.2 <code>request_id</code> 字段</h3>
+<p><code>request_id</code> 是请求操作的核心标识符：</p>
+<ul>
+<li><strong>用途</strong>：标识一个可操作的请求，供 <code>Request</code> DSL 使用</li>
+<li><strong>生成规则</strong>：<ul>
+<li>优先使用平台原生的请求标识（如 OneBot11 的 <code>flag</code> 字段、Telegram 的 <code>chat_invite_link</code> 等）</li>
+<li>如果平台没有原生请求ID，适配器应生成一个唯一标识（建议格式：<code>{platform}_{timestamp}_{user_id}</code>）</li>
+</ul>
+</li>
+<li><strong>唯一性</strong>：在同一平台范围内应保持唯一</li>
+<li><strong>缺失行为</strong>：当 <code>request_id</code> 缺失时，<code>event.approve()</code> / <code>event.reject()</code> 将抛出 <code>ValueError</code></li>
+</ul>
+<h3 id="23-请求事件示例">2.3 请求事件示例</h3>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"id"</span><span class="token operator">:</span> <span class="token string">"evt_123456"</span><span class="token punctuation">,</span>
+  <span class="token property">"time"</span><span class="token operator">:</span> <span class="token number">1752241225</span><span class="token punctuation">,</span>
+  <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"request"</span><span class="token punctuation">,</span>
+  <span class="token property">"detail_type"</span><span class="token operator">:</span> <span class="token string">"friend"</span><span class="token punctuation">,</span>
+  <span class="token property">"platform"</span><span class="token operator">:</span> <span class="token string">"onebot11"</span><span class="token punctuation">,</span>
+  <span class="token property">"self"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"platform"</span><span class="token operator">:</span> <span class="token string">"onebot11"</span><span class="token punctuation">,</span>
+    <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token string">"bot_123"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token string">"user_456"</span><span class="token punctuation">,</span>
+  <span class="token property">"user_nickname"</span><span class="token operator">:</span> <span class="token string">"YingXinche"</span><span class="token punctuation">,</span>
+  <span class="token property">"comment"</span><span class="token operator">:</span> <span class="token string">"请加好友"</span><span class="token punctuation">,</span>
+  <span class="token property">"request_id"</span><span class="token operator">:</span> <span class="token string">"flag_abc123"</span><span class="token punctuation">,</span>
+  <span class="token property">"onebot11_raw"</span><span class="token operator">:</span> <span class="token punctuation">{</span>...<span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"onebot11_raw_type"</span><span class="token operator">:</span> <span class="token string">"request"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="3-request-dsl">3. Request DSL</h2>
+<h3 id="31-链式调用">3.1 链式调用</h3>
+<p><code>Request</code> 提供与 <code>Send</code> 风格一致的链式调用接口：</p>
+<pre><code class="language-python"><span class="token comment"># 基本用法</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>reject<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 指定 Bot 账号</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 附带备注（通过 kwargs）</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span>comment<span class="token operator">=</span><span class="token string">"欢迎"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>reject<span class="token punctuation">(</span>comment<span class="token operator">=</span><span class="token string">"暂不添加"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 组合使用</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span>comment<span class="token operator">=</span><span class="token string">"欢迎"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="32-方法列表">3.2 方法列表</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Using(account_id)</code></td>
+<td>指定执行操作的 Bot 账号</td>
+<td><code>RequestDSL</code>（支持链式调用）</td>
+</tr>
+<tr>
+<td><code>accept(**kwargs)</code></td>
+<td>同意请求</td>
+<td><code>asyncio.Task</code>（await 后返回标准响应）</td>
+</tr>
+<tr>
+<td><code>reject(**kwargs)</code></td>
+<td>拒绝请求</td>
+<td><code>asyncio.Task</code>（await 后返回标准响应）</td>
+</tr>
+</tbody></table></div>
+<h3 id="33-返回值格式">3.3 返回值格式</h3>
+<p>操作返回标准 API 响应格式：</p>
+<p><strong>成功</strong>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span>
+    <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span>
+    <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">""</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>失败</strong>：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+    <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">34001</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span>
+    <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"请求已过期或不存在"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>未实现</strong>（适配器未重写 <code>accept</code>/<code>reject</code>）：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+    <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">10002</span><span class="token punctuation">,</span>
+    <span class="token property">"data"</span><span class="token operator">:</span> <span class="token null keyword">null</span><span class="token punctuation">,</span>
+    <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+    <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">"平台 MyAdapter 未实现请求操作 (accept)"</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="4-event-便捷方法">4. Event 便捷方法</h2>
+<p><code>Event</code> 包装类提供了便捷方法，适合在请求事件处理器中使用：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> request
+
+<span class="token decorator annotation punctuation">@request<span class="token punctuation">.</span>on_friend_request</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_friend_request</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 检查请求ID</span>
+    request_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_request_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> request_id<span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"警告：请求事件缺少 request_id"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    
+    <span class="token comment"># 同意请求</span>
+    result <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>approve<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 或拒绝请求</span>
+    <span class="token comment"># result = await event.reject(comment="暂不添加好友")</span>
+    
+    <span class="token comment"># 检查结果</span>
+    <span class="token keyword">if</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"status"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"ok"</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"操作成功"</span><span class="token punctuation">)</span>
+    <span class="token keyword">else</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"操作失败: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'message'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="41-event-方法列表">4.1 Event 方法列表</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_request_id()</code></td>
+<td>获取请求ID</td>
+<td><code>str</code></td>
+</tr>
+<tr>
+<td><code>approve(comment=None)</code></td>
+<td>同意当前请求事件</td>
+<td>标准响应格式</td>
+</tr>
+<tr>
+<td><code>reject(comment=None)</code></td>
+<td>拒绝当前请求事件</td>
+<td>标准响应格式</td>
+</tr>
+</tbody></table></div>
+<h2 id="5-适配器实现要求">5. 适配器实现要求</h2>
+<h3 id="51-转换器要求">5.1 转换器要求</h3>
+<p>适配器的转换器在转换请求事件时，<strong>必须</strong>正确设置 <code>request_id</code> 字段：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">convert_request_event</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""转换平台原生请求事件"""</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+        <span class="token string">"id"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_generate_event_id<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"request"</span><span class="token punctuation">,</span>
+        <span class="token string">"detail_type"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_map_request_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>  <span class="token comment"># "friend" 或 "group"</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">,</span>
+        <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+            <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">,</span>
+            <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>_bot_id<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"user_nickname"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"nickname"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"comment"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token string">"request_id"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_extract_request_id<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>  <span class="token comment"># ← 关键字段</span>
+        <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_raw"</span></span><span class="token punctuation">:</span> raw_event<span class="token punctuation">,</span>
+        <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_raw_type"</span></span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span>
+
+<span class="token keyword">def</span> <span class="token function">_extract_request_id</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    从平台原生事件提取请求ID
+    
+    优先使用平台原生的请求标识，若无则生成唯一ID
+    """</span>
+    <span class="token comment"># 优先使用平台原生ID</span>
+    <span class="token keyword">if</span> flag <span class="token operator">:=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"flag"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>flag<span class="token punctuation">)</span>
+    <span class="token keyword">if</span> request_key <span class="token operator">:=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"request_key"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>request_key<span class="token punctuation">)</span>
+    
+    <span class="token comment"># 兜底：生成唯一ID</span>
+    <span class="token keyword">import</span> hashlib
+    raw <span class="token operator">=</span> <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_</span><span class="token interpolation"><span class="token punctuation">{</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'user_id'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">_</span><span class="token interpolation"><span class="token punctuation">{</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'timestamp'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span>
+    <span class="token keyword">return</span> hashlib<span class="token punctuation">.</span>md5<span class="token punctuation">(</span>raw<span class="token punctuation">.</span>encode<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>hexdigest<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="52-request-内部类实现">5.2 Request 内部类实现</h3>
+<p>适配器在 <code>Request</code> 内部类中重写 <code>accept</code> 和 <code>reject</code> 即可：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> RequestDSL
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    
+    <span class="token keyword">class</span> <span class="token class-name">Request</span><span class="token punctuation">(</span>RequestDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""MyPlatform 请求操作实现"""</span>
+        
+        <span class="token keyword">def</span> <span class="token function">accept</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token triple-quoted-string string">"""
+            同意请求
+            
+            :param kwargs: 扩展参数，如 comment="备注"
+            :return: asyncio.Task
+            """</span>
+            <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">try</span><span class="token punctuation">:</span>
+                    result <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                        endpoint<span class="token operator">=</span><span class="token string">"/set_request"</span><span class="token punctuation">,</span>
+                        request_id<span class="token operator">=</span>self<span class="token punctuation">.</span>_request_id<span class="token punctuation">,</span>
+                        approve<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+                        <span class="token operator">**</span>kwargs<span class="token punctuation">,</span>
+                    <span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span> <span class="token keyword">if</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token keyword">else</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+                <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> <span class="token number">34001</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"请求操作失败: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+            
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_create_task<span class="token punctuation">(</span>_do<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">def</span> <span class="token function">reject</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token triple-quoted-string string">"""拒绝请求"""</span>
+            <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token keyword">try</span><span class="token punctuation">:</span>
+                    result <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                        endpoint<span class="token operator">=</span><span class="token string">"/set_request"</span><span class="token punctuation">,</span>
+                        request_id<span class="token operator">=</span>self<span class="token punctuation">.</span>_request_id<span class="token punctuation">,</span>
+                        approve<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
+                        <span class="token operator">**</span>kwargs<span class="token punctuation">,</span>
+                    <span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span> <span class="token keyword">if</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token keyword">else</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+                <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+                        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+                        <span class="token string">"retcode"</span><span class="token punctuation">:</span> <span class="token number">34001</span><span class="token punctuation">,</span>
+                        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token boolean">None</span><span class="token punctuation">,</span>
+                        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+                        <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"请求操作失败: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span>
+                    <span class="token punctuation">}</span>
+            
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_create_task<span class="token punctuation">(</span>_do<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="53-平台不支持请求操作">5.3 平台不支持请求操作</h3>
+<p>如果平台本身不支持好友请求/群邀请操作（如某些平台自动处理请求），适配器可以：</p>
+<ol>
+<li><strong>不重写 <code>Request</code> 内部类</strong>：使用基类默认实现，调用 <code>accept()</code>/<code>reject()</code> 时返回 <code>retcode=10002</code></li>
+<li>**在转换时跳过 <code>request_id</code>**：不生成 <code>request_id</code>，让 <code>event.approve()</code> 抛出 <code>ValueError</code></li>
+<li><strong>记录日志</strong>：在 <code>accept</code>/<code>reject</code> 中记录警告并返回适当错误码</li>
+</ol>
+<h3 id="54-总结send-与-request-并行">5.4 总结：Send 与 Request 并行</h3>
+<p>适配器有两个并行的 DSL 内部类，各司其职：</p>
+<pre><code>BaseAdapter
+├── Send(SendDSL)     ← 消息发送
+│   ├── Raw_ob12()    ← 必须实现
+│   ├── Text()        ← 推荐实现
+│   └── Image()       ← 按需实现
+│
+└── Request(RequestDSL) ← 请求操作
+    ├── accept()        ← 按需实现
+    └── reject()        ← 按需实现
+</code></pre>
+<h3 id="55-适配器-__init__-注意事项">5.5 适配器 <code>__init__</code> 注意事项</h3>
+<p>重写 <code>Request</code> 内部类的 <code>__init__</code> 时，必须透传参数并调用 <code>super().__init__()</code>，详见 <a href="/docs/developer-guide/adapters/getting-started.html#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">适配器开发入门 - <code>__init__</code> 注意事项</a>（<code>Request</code> 同理，参数为 <code>adapter, request_id, account_id</code>）。</p>
+<h2 id="6-适配器实现检查清单">6. 适配器实现检查清单</h2>
+<h3 id="基础要求">基础要求</h3>
+<ul>
+<li><input disabled type="checkbox"> 若重写了 <code>__init__</code>，已调用 <code>super().__init__()</code>（确保 Send / Request 工厂初始化）</li>
+</ul>
+<h3 id="请求事件转换">请求事件转换</h3>
+<ul>
+<li><input disabled type="checkbox"> 请求事件包含 <code>request_id</code> 字段（强烈推荐）</li>
+<li><input disabled type="checkbox"> <code>detail_type</code> 正确映射为 <code>"friend"</code> 或 <code>"group"</code></li>
+<li><input disabled type="checkbox"> 保留平台原始数据在 <code>{platform}_raw</code> 字段中</li>
+<li><input disabled type="checkbox"> <code>request_id</code> 生成规则有文档说明</li>
+</ul>
+<h3 id="请求操作">请求操作</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>Request</code> 内部类已实现（如平台支持请求操作）</li>
+<li><input disabled type="checkbox"> <code>accept()</code> 方法已实现</li>
+<li><input disabled type="checkbox"> <code>reject()</code> 方法已实现</li>
+<li><input disabled type="checkbox"> 操作返回标准 API 响应格式</li>
+<li><input disabled type="checkbox"> 不支持的操作返回 <code>retcode=10002</code></li>
+<li><input disabled type="checkbox"> 网络错误返回 <code>retcode=33xxx</code>（遵循 API 响应标准）</li>
+</ul>
+<h2 id="7-错误码扩展">7. 错误码扩展</h2>
+<p>请求操作相关的<strong>适配器实现层</strong>推荐错误码（遵循 <a href="/docs/standards/api-response.html">API 响应标准</a> §3.2，
+落在 <code>34xxx</code> 平台错误段的低三位自定义）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>错误码</th>
+<th>错误名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>34001</td>
+<td>Request Not Found</td>
+<td>请求不存在或已过期</td>
+</tr>
+<tr>
+<td>34002</td>
+<td>Request Already Handled</td>
+<td>请求已被处理</td>
+</tr>
+<tr>
+<td>34003</td>
+<td>Request Not Supported</td>
+<td>平台不支持该类型的请求操作</td>
+</tr>
+<tr>
+<td>34004</td>
+<td>Permission Denied</td>
+<td>Bot 无权处理此请求（平台返回）</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>与框架码的边界</strong>：以上 <code>340xx</code> 是<strong>平台/适配器</strong>返回的请求处理失败；
+ErisPulse 框架在 <code>scope.actions</code> 禁用某模块的 request 动作时，<strong>在调用适配器之前</strong>
+直接返回 <code>34601</code>（Action Denied，见 <a href="/docs/standards/api-response.html#53-%E6%A1%86%E6%9E%B6%E6%89%A9%E5%B1%95%E8%BF%94%E5%9B%9E%E7%A0%8134xxx-%E5%B9%B3%E5%8F%B0%E9%94%99%E8%AF%AF%E6%AE%B5%E7%9A%84%E4%BD%8E%E4%B8%89%E4%BD%8D%E8%87%AA%E5%AE%9A%E4%B9%89">API 响应标准 §5.3</a>），
+两者互不替代：先过 <code>34601</code> 框架闸口，再落到平台层 <code>340xx</code> 错误。</p>
+</blockquote>
+<h2 id="8-相关文档">8. 相关文档</h2>
+<ul>
+<li><a href="/docs/standards/event-conversion.html">事件转换标准</a> - 完整的事件转换规范</li>
+<li><a href="/docs/standards/api-response.html">API 响应标准</a> - 适配器 API 响应格式标准</li>
+<li><a href="/docs/standards/send-method-spec.html">发送方法规范</a> - Send 类的方法命名和参数规范</li>
+<li><a href="/docs/standards/session-types.html">会话类型标准</a> - 会话类型定义和映射关系</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/standards/send-method-spec.html"><small>上一篇</small><br>ErisPulse 发送方法规范</a>
+        <a class="doc-pager-next" href="/docs/standards/api-action-spec.html"><small>下一篇</small><br>ErisPulse API 动作标准</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

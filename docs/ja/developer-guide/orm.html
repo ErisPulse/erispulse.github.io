@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>データモデル層（ORM） - ErisPulse 文档中心</title>
+    <meta name="description" content="2.9.0 からフレームワークに宣言的データモデル層が内蔵されています。Model を継承し、Field でフィールドを宣言することで、自動的なテーブル作成と CRUD 操作（挿入、削除、更新、検索）が可能になります。モデルは、内蔵ストレージ層の上に直接構築されています。SQLite / MySQL / Post..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/orm.html" />
+    <meta property="og:title" content="データモデル層（ORM） - ErisPulse 文档中心" />
+    <meta property="og:description" content="2.9.0 からフレームワークに宣言的データモデル層が内蔵されています。Model を継承し、Field でフィールドを宣言することで、自動的なテーブル作成と CRUD 操作（挿入、削除、更新、検索）が可能になります。モデルは、内蔵ストレージ層の上に直接構築されています。SQLite / MySQL / Post..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/developer-guide/orm.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"データモデル層（ORM）","description":"2.9.0 からフレームワークに宣言的データモデル層が内蔵されています。Model を継承し、Field でフィールドを宣言することで、自動的なテーブル作成と CRUD 操作（挿入、削除、更新、検索）が可能になります。モデルは、内蔵ストレージ層の上に直接構築されています。SQLite / MySQL / Post...","url":"https://www.erisdev.com/docs/ja/developer-guide/orm.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 開発者ガイド
+        <span class="doc-crumb-sep">/</span> <span>データモデル層（ORM）</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/orm.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/orm.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/developer-guide/orm.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/orm.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/orm.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="データモデル層orm">データモデル層（ORM）</h1>
+<p>2.9.0 からフレームワークに宣言的データモデル層が内蔵されています。<code>Model</code> を継承し、<code>Field</code> でフィールドを宣言することで、自動的なテーブル作成と CRUD 操作（挿入、削除、更新、検索）が可能になります。モデルは、内蔵ストレージ層の上に直接構築されています。SQLite / MySQL / PostgreSQL は <code>ErisPulse.storage.backend</code> で設定され、<strong>バックエンドを切り替えてもモデルコードを変更する必要はありません</strong>。</p>
+<h2 id="モデルの宣言">モデルの宣言</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> Model<span class="token punctuation">,</span> Field
+
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+    age<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> ge<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> le<span class="token operator">=</span><span class="token number">150</span><span class="token punctuation">)</span>
+    role<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">"user"</span><span class="token punctuation">,</span> choices<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"admin"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    tags<span class="token punctuation">:</span> <span class="token builtin">list</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default_factory<span class="token operator">=</span><span class="token builtin">list</span><span class="token punctuation">)</span>          <span class="token comment"># JSON 列、読み書き時に自動的にシリアライズ</span>
+    bio<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span> description<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"user.bio"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"自己紹介"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>テーブル名はデフォルトでクラス名を snake_case に変換（<code>UserProfile → user_profile</code>）し、<code>__tablename__ = "xxx"</code> で上書き可能</li>
+<li><code>Field</code> の制約語は宣言型設定クラスと同じ（<code>choices</code> / <code>ge</code> / <code>le</code> / <code>max_length</code>、<code>description</code> は i18n 辞書もサポート）；バリデータエンジンは設定検証と同じソース</li>
+</ul>
+<h2 id="フィールドパラメータ">フィールドパラメータ</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>パラメータ</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>default</code></td>
+<td>既定値（提供されていない場合、かつ自動増分でない → NOT NULL が必須）</td>
+</tr>
+<tr>
+<td><code>default_factory</code></td>
+<td>変更可能な既定値の工場（例: <code>list</code>）</td>
+</tr>
+<tr>
+<td><code>primary_key</code></td>
+<td>主キー</td>
+</tr>
+<tr>
+<td><code>autoincrement</code></td>
+<td>自動増分主キー（暗黙の主キー、<code>create</code> 後に自動で戻り値を埋め込む）</td>
+</tr>
+<tr>
+<td><code>max_length</code></td>
+<td>文字列の最大長さ（生成される <code>VARCHAR(n)</code>、書き込み時の検証）</td>
+</tr>
+<tr>
+<td><code>nullable</code></td>
+<td>NULL を許可するかどうか（デフォルトは False）</td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td>普通のインデックスを生成</td>
+</tr>
+<tr>
+<td><code>unique</code></td>
+<td>一意制約</td>
+</tr>
+<tr>
+<td><code>choices</code> / <code>ge</code> / <code>le</code></td>
+<td>列挙 / 数値範囲（書き込み時の検証）</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>説明（i18n ディクショナリ、構成クラスと同じ形式）</td>
+</tr>
+<tr>
+<td><code>column_type</code></td>
+<td>SQL 列の型定義を上書き</td>
+</tr>
+</tbody></table></div>
+<h2 id="建表と-crud">建表と CRUD</h2>
+<pre><code class="language-python"><span class="token keyword">await</span> User<span class="token punctuation">.</span>create_table<span class="token punctuation">(</span><span class="token punctuation">)</span>                      <span class="token comment"># 幂等（IF NOT EXISTS）</span>
+
+user <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>create<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">,</span> age<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token comment"># 挿入（自動増分主キーは自動的に戻り値として返される）</span>
+got <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token builtin">id</span><span class="token operator">=</span>user<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">)</span>               <span class="token comment"># 等値検索で最初の1件を取得</span>
+
+users <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>order_by<span class="token punctuation">(</span><span class="token string">"-age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>limit<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+first <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span>User<span class="token punctuation">.</span>name <span class="token operator">==</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">(</span><span class="token punctuation">)</span>
+total <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>count<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span>
+
+user<span class="token punctuation">.</span>age <span class="token operator">=</span> <span class="token number">21</span>
+<span class="token keyword">await</span> user<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>                              <span class="token comment"># 主キーに基づいて更新（事前制約検証）；主キーが存在しない場合は挿入に降格（自動増分主キーもインスタンスに戻り値として返される）</span>
+<span class="token keyword">await</span> user<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>                            <span class="token comment"># 主キーに基づいて削除</span>
+
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>update_all<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">,</span> role<span class="token operator">=</span><span class="token string">"adult"</span><span class="token punctuation">)</span>  <span class="token comment"># バッチ更新</span>
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>delete_all<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">100</span><span class="token punctuation">)</span>               <span class="token comment"># バッチ削除</span>
+</code></pre>
+<p>クエリ式は <code>&gt; &gt;= &lt; &lt;= == !=</code>、<code>in_([...])</code>、<code>&amp;</code>（AND）/ <code>|</code>（OR）による組み合わせをサポートします：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span><span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> User<span class="token punctuation">.</span>name<span class="token punctuation">.</span>in_<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"Bob"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="トランザクション">トランザクション</h2>
+<p>ORM の読み書きとフレームワークのストレージ層は、同じトランザクションルーティングを使用します。<code>storage.atransaction()</code> 環境のトランザクション内では、<code>create</code> / <code>save</code> / <code>delete</code> とクエリは自動的にトランザクション接続を再利用し、トランザクションに合わせて一括でコミットまたはロールバックされます。個別にコミットされることはありません。</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">with</span> storage<span class="token punctuation">.</span>atransaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> User<span class="token punctuation">.</span>create<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># ブロック内で例外が発生した場合、上記の INSERT もロールバックされます</span>
+</code></pre>
+<h2 id="宣言式構成クラスとの関係">宣言式構成クラスとの関係</h2>
+<p>モデルの宣言と <code>ConfigClass</code>（<code>@dataclass + field(metadata=...)</code>）は<strong>同じ基底を共有</strong>しています。制約辞書、検証エンジン（<code>validate_field_constraints</code>）、型カテゴリ登録表（<code>python_type_category</code>）などです。ただし、クラスの基盤は意図的に分離されています。構成フィールドは普通の値（TOMLの往復、一度のロードによるホット更新）であり、モデルフィールドは列記述子（クラスアクセス = クエリ式、行ごとのインスタンス）です。同じ宣言構文を用い、それぞれ異なる役割を持つ2つの基盤です。</p>
+<h3 id="どちらの宣言を使うべきか">どちらの宣言を使うべきか</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>維度</th>
+<th>構成クラス <code>field(metadata=...)</code></th>
+<th>モデルフィールド <code>Field()</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>適用場面</td>
+<td>モジュールの動作パラメータ（少数、人間が読みやすい、ホット更新が必要）</td>
+<td>業務データのレコード（複数行、プログラムによる読み書き、クエリが必要）</td>
+</tr>
+<tr>
+<td>ストレージ形態</td>
+<td><code>config.toml</code>（コメントを保持、TOMLの往復）</td>
+<td>データベーステーブル（自動作成、SQL方言）</td>
+</tr>
+<tr>
+<td>値の形態</td>
+<td>普通の値（<code>dataclass</code>の属性として直接アクセス）</td>
+<td>記述子（クラスアクセス = 列式、インスタンスアクセス = 行値）</td>
+</tr>
+<tr>
+<td>制約の宣言</td>
+<td><code>metadata={"choices": ..., "min": ..., "max": ...}</code></td>
+<td><code>Field(choices=..., ge=..., le=..., max_length=...)</code></td>
+</tr>
+<tr>
+<td>共有基底</td>
+<td>検証エンジン + 制約辞書 + 型カテゴリ登録表（同一のもの）</td>
+<td>同左</td>
+</tr>
+</tbody></table></div>
+<p>経験則として：<strong>「モジュールがどのように動作するか」は構成クラスを使い、「ユーザーがどのようなデータを生成したか」はモデルを使う</strong>。</p>
+<h2 id="辺界と注意事項">辺界と注意事項</h2>
+<ul>
+<li>バックエンドはグローバルなストレージ設定によって決定されます。モデルは <code>__storage__</code> クラス属性を用いて、カスタムの <code>BaseStorage</code> インスタンスに上書きすることができます（テスト用の注入に使用）。</li>
+<li><code>list</code> / <code>dict</code> フィールド（パラメータ化されたジェネリック、例えば <code>list[int]</code>、<code>dict[str, int]</code>）は、コンテナの種類に応じて JSON テキストとして列に格納され、読み書き時に自動的にシリアライズされます。</li>
+<li><code>create</code> / <code>save</code> の前に自動的に制約検証が実行され、失敗した場合は <code>ValueError</code>（ローカライズされたメッセージ）が送出されます。</li>
+<li>自動マイグレーションは<strong>追加の列</strong>の場面に対して提供されています（下記を参照）；列の型の変更や列の削除は手動で処理する必要があります。</li>
+<li>ストレージ接続の失敗が発生した際の動作は、ストレージ層と一致します：フレームワークはクラッシュせず、冷却後に自動的に再接続されます。</li>
+</ul>
+<h2 id="自動マイグレーションフェーズ2">自動マイグレーション（フェーズ2）</h2>
+<p><code>create_table()</code> は、テーブルが既に存在する場合、既存の列とモデルフィールドを自動的に比較します。<strong>追加されたフィールド</strong>は、<code>ALTER TABLE ADD COLUMN</code>（マイグレーションで <code>NOT NULL</code> 制約を削除し、既存の行に NULL を挿入）を自動的に実行し、<code>index=True</code> を宣言した新しいフィールドは同期的にインデックスが作成されます。手動でマイグレーションスクリプトを書く必要はありません。</p>
+<pre><code class="language-python"><span class="token comment"># v1リリース後にモデルを進化させ、email / bioフィールドを追加</span>
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"orm_users"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+    age<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>
+    email<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span>     <span class="token comment"># 新規追加：次回の create_table() で自動的に ADD COLUMN が実行される</span>
+    bio<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>create_table<span class="token punctuation">(</span><span class="token punctuation">)</span>              <span class="token comment"># 再帰的：追加された列のみマイグレーションが実行される</span>
+</code></pre>
+<p><strong>制限事項</strong>：追加列のみをサポートしています。主キーの変更、列の型の変更、列の削除は手動で処理する必要があります（破壊的な ALTER による誤操作を避けるため）。</p>
+<h2 id="外部キーリレーションマッピングの基礎">外部キー（リレーションマッピングの基礎）</h2>
+<p><code>foreign_key="テーブル.列"</code> は、列レベルの外部キー制約を宣言し、DDL 生成時に <code>REFERENCES</code> 子句を生成します。</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Post</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"posts"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    author<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>foreign_key<span class="token operator">=</span><span class="token string">"orm_users.id"</span><span class="token punctuation">)</span>
+
+    content<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">255</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="関係マッピングrelationship">関係マッピング（relationship）</h2>
+<p>モデルクラス内で <code>relationship()</code> をクラス属性として宣言することで、<strong>外キー列がどのテーブルに宣言されているかによって自動的に方向が判定されます</strong>：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> Model<span class="token punctuation">,</span> Field<span class="token punctuation">,</span> relationship
+
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"orm_users"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+
+    posts <span class="token operator">=</span> relationship<span class="token punctuation">(</span><span class="token string">"Post"</span><span class="token punctuation">,</span> foreign_key<span class="token operator">=</span><span class="token string">"author"</span><span class="token punctuation">)</span>   <span class="token comment"># 外キーが相手のテーブルにある → has-many</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Post</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"posts"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    author<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>foreign_key<span class="token operator">=</span><span class="token string">"orm_users.id"</span><span class="token punctuation">)</span>
+    content<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">255</span><span class="token punctuation">)</span>
+
+    writer <span class="token operator">=</span> relationship<span class="token punctuation">(</span><span class="token string">"User"</span><span class="token punctuation">,</span> foreign_key<span class="token operator">=</span><span class="token string">"author"</span><span class="token punctuation">)</span>  <span class="token comment"># 外キーがこのテーブルにある → belongs-to</span>
+</code></pre>
+<p><strong>has-many</strong>：インスタンス属性はクエリセットを返し、<code>QuerySet</code> の全チェイン機能が利用可能で、<code>create</code> は自動的に本テーブルの主キーを相手の外キー列に埋め込みます：</p>
+<pre><code class="language-python">alice <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>get<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">)</span>
+
+posts <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>                          <span class="token comment"># このユーザーの全記事</span>
+latest <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>order_by<span class="token punctuation">(</span><span class="token string">"-id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">(</span><span class="token punctuation">)</span>
+total <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>count<span class="token punctuation">(</span><span class="token punctuation">)</span>
+hot <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>where<span class="token punctuation">(</span>Post<span class="token punctuation">.</span>content <span class="token operator">!=</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># 相手のテーブルのフィールド条件を追加</span>
+<span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>                               <span class="token comment"># このユーザーのものだけ削除</span>
+
+new_post <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>create<span class="token punctuation">(</span>content<span class="token operator">=</span><span class="token string">"hi"</span><span class="token punctuation">)</span>        <span class="token comment"># author は自動的に alice.id に設定</span>
+</code></pre>
+<p><strong>belongs-to</strong>：<code>await</code> を直接実行すると相手のインスタンスが得られます（一致するものがない場合や外キーが NULL の場合は <code>None</code> を返します）：</p>
+<pre><code class="language-python">post <span class="token operator">=</span> <span class="token keyword">await</span> Post<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token builtin">id</span><span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+writer <span class="token operator">=</span> <span class="token keyword">await</span> post<span class="token punctuation">.</span>writer          <span class="token comment"># User インスタンスまたは None</span>
+<span class="token keyword">await</span> writer<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>count<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># 双方向にアクセス可能</span>
+</code></pre>
+<p><strong>ポイント</strong>：</p>
+<ul>
+<li><code>related</code> にはクラス名の文字列（モデルクラス名の登録表を惰性で解析）または直接モデルクラスを渡すことができます。</li>
+<li>関係のクエリと相手のモデルはそれぞれ独自のストレージバックエンドを使用します（バックエンド間の JOIN はサポートされていません。関係のクエリは独立した 2 つの SQL です）。</li>
+<li>関係のクエリはキャッシュされず、アクセスするたびに即時クエリが実行されます。<code>User.where(...)</code> を使用して任意のカスタムクエリを行うことも可能です。</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/developer-guide/testing.html"><small>Previous</small><br>モジュールテスト（ErisPulse-Testing）</a>
+        <a class="doc-pager-next" href="/docs/ja/developer-guide/module-troubleshooting.html"><small>Next</small><br>モジュールトラブルシューティングガイド</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

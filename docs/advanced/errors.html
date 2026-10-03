@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>异常体系与捕获指南 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 所有自定义异常都继承自 ErisPulseError，底层库异常（aiohttp、aiomysql 等） 会在框架内部被捕获并转换为对应的 ErisPulse 异常——业务代码无需依赖任何底层库异常类型。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/errors.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
+    <meta property="og:title" content="异常体系与捕获指南 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 所有自定义异常都继承自 ErisPulseError，底层库异常（aiohttp、aiomysql 等） 会在框架内部被捕获并转换为对应的 ErisPulse 异常——业务代码无需依赖任何底层库异常类型。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/advanced/errors.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"异常体系与捕获指南","description":"ErisPulse 所有自定义异常都继承自 ErisPulseError，底层库异常（aiohttp、aiomysql 等） 会在框架内部被捕获并转换为对应的 ErisPulse 异常——业务代码无需依赖任何底层库异常类型。","url":"https://www.erisdev.com/docs/advanced/errors.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 高级主题
+        <span class="doc-crumb-sep">/</span> <span>异常体系与捕获指南</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/advanced/errors.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/errors.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/errors.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/errors.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/errors.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="异常体系与捕获指南">异常体系与捕获指南</h1>
+<p>ErisPulse 所有自定义异常都继承自 <code>ErisPulseError</code>，底层库异常（aiohttp、aiomysql 等）
+会在框架内部被捕获并转换为对应的 ErisPulse 异常——业务代码<strong>无需依赖任何底层库异常类型</strong>。</p>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>想宽泛兜底：捕获 <code>ErisPulseError</code>（所有框架异常的基类）</li>
+<li>想精确处理：按模块捕获（如 <code>ModuleCallTimeoutError</code>、<code>StorageUnreachableError</code>）</li>
+<li>存储操作默认不抛出：失败时记日志并返回 <code>False / None / default</code>；连接状态变化订阅 <code>storage.unreachable</code> / <code>storage.recovered</code> 事件
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="异常总览">异常总览</h2>
+<pre><code class="language-text">ErisPulseError                      # 所有框架异常的基类
+├── ClientError                     # HTTP/WS 客户端请求异常基类（Core/client）
+│   ├── ClientConnectionError       # 连接层错误：DNS 解析失败、连接被拒、网络不可达
+│   ├── ClientTimeoutError          # 请求超时
+│   └── HTTPStatusError             # HTTP 状态码错误（如 4xx/5xx 且 raise_for_status）
+├── WebSocketError                  # WebSocket 异常基类（Core/client 的 WS 连接）
+│   └── WebSocketDisconnect         # WebSocket 断开连接（服务端/客户端通用）
+├── StorageError                    # 存储异常基类（Core/storage）
+│   └── StorageUnreachableError     # 存储后端不可达（建池重试耗尽：数据库不可达/凭据错误）
+├── InteractionError                # 交互会话异常基类（Core/Event/interaction）
+│   ├── InteractionCancelled        # 挂起的等待/租约被取消（wait_reply 上层转为返回 None）
+│   └── SessionOccupiedError        # 会话互斥租约被占用（hold() 获取失败）
+├── ModuleError                     # 模块系统异常基类（Core/module）
+│   └── ModuleCallError             # 模块间调用异常基类
+│       ├── ModuleNotAvailableError # 目标模块未注册/未启用/初始化失败（含懒加载访问）
+│       ├── ServiceNotProvidedError # 目标模块未声明该服务（meta.services 白名单外）
+│       └── ModuleCallTimeoutError  # 被调方法执行超时（默认 30s）
+└── StrictModeError                 # 严格模式致命违规（中止启动流程，loaders/strict）
+</code></pre>
+<h2 id="结构化属性">结构化属性</h2>
+<p>捕获异常后可读取结构化属性（无需解析消息文本）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>属性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code>（含子类）</td>
+<td><code>.url</code> 请求 URL、<code>.method</code> 请求方法、<code>.attempts</code> 已尝试次数（重试耗尽时）</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>.status</code> 状态码、<code>.message</code> 响应消息</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td><code>.code</code> 关闭码、<code>.reason</code> 关闭原因</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td><code>.backend</code> 后端名（sqlite/mysql/postgres）、<code>.cooldown</code> 冷却秒数</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code>（含子类）</td>
+<td><code>.module</code> 目标模块名、<code>.method</code> 目标方法名</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td>继承 <code>.module/.method</code>，另有 <code>.timeout</code> 超时时限（秒）</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td><code>.reason</code> 取消原因、<code>.wait_key</code> 会话键</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td><code>.wait_key</code> 会话键、<code>.owner</code> 占用者</td>
+</tr>
+<tr>
+<td><code>StrictModeError</code></td>
+<td><code>.violations</code> 违规记录列表</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token punctuation">,</span> json<span class="token operator">=</span>payload<span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"请求失败 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>method<span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>url<span class="token punctuation">}</span></span><span class="token string">，共尝试 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>attempts<span class="token punctuation">}</span></span><span class="token string"> 次: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="各异常说明与发生位置">各异常说明与发生位置</h2>
+<h3 id="client-系列-coreclientpy-corebasesclientpy">Client 系列 — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
+<p><code>sdk.client</code> / HTTP 客户端与 WebSocket 客户端发起请求时抛出：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>发生位置</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code></td>
+<td>请求封装层</td>
+<td>其它客户端错误（底层 aiohttp 异常已转换）</td>
+</tr>
+<tr>
+<td><code>ClientConnectionError</code></td>
+<td>连接建立阶段</td>
+<td>目标服务不可达、DNS 失败、连接被拒</td>
+</tr>
+<tr>
+<td><code>ClientTimeoutError</code></td>
+<td>请求执行阶段</td>
+<td>超过请求超时时间</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>raise_for_status()</code></td>
+<td>响应状态码为 4xx/5xx</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientTimeoutError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://api.example.com"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<h3 id="websocket-系列-coreclientpysend-receive">WebSocket 系列 — <code>Core/client.py</code>（<code>send</code> / <code>receive</code>）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>发生位置</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>WebSocketError</code></td>
+<td>WS 收发方法</td>
+<td>连接已关闭、收到意外消息类型、底层 WS 异常</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td>WS 收发方法</td>
+<td>对端正常断开连接（框架会自动重连）</td>
+</tr>
+</tbody></table></div>
+<h3 id="storage-系列-corestorage-corebasessql_basepy">Storage 系列 — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>发生位置</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>StorageError</code></td>
+<td>存储层</td>
+<td>存储相关异常基类</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td>建池阶段</td>
+<td>数据库不可达 / 凭据错误 / 网络隔离，重试耗尽</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>存储操作的失败语义</strong>：KV 与查询操作<strong>默认不抛出</strong>——失败时记录 ERROR 日志并
+返回 <code>False</code> / <code>None</code> / <code>default</code>（避免连接问题阻塞框架运行）。因此业务代码通常
+<strong>不会</strong>捕获到 <code>StorageUnreachableError</code>（它主要供直接操作存储底层或自定义后端使用）。
+运行时感知连接状态请订阅生命周期事件 <code>storage.unreachable</code> / <code>storage.recovered</code>
+（详见<a href="/docs/advanced/lifecycle.html#%E5%AD%98%E5%82%A8%E8%BF%9E%E6%8E%A5%E7%8A%B6%E6%80%81">生命周期事件</a>）。</p>
+</blockquote>
+<p>连接失败行为详见<a href="/docs/advanced/storage-backends.html#%E8%BF%9E%E6%8E%A5%E5%A4%B1%E8%B4%A5%E8%A1%8C%E4%B8%BA">存储后端 → 连接失败行为</a>。</p>
+<h3 id="interaction-coreeventinteractionpy">Interaction — <code>Core/Event/interaction.py</code></h3>
+<p><code>wait_reply</code> / 会话租约 / 提醒定时器相关：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>发生位置</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>InteractionError</code></td>
+<td>交互会话层</td>
+<td>交互会话异常基类</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td>挂起等待被取消时</td>
+<td>设置到等待 future 上（等待方可捕获获取 <code>.reason</code>）</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td><code>hold()</code> 租约获取失败</td>
+<td>会话已被其他 owner 占用（<code>.owner</code> 可查占用者）</td>
+</tr>
+</tbody></table></div>
+<p>等待被取消（模块卸载 / 平台关闭 / 同会话新等待取代）时，<code>wait_reply</code> <strong>返回 <code>None</code></strong>
+而不抛出异常（<code>InteractionCancelled</code> 在内部被转换）；需要区分取消原因时才直接捕获它。</p>
+<h3 id="module-系列-coremodulepysdkmodulecall">Module 系列 — <code>Core/module.py</code>（<code>sdk.module.call</code>）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>发生位置</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ModuleError</code></td>
+<td>模块系统</td>
+<td>模块系统异常基类</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code></td>
+<td><code>module.call()</code></td>
+<td>模块间调用异常基类</td>
+</tr>
+<tr>
+<td><code>ModuleNotAvailableError</code></td>
+<td><code>module.call()</code> / 懒加载属性访问</td>
+<td>目标未注册 / 未启用 / 初始化失败</td>
+</tr>
+<tr>
+<td><code>ServiceNotProvidedError</code></td>
+<td><code>module.call()</code></td>
+<td>目标 <code>meta.services</code> 白名单未声明该方法</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td><code>module.call()</code></td>
+<td>被调协程超过超时时间（默认 30s）</td>
+</tr>
+</tbody></table></div>
+<p>"目标模块不可用"在不同访问路径下的异常类型：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>访问路径</th>
+<th>异常</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.module.call("X", "method")</code></td>
+<td><code>ModuleNotAvailableError</code>（类型化）</td>
+</tr>
+<tr>
+<td><code>sdk.module.X.attr</code>（懒加载属性访问，初始化失败后）</td>
+<td><code>ModuleNotAvailableError</code></td>
+</tr>
+<tr>
+<td><code>sdk.module.X</code>（模块未启用时的属性访问）</td>
+<td><code>AttributeError</code>（Python 属性惯例，<code>hasattr</code> 依赖此语义）</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ModuleNotAvailableError<span class="token punctuation">,</span> ServiceNotProvidedError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    history <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ModuleNotAvailableError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目标模块不存在 / 未启用</span>
+<span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目标模块未提供该服务</span>
+</code></pre>
+<h3 id="框架内部参数校验valueerror">框架内部参数校验（ValueError）</h3>
+<p>存储查询构建器的参数校验（空列类型、<code>Insert</code> 非 dict、不安全列类型等）抛标准
+<code>ValueError</code>——这类属于<strong>开发期编码错误</strong>，正常业务代码不应捕获，而应修正调用。</p>
+<p>适配器标准动作失败<strong>不抛异常</strong>：返回带 <code>retcode</code> 的响应字典（协议语义，如
+<code>retcode=10002</code> 表示动作未实现）——与 client 层"失败抛 <code>ClientError</code>"是两条并行
+的错误通道，适配器开发时需同时处理。</p>
+<h2 id="捕获建议">捕获建议</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># 基类已从 Core 聚合导出</span>
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword">except</span> ErisPulseError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 统一兜底：所有框架自定义异常</span>
+</code></pre>
+<ul>
+<li>模块开发：按需精确捕获（上表），最外层可用 <code>ErisPulseError</code> 兜底</li>
+<li>异常均已从 <code>ErisPulse.Core</code> 聚合导出（含 <code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code>），也可从 <code>ErisPulse.Core.Bases.errors</code> 导入</li>
+<li>完整定义见 <code>src/ErisPulse/Core/Bases/errors.py</code></li>
+</ul>
+<h2 id="关停噪音折叠">关停噪音折叠</h2>
+<p>长期驻留进程在关停（或后台循环被取消）时，事件循环常会刷出一批无处置价值的
+<code>Task was destroyed but it is pending!</code> 类解释器噪音。框架内置<strong>同类噪音折叠</strong>：
+2 秒窗口内的同类消息降级为 TRACE 并合并计数，只输出一次，结尾带
+「（另有 N 次同类消息被折叠）」后缀。这是刻意的降噪行为——看到折叠后缀不代表
+框架吞掉了真实异常，业务异常（上表各类）照常完整输出。</p>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/advanced/storage-backends.html"><small>上一篇</small><br>存储后端</a>
+        <a class="doc-pager-next" href="/docs/advanced/startup.html"><small>下一篇</small><br>启动流程与手动控制</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

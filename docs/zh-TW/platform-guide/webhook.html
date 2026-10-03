@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>平台特性說明 — Webhook 通用橋接適配器 - ErisPulse 文档中心</title>
+    <meta name="description" content="本文檔詳細說明 Webhook 適配器的雙向橋接協定、欄位映射與實作特性。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/platform-guide/webhook.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/platform-guide/webhook.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/platform-guide/webhook.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/platform-guide/webhook.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/platform-guide/webhook.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/platform-guide/webhook.html" />
+    <meta property="og:title" content="平台特性說明 — Webhook 通用橋接適配器 - ErisPulse 文档中心" />
+    <meta property="og:description" content="本文檔詳細說明 Webhook 適配器的雙向橋接協定、欄位映射與實作特性。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/platform-guide/webhook.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"平台特性說明 — Webhook 通用橋接適配器","description":"本文檔詳細說明 Webhook 適配器的雙向橋接協定、欄位映射與實作特性。","url":"https://www.erisdev.com/docs/zh-TW/platform-guide/webhook.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 平台特性指南
+        <span class="doc-crumb-sep">/</span> <span>平台特性說明 — Webhook 通用橋接適配器</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/platform-guide/webhook.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/platform-guide/webhook.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/platform-guide/webhook.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/platform-guide/webhook.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/platform-guide/webhook.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/platform-guide/webhook.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h3 id="已對接平台能力">已對接平台能力</h3>
+<ul>
+<li><strong>入站</strong>：外部系統 POST 到 callback_path → 轉為 OneBot12 事件（json/text 段透傳）</li>
+<li><strong>出站</strong>：模組 Send → POST 到 outgoing_url（雙橋接）</li>
+<li><strong>API</strong>：橋接身份資訊與執行狀態（最小集）</li>
+</ul>
+<h2 id="v5-範式更新420">v5 範式更新（4.2.0）</h2>
+<ul>
+<li><strong>Api DSL 最小集</strong>：get_self_info/get_status/get_version/get_supported_actions</li>
+<li><strong>框架軟依賴</strong>：執行時偵測 ErisPulse&gt;=2.7.1 並提示；啟動輸出版本日誌</li>
+<li>導入路徑更新至 Core.Bases</li>
+</ul>
+<hr>
+<h1 id="平台特性說明-webhook-通用橋接適配器">平台特性說明 — Webhook 通用橋接適配器</h1>
+<p>本文檔詳細說明 Webhook 適配器的雙向橋接協定、欄位映射與實作特性。</p>
+<h2 id="總覽">總覽</h2>
+<p>Webhook 适配器是一個<strong>協議級橋接器</strong>，不綁定任何特定平台。它通過 HTTP 收發消息，使任何能發起 HTTP 請求的系統都能接入 ErisPulse。</p>
+<pre><code>入站方向                                出站方向
+────────                                ────────
+外部系統                                ErisPulse 模組
+   │                                       │
+   │ POST JSON                             │ Send.Text(...)
+   ▼                                       ▼
+┌──────────────────────────────────────────────────┐
+│              WebhookAdapter                       │
+│  ┌──────────────────┐   ┌──────────────────┐    │
+│  │ 入站路由          │   │ 出站轉發          │    │
+│  │ GET  (健康檢查)   │   │ client.post()    │    │
+│  │ POST (接收事件)   │   │ → outgoing_url   │    │
+│  └────────┬─────────┘   └────────▲─────────┘    │
+│           │                      │               │
+│           ▼                      │               │
+│  ┌──────────────────┐   ┌──────────────────┐    │
+│  │ WebhookConverter │   │ Send 類          │    │
+│  │ JSON → OneBot12  │   │ 消息段 → JSON    │    │
+│  └────────┬─────────┘   └────────▲─────────┘    │
+└───────────┼──────────────────────┼───────────────┘
+            ▼                      │
+     adapter.emit(event)    call_api("send_message")
+            │                      │
+            ▼                      │
+       ErisPulse 事件系統 ◄────────┘
+</code></pre>
+<h2 id="多帳戶模型">多帳戶模型</h2>
+<p>每個帳戶是一個獨立的橋接設定，彼此互不干擾：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>帳戶</th>
+<th>bot_id</th>
+<th>callback_path</th>
+<th>outgoing_url</th>
+<th>secret</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>default</code></td>
+<td><code>webhook_bot</code></td>
+<td><code>/webhook/default</code></td>
+<td><code>https://a.com/recv</code></td>
+<td><code>key1</code></td>
+</tr>
+<tr>
+<td><code>discord</code></td>
+<td><code>discord_bot</code></td>
+<td><code>/webhook/discord</code></td>
+<td><code>https://b.com/send</code></td>
+<td><code>key2</code></td>
+</tr>
+</tbody></table></div>
+<p>每個帳戶啟動時會獨立註冊路由、獨立 emit connect。</p>
+<h2 id="入站協議">入站協議</h2>
+<h3 id="1-健康檢查get">1. 健康檢查（GET）</h3>
+<ul>
+<li><strong>路徑</strong>：<code>{callback_path}</code></li>
+<li><strong>方法</strong>：<code>GET</code></li>
+<li><strong>鑑權</strong>：無</li>
+<li><strong>回應</strong>：</li>
+</ul>
+<pre><code class="language-json"><span class="token punctuation">{</span><span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span> <span class="token property">"account"</span><span class="token operator">:</span> <span class="token string">"default"</span><span class="token punctuation">}</span>
+</code></pre>
+<h3 id="2-接收事件post">2. 接收事件（POST）</h3>
+<ul>
+<li><strong>路徑</strong>：<code>{callback_path}</code></li>
+<li><strong>方法</strong>：<code>POST</code></li>
+<li><strong>Content-Type</strong>：<code>application/json</code></li>
+<li><strong>鑑權</strong>（配置 secret 時）：Header <code>X-Webhook-Secret</code> 或 Query <code>?secret=</code></li>
+</ul>
+<h4 id="請求-body">請求 Body</h4>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"user_id"</span><span class="token operator">:</span> <span class="token string">"u123"</span><span class="token punctuation">,</span>
+  <span class="token property">"user_nickname"</span><span class="token operator">:</span> <span class="token string">"使用者名稱"</span><span class="token punctuation">,</span>
+  <span class="token property">"group_id"</span><span class="token operator">:</span> <span class="token string">"群組ID（僅群組會話）"</span><span class="token punctuation">,</span>
+  <span class="token property">"detail_type"</span><span class="token operator">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"訊息內容"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"raw"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>必填</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user_id</code></td>
+<td>是</td>
+<td>發送者 ID</td>
+</tr>
+<tr>
+<td><code>user_nickname</code></td>
+<td>否</td>
+<td>發送者暱稱</td>
+</tr>
+<tr>
+<td><code>group_id</code></td>
+<td>否</td>
+<td>群組/頻道 ID（群組會話時提供）</td>
+</tr>
+<tr>
+<td><code>detail_type</code></td>
+<td>否</td>
+<td>會話類型（<code>private</code>/<code>group</code>），預設使用帳戶預設值</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>是</td>
+<td>OneBot12 訊息段陣列</td>
+</tr>
+<tr>
+<td><code>raw</code></td>
+<td>否</td>
+<td>原始資料，原樣存入 <code>webhook_raw</code></td>
+</tr>
+</tbody></table></div>
+<h4 id="回應">回應</h4>
+<pre><code class="language-json"><span class="token punctuation">{</span><span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"ok"</span><span class="token punctuation">}</span>
+</code></pre>
+<p>錯誤回應帶有 HTTP 狀態碼：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>狀態碼</th>
+<th>含義</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>400</td>
+<td>無效 JSON / body 非物件</td>
+</tr>
+<tr>
+<td>401</td>
+<td>鑑權失敗</td>
+</tr>
+<tr>
+<td>404</td>
+<td>未知帳戶</td>
+</tr>
+<tr>
+<td>500</td>
+<td>事件分發失敗</td>
+</tr>
+</tbody></table></div>
+<h3 id="3-字段映射入站-json-onebot12-事件">3. 字段映射（入站 JSON → OneBot12 事件）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>入站 JSON</th>
+<th>OneBot12 事件字段</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>—</td>
+<td><code>id</code></td>
+<td>自動產生</td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>time</code></td>
+<td>當前 Unix 時間戳（秒）</td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>type</code></td>
+<td>固定 <code>message</code></td>
+</tr>
+<tr>
+<td><code>detail_type</code></td>
+<td><code>detail_type</code></td>
+<td>預設使用帳戶預設值</td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>platform</code></td>
+<td>固定 <code>webhook</code></td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>self.platform</code></td>
+<td>固定 <code>webhook</code></td>
+</tr>
+<tr>
+<td>—</td>
+<td><code>self.user_id</code></td>
+<td>帳戶 <code>bot_id</code></td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td><code>user_id</code></td>
+<td>透傳</td>
+</tr>
+<tr>
+<td><code>user_nickname</code></td>
+<td><code>user_nickname</code></td>
+<td>透傳（可選）</td>
+</tr>
+<tr>
+<td><code>group_id</code></td>
+<td><code>group_id</code></td>
+<td>透傳（可選）</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td><code>message</code></td>
+<td>透傳</td>
+</tr>
+<tr>
+<td>完整 body</td>
+<td><code>webhook_raw</code></td>
+<td>原始請求</td>
+</tr>
+<tr>
+<td>帳戶名</td>
+<td><code>webhook_account</code></td>
+<td>產生事件的帳戶名</td>
+</tr>
+<tr>
+<td><code>type</code> 或 <code>message</code></td>
+<td><code>webhook_raw_type</code></td>
+<td>原始事件類型</td>
+</tr>
+</tbody></table></div>
+<h2 id="出站協議">出站協議</h2>
+<h3 id="1-發送訊息">1. 發送訊息</h3>
+<p>當模組呼叫 <code>Send.To(...).Text(...)</code> 等方法時，適配器會向 <code>outgoing_url</code> 發起 POST：</p>
+<ul>
+<li><strong>方法</strong>：<code>POST</code></li>
+<li><strong>Content-Type</strong>：<code>application/json</code></li>
+<li><strong>鑑權 Header</strong>（配置 secret 時）：<code>X-Webhook-Secret: {secret}</code></li>
+</ul>
+<h4 id="請求-body-2">請求 Body</h4>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"target_type"</span><span class="token operator">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>
+  <span class="token property">"target_id"</span><span class="token operator">:</span> <span class="token string">"target_user_id"</span><span class="token punctuation">,</span>
+  <span class="token property">"account"</span><span class="token operator">:</span> <span class="token string">"default"</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"訊息內容"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"timestamp"</span><span class="token operator">:</span> <span class="token number">1700000000</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>target_type</code></td>
+<td>目標類型（來自 <code>Send.To(type, id)</code>），預設使用帳戶預設值</td>
+</tr>
+<tr>
+<td><code>target_id</code></td>
+<td>目標 ID（來自 <code>Send.To</code>）</td>
+</tr>
+<tr>
+<td><code>account</code></td>
+<td>發送帳戶名</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>OneBot12 訊息段陣列</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>發送時間戳（秒）</td>
+</tr>
+</tbody></table></div>
+<h3 id="2-回應標準化">2. 回應標準化</h3>
+<p>適配器將出站目標回應的內容標準化為 ErisPulse 標準回應格式：</p>
+<pre><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"status"</span><span class="token operator">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span>
+  <span class="token property">"retcode"</span><span class="token operator">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+  <span class="token property">"data"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">"..."</span><span class="token punctuation">,</span> ...<span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"message_id"</span><span class="token operator">:</span> <span class="token string">"..."</span><span class="token punctuation">,</span>
+  <span class="token property">"message"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+  <span class="token property">"webhook_raw"</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>從目標回應 JSON 的 <code>message_id</code> 欄位提取訊息 ID。若目標未回傳 <code>message_id</code>，則為空字串。</p>
+<p>請求失敗時回傳錯誤回應（<code>status: "failed"</code>, <code>retcode: 33001</code>）。</p>
+<h2 id="send-方法">Send 方法</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Text(text)</code></td>
+<td>發送文本，封裝為 <code>[{"type":"text","data":{"text":text}}]</code></td>
+</tr>
+<tr>
+<td><code>Image(file)</code></td>
+<td>發送圖片，封裝為 <code>[{"type":"image","data":{"file":file}}]</code></td>
+</tr>
+<tr>
+<td><code>Raw_ob12(message)</code></td>
+<td>發送 OneBot12 原始訊息段</td>
+</tr>
+<tr>
+<td><code>Json(data)</code></td>
+<td>原始 JSON 透傳，封裝為 <code>[{"type":"json","data":{"raw":data}}]</code></td>
+</tr>
+</tbody></table></div>
+<p><code>At</code> / <code>AtAll</code> / <code>Reply</code> 修飾器由框架基類提供，透過 <code>_apply_modifiers</code> 合併到訊息段。</p>
+<h2 id="事件擴展方法webhookeventmixin">事件擴展方法（WebhookEventMixin）</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>get_raw_data()</code></td>
+<td>取得原始請求 body（<code>webhook_raw</code>）</td>
+</tr>
+<tr>
+<td><code>get_detail_type()</code></td>
+<td>取得會話類型</td>
+</tr>
+<tr>
+<td><code>get_webhook_account()</code></td>
+<td>取得產生該事件的帳號名稱</td>
+</tr>
+</tbody></table></div>
+<h2 id="特性矩陣">特性矩陣</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>支持情況</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>多帳戶</td>
+<td>✅ 每個帳戶獨立橋接</td>
+</tr>
+<tr>
+<td>入站鑑權</td>
+<td>✅ Header / Query 雙模式</td>
+</tr>
+<tr>
+<td>健康檢查</td>
+<td>✅ GET 返回狀態</td>
+</tr>
+<tr>
+<td>出站鑑權</td>
+<td>✅ Header 攜帶 secret</td>
+</tr>
+<tr>
+<td>OneBot12 標準事件</td>
+<td>✅ 完整標準欄位</td>
+</tr>
+<tr>
+<td>Meta 事件</td>
+<td>✅ connect / disconnect</td>
+</tr>
+<tr>
+<td>路由發現</td>
+<td>✅ 註冊到 <code>webhook</code> 命名空間</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>❌ 僅 HTTP</td>
+</tr>
+<tr>
+<td>媒體上傳</td>
+<td>❌ 透過 URL 透傳，不代傳二進制</td>
+</tr>
+</tbody></table></div>
+<h2 id="注意事項">注意事項</h2>
+<ol>
+<li><strong>單向出站</strong>：若 <code>outgoing_url</code> 留空，該帳戶僅作入站接收，發送操作會返回錯誤</li>
+<li><strong>密鑰安全</strong>：<code>secret</code> 在配置中以密文儲存（metadata secret），傳輸建議使用 HTTPS</li>
+<li><strong>路徑唯一</strong>：多個帳戶的 <code>callback_path</code> 必須互不相同，避免路由衝突</li>
+<li><strong>冪等性</strong>：適配器不保證入站事件去重，外部系統應自行處理重試</li>
+<li><strong>超時</strong>：出站請求使用 ErisPulse 內建 <code>client</code>，繼承全域超時設定</li>
+</ol>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/platform-guide/wechatmp.html"><small>Previous</small><br>微信公眾號（WechatMp）適配器 - 平台特性文件</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/platform-guide/ideaura.html"><small>Next</small><br>花楓咖啡館（RockyChat）平台特性文件</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

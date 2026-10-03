@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>啟動流程與手動控制 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 的 await sdk.run() / await sdk.init() 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/startup.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/startup.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/startup.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
+    <meta property="og:title" content="啟動流程與手動控制 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 的 await sdk.run() / await sdk.init() 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"啟動流程與手動控制","description":"ErisPulse 的 await sdk.run() / await sdk.init() 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。","url":"https://www.erisdev.com/docs/zh-TW/advanced/startup.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 進階主題
+        <span class="doc-crumb-sep">/</span> <span>啟動流程與手動控制</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/startup.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/startup.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/startup.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/startup.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/startup.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="啟動流程與手動控制">啟動流程與手動控制</h1>
+<p>ErisPulse 的 <code>await sdk.run()</code> / <code>await sdk.init()</code> 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。</p>
+<p>本文把啟動鏈路拆解成獨立的環節，說明各自的職責、呼叫順序，並給出手動完整啟動的示例。</p>
+<blockquote>
+<p>本文假設你已經跑過 <a href="/docs/zh-TW/getting-started/first-bot.html">第一個機器人</a>，了解 <code>sdk.run(keep_running=True/False)</code> 兩種模式。本文聚焦於 <code>init()</code> <strong>內部</strong>的鏈路拆解，以及 <code>init()</code>/<code>init_task()</code>/<code>init_sync()</code> 等更底層的入口。</p>
+</blockquote>
+<h2 id="sdk-頂層入口概覽">SDK 頂層入口概覽</h2>
+<p>除了 <code>run()</code> 的兩種 <code>keep_running</code> 模式，SDK 還提供幾個更底層的初始化入口，其區別在於<strong>異步性、返回值、以及是否包裝異常</strong>：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>入口</th>
+<th>異步性</th>
+<th>返回值</th>
+<th>異常處理</th>
+<th>適用場景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.run(True)</code></td>
+<td>async，阻塞維持</td>
+<td><code>None</code>（關閉時自動 <code>uninit</code>）</td>
+<td>模組/適配器錯誤被攔截，不拖垮進程</td>
+<td>純 bot 應用</td>
+</tr>
+<tr>
+<td><code>await sdk.run(False)</code></td>
+<td>async，不阻塞</td>
+<td><code>None</code>（不自動卸載）</td>
+<td>同上</td>
+<td>初始化後執行自定義邏輯</td>
+</tr>
+<tr>
+<td><code>await sdk.init()</code></td>
+<td>async，需 await</td>
+<td><code>bool</code></td>
+<td>內部捕獲元件異常，失敗返回 <code>False</code></td>
+<td>手動控制生命週期（配 <code>uninit()</code>）</td>
+</tr>
+<tr>
+<td><code>sdk.init_task()</code></td>
+<td>async，返回 Task 不阻塞</td>
+<td><code>asyncio.Task</code></td>
+<td>同 <code>init()</code></td>
+<td>並發執行別的初始化、或事件迴圈尚未運行</td>
+</tr>
+<tr>
+<td><code>sdk.init_sync()</code></td>
+<td><strong>同步</strong>，阻塞當前執行緒</td>
+<td><code>bool</code></td>
+<td>同 <code>init()</code></td>
+<td>命令列腳本、無事件迴圈的同步入口</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>常見誤區</strong>：<code>await sdk.init()</code> <strong>不等同於</strong> <code>await sdk.run(keep_running=False)</code>。兩點不同：① <code>init()</code> 返回 <code>bool</code>（失敗時返回 <code>False</code>），<code>run()</code> 返回 <code>None</code>；② <code>init()</code> 僅做初始化、<strong>不自動卸載</strong>，<code>run()</code> 在事件迴圈結束時自動 <code>uninit()</code>。因此需要手動配對卸載或自定義生命週期時，使用 <code>init()</code> + <code>uninit()</code>。</p>
+</blockquote>
+<h2 id="啟動鏈路總覽">啟動鏈路總覽</h2>
+<p><code>sdk.init()</code>（準確來說是其內部的 <code>Initializer.init()</code>）按以下順序啟動整個框架：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A[0. 準備環境&lt;br/&gt;配置載入 / 異常處理] --&gt; B
+    B[1. 並行發現與載入&lt;br/&gt;AdapterLoader.load / ModuleLoader.load&lt;br/&gt;內部調用 Finder.find_all] --&gt; C
+    C[2. 註冊適配器&lt;br/&gt;AdapterLoader.register_to_manager] --&gt; D
+    D[3. 啟動適配器&lt;br/&gt;adapter.startup] --&gt; E
+    E[4. 註冊模組&lt;br/&gt;ModuleLoader.register_to_manager] --&gt; F
+    F[5. 初始化模組&lt;br/&gt;ModuleLoader.initialize_modules&lt;br/&gt;實例化並掛載到 sdk] --&gt; G
+    G[6. 啟動路由伺服器&lt;br/&gt;router.start]
+</code></pre>
+<p>對應的核心組件：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>層</th>
+<th>組件</th>
+<th>職責</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>發現</td>
+<td><code>AdapterFinder</code> / <code>ModuleFinder</code></td>
+<td>從已安裝套件的 entry-points 中<strong>發現</strong>適配器/模組</td>
+</tr>
+<tr>
+<td>加載</td>
+<td><code>AdapterLoader</code> / <code>ModuleLoader</code></td>
+<td>發現 + 導入 + 讀取元數據 + 判斷啟用/禁用，返回物件清單</td>
+</tr>
+<tr>
+<td>注册</td>
+<td><code>*Loader.register_to_manager</code></td>
+<td>把物件登記到對應管理器</td>
+</tr>
+<tr>
+<td>管理</td>
+<td><code>sdk.adapter</code> / <code>sdk.module</code></td>
+<td>維護適配器/模組實例，提供啟停介面</td>
+</tr>
+<tr>
+<td>初始化</td>
+<td><code>ModuleLoader.initialize_modules</code></td>
+<td>創建模組實例並掛載到 <code>sdk</code>（處理依賴拓撲排序）</td>
+</tr>
+<tr>
+<td>路由</td>
+<td><code>sdk.router</code></td>
+<td>HTTP / WebSocket 伺服器</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>重要</strong>：<code>Finder</code> 和 <code>Loader</code> 是兩層。<code>Loader</code> 內部<strong>已經持有</strong>一個 <code>Finder</code>（<code>AdapterLoader</code> 自帶 <code>AdapterFinder</code>，<code>ModuleLoader</code> 自帶 <code>ModuleFinder</code>）。大多數場景你只需要用 <code>Loader</code>，只有需要「只列出不導入」時才會單獨用 <code>Finder</code>。</p>
+</blockquote>
+<h2 id="各環節詳解">各環節詳解</h2>
+<h3 id="1-發現層finder">1. 發現層：Finder</h3>
+<p>Finder 僅負責「找到有哪些套件提供了適配器/模組」，不進行匯入或實例化。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>finders <span class="token keyword">import</span> AdapterFinder<span class="token punctuation">,</span> ModuleFinder
+
+adapter_finder <span class="token operator">=</span> AdapterFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_finder <span class="token operator">=</span> ModuleFinder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 查找所有已安裝的適配器/模組 entry-points</span>
+adapter_entries <span class="token operator">=</span> adapter_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>    <span class="token comment"># list[EntryPoint]</span>
+module_entries <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_all<span class="token punctuation">(</span><span class="token punctuation">)</span>      <span class="token comment"># list[EntryPoint]</span>
+
+<span class="token comment"># 按名稱查找單個</span>
+entry <span class="token operator">=</span> module_finder<span class="token punctuation">.</span>find_by_name<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>  <span class="token comment"># EntryPoint | None</span>
+</code></pre>
+<p>每個 <code>EntryPoint</code> 可以 <code>.load()</code> 得到對應的類，但通常不需要你手動調用——Loader 會處理。</p>
+<h3 id="2-加載層loader">2. 加載層：Loader</h3>
+<p>Loader 在 Finder 之上做了「匯入 + 讀取元數據 + 判斷啟用/禁用」的工作。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># load() 內部：調用 finder.find_all() → 逐個處理 entry-point → 返回三元組</span>
+adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters <span class="token operator">=</span> <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p><code>load()</code> 返回的三元組：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含義</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>objs</code> (<code>dict</code>)</td>
+<td>名稱 → 對象（適配器類 / 模組封裝物件）</td>
+</tr>
+<tr>
+<td><code>enabled</code> (<code>list[str]</code>)</td>
+<td>被啟用的名稱（配置中未禁用）</td>
+</tr>
+<tr>
+<td><code>disabled</code> (<code>list[str]</code>)</td>
+<td>被禁用的名稱</td>
+</tr>
+</tbody></table></div>
+<h4 id="加載失敗時的診斷資訊">加載失敗時的診斷資訊</h4>
+<p>當某個模組/適配器在加載或初始化階段拋出異常時，框架會跳過該元件並繼續加載其他元件，同時輸出<strong>使用者程式碼框架摘要</strong>，讓你在預設的 INFO 級別下即可定位出錯位置，無需手動重開 DEBUG：</p>
+<pre><code>[ERROR] [ModuleLoader] 從 entry-point 加載模組 MyModule 失敗，已跳過: 'NoneType' object has no attribute 'platform'
+  → MyModule/Core.py:42 in on_load
+      adapter = sdk.platform
+  → AttributeError: 'NoneType' object has no attribute 'platform'
+  → 提示: 將日誌級別提高到 DEBUG 可查看完整堆疊；檢查模組 MyModule 的實作代碼
+</code></pre>
+<p>診斷資訊透過 <code>ErisPulse.runtime.diagnostics</code> 模組產生，會自動過濾掉框架內部框架，只保留你的程式碼框架。如需在自訂加載邏輯中重用：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> log_diagnostic
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    risky_init<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    log_diagnostic<span class="token punctuation">(</span>e<span class="token punctuation">)</span>  <span class="token comment"># 自動提取使用者程式碼框架並寫入 ERROR 日誌</span>
+</code></pre>
+<p>該模組還提供 <code>extract_user_frame()</code>（返回結構化框架資訊）和 <code>format_diagnostic_block()</code>（返回多行文字）兩個底層函數。</p>
+<h3 id="3-註冊層register_to_manager">3. 註冊層：register_to_manager</h3>
+<p>將 Loader 產出的物件登記到管理器，讓 <code>sdk.adapter</code> / <code>sdk.module</code> 能識別它們。</p>
+<pre><code class="language-python"><span class="token comment"># 註冊適配器（返回 bool，表示是否全部成功）</span>
+<span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span>
+
+<span class="token comment"># 註冊模組</span>
+<span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span>
+</code></pre>
+<p>註冊後，適配器已登記到適配器管理器、模組已登記到模組管理器，但<strong>都還未啟動/實例化</strong>。</p>
+<h3 id="4-啟動適配器">4. 啟動適配器</h3>
+<pre><code class="language-python"><span class="token comment"># 啟動所有已註冊的適配器</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># 或指定平台</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"telegram"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>註冊 ≠ 啟動。<code>register_to_manager</code> 只是登記；<code>startup</code> 才會呼叫適配器的 <code>start()</code>，建立與平台的連接。</p>
+</blockquote>
+<h3 id="5-初始化模組">5. 初始化模組</h3>
+<p>模組比適配器多一步——需要<strong>實例化</strong>並掛載到 <code>sdk</code> 上（這樣你才能 <code>sdk.MyModule.xxx</code> 調用）。這一步還處理模組間的依賴宣告與拓撲排序。</p>
+<pre><code class="language-python">success <span class="token operator">=</span> <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+    enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+<span class="token punctuation">)</span>
+</code></pre>
+<p>實例化成功後，模組會出現在 <code>sdk.&lt;ModuleName&gt;</code> 上。</p>
+<h3 id="6-啟動路由伺服器">6. 啟動路由伺服器</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>
+    host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span>
+    port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">,</span>
+    ssl_certfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+    ssl_keyfile<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+</code></pre>
+<p>路由伺服器負責接收適配器的 Webhook / WebSocket 回調。不啟動它，server 模式的適配器無法接收訊息。</p>
+<h2 id="完整手動啟動範例">完整手動啟動範例</h2>
+<p>下面這段程式碼<strong>等價於</strong> <code>await sdk.init()</code> 的核心流程，但每一步都暴露在你手裡，可以在任意環節插入自定義邏輯：</p>
+<pre><code class="language-python"><span class="token keyword">import</span> asyncio
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> AdapterLoader<span class="token punctuation">,</span> ModuleLoader
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">manual_startup</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 0. 準備環境（載入設定、註冊全域例外處理）</span>
+    <span class="token comment">#    _prepare_environment 是 init() 內部的前置步驟；手動流程也需先呼叫，</span>
+    <span class="token comment">#    否則 Loader 讀不到設定，會把所有適配器/模組誤判為禁用。</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>_prepare_environment<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"環境準備失敗"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token boolean">False</span>
+
+    <span class="token comment"># 1. 建立載入器（內部各自持有 Finder）</span>
+    adapter_loader <span class="token operator">=</span> AdapterLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    module_loader <span class="token operator">=</span> ModuleLoader<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 2. 並行發現與載入（與 init() 內部一致用 gather）</span>
+    <span class="token punctuation">(</span>adapter_objs<span class="token punctuation">,</span> enabled_adapters<span class="token punctuation">,</span> disabled_adapters<span class="token punctuation">)</span><span class="token punctuation">,</span> \
+    <span class="token punctuation">(</span>module_objs<span class="token punctuation">,</span> enabled_modules<span class="token punctuation">,</span> disabled_modules<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>gather<span class="token punctuation">(</span>
+        adapter_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        module_loader<span class="token punctuation">.</span>load<span class="token punctuation">(</span>sdk<span class="token punctuation">.</span>module<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 3. 註冊適配器</span>
+    <span class="token keyword">await</span> adapter_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_adapters<span class="token punctuation">,</span> adapter_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>adapter
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 4. 啟動適配器</span>
+    <span class="token keyword">if</span> enabled_adapters<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 5. 註冊模組</span>
+    <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>register_to_manager<span class="token punctuation">(</span>
+        enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module
+    <span class="token punctuation">)</span>
+
+    <span class="token comment"># 6. 初始化模組（實例化 + 掛載到 sdk）</span>
+    <span class="token keyword">if</span> enabled_modules<span class="token punctuation">:</span>
+        <span class="token keyword">await</span> module_loader<span class="token punctuation">.</span>initialize_modules<span class="token punctuation">(</span>
+            enabled_modules<span class="token punctuation">,</span> module_objs<span class="token punctuation">,</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">,</span> sdk
+        <span class="token punctuation">)</span>
+
+    <span class="token comment"># 7. 啟動路由伺服器</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">8000</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"手動啟動完成"</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> <span class="token boolean">True</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ok <span class="token operator">=</span> <span class="token keyword">await</span> manual_startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> ok<span class="token punctuation">:</span>
+        <span class="token comment"># 阻塞維持運行（手動流程不會自動阻塞）</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    asyncio<span class="token punctuation">.</span>run<span class="token punctuation">(</span>main<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="什麼時候該手動啟動">什麼時候該手動啟動？</h3>
+<p>大多數情況下<strong>不需要</strong>手動啟動，<code>await sdk.run()</code> 已經把上面這些都做好了。手動啟動僅在這些場景才有價值：</p>
+<ul>
+<li><strong>部分載入</strong>：只載入指定的適配器/模組，跳過其他</li>
+<li><strong>動態註冊</strong>：執行時根據條件註冊新的適配器/模組</li>
+<li><strong>自訂順序</strong>：需要打亂預設的載入順序（例如先啟動某模組再啟動適配器）</li>
+<li><strong>注入策略</strong>：對 Loader 注入自訂的嚴格模式管理器、載入策略等</li>
+<li><strong>除錯/診斷</strong>：在某個環節失敗時，手動驅動以定位問題</li>
+</ul>
+<h2 id="運行時細粒度控制">運行時細粒度控制</h2>
+<p>即使使用了 <code>sdk.run()</code> 完成啟動，你仍然可以在運行時單獨控制各子系統，而不必重新啟動整個 SDK：</p>
+<h3 id="適配器熱啟停">適配器熱啟停</h3>
+<pre><code class="language-python"><span class="token comment"># 熱重啟某個適配器（修復連接，不會影響其他平台）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 運行中拉起一個新平台</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 臨時下線某平台</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><code>adapter.startup()</code> 要求適配器<strong>已被註冊</strong>到管理器。註冊發生在 <code>init()</code>/<code>run()</code> 內部，因此這是啟動<strong>之後</strong>的細粒度控制。</p>
+</blockquote>
+<h3 id="路由伺服器">路由伺服器</h3>
+<pre><code class="language-python"><span class="token comment"># 臨時下線 webhook 伺服器</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>stop<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 重新啟動（例如更換了端口）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>start<span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="模組按需載入">模組按需載入</h3>
+<pre><code class="language-python"><span class="token comment"># 手動載入一個（可能是懶加載的）模組</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="優雅關閉">優雅關閉</h2>
+<p>從 2.7.0 開始，<code>sdk.shutdown()</code> 提供<strong>程式化優雅關閉</strong>：設定關閉事件，讓正在 <code>await sdk.run(keep_running=True)</code> 掛起的主迴圈返回，進而觸發 <code>uninit()</code> 完成資源清理。</p>
+<pre><code class="language-python"><span class="token comment"># 在任意協程中呼叫，觸發優雅退出（run() 掛起返回並自動 uninit）</span>
+sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>典型用途：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown_after_idle</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># 空閒 1 小時後優雅退出</span>
+</code></pre>
+<p><strong>信號處理</strong>：<code>run()</code> 內部會註冊 <code>SIGTERM</code> / <code>SIGHUP</code> 處理器，將系統信號轉為優雅關閉——容器編排（Docker <code>docker stop</code>）或 <code>systemd</code> 停止服務時，進程會走完 <code>uninit()</code> 清理而非被強殺。</p>
+<ul>
+<li>Windows 不支援 <code>loop.add_signal_handler</code>，信號處理器會自動跳過（仍可用 <code>sdk.shutdown()</code> 或 Ctrl+C 觸發關閉）</li>
+<li>反覆呼叫 <code>sdk.shutdown()</code> 是安全的（事件已設定後再次呼叫為無操作）</li>
+</ul>
+<h2 id="卸載流程">卸載流程</h2>
+<p>啟動的反向操作是 <code>await sdk.uninit()</code>，它按相反順序進行清理：</p>
+<ol>
+<li>關閉所有適配器（<code>adapter.shutdown()</code>）</li>
+<li>卸載所有模組</li>
+<li>清理所有事件處理程式</li>
+<li>清理管理器與 SDK 上的模組屬性</li>
+</ol>
+<p>在手動啟動的場景下，請記得在退出前呼叫 <code>uninit()</code> 以確保優雅關閉：</p>
+<pre><code class="language-python"><span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>Event<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>   <span class="token comment"># 維持運行</span>
+<span class="token keyword">finally</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>uninit<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="重啟">重啟</h2>
+<p>SDK 提供兩種重啟方式，都不需要你自己先卸載——框架會自行處理：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方式</th>
+<th>調用</th>
+<th>行為</th>
+<th>適用場景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>熱重啟</td>
+<td><code>await sdk.restart()</code></td>
+<td>同一進程內 <code>uninit()</code> 後重新 <code>init()</code>，重新加載適配器/模塊</td>
+<td>重新加載配置、熱更新模塊</td>
+</tr>
+<tr>
+<td>硬重啟</td>
+<td><code>await sdk.hard_restart()</code></td>
+<td><code>uninit()</code> 後以<strong>退出碼 42</strong> 退出進程，由外部監督者拉起全新進程</td>
+<td>懷疑有記憶體/資源洩漏、需要徹底乾淨重啟</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token comment"># 熱重啟：同進程內重新加載（最常用）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 硬重啟：退出進程，交由外部監督者重啟（見下方「監督者指南」）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>hard_restart<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>兩點注意</strong>：</p>
+<ol>
+<li>這兩個方法都用背景任務執行重啟，<strong>立即返回 <code>True</code> 表示「重啟任務已排程」</strong>，而非「重啟已完成」。實際重啟在背景進行，避免中斷當前事件鏈路。</li>
+<li><code>hard_restart()</code> 的原理是：卸載並刷盤配置後，以<strong>退出碼 42</strong>（<code>HARD_RESTART_EXIT_CODE</code>）退出進程——<strong>它自身不拉起新進程</strong>，必須由外部監督者檢測到退出碼 42 後重新啟動。若直接 <code>python main.py</code> 運行且無任何監督者，進程以碼 42 退出後就結束了，<strong>不會自動重啟</strong>（框架會打警告提示）。</li>
+</ol>
+</blockquote>
+<h3 id="什麼時候該用硬重啟">什麼時候該用硬重啟？</h3>
+<p>硬重啟不只是"更徹底的重啟"，它在以下場景比熱重啟更合適、甚至更高效：</p>
+<ul>
+<li><strong>二進制庫（C 扩展）副作用</strong>：熱重啟在同一進程內進行，無法釋放 C 扩展、打開的文件描述符、線程等進程級資源；硬重啟換一個全新進程，這些副作用隨之徹底清零。</li>
+<li><strong>資源洩漏排查</strong>：懷疑存在記憶體或句柄洩漏時，硬重啟能拿到一個乾淨的環境。</li>
+<li><strong>對效能敏感的頻繁重啟</strong>：硬重啟省去了同進程內卸載→重新加載的開銷，實際比熱重啟更高效。</li>
+</ul>
+<blockquote>
+<p>Dashboard 管理面板裡的「框架重啟」功能，底層調用的就是 <code>hard_restart()</code>。</p>
+</blockquote>
+<h3 id="退出碼-42-契約">退出碼 42 契約</h3>
+<p>硬重啟是跨進程協作：<strong>SDK 負責退出（碼 42），監督者負責拉起</strong>。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>行為</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SDK（被硬重啟時）</td>
+<td><code>uninit()</code> → 刷盤配置 → <code>os._exit(42)</code></td>
+</tr>
+<tr>
+<td>監督者</td>
+<td>檢測到子進程退出碼為 42 → 重新啟動同一命令</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><code>sdk.is_supervised()</code> 可查詢當前進程是否由監督者啟動（檢測環境變數 <code>ERISPULSE_SUPERVISED</code>）。CLI <code>run</code> 命令啟動子進程時會自動注入該標記；systemd / Docker 等外部監督者不會注入，<code>is_supervised()</code> 返回 <code>False</code>，此時硬重啟後框架會打「未檢測到監督者」警告。</p>
+</blockquote>
+<h3 id="監督者指南">監督者指南</h3>
+<p>選擇適合你的監督者，讓硬重啟真正生效：</p>
+<h4 id="1-cli-run-命令開發簡單部署推薦">1. CLI run 命令（開發/簡單部署，推薦）</h4>
+<p><code>epsdk run main.py</code> 內置監督循環：檢測子進程退出碼，42 時立即重啟；其它異常退出碼按指數退避自動重試；<code>Ctrl+C</code> 會先優雅終止子進程（碼 0 視為正常退出，不再拉起）。</p>
+<pre><code class="language-bash">epsdk run main.py
+</code></pre>
+<h4 id="2-systemdlinux-伺服器">2. systemd（Linux 伺服器）</h4>
+<p><code>RestartForceExitStatus=42</code> 讓退出碼 42 也觸發重啟（預設 <code>on-failure</code> 只對非零碼生效）：</p>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Service</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">ExecStart</span><span class="token punctuation">=</span><span class="token value attr-value">/usr/bin/python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">Restart</span><span class="token punctuation">=</span><span class="token value attr-value">on-failure</span>
+<span class="token key attr-name">RestartForceExitStatus</span><span class="token punctuation">=</span><span class="token value attr-value">42</span>
+<span class="token key attr-name">RestartSec</span><span class="token punctuation">=</span><span class="token value attr-value">2</span>
+<span class="token key attr-name">User</span><span class="token punctuation">=</span><span class="token value attr-value">mybot</span>
+</code></pre>
+<h4 id="3-docker-docker-compose">3. Docker / docker-compose</h4>
+<p>容器內 PID 1 是應用進程，退出碼 42 後容器退出——用 <code>restart</code> 策略讓它自動重啟：</p>
+<pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">bot</span><span class="token punctuation">:</span>
+    <span class="token key atrule">build</span><span class="token punctuation">:</span> .
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped   <span class="token comment"># 任何退出（含 42）都重啟</span>
+</code></pre>
+<h4 id="4-pm2node-生態運維">4. PM2（Node 生態運維）</h4>
+<pre><code class="language-bash">pm2 start main.py <span class="token parameter variable">--name</span> mybot <span class="token parameter variable">--interpreter</span> python3
+<span class="token comment"># 42 被視為退出碼，PM2 預設重啟；設置 restart_delay 防抖</span>
+pm2 <span class="token builtin class-name">set</span> mybot.restart_delay <span class="token number">2000</span>
+</code></pre>
+<h4 id="5-supervisord">5. supervisord</h4>
+<pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">program:mybot</span><span class="token punctuation">]</span></span>
+<span class="token key attr-name">command</span><span class="token punctuation">=</span><span class="token value attr-value">python3 /opt/mybot/main.py</span>
+<span class="token key attr-name">autorestart</span><span class="token punctuation">=</span><span class="token value attr-value">true</span>
+<span class="token key attr-name">exitcodes</span><span class="token punctuation">=</span><span class="token value attr-value">0,2,42    # 42 也視為"正常退出需重啟"</span>
+</code></pre>
+<h4 id="6-純-python-自定義監督者">6. 純 Python 自定義監督者</h4>
+<pre><code class="language-python"><span class="token keyword">import</span> subprocess<span class="token punctuation">,</span> sys<span class="token punctuation">,</span> time
+
+<span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+    p <span class="token operator">=</span> subprocess<span class="token punctuation">.</span>Popen<span class="token punctuation">(</span><span class="token punctuation">[</span>sys<span class="token punctuation">.</span>executable<span class="token punctuation">,</span> <span class="token string">"main.py"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    code <span class="token operator">=</span> p<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">42</span><span class="token punctuation">:</span>          <span class="token comment"># 硬重啟請求</span>
+        time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">0.5</span><span class="token punctuation">)</span>
+        <span class="token keyword">continue</span>
+    <span class="token keyword">if</span> code <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>           <span class="token comment"># 正常退出</span>
+        <span class="token keyword">break</span>
+    time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>           <span class="token comment"># 異常退出，退避重試</span>
+</code></pre>
+<blockquote>
+<p><strong>無監督者時的行為</strong>：直接 <code>python main.py</code> 運行，調用 <code>hard_restart()</code> 後進程以碼 42 退出、不會重啟。此時應接入上述任一監督者。</p>
+</blockquote>
+<h2 id="相關文件">相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/getting-started/first-bot.html">建立第一個機器人</a> - <code>keep_running</code> 的兩種基礎模式入門</li>
+<li><a href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a> - 監聽 <code>core.init.start</code> / <code>core.init.complete</code> 等啟動事件</li>
+<li><a href="/docs/zh-TW/advanced/lazy-loading.html">懶加載系統</a> - 模組懶加載機制與 <code>load_module</code></li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/errors.html"><small>Previous</small><br>錯誤體系與捕獲指南</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/ecosystem/README.html"><small>Next</small><br>生態模組</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

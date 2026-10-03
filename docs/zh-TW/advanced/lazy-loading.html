@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>慢載模組系統 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse SDK 提供了強大的慢載模組系統，允許模組在實際需要時才進行初始化，從而顯著提升應用啟動速度和記憶體效率。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html" />
+    <meta property="og:title" content="慢載模組系統 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse SDK 提供了強大的慢載模組系統，允許模組在實際需要時才進行初始化，從而顯著提升應用啟動速度和記憶體效率。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"慢載模組系統","description":"ErisPulse SDK 提供了強大的慢載模組系統，允許模組在實際需要時才進行初始化，從而顯著提升應用啟動速度和記憶體效率。","url":"https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 進階主題
+        <span class="doc-crumb-sep">/</span> <span>慢載模組系統</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/lazy-loading.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/lazy-loading.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/lazy-loading.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/lazy-loading.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="慢載模組系統">慢載模組系統</h1>
+<p>ErisPulse SDK 提供了強大的慢載模組系統，允許模組在實際需要時才進行初始化，從而顯著提升應用啟動速度和記憶體效率。</p>
+<h2 id="概述">概述</h2>
+<p>懶加載模組系統是 ErisPulse 的核心特性之一，它透過以下方式運作：</p>
+<ul>
+<li><strong>延遲初始化</strong>：模組只有在第一次被存取時才會實際載入和初始化</li>
+<li><strong>透明使用</strong>：對於開發者而言，懶加載模組與一般模組在使用上幾乎沒有差別</li>
+<li><strong>自動依賴管理</strong>：模組依賴會在被使用時自動初始化</li>
+<li><strong>生命週期支援</strong>：對於繼承自 <code>BaseModule</code> 的模組，會自動呼叫生命週期方法</li>
+</ul>
+<h2 id="工作原理">工作原理</h2>
+<h3 id="lazymodule-類">LazyModule 類</h3>
+<p>懶加載系統的核心是 <code>LazyModule</code> 類，它是一個封裝器，在首次存取時才實際初始化模組。</p>
+<h3 id="初始化過程">初始化過程</h3>
+<p>當模組首次被存取時，<code>LazyModule</code> 會執行以下操作：</p>
+<ol>
+<li>獲取模組類的 <code>__init__</code> 參數資訊</li>
+<li>根據參數決定是否傳入 <code>sdk</code> 引用</li>
+<li>設定模組的 <code>moduleInfo</code> 屬性</li>
+<li>對於繼承自 <code>BaseModule</code> 的模組，呼叫 <code>on_load</code> 方法</li>
+<li>觸發 <code>module.init</code> 生命週期事件</li>
+</ol>
+<h2 id="事件驅動懶激活activate_on">事件驅動懶激活（activate_on）</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p><br>本特性需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p><code>lazy_load=True</code> 的模組預設只在<strong>首次屬性存取</strong>時載入。若模組註冊了命令/事件處理器，<br>傳統做法只能 <code>lazy_load=False</code> 立即載入。<code>activate_on</code> 提供了第三種選擇：<strong>宣告觸發器，<br>首個匹配事件/命令到達時自動激活模組</strong>——既不常駐記憶體，又不遺失觸發入口。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+            activate_on<span class="token operator">=</span><span class="token punctuation">[</span>
+                <span class="token comment"># ---- 事件觸發（被動到達，無需使用者感知）----</span>
+                <span class="token string">"message"</span><span class="token punctuation">,</span>                                    <span class="token comment"># 類型級：任何訊息事件</span>
+                <span class="token punctuation">{</span><span class="token string">"notice"</span><span class="token punctuation">:</span> <span class="token string">"group_member_increase"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># 類型 + 單個 detail_type</span>
+                <span class="token punctuation">{</span><span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"private"</span><span class="token punctuation">,</span> <span class="token string">"group"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">,</span>            <span class="token comment"># 類型 + 多個 detail_type</span>
+
+                <span class="token comment"># ---- 命令觸發（主動輸入，佔位命令對 Help 可見）----</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token string">"roll"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>                          <span class="token comment"># 簡寫：命令名</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"roll"</span><span class="token punctuation">,</span> <span class="token string">"dice"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">,</span>                <span class="token comment"># 命令名列表</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>                                 <span class="token comment"># dict 聲明（name 必填）</span>
+                    <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"dice"</span><span class="token punctuation">,</span>
+                    <span class="token string">"help"</span><span class="token punctuation">:</span> <span class="token string">"擲一個骰子"</span><span class="token punctuation">,</span>
+                    <span class="token string">"usage"</span><span class="token punctuation">:</span> <span class="token string">"/dice"</span><span class="token punctuation">,</span>
+                    <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"娛樂"</span><span class="token punctuation">,</span>
+                    <span class="token string">"aliases"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"d"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                    <span class="token string">"hidden"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span>
+                <span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h3 id="命令-dict-聲明參數">命令 dict 聲明參數</h3>
+<p>dict 形式鏡像 <code>@command()</code> 裝飾器的使用者級參數，用於在模組載入前就註冊佔位命令：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>參數</th>
+<th>類型</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td><strong>必填</strong></td>
+<td>命令名；須與 <code>on_load</code> 中 <code>@command(name)</code> 一致，否則激活後佔位註銷、命令不存在</td>
+</tr>
+<tr>
+<td><code>help</code></td>
+<td><code>str</code></td>
+<td>回退鏈</td>
+<td>Help 中顯示的介紹；未聲明時按回退鏈取值（見下）</td>
+</tr>
+<tr>
+<td><code>usage</code></td>
+<td><code>str</code></td>
+<td>自动生成</td>
+<td>用法行，預設 <code>{prefix}{name}</code></td>
+</tr>
+<tr>
+<td><code>group</code></td>
+<td><code>str</code></td>
+<td><code>None</code></td>
+<td>命令分組</td>
+</tr>
+<tr>
+<td><code>aliases</code></td>
+<td><code>list[str]</code></td>
+<td><code>[]</code></td>
+<td>別名同時註冊，<strong>輸入別名同樣觸發激活</strong></td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td><code>True</code> 時佔位命令同樣隱藏（與激活後真實命令的隱藏語義對齊）；知道命令名的使用者輸入仍可觸發</td>
+</tr>
+</tbody></table></div>
+<p><strong>不支援</strong> <code>priority</code> / <code>permission</code> / <code>master</code>：佔位命令的使命只是觸發激活，<br>權限檢查由激活後的真實命令執行（佔位階段攔截權限反而會讓「輸入命令激活」失效）。</p>
+<h3 id="佔位命令-help-回退鏈">佔位命令 help 回退鏈</h3>
+<p>模組未載入時 Help 顯示的命令介紹，按以下順序取值（取到即止）：</p>
+<ol>
+<li>dict 聲明的命令級 <code>help</code>（最精確）  </li>
+<li>模組 <code>get_meta()</code> 的 <code>description</code>  </li>
+<li>模組 <code>__description__</code> 屬性  </li>
+<li>包元數據的 <code>Summary</code>（PyPI 包簡介）  </li>
+<li>通用提示：「此命令來自懶載入模組 X，首次使用將自動載入該模組」</li>
+</ol>
+<h3 id="觸發語義">觸發語義</h3>
+<ul>
+<li><strong>事件 stub</strong>：以極低優先級（<code>ACTIVATION_STUB_PRIORITY</code>）註冊到對應事件管理器，<br>在所有普通處理器之後兜底觸發；激活後將當前事件轉發給模組的真實處理器  </li>
+<li><strong>命令 stub</strong>：註冊佔位命令；激活後佔位註銷、真實命令接管當次觸發  </li>
+<li><strong>防重入</strong>：<code>asyncio.Lock</code> 保證併發觸發下只激活一次  </li>
+<li><strong>作用域過濾</strong>：stub 帶模組 owner 身份，模組未對該 Bot / 會話 / 平台啟用時不觸發  </li>
+<li><strong>失敗語義</strong>：激活失敗不重試，stub 一併註銷  </li>
+<li><strong>去重</strong>：同名命令以簡寫 + dict 混合聲明時去重（dict 优先）；dict 缺 <code>name</code> 或事件 <code>detail_type</code> 误写 dict 时告警并忽略</li>
+</ul>
+<blockquote>
+<p>架構圖與完整語義詳見 <a href="/docs/zh-TW/architecture.html#%E4%BA%8B%E4%BB%B6%E9%A9%85%E5%8B%95%E6%87%B6%E6%BF%80%E6%B4%BBactivate_on%E8%A7%B8%E7%99%BC%E6%9E%B6%E6%A7%8B">架構概覽</a>。</p>
+</blockquote>
+<h2 id="配置懶加載">配置懶加載</h2>
+<h3 id="全局配置">全局配置</h3>
+<p>在配置文件中啟用/禁用全局懶加載：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.framework</span><span class="token punctuation">]</span>
+<span class="token key property">enable_lazy_loading</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>  <span class="token comment"># true=啟用懶加載(預設)，false=禁用懶加載</span>
+</code></pre>
+<h3 id="模組層級控制">模組層級控制</h3>
+<p>模組可以透過實作 <code>get_load_strategy()</code> 靜態方法來控制加載策略：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""返回模組加載策略"""</span>
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>  <span class="token comment"># 返回 False 表示立即加載</span>
+            priority<span class="token operator">=</span><span class="token number">100</span>      <span class="token comment"># 加載優先級，數值越大優先級越高</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h2 id="使用懶加載模組">使用懶加載模組</h2>
+<h3 id="基本使用">基本使用</h3>
+<p>對於開發者來說，懶加載模組與普通模組在使用上幾乎沒有區別：</p>
+<pre><code class="language-python"><span class="token comment"># 透過 SDK 訪問懶加載模組</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># 以下訪問會觸發模組懶加載</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="統一的模組獲取入口">統一的模組獲取入口</h3>
+<p>無論是透過 SDK 屬性、模組管理器屬性訪問，還是透過 <code>module.get()</code> 查詢，
+對於「已註冊但尚未加載」的懶加載模組，都會返回同一個懶加載代理，訪問其屬性才會真正觸發初始化：</p>
+<pre><code class="language-python"><span class="token comment"># 三種方式拿到的都是懶加載代理（在模組未加載時），行為一致、對使用者透明</span>
+sdk<span class="token punctuation">.</span>my_module          <span class="token comment"># 觸發加載的入口</span>
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>my_module   <span class="token comment"># 同樣返回懶加載代理</span>
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>  <span class="token comment"># 也返回懶加載代理，本身不會觸發加載</span>
+
+<span class="token comment"># 訪問代理的任意屬性才會真正初始化模組</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>module.get()</code> 是<strong>查詢</strong>介面，本身不觸發加載：</p>
+<ul>
+<li>模組已加載 → 返回真實實例</li>
+<li>模組已註冊但未加載 → 返回懶加載代理（訪問屬性才初始化）</li>
+<li>模組未註冊 → 返回 <code>None</code></li>
+</ul>
+<p>如需顯式觸發加載，請使用 <code>await sdk.load_module("my_module")</code>。</p>
+<h3 id="異步初始化">異步初始化</h3>
+<p>對於需要異步初始化的模組，建議先顯式加載：</p>
+<pre><code class="language-python"><span class="token comment"># 先顯式加載模組</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 然後使用模組</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="同步初始化">同步初始化</h3>
+<p>對於不需要異步初始化的模組，可以直接訪問：</p>
+<pre><code class="language-python"><span class="token comment"># 直接訪問會自動同步初始化</span>
+result <span class="token operator">=</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>some_sync_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="最佳實踐">最佳實踐</h2>
+<p>選擇載入策略時，可參考以下決策流程：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["模組宣告&lt;br/&gt;get_load_strategy()"] --&gt; B{"需要啟動即就緒&lt;br/&gt;或高頻觸發？"}
+    B --&gt;|"是"| C["lazy_load=False&lt;br/&gt;立即載入"]
+    B --&gt;|"否"| D{"註冊了命令 / 事件處理器？"}
+    D --&gt;|"是"| E["lazy_load=True + activate_on&lt;br/&gt;事件/命令到達時激活"]
+    D --&gt;|"否"| F["lazy_load=True&lt;br/&gt;首次屬性存取時載入"]
+    C --&gt; G["啟動時呼叫 on_load()"]
+    E --&gt; H["註冊 stub → 觸發時實例化"]
+    F --&gt; I["LazyModule 代理"]
+</code></pre>
+<h3 id="推薦使用懶載入的場景lazy_loadtrue">推薦使用懶載入的場景（lazy_load=True）</h3>
+<ul>
+<li>被動呼叫的工具類（如資料查詢模組、格式轉換器等，僅在其他模組呼叫時才需要）</li>
+<li>註冊命令/事件處理器但非高頻使用的模組——配合 <code>activate_on</code> 聲明觸發器，首個匹配事件/命令到達時自動激活，無需放棄懶載入</li>
+</ul>
+<h3 id="推薦禁用懶載入的場景lazy_loadfalse">推薦禁用懶載入的場景（lazy_load=False）</h3>
+<ul>
+<li>需要在啟動時立即就緒的模組（如為其它模組提供基礎服務的核心模組）</li>
+<li>高頻觸發的監聽器（每條訊息都要處理）——<code>activate_on</code> 轉發有一次激活開銷，高頻場景立即載入更直接</li>
+<li>定時任務模組</li>
+<li>需要在應用啟動時就初始化的模組</li>
+</ul>
+<blockquote>
+<p><code>priority</code> 參數控制立即載入模組間的初始化順序，數值越大越先初始化。同優先級的模組按註冊順序載入。</p>
+</blockquote>
+<h2 id="注意事項">注意事項</h2>
+<ol>
+<li>如果您的模組使用了懶加載，如果其他模組從未在 ErisPulse 內進行過呼叫，則您的模組永遠不會被初始化。</li>
+<li>如果您的模組中包含了例如監聽事件的模組，或其它主動監聽類似模組，有兩種選擇：聲明 <code>activate_on</code> 觸發器（保持懶加載，事件到達時自動激活），或聲明需要立即被加載（<code>lazy_load=False</code>），否則會影響您模組的正常業務。</li>
+<li>我們不建議您禁用懶加載，除非有特殊需求，否則它可能為您帶來例如依賴管理和生命週期事件等的問題。</li>
+<li><code>activate_on</code> 的命令 dict 聲明中，<code>name</code> 必須與模組 <code>on_load</code> 中 <code>@command()</code> 註冊的真實命令名一致——否則模組激活後占位命令註銷，聲明與實現不一致的命令將不存在。</li>
+</ol>
+<h2 id="相關文件">相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/developer-guide/modules/getting-started.html">模組開發指南</a> - 學習開發模組</li>
+<li><a href="/docs/zh-TW/developer-guide/modules/best-practices.html">最佳實踐</a> - 了解更多最佳實踐</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/lifecycle.html"><small>Previous</small><br>生命週期管理</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/router.html"><small>Next</small><br>路由管理器</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

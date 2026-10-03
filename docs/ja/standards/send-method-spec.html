@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse 送信メソッド規格 - ErisPulse 文档中心</title>
+    <meta name="description" content="このドキュメントでは、ErisPulseアダプタのSendクラスにおける送信メソッドの命名規則、引数規則、および逆変換要件を定義します。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/standards/send-method-spec.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/standards/send-method-spec.html" />
+    <meta property="og:title" content="ErisPulse 送信メソッド規格 - ErisPulse 文档中心" />
+    <meta property="og:description" content="このドキュメントでは、ErisPulseアダプタのSendクラスにおける送信メソッドの命名規則、引数規則、および逆変換要件を定義します。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/standards/send-method-spec.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse 送信メソッド規格","description":"このドキュメントでは、ErisPulseアダプタのSendクラスにおける送信メソッドの命名規則、引数規則、および逆変換要件を定義します。","url":"https://www.erisdev.com/docs/ja/standards/send-method-spec.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 技術標準
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse 送信メソッド規格</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/standards/send-method-spec.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/standards/send-method-spec.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/standards/send-method-spec.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/standards/send-method-spec.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/standards/send-method-spec.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/standards/send-method-spec.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulse-送信メソッド規格">ErisPulse 送信メソッド規格</h1>
+<p>このドキュメントでは、ErisPulseアダプタのSendクラスにおける送信メソッドの命名規則、引数規則、および逆変換要件を定義します。</p>
+<h2 id="0-キーワードの定義">0. キーワードの定義</h2>
+<p>本文書における<strong>必須（MUST）</strong>、<strong>推奨（SHOULD）</strong>、<strong>可選（MAY）</strong>は、RFC 2119に従い以下の意味で解釈されます：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>キーワード</th>
+<th>意味</th>
+<th>違反時の影響</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>必須</strong></td>
+<td>強制的な要件、フレームワークの動作やプラットフォーム間の一貫性に依存</td>
+<td>アダプタは規格に準拠していないと見なされ、モジュールコードが動作しない可能性がある</td>
+</tr>
+<tr>
+<td><strong>推奨</strong></td>
+<td>強く推奨するが、正当な理由がない限り遵守すべき</td>
+<td>違反する場合は、アダプタのドキュメントに理由と代替動作を明記する必要がある</td>
+</tr>
+<tr>
+<td><strong>可選</strong></td>
+<td>オプションで、プラットフォームの能力に応じて自由に決定できる</td>
+<td>無し</td>
+</tr>
+</tbody></table></div>
+<h2 id="1-標準メソッド命名">1. 標準メソッド命名</h2>
+<p>すべての送信メソッドは<strong>大文字キャメルケース（PascalCase）</strong>を使用し、先頭文字は大文字とする。</p>
+<h3 id="11-標準送信メソッド">1.1 標準送信メソッド</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド名</th>
+<th>説明</th>
+<th>引数型</th>
+<th>実装要件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Text</code></td>
+<td>テキストメッセージを送信</td>
+<td><code>str</code></td>
+<td>必須</td>
+</tr>
+<tr>
+<td><code>Image</code></td>
+<td>画像を送信</td>
+<td><code>str</code> | <code>bytes</code></td>
+<td>必須（基底クラスに既に実装済み、§6.4参照）</td>
+</tr>
+<tr>
+<td><code>Voice</code></td>
+<td>音声を送信</td>
+<td><code>str</code> | <code>bytes</code></td>
+<td>必須（基底クラスに既に実装済み；プラットフォームが音声をサポートしない場合は§2.1.5に従って降格）</td>
+</tr>
+<tr>
+<td><code>Video</code></td>
+<td>動画を送信</td>
+<td><code>str</code> | <code>bytes</code></td>
+<td>必須（基底クラスに既に実装済み；プラットフォームが動画をサポートしない場合は§2.1.5に従って降格）</td>
+</tr>
+<tr>
+<td><code>File</code></td>
+<td>ファイルを送信</td>
+<td><code>str</code> | <code>bytes</code>、<code>filename: str | None = None</code></td>
+<td>必須（基底クラスに既に実装済み）</td>
+</tr>
+<tr>
+<td><code>At</code></td>
+<td>ユーザー/グループを@する</td>
+<td><code>str</code> (user_id)</td>
+<td>修飾メソッド、必要に応じて使用</td>
+</tr>
+<tr>
+<td><code>Face</code></td>
+<td>表情を送信</td>
+<td><code>str</code> (emoji)</td>
+<td>可能</td>
+</tr>
+<tr>
+<td><code>Reply</code></td>
+<td>メッセージに返信する</td>
+<td><code>str</code> (message_id)</td>
+<td>修飾メソッド、必要に応じて使用</td>
+</tr>
+<tr>
+<td><code>Forward</code></td>
+<td>メッセージを転送する</td>
+<td><code>str</code> (message_id)</td>
+<td>可能</td>
+</tr>
+<tr>
+<td><code>Markdown</code></td>
+<td>Markdown形式のメッセージを送信</td>
+<td><code>str</code></td>
+<td>可能</td>
+</tr>
+<tr>
+<td><code>HTML</code></td>
+<td>HTML形式のメッセージを送信</td>
+<td><code>str</code></td>
+<td>可能</td>
+</tr>
+<tr>
+<td><code>Card</code></td>
+<td>カード形式のメッセージを送信</td>
+<td><code>dict</code></td>
+<td>可能</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>標準メソッド（<code>Text</code>/<code>Image</code>/<code>Voice</code>/<code>Video</code>/<code>File</code>）は基底クラス <code>SendDSL</code> に内蔵されており、<code>Raw_ob12</code> にデフォルトで委譲される。アダプタはこれらのメソッドを再実装せずにタイプ署名を得ることができる。プラットフォームに特別なロジックが必要な場合にのみ、個々のメソッドをオーバーライドする（§6.4参照）。</p>
+</blockquote>
+<h3 id="12-チェーン修飾メソッド">1.2 チェーン修飾メソッド</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド名</th>
+<th>説明</th>
+<th>引数型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>At</code></td>
+<td>ユーザーを@する（複数回呼び出し可）</td>
+<td><code>str</code> (user_id)</td>
+</tr>
+<tr>
+<td><code>AtAll</code></td>
+<td>全メンバーを@する</td>
+<td>無し</td>
+</tr>
+<tr>
+<td><code>Reply</code></td>
+<td>メッセージに返信する</td>
+<td><code>str</code> (message_id)</td>
+</tr>
+</tbody></table></div>
+<h3 id="13-プロトコルメソッド">1.3 プロトコルメソッド</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド名</th>
+<th>説明</th>
+<th>必須か</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Raw_ob12</code></td>
+<td>OneBot12形式のメッセージセグメントを送信</td>
+<td>必須</td>
+</tr>
+</tbody></table></div>
+<p><strong><code>Raw_ob12</code> は必須実装のメソッド</strong>。これはアダプタの主要な責任の一つであり、OneBot12標準メッセージセグメントを受信してそれをプラットフォーム固有のAPI呼び出しに変換する。<code>Raw_ob12</code> はOneBot12 → プラットフォームへの逆変換（OneBot12 → プラットフォーム）の統一エントリーポイントであり、モジュールがプラットフォーム固有のメソッドに依存することなく、標準メッセージセグメントを使用してメッセージを送信できるようにする。</p>
+<p><strong><code>Raw_ob12</code> をオーバーライドしない場合の動作</strong>：基底クラスのデフォルト実装は <strong>errorレベル</strong>のログを記録し、標準エラーレスポンス形式（<code>status: "failed"</code>, <code>retcode: 10002</code>）を返し、アダプタ開発者がこのメソッドを実装する必要があることを示す。</p>
+<h3 id="14-推奨される拡張命名規則">1.4 推奨される拡張命名規則</h3>
+<p>アダプタがOneBot12形式以外の生データ（プラットフォーム固有のJSON、XMLなど）を送信する必要がある場合、以下の命名規則を推奨する：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>推奨メソッド名</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Raw_json</code></td>
+<td>任意のJSONデータを送信</td>
+</tr>
+<tr>
+<td><code>Raw_xml</code></td>
+<td>任意のXMLデータを送信</td>
+</tr>
+</tbody></table></div>
+<p><strong>注意</strong>：これらのメソッドは<strong>基底クラスが提供するデフォルトメソッドではなく、強制的に実装する必要もない</strong>。これらは命名規則としてのみ、アダプタが必要に応じて独自に定義できる。もしアダプタがこれらの形式をサポートしていない場合は、定義する必要はない。</p>
+<p><strong>メッセージビルダ（MessageBuilder）</strong>：ErisPulseは<code>MessageBuilder</code>ツールクラスを提供しており、OneBot12メッセージセグメントリストを容易に構築し、<code>Raw_ob12</code>と併用できる。詳細は<a href="#11-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8%E3%83%93%E3%83%AB%E3%83%80-messagebuilder">メッセージビルダ</a>章節を参照。</p>
+<h2 id="2-引数規則の詳細">2. 引数規則の詳細</h2>
+<h3 id="21-メディア送信プロトコルimage-voice-video-file">2.1 メディア送信プロトコル（<code>Image</code> / <code>Voice</code> / <code>Video</code> / <code>File</code>）</h3>
+<p>本節はメディア送信の<strong>統一プロトコル標準</strong>である。モジュールは同じコードで4つのメディアメソッドを呼び出し、アダプタは<code>file</code>引数のさまざまな形態をプラットフォーム固有のアップロード/送信動作に変換する。</p>
+<h4 id="211-file引数の合法な形態">2.1.1 <code>file</code>引数の合法な形態</h4>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>形態</th>
+<th>例</th>
+<th>アダプタの要件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTTP(S) URL</td>
+<td><code>https://example.com/image.jpg</code></td>
+<td><strong>必須</strong>受ける</td>
+</tr>
+<tr>
+<td>本地ファイルパス</td>
+<td><code>/path/to/file.jpg</code>、<code>C:\path\to\file.jpg</code></td>
+<td><strong>必須</strong>受ける</td>
+</tr>
+<tr>
+<td>二進データ</td>
+<td><code>b"\x89PNG..."</code></td>
+<td><strong>必須</strong>受ける</td>
+</tr>
+<tr>
+<td><code>file://</code> URI</td>
+<td><code>file:///path/to/file.jpg</code></td>
+<td><strong>推奨</strong>受ける（ローカルパスに転送して処理）</td>
+</tr>
+<tr>
+<td>Base64文字列 / Data URI</td>
+<td><code>iVBORw0KGgo=...</code>、<code>data:image/png;base64,...</code></td>
+<td><strong>推奨</strong>受ける（OneBot12エコシステムとの互換性に配慮）</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>アダプタは<strong>必須の3つの形態</strong>で動作を一貫させる必要がある。モジュールがURL、パス、またはbytesを渡しても、受信されるのは同じメッセージになる。プラットフォームが外部URLを直接使用できない場合（URLを参照またはダウンロードしてアップロード）、<strong>要求を変更して再試行する必要はない</strong>。</p>
+</blockquote>
+<h4 id="212-形態判定順序">2.1.2 形態判定順序</h4>
+<p>アダプタがメディア引数を処理する際、<strong>判定順序は以下の通り</strong>とする。</p>
+<ol>
+<li><code>bytes</code>型 → 直接アップロード</li>
+<li>文字列が<code>http://</code> / <code>https://</code>で始まる → URLとして処理（プラットフォームの能力に応じてURLを参照またはダウンロードしてアップロード）</li>
+<li>文字列が<code>file://</code>で始まる → プレフィックスを剥がしてローカルパスとして処理</li>
+<li>その他の文字列 → ローカルパスとして処理（存在すれば読み込んでアップロード、存在しない場合は標準エラーレスポンスを返す）</li>
+</ol>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_resolve_media</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token builtin">file</span><span class="token punctuation">:</span> <span class="token string">"str | bytes"</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">bytes</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""形態判定と正規化（例）"""</span>
+    <span class="token keyword">if</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token builtin">bytes</span><span class="token punctuation">,</span> <span class="token builtin">bytearray</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">bytes</span><span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token builtin">file</span><span class="token punctuation">.</span>startswith<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token string">"http://"</span><span class="token punctuation">,</span> <span class="token string">"https://"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>_download<span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">)</span>          <span class="token comment"># プラットフォームがURLを参照できない場合はダウンロード</span>
+    <span class="token keyword">if</span> <span class="token builtin">file</span><span class="token punctuation">.</span>startswith<span class="token punctuation">(</span><span class="token string">"file://"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">file</span> <span class="token operator">=</span> <span class="token builtin">file</span><span class="token punctuation">[</span><span class="token builtin">len</span><span class="token punctuation">(</span><span class="token string">"file://"</span><span class="token punctuation">)</span><span class="token punctuation">:</span><span class="token punctuation">]</span>
+    <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>              <span class="token comment"># 本地ファイル</span>
+        <span class="token keyword">return</span> f<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h4 id="213-fileのファイル名の意味">2.1.3 <code>File</code>のファイル名の意味</h4>
+<p><code>File</code>メソッドの署名：<code>File(file, filename=None)</code>（<code>filename</code>はオプション引数、基底クラスに既に実装済み）。</p>
+<p>ファイル名<strong>推導順序</strong>（アダプタが明示的に<code>filename</code>を提供しない場合にこの順序で生成）：</p>
+<ol>
+<li>明示的な<code>filename</code>引数（最高優先）</li>
+<li>URLのbasename（例：<code>https://host/a/b/report.pdf</code> → <code>report.pdf</code>、クエリ文字列は剥がす）</li>
+<li>本地ファイルパスのbasename（例：<code>/tmp/data/backup.zip</code> → <code>backup.zip</code>）</li>
+<li>プラットフォームが生成するデフォルト名（例：<code>file_{timestamp}</code>；<strong>拡張子を保持する</strong>。拡張子はプラットフォーム側の種類識別とプレビュー動作に影響する）</li>
+</ol>
+<blockquote>
+<p><code>Image</code> / <code>Voice</code> / <code>Video</code>も**<code>filename</code>を受けることができる**（メッセージセグメント<code>data.filename</code>を通じて渡される）、ただし<code>File</code>のファイル名だけが跨プラットフォームの意味保証がある。</p>
+</blockquote>
+<h4 id="214-プラットフォーム制限の宣言義務">2.1.4 プラットフォーム制限の宣言義務</h4>
+<p>各プラットフォームはメディアのサイズ上限、形式（MIME）、音声/動画の長さなどの制約が異なる。アダプタは<strong>宣言する義務</strong>がある：</p>
+<ul>
+<li>アダプタドキュメントにサポートするメディア形式と制限範囲を宣言する</li>
+<li>制限を超えるか、サポートしない入力は<strong>標準エラーレスポンス</strong>を返す（<code>status: "failed"</code>；<code>retcode</code>は<code>10002</code>またはプラットフォームの意味化されたエラーコードを使用、<code>message</code>は原因を説明）、<strong>例外をスローしてモジュールのロジックを中断してはならない</strong></li>
+</ul>
+<h4 id="215-機能降格の段階">2.1.5 機能降格の段階</h4>
+<p>プラットフォームがメディアの<strong>特定のタイプ</strong>をサポートしない場合、以下の段階で降格する（総則「機能降格はエラーを出さない」を遵守）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>状況</th>
+<th>降格動作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Voice</code>が音声メッセージをサポートしない場合</td>
+<td><strong>推奨</strong> <code>File</code>（またはプラットフォームに近縁な形態）で送信；表現できない場合は<code>retcode=10002</code>を返す</td>
+</tr>
+<tr>
+<td><code>Video</code>が動画メッセージをサポートしない場合</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>メディアタイプが完全にサポートされていない場合（ファイル機能がない）</td>
+<td><code>retcode=10002</code>を返し、<code>message</code>にサポートしていないデータタイプを明記する</td>
+</tr>
+<tr>
+<td>形態がサポートされていない場合（例：Base64を処理できない）</td>
+<td><code>retcode=10002</code>を返す、**<code>message</code>にモジュールにURL/bytesに変更するよう提示できる**</td>
+</tr>
+</tbody></table></div>
+<p><strong>禁止される動作</strong>：静かに破棄（返さない）、例外をスローする、モジュールにプラットフォーム分岐処理を書かせる。</p>
+<h3 id="22-ユーザー引数の規則">2.2 @ユーザー引数の規則</h3>
+<p><strong>メソッド</strong>：<code>At</code>（修飾メソッド）</p>
+<p><strong>引数</strong>：<code>user_id</code> (<code>str</code>)</p>
+<p><strong>要件</strong>：</p>
+<ul>
+<li><code>user_id</code>は文字列型のユーザー識別子であるべき</li>
+<li>各プラットフォームの<code>user_id</code>形式は異なる可能性がある（数値、UUID、文字列など）</li>
+<li>アダプタは<code>user_id</code>をプラットフォーム固有の形式に変換する責任がある</li>
+<li>実際の送信メソッドの呼び出しは最後の位置に置くこと</li>
+</ul>
+<p><strong>例</strong>：</p>
+<pre><code class="language-python"><span class="token comment"># 単一の@ユーザー</span>
+Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 複数の@ユーザー（チェーン呼び出し）</span>
+send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789012"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"大家好"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="23-メッセージ返信引数の規則">2.3 メッセージ返信引数の規則</h3>
+<p><strong>メソッド</strong>：<code>Reply</code>（修飾メソッド）</p>
+<p><strong>引数</strong>：<code>message_id</code> (<code>str</code>)</p>
+<p><strong>要件</strong>：</p>
+<ul>
+<li><code>message_id</code>は文字列型のメッセージ識別子であるべき</li>
+<li>以前に受信したメッセージのIDであるべき</li>
+<li>一部のプラットフォームは返信機能をサポートしていない可能性があり、アダプタは優雅に降格するべき</li>
+</ul>
+<p><strong>例</strong>：</p>
+<pre><code class="language-python">send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"收到"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="3-プラットフォーム固有メソッドの命名">3. プラットフォーム固有メソッドの命名</h2>
+<p>Sendクラスに直接プラットフォームプレフィックス付きのメソッドを追加することは<strong>推奨されない</strong>。汎用メソッド名または<code>Raw_{プロトコル}</code>メソッドを使用することを推奨する。</p>
+<p><strong>推奨されない</strong>：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">YunhuForm</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> form_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ❌ 推奨されない</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">TelegramSticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ❌ 推奨されない</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<p><strong>推奨される</strong>：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">Form</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> form_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ✅ 汎用メソッド名</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">Sticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ✅ 汎用メソッド名</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">)</span><span class="token punctuation">:</span>  <span class="token comment"># ✅ OneBot12形式を送信</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<p><strong>拡張メソッドの要件</strong>：</p>
+<ul>
+<li>メソッド名はPascalCaseを使用し、プラットフォームプレフィックスを付けない</li>
+<li><code>asyncio.Task</code>オブジェクトを返す必要がある</li>
+<li>完全な型注釈とドキュメント文字列を提供する必要がある</li>
+<li>引数設計は標準メソッドのスタイルにできるだけ一致させる</li>
+</ul>
+<h2 id="4-引数名の規則">4. 引数名の規則</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>引数名</th>
+<th>説明</th>
+<th>型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text</code></td>
+<td>テキスト内容</td>
+<td><code>str</code></td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>メディア内容（URL / パス / 二進数、§2.1.1参照）</td>
+<td><code>str</code> / <code>bytes</code></td>
+</tr>
+<tr>
+<td><code>filename</code></td>
+<td>ファイル名（<code>File</code>のオプション、§2.1.3参照）</td>
+<td><code>str</code> / <code>None</code></td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>ユーザーID</td>
+<td><code>str</code> / <code>int</code></td>
+</tr>
+<tr>
+<td><code>group_id</code></td>
+<td>グループID</td>
+<td><code>str</code> / <code>int</code></td>
+</tr>
+<tr>
+<td><code>message_id</code></td>
+<td>メッセージID</td>
+<td><code>str</code></td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>データオブジェクト（例：カードデータ）</td>
+<td><code>dict</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="5-戻り値の規則">5. 戻り値の規則</h2>
+<ul>
+<li><strong>送信メソッド</strong>（例：<code>Text</code>, <code>Image</code>）：<code>asyncio.Task</code>オブジェクトを返す必要がある</li>
+<li><strong>修飾メソッド</strong>（例：<code>At</code>, <code>Reply</code>, <code>AtAll</code>）：<code>self</code>を返してチェーン呼び出しを可能にする必要がある</li>
+</ul>
+<hr>
+<h2 id="6-逆変換規則onebot12-プラットフォーム">6. 逆変換規則（OneBot12 → プラットフォーム）</h2>
+<p>アダプタは、プラットフォーム固有のイベントをOneBot12形式に変換する（正変換）だけでなく、<strong>OneBot12メッセージセグメントをプラットフォーム固有のAPI呼び出しに変換する</strong>能力（逆変換）も提供しなければならない。逆変換の統一エントリーポイントは<code>Raw_ob12</code>メソッドである。</p>
+<h3 id="61-変換モデル">6.1 変換モデル</h3>
+<pre><code>正変換（受信方向）                逆変換（送信方向）
+─────────────────                ─────────────────
+プラットフォーム固有イベント                       OneBot12メッセージセグメントリスト
+    │                                  │
+    ▼                                  ▼
+Converter.convert()               Send.Raw_ob12()
+    │                                  │
+    ▼                                  ▼
+OneBot12標準イベント（含{platform}_raw）             プラットフォーム固有API呼び出し
+（含{platform}_raw）                     （標準レスポンス形式を返す）
+</code></pre>
+<p><strong>コアの対称性</strong>：正変換では元のデータを<code>{platform}_raw</code>に保持し、逆変換ではOneBot12標準形式を受け取り、プラットフォーム呼び出しに還元する。</p>
+<h3 id="62-raw_ob12の実装規則">6.2 <code>Raw_ob12</code>の実装規則</h3>
+<p><code>Raw_ob12</code>はOneBot12標準メッセージセグメントリストを受け取り、それをプラットフォーム固有のAPI呼び出しに変換する。</p>
+<p><strong>メソッド署名</strong>：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message_segments<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    OneBot12標準メッセージセグメントを送信
+
+    :param message_segments: OneBot12メッセージセグメントリスト
+        [
+            {"type": "text", "data": {"text": "Hello"}},
+            {"type": "image", "data": {"file": "https://..."}},
+            {"type": "mention", "data": {"user_id": "123"}},
+        ]
+    :return: asyncio.Task、await後に標準レスポンス形式を返す
+    """</span>
+</code></pre>
+<p><strong>実装要件</strong>：</p>
+<ol>
+<li><strong>すべての標準メッセージセグメントタイプを処理する必要がある</strong>：少なくとも<code>text</code>、<code>image</code>、<code>audio</code>、<code>video</code>、<code>file</code>、<code>mention</code>、<code>reply</code>をサポートする</li>
+<li><strong>プラットフォーム拡張メッセージセグメントを処理する必要がある</strong>：<code>{platform}_xxx</code>形式のメッセージセグメントは、プラットフォームに対応する固有の呼び出しに変換する</li>
+<li><strong>標準レスポンス形式を返す必要がある</strong>：<a href="/docs/ja/standards/api-response.html">APIレスポンス規格</a>に従う</li>
+<li><strong>サポートしないメッセージセグメントは警告を記録してスキップし、例外をスローしてメッセージ全体の送信を失敗させるべきではない</strong></li>
+</ol>
+<h3 id="63-メッセージセグメント変換ルール">6.3 メッセージセグメント変換ルール</h3>
+<h4 id="631-標準メッセージセグメント変換">6.3.1 標準メッセージセグメント変換</h4>
+<p>アダプタは以下の標準メッセージセグメントの変換を実装する必要がある：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OneBot12メッセージセグメント</th>
+<th>変換要件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text</code></td>
+<td><code>data.text</code>をそのまま使用</td>
+</tr>
+<tr>
+<td><code>image</code></td>
+<td><code>data.file</code>を§2.1のメディアプロトコルに従って処理（3つの必須形態 + 判定順序）</td>
+</tr>
+<tr>
+<td><code>audio</code></td>
+<td><code>image</code>の処理ロジックと同じ</td>
+</tr>
+<tr>
+<td><code>video</code></td>
+<td><code>image</code>の処理ロジックと同じ</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td><code>image</code>の処理ロジックと同じ；ファイル名は§2.1.3の推導順序に従って<code>data.filename</code>を処理</td>
+</tr>
+<tr>
+<td><code>mention</code></td>
+<td>プラットフォームの@ユーザー機能に変換（例：Telegramの<code>entities</code>、雲湖の<code>at_uid</code>）</td>
+</tr>
+<tr>
+<td><code>reply</code></td>
+<td>プラットフォームの返信引用機能に変換</td>
+</tr>
+<tr>
+<td><code>face</code></td>
+<td>プラットフォームの絵文字送信機能に変換、サポートしない場合はスキップ</td>
+</tr>
+<tr>
+<td><code>location</code></td>
+<td>プラットフォームの位置送信機能に変換、サポートしない場合はスキップ</td>
+</tr>
+</tbody></table></div>
+<h4 id="632-プラットフォーム拡張メッセージセグメント変換">6.3.2 プラットフォーム拡張メッセージセグメント変換</h4>
+<p>プラットフォームプレフィックス付きのメッセージセグメントは、アダプタが認識して変換する：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_ob12_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> segments<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> Any<span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""OneBot12メッセージセグメントをプラットフォーム固有形式に変換"""</span>
+    platform_prefix <span class="token operator">=</span> <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>self<span class="token punctuation">.</span>_platform_name<span class="token punctuation">}</span></span><span class="token string">_"</span></span>
+    
+    <span class="token keyword">for</span> segment <span class="token keyword">in</span> segments<span class="token punctuation">:</span>
+        seg_type <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span>
+        seg_data <span class="token operator">=</span> segment<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span>
+        
+        <span class="token keyword">if</span> seg_type<span class="token punctuation">.</span>startswith<span class="token punctuation">(</span>platform_prefix<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token comment"># プラットフォーム拡張メッセージセグメント → プラットフォーム固有の呼び出し</span>
+            self<span class="token punctuation">.</span>_handle_platform_segment<span class="token punctuation">(</span>seg_type<span class="token punctuation">,</span> seg_data<span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> seg_type <span class="token keyword">in</span> self<span class="token punctuation">.</span>_standard_segment_handlers<span class="token punctuation">:</span>
+            <span class="token comment"># 標準メッセージセグメント → プラットフォーム等価操作</span>
+            self<span class="token punctuation">.</span>_standard_segment_handlers<span class="token punctuation">[</span>seg_type<span class="token punctuation">]</span><span class="token punctuation">(</span>seg_data<span class="token punctuation">)</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            <span class="token comment"># 未知のメッセージセグメント → 警告を記録してスキップ</span>
+            logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"サポートしないメッセージセグメント: </span><span class="token interpolation"><span class="token punctuation">{</span>seg_type<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h4 id="633-複合メッセージセグメント処理">6.3.3 複合メッセージセグメント処理</h4>
+<p>1つのメッセージは複数のメッセージセグメントを含む可能性があり、アダプタは複合メッセージを正しく処理する：</p>
+<pre><code class="language-python"><span class="token comment"># モジュールがテキスト+画像+@ユーザーを含むメッセージを送信</span>
+<span class="token keyword">await</span> send<span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"你好"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/img.jpg"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+<span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p><strong>処理戦略</strong>：</p>
+<ul>
+<li><strong>優先して結合</strong>：プラットフォームがテキスト、画像、@などを1つのメッセージに同時に含めることが可能であれば、結合して送信する</li>
+<li><strong>次善として分割</strong>：プラットフォームが結合をサポートしない場合は、順番に複数のメッセージに分割して送信する</li>
+<li><strong>順序を保持</strong>：メッセージセグメントの送信順序はリストの順序と一致する</li>
+</ul>
+<h3 id="64-raw_ob12と標準メソッドの関係">6.4 <code>Raw_ob12</code>と標準メソッドの関係</h3>
+<p>アダプタの標準送信メソッド（<code>Text</code>、<code>Image</code>等）は**<code>SendDSL</code>基底クラスに既に実装され、デフォルトで<code>Raw_ob12</code>に委譲されている**。アダプタのサブクラスは再実装する必要はない：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>SendDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message_segments<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""コア実装：OneBot12メッセージセグメント → プラットフォームAPI（必須実装）"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_send_ob12<span class="token punctuation">(</span>message_segments<span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># Text/Image/Voice/Video/Fileは基底クラスから継承され、自動的にRaw_ob12に委譲される</span>
+    <span class="token comment"># プラットフォーム固有のロジックが必要な場合は、個々のメソッドをオーバーライドできる：</span>
+    <span class="token comment"># def Text(self, text: str) -&gt; asyncio.Task:</span>
+    <span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
+</code></pre>
+<p><strong>メリット</strong>：</p>
+<ul>
+<li>変換ロジックは<code>Raw_ob12</code>の1か所に集中し、重複コードを減らす</li>
+<li>標準メソッドと<code>Raw_ob12</code>の動作は完全に一致する</li>
+<li>モジュールは<code>Text()</code>または<code>Raw_ob12()</code>を使用しても同じ結果を得られる</li>
+<li>基底クラスがタイプ署名を提供し、IDEが標準メソッドを補完できる</li>
+</ul>
+<h3 id="65-実装例">6.5 実装例</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">YunhuSend</span><span class="token punctuation">(</span>SendDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""雲湖プラットフォーム用Send実装"""</span>
+    
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message_segments<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""OneBot12メッセージセグメント → 雲湖API呼び出し"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_do_send<span class="token punctuation">(</span>message_segments<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> segments<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""実際の送信ロジック"""</span>
+        <span class="token comment"># 1. 修飾子の状態を解析</span>
+        at_users <span class="token operator">=</span> self<span class="token punctuation">.</span>_at_users <span class="token keyword">or</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        reply_to <span class="token operator">=</span> self<span class="token punctuation">.</span>_reply_to
+        at_all <span class="token operator">=</span> self<span class="token punctuation">.</span>_at_all
+        
+        <span class="token comment"># 2. メッセージセグメントを変換</span>
+        yunhu_elements <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        <span class="token keyword">for</span> seg <span class="token keyword">in</span> segments<span class="token punctuation">:</span>
+            seg_type <span class="token operator">=</span> seg<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span>
+            seg_data <span class="token operator">=</span> seg<span class="token punctuation">[</span><span class="token string">"data"</span><span class="token punctuation">]</span>
+            
+            <span class="token keyword">if</span> seg_type <span class="token operator">==</span> <span class="token string">"text"</span><span class="token punctuation">:</span>
+                yunhu_elements<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> seg_data<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"image"</span><span class="token punctuation">:</span>
+                yunhu_elements<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span> <span class="token string">"url"</span><span class="token punctuation">:</span> seg_data<span class="token punctuation">[</span><span class="token string">"file"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"mention"</span><span class="token punctuation">:</span>
+                at_users<span class="token punctuation">.</span>append<span class="token punctuation">(</span>seg_data<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"reply"</span><span class="token punctuation">:</span>
+                reply_to <span class="token operator">=</span> seg_data<span class="token punctuation">[</span><span class="token string">"message_id"</span><span class="token punctuation">]</span>
+            <span class="token keyword">elif</span> seg_type <span class="token operator">==</span> <span class="token string">"yunhu_form"</span><span class="token punctuation">:</span>
+                <span class="token comment"># プラットフォーム拡張メッセージセグメント</span>
+                yunhu_elements<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"form"</span><span class="token punctuation">,</span> <span class="token string">"form_id"</span><span class="token punctuation">:</span> seg_data<span class="token punctuation">[</span><span class="token string">"form_id"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+            <span class="token keyword">else</span><span class="token punctuation">:</span>
+                logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"雲湖がサポートしないメッセージセグメント: </span><span class="token interpolation"><span class="token punctuation">{</span>seg_type<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token comment"># 3. 雲湖APIを呼び出す</span>
+        response <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_call_yunhu_api<span class="token punctuation">(</span>yunhu_elements<span class="token punctuation">,</span> at_users<span class="token punctuation">,</span> reply_to<span class="token punctuation">,</span> at_all<span class="token punctuation">)</span>
+        
+        <span class="token comment"># 4. 標準レスポンス形式を返す</span>
+        <span class="token keyword">return</span> <span class="token punctuation">{</span>
+            <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span> <span class="token keyword">if</span> response<span class="token punctuation">[</span><span class="token string">"code"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token keyword">else</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+            <span class="token string">"retcode"</span><span class="token punctuation">:</span> response<span class="token punctuation">[</span><span class="token string">"code"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+            <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"message_id"</span><span class="token punctuation">:</span> response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+            <span class="token string">"yunhu_raw"</span><span class="token punctuation">:</span> response
+        <span class="token punctuation">}</span>
+</code></pre>
+<hr>
+<h2 id="7-メソッド発見">7. メソッド発見</h2>
+<p>モジュール開発者は、適切な送信メソッドを発見するためにAPIを使用できる（<strong>プラットフォーム固有のメソッドリストをモジュールにハードコードしてはならない</strong>—各アダプタの拡張メソッドはバージョンの進化に伴い変化するため、実行時の発見をベースとする）：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> adapter
+
+<span class="token comment"># すべての送信メソッドをリストアップ</span>
+methods <span class="token operator">=</span> adapter<span class="token punctuation">.</span>list_sends<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+<span class="token comment"># ["Batch", "Form", "Image", "Recall", "Sticker", "Text", ...]</span>
+
+<span class="token comment"># メソッド詳細を取得</span>
+info <span class="token operator">=</span> adapter<span class="token punctuation">.</span>send_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"Form"</span><span class="token punctuation">)</span>
+<span class="token comment"># {</span>
+<span class="token comment">#     "name": "Form",</span>
+<span class="token comment">#     "parameters": [{"name": "form_id", "type": "str", ...}],</span>
+<span class="token comment">#     "return_type": "Awaitable[Any]",</span>
+<span class="token comment">#     "docstring": "雲湖フォームを送信"</span>
+<span class="token comment"># }</span>
+</code></pre>
+<hr>
+<h2 id="9-アダプタ開発の注意点">9. アダプタ開発の注意点</h2>
+<p><code>BaseAdapter</code>、<code>Send</code>、<code>Request</code>の<code>__init__</code>を正しくオーバーライドする方法については、<a href="/docs/ja/developer-guide/adapters/getting-started.html#init-%E3%81%AE%E6%B3%A8%E6%84%8F%E7%82%B9">アダプタ開発入門 - <code>__init__</code>の注意点</a>を参照。</p>
+<hr>
+<hr>
+<h2 id="10-アダプタ実装チェックリスト">10. アダプタ実装チェックリスト</h2>
+<h3 id="送信メソッド">送信メソッド</h3>
+<ul>
+<li><input disabled type="checkbox"> 標準メソッド（<code>Text</code>, <code>Image</code>等）が実装されている</li>
+<li><input disabled type="checkbox"> 戻り値はすべて<code>asyncio.Task</code>である</li>
+<li><input disabled type="checkbox"> 修飾メソッド（<code>At</code>, <code>Reply</code>, <code>AtAll</code>）は<code>self</code>を返す</li>
+<li><input disabled type="checkbox"> プラットフォーム拡張メソッドはPascalCaseを使用し、プラットフォームプレフィックスを付けない</li>
+<li><input disabled type="checkbox"> すべてのメソッドに完全な型注釈とドキュメント文字列がある</li>
+</ul>
+<h3 id="メディア送信プロトコル">メディア送信プロトコル</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>file</code>引数の<strong>必須形態</strong>（HTTP(S) URL / 本地ファイルパス / <code>bytes</code>、§2.1.1参照）がすべてサポートされている</li>
+<li><input disabled type="checkbox"> 形態判定順序は§2.1.2（bytes → URL → <code>file://</code> → ファイルパス）に従っている</li>
+<li><input disabled type="checkbox"> <code>File</code>のファイル名推導順序は§2.1.3（明示的な<code>filename</code> &gt; URLのbasename &gt; ファイルパスのbasename &gt; プラットフォームデフォルト）に従っている</li>
+<li><input disabled type="checkbox"> プラットフォームのメディア制限（サイズ / MIME / 時長）がアダプタドキュメントに宣言されている（§2.1.4）</li>
+<li><input disabled type="checkbox"> 不支持のメディアタイプは§2.1.5の降格段階に従って処理されている：近縁タイプに降格するか<code>retcode=10002</code>を返す、例外をスローしたり、静かに破棄したりしない</li>
+</ul>
+<h3 id="逆変換">逆変換</h3>
+<ul>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code>が<strong>実装されている</strong>（必須、スキップ不可）</li>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code>はすべての標準メッセージセグメント（<code>text</code>, <code>image</code>, <code>audio</code>, <code>video</code>, <code>file</code>, <code>mention</code>, <code>reply</code>）を処理できる</li>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code>はプラットフォーム拡張メッセージセグメント（<code>{platform}_xxx</code>形式）を処理できる</li>
+<li><input disabled type="checkbox"> 標準送信メソッド（<code>Text</code>, <code>Image</code>等）は内部で<code>Raw_ob12</code>に委譲しており、個別の変換ロジックを実装していない</li>
+<li><input disabled type="checkbox"> 不支持のメッセージセグメントは警告を記録してスキップし、例外をスローしない</li>
+<li><input disabled type="checkbox"> 複合メッセージセグメントは正しく処理されている（結合または順序に従って分割）</li>
+</ul>
+<hr>
+<h2 id="11-メッセージビルダmessagebuilder">11. メッセージビルダ（MessageBuilder）</h2>
+<p><code>MessageBuilder</code>はErisPulseが提供するメッセージセグメント構築ツールで、<code>Raw_ob12</code>と併用することでOneBot12メッセージセグメントの構築プロセスを簡素化する。</p>
+<h3 id="111-導入">11.1 導入</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> MessageBuilder
+<span class="token comment"># または</span>
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> MessageBuilder
+</code></pre>
+<h3 id="112-チェーン呼び出しによる構築">11.2 チェーン呼び出しによる構築</h3>
+<pre><code class="language-python"><span class="token comment"># テキスト、画像、@ユーザーを含むメッセージを構築</span>
+segments <span class="token operator">=</span> <span class="token punctuation">(</span>
+    MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>mention<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"你好，看看这张图"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"https://example.com/img.jpg"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"msg_789"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">)</span>
+
+<span class="token comment"># 送信</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>segments<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="113-単一セグメントの高速構築">11.3 単一セグメントの高速構築</h3>
+<pre><code class="language-python"><span class="token comment"># 単一メッセージセグメントを高速に構築（Raw_ob12に直接渡せるlist[dict]を返す）</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"https://..."</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>mention<span class="token punctuation">(</span><span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span>MessageBuilder<span class="token punctuation">.</span>at_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="114-eventreply_ob12と併用">11.4 Event.reply_ob12と併用</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> MessageBuilder
+
+<span class="token decorator annotation punctuation">@message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>event<span class="token punctuation">:</span> Event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply_ob12<span class="token punctuation">(</span>
+        MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>mention<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"あなたのメッセージを受け取りました"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">)</span>
+</code></pre>
+<h3 id="115-支持するメッセージセグメントメソッド">11.5 支持するメッセージセグメントメソッド</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>メソッド</th>
+<th>説明</th>
+<th>dataフィールド</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>text(text)</code></td>
+<td>テキスト</td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>image(file)</code></td>
+<td>画像</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>audio(file)</code></td>
+<td>音声</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>video(file)</code></td>
+<td>動画</td>
+<td><code>file</code></td>
+</tr>
+<tr>
+<td><code>file(file, filename=None)</code></td>
+<td>ファイル</td>
+<td><code>file</code>, <code>filename</code>(オプション)</td>
+</tr>
+<tr>
+<td><code>mention(user_id, user_name=None)</code></td>
+<td>@ユーザー</td>
+<td><code>user_id</code>, <code>user_name</code>(オプション)</td>
+</tr>
+<tr>
+<td><code>at(user_id, user_name=None)</code></td>
+<td>@ユーザー（<code>mention</code>の別名）</td>
+<td><code>mention</code>と同じ</td>
+</tr>
+<tr>
+<td><code>reply(message_id)</code></td>
+<td>返信</td>
+<td><code>message_id</code></td>
+</tr>
+<tr>
+<td><code>at_all()</code></td>
+<td>全員@</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>custom(type, data)</code></td>
+<td>自定義/プラットフォーム拡張</td>
+<td>自定義</td>
+</tr>
+</tbody></table></div>
+<h3 id="116-ユーティリティメソッド">11.6 ユーティリティメソッド</h3>
+<pre><code class="language-python">builder <span class="token operator">=</span> MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"基本内容"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># コピー（ディープコピー）</span>
+msg1 <span class="token operator">=</span> builder<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"img1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+msg2 <span class="token operator">=</span> builder<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"img2"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># クリア</span>
+builder<span class="token punctuation">.</span>clear<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"新しい内容"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 空かどうか判定</span>
+<span class="token keyword">if</span> builder<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"メッセージセグメントが </span><span class="token interpolation"><span class="token punctuation">{</span><span class="token builtin">len</span><span class="token punctuation">(</span>builder<span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string"> 個含まれています"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h2 id="12-関連ドキュメント">12. 関連ドキュメント</h2>
+<ul>
+<li><a href="/docs/ja/standards/event-conversion.html">イベント変換標準</a> - 完全なイベント変換規則、拡張命名、メッセージセグメント標準</li>
+<li><a href="/docs/ja/standards/api-response.html">APIレスポンス標準</a> - アダプタAPIレスポンス形式の標準</li>
+<li><a href="/docs/ja/standards/session-types.html">セッションタイプ標準</a> - セッションタイプの定義とマッピング</li>
+<li><a href="/docs/ja/standards/request-action-spec.html">リクエスト操作規則</a> - リクエストイベントのフィールド要件、HandleRequest DSL、およびアダプタ実装要件</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/standards/event-conversion.html"><small>Previous</small><br>アダプタ標準化変換規格</a>
+        <a class="doc-pager-next" href="/docs/ja/standards/request-action-spec.html"><small>Next</small><br>ErisPulse リクエスト操作規格</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

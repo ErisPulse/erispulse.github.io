@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>所有者（owner）システム - ErisPulse 文档中心</title>
+    <meta name="description" content="所有者（owner）は、モジュールの「プラグインとして即時利用」の基盤です。モジュールがロード時に登録するフレームワークリソースはすべて自動的に所有者に記名され、モジュールのアンロード/無効化時に所有者ごとに一括で回収されます。モジュール開発者はリソースを宣言するだけで、手動でクリーンアップロジックを書く必要はあ..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/ownership.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/ownership.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/ownership.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/ownership.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/ownership.html" />
+    <meta property="og:title" content="所有者（owner）システム - ErisPulse 文档中心" />
+    <meta property="og:description" content="所有者（owner）は、モジュールの「プラグインとして即時利用」の基盤です。モジュールがロード時に登録するフレームワークリソースはすべて自動的に所有者に記名され、モジュールのアンロード/無効化時に所有者ごとに一括で回収されます。モジュール開発者はリソースを宣言するだけで、手動でクリーンアップロジックを書く必要はあ..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/ownership.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"所有者（owner）システム","description":"所有者（owner）は、モジュールの「プラグインとして即時利用」の基盤です。モジュールがロード時に登録するフレームワークリソースはすべて自動的に所有者に記名され、モジュールのアンロード/無効化時に所有者ごとに一括で回収されます。モジュール開発者はリソースを宣言するだけで、手動でクリーンアップロジックを書く必要はあ...","url":"https://www.erisdev.com/docs/ja/advanced/ownership.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>所有者（owner）システム</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/ownership.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/ownership.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/ownership.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/ownership.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/ownership.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="所有者ownerシステム">所有者（owner）システム</h1>
+<p>所有者（owner）は、モジュールの「プラグインとして即時利用」の基盤です。モジュールがロード時に登録するフレームワークリソースはすべて自動的に所有者に記名され、モジュールのアンロード/無効化時に所有者ごとに一括で回収されます。モジュール開発者はリソースを宣言するだけで、手動でクリーンアップロジックを書く必要はありません。</p>
+<blockquote>
+<p><strong>関連システム</strong>：スコープ（scope）はイベント配信時に「リソースが有効かどうか」を決定し、所有者はライフサイクル中に「リソースは誰のものか、誰がアンロード時に回収されるか」を決定します。スコープの詳細は<a href="/docs/ja/advanced/scope.html">統一制御面（scope）</a>、バックグラウンドタスクの詳細は<a href="/docs/ja/advanced/lifecycle.html#%E3%83%90%E3%83%83%E3%82%AF%E3%82%B0%E3%83%A9%E3%82%A6%E3%83%B3%E3%83%89%E3%82%BF%E3%82%B9%E3%82%AF%E3%81%AE%E6%89%80%E6%9C%89%E3%81%A8%E8%87%AA%E5%8B%95%E3%82%AD%E3%83%A3%E3%83%B3%E3%82%BB%E3%83%AB">ライフサイクル管理</a>をご覧ください。</p>
+</blockquote>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>所有者は<strong>登録瞬間</strong>に <code>current_owner</code> によって自動的に記録され、モジュールコードは変更不要です。</li>
+<li>アンロード/無効化は共通のクリーンアップチェーン（<code>_cleanup_module_registrations</code>）を使用し、各ステップで失敗しても警告のみ表示され、処理は中断されません。</li>
+<li>ユーザー設定のリソース（永続化オーバーライド / scope 規則 / コマンド ACL）は、モジュールのアンロード時にクリーンアップされません。</li>
+<li>ツールモジュールが管理する外部ハンドルは、<code>on_cleanup(cb)</code> を使ってクリーンアップチェーンに登録し、他のモジュールがアンロードされた際に自動的にコールバックされます（<a href="#%E3%83%84%E3%83%BC%E3%83%AB%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%82%AC%E3%82%A4%E3%83%89%E4%BB%96%E3%81%AE%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%81%AE%E3%83%8F%E3%83%B3%E3%83%89%E3%83%AB%E3%82%92%E7%AE%A1%E7%90%86%E3%81%99%E3%82%8B">ツールモジュールガイド</a>を参照）。
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="owner-コンテキストメカニズム">owner コンテキストメカニズム</h2>
+<p>owner はコンテキスト変数 <code>current_owner</code> によって伝達されます（<code>ErisPulse.runtime.context</code>）：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> owner_scope<span class="token punctuation">,</span> get_current_owner
+
+<span class="token keyword">with</span> owner_scope<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># この区間内で登録されるすべてのリソースは自動的に MyModule に所有されます</span>
+    <span class="token keyword">assert</span> get_current_owner<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"MyModule"</span>
+</code></pre>
+<p>フレームワークは以下のタイミングで owner を自動的に注入します（モジュール/アダプタのコードは手動でラップする必要はありません）：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>タイミング</th>
+<th>owner 値</th>
+<th>位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>モジュール <code>load()</code></td>
+<td>モジュール名</td>
+<td>インスタンス化 + <code>on_load</code> 全体</td>
+</tr>
+<tr>
+<td>アダプタ <code>start()</code> / <code>restart()</code></td>
+<td>プラットフォーム名</td>
+<td>アダプタ起動全体</td>
+</tr>
+<tr>
+<td><code>activate_on</code> ラグジュアリスタブ登録</td>
+<td>モジュール名</td>
+<td>占位コマンド/ハンドラ登録</td>
+</tr>
+<tr>
+<td>イベントハンドラ実行中</td>
+<td>ハンドラの所有モジュール名</td>
+<td>handler / コマンドエントリ再注入</td>
+</tr>
+</tbody></table></div>
+<p>実行中の再注入とは、モジュールが <code>on_load</code> で宣言したコマンドハンドラが<strong>実行中</strong>に登録型 API（<code>sdk.adapter.on()</code>、<code>overrides.*.set(persist=False)</code>）を呼び出す場合でも、自動的に本モジュールに所有されることを意味します。</p>
+<h2 id="所有リソースの全貌">所有リソースの全貌</h2>
+<p>モジュールがロードコンテキスト内で登録した以下のリソースはすべて所有を記録し、アンロード/無効化時に自動的に回収されます：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>リソース</th>
+<th>登録方法</th>
+<th>クリーンアップ呼び出し</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>コマンド</td>
+<td><code>@command()</code> / コマンド dict 宣言</td>
+<td><code>command.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>イベントハンドラ</td>
+<td><code>@message</code> / <code>@notice</code> / <code>@request</code> / <code>@meta</code></td>
+<td><code>handler.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>アダプタイベントリスナー</td>
+<td><code>sdk.adapter.on()</code> / <code>raw=True</code></td>
+<td><code>adapter.unregister_handlers_by_owner()</code></td>
+</tr>
+<tr>
+<td>アダプタミドルウェア</td>
+<td><code>@sdk.adapter.middleware</code></td>
+<td>同上</td>
+</tr>
+<tr>
+<td>ルーティング（HTTP/WS/SSE）</td>
+<td><code>router.http()</code> / <code>websocket()</code> / <code>sse()</code></td>
+<td>名前空間 + 所有者による二重バックアップ</td>
+</tr>
+<tr>
+<td>ルーティングミドルウェア</td>
+<td><code>@router.middleware()</code> / <code>add_middleware()</code></td>
+<td><code>router.unregister_all_by_owner()</code></td>
+</tr>
+<tr>
+<td>Dashboard ホームエントリ</td>
+<td><code>router.register_home_entry()</code></td>
+<td><code>unregister_home_entries_by_owner()</code></td>
+</tr>
+<tr>
+<td>自定義セッションタイプ</td>
+<td><code>register_custom_type()</code></td>
+<td><code>unregister_custom_types_by_owner()</code></td>
+</tr>
+<tr>
+<td>プラットフォームイベントメソッド注入</td>
+<td><code>register_event_method()</code> / <code>register_event_mixin()</code></td>
+<td><code>unregister_event_methods_by_owner()</code>（モジュールアンロード時に自動回収、古いクロージャはリークしない）</td>
+</tr>
+<tr>
+<td>バックグラウンドタスク</td>
+<td><code>self.spawn()</code></td>
+<td><code>cancel_owner_tasks()</code></td>
+</tr>
+<tr>
+<td>外部所有クリーンアップフック（ツールモジュール管理）</td>
+<td><code>runtime.on_cleanup(cb)</code></td>
+<td><code>run_owner_cleanups()</code>（アンロード/無効化/アダプタ閉じチェーン内でトリガー）</td>
+</tr>
+<tr>
+<td>ライフサイクルフック</td>
+<td><code>lifecycle.register()</code></td>
+<td><code>lifecycle.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>主人身源 provider</td>
+<td><code>master.provider</code></td>
+<td><code>master.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>i18n 翻訳キー</td>
+<td><code>I18nClass</code> 宣言（domain=モジュール名）</td>
+<td><code>i18n.unregister_domain()</code></td>
+</tr>
+<tr>
+<td>イベントオーバーライド（実行時）</td>
+<td><code>overrides.*.set(persist=False)</code></td>
+<td><code>overrides.unregister_by_owner()</code></td>
+</tr>
+<tr>
+<td>交互セッション（wait_reply 等待 / リース）</td>
+<td><code>event.wait_reply()</code> / <code>sdk.interaction.acquire()</code></td>
+<td><code>interaction.cancel_by_owner()</code>（待機側は即座にキャンセルを受信）</td>
+</tr>
+<tr>
+<td>コンテキストデータ</td>
+<td><code>runtime/context</code> は所有者ごとに記録</td>
+<td>モジュールごとに正確にクリーンアップ</td>
+</tr>
+</tbody></table></div>
+<p>アダプタ側の対応リソース（プラットフォーム名を所有者として）は、アダプタ <code>shutdown()</code> / <code>restart()</code> 時に <code>_cleanup_adapter_resources</code> によって回収され、以下も含まれます：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>リソース</th>
+<th>クリーンアップ呼び出し</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>アダプタ独自の <code>on()</code> ハンドラとミドルウェア</td>
+<td><code>adapter.unregister_handlers_by_owner(platform)</code></td>
+</tr>
+<tr>
+<td>プラットフォームイベントメソッド拡張（<code>EventMixin</code>）</td>
+<td><code>unregister_platform_event_methods(platform)</code></td>
+</tr>
+<tr>
+<td>自定義セッションタイプ</td>
+<td><code>unregister_custom_types_by_owner(platform)</code></td>
+</tr>
+<tr>
+<td>交互セッション（該当プラットフォームで待機中の wait_reply / リース）</td>
+<td><code>interaction.cancel_by_platform(platform)</code></td>
+</tr>
+<tr>
+<td>i18n 翻訳ドメイン（domain=設定キー）</td>
+<td><code>i18n.unregister_domain(設定キー)</code></td>
+</tr>
+<tr>
+<td>細粒度名前空間ルーティング</td>
+<td><code>router.unregister_all_by_owner(platform)</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="アンロード無効化クリーンアップシーケンス">アンロード/無効化クリーンアップシーケンス</h2>
+<p><code>unload()</code> と <code>disable()</code> は共通のクリーンアップチェーンを使用します（各ステップは独立して try/except で、失敗してもログに記録され、<strong>後続のクリーンアップは中断されません</strong>）：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["unload / disable"] --&gt; B["on_unload()（タイムアウト保護）"]
+    B --&gt; C["バックグラウンドタスクのキャンセル（cancel_owner_tasks）"]
+    C --&gt; C1["外部所有クリーンアップフック&lt;br/&gt;（ツールモジュール on_cleanup 登録、run_owner_cleanups トリガー）"]
+    C1 --&gt; D["_cleanup_module_registrations&lt;br/&gt;＝ 所有者権限のファサード ownership.reclaim_sync()"]
+    D --&gt; D1["i18n 翻訳ドメイン"]
+    D1 --&gt; D2["ルーティング：名前空間 + owner バックアップ&lt;br/&gt;（ルーティングオブジェクト同一性に基づく正確な削除、&lt;br/&gt;ミドルウェア / ホームエントリを含む）"]
+    D2 --&gt; D3["アダプタイベントハンドラ / ミドルウェア"]
+    D3 --&gt; D4["コマンド + イベントハンドラ"]
+    D4 --&gt; D5["自定義セッションタイプ"]
+    D5 --&gt; D5b["プラットフォームイベントメソッド注入"]
+    D5b --&gt; D6["実行時イベントオーバーライド（persist=False）"]
+    D6 --&gt; D7["主人身源 provider"]
+    D7 --&gt; D8["ライフサイクルフック"]
+    D8 --&gt; E["SDK 属性の削除 + ラグジュアリプロキシ"]
+    E --&gt; F["自動軽量監査：孤児の owner 警告"]
+</code></pre>
+<p><code>sdk.uninit()</code> による終了時には、以下のグローバルバックアップ処理が実行されます：すべてのアダプタの shutdown → すべてのモジュールの unload → <code>router.stop()</code>（ルーティング/ミドルウェア/ホームエントリのクリア）→ <code>cancel_all_background_tasks()</code> → イベントハンドラとフックのクリア。</p>
+<h2 id="所有者権限統一ファサードownership">所有者権限統一ファサード（ownership）</h2>
+<p>クリーンアップチェーンの16ステップは、所有者権限統一ファサード <code>ErisPulse.Core.ownership</code> に収束され、4つの動詞が「登録解除、カウント、スキャン、監査」をカバーします。サブシステム独自の <code>*_by_owner</code> 登録関数は変更されず、ファサードの内部実装として残ります：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>動詞</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ownership.reclaim(owner)</code></td>
+<td>owner名下のすべてのリソースを一括で登録解除（タスクキャンセル → クリーンアップフック → 登録リソース；非同期完全版）</td>
+</tr>
+<tr>
+<td><code>ownership.reclaim_sync(owner)</code></td>
+<td>登録リソースの登録解除（同期版、同期アンロード経路用）</td>
+</tr>
+<tr>
+<td><code>ownership.counts(owner=None)</code></td>
+<td>ただ読むだけの所有者登録リソースのカウント（Noneはすべての所有者）</td>
+</tr>
+<tr>
+<td><code>ownership.orphans()</code></td>
+<td>孤児スキャン：リソースは登録されているが、所有者は登録解除されている（リークの確証リスト）</td>
+</tr>
+<tr>
+<td><code>ownership.audit(owner, deep=)</code></td>
+<td>リーク監査レポート（カウント + 孤児 + オプション gc インスタンス調査）</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ownership
+
+ownership<span class="token punctuation">.</span>reclaim_sync<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>       <span class="token comment"># {'commands': 1, 'routes_http': 2, ...}</span>
+ownership<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>             <span class="token comment"># 登録リソースのカウント</span>
+ownership<span class="token punctuation">.</span>orphans<span class="token punctuation">(</span><span class="token punctuation">)</span>                      <span class="token comment"># [{"owner": "ghost", "total": 2, ...}]</span>
+</code></pre>
+<p><strong>監査エントリポイント</strong>：</p>
+<ul>
+<li>アンロード / 再ロード後に<strong>自動軽量監査</strong>：孤児の所有者リソースが見つかると WARNING 警告（コストゼロのカウントスキャン）</li>
+<li><code>sdk.module.audit(name, deep=True)</code>：モジュールインスタンスの gc 調査——インスタンスが再利用できない場合、参照元のタイプを示す（「誰が古いインスタンスを保持しているか」を特定）；グローバル停止のコストがかかるため、明示的なトラブルシューティングでのみ使用</li>
+<li>深層調査は明示的操作であり、設定キーは設定せず、自動修復も行いません。</li>
+</ul>
+<h2 id="ホットリロード失敗ロールバック">ホットリロード失敗ロールバック</h2>
+<p>ホットリロードは「<strong>アンロード前のスナップショット → 失敗時に自動回復</strong>」に変更されました：新バージョンの構文エラー、依存性の欠落、ロード失敗時には、旧インスタンスと登録状態（登録表エントリ、sdk 属性、sys.modules エントリ）が自動的に復元され、サービスは中断されず、ログに「旧インスタンスにロールバックしてサービスを継続しました」と表示されます。</p>
+<p>可能な限りの意味（ドキュメント化された境界）：</p>
+<ul>
+<li><code>on_unload</code> で既に実行された副作用（切断された接続、キャンセルされたタスク）は取り消せません——復元後、旧インスタンスは「終了済み」状態になり、完全に利用可能になるには再びロードをトリガーする必要があります</li>
+<li>実行時に第三者が手動でキャッシュした旧インスタンスへの参照は復元範囲外です</li>
+<li>目標パッケージがアンロード済み（entry-point が消滅）の場合は、アンロード成功と見なし、ロールバックは行いません</li>
+</ul>
+<h2 id="設計境界アンロード時にクリーンアップされないリソース">設計境界：アンロード時にクリーンアップされないリソース</h2>
+<p>所有者権限は<strong>モジュールコードが登録する実行時リソース</strong>のみを回収します。以下のリソースは<strong>ユーザー設定の意味</strong>（コントロール権はユーザーにあり、意図的に設定される）に属し、モジュールのアンロード後も設定に従って永続的に保持されます：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>リソース</th>
+<th>意味</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>overrides.*.set(persist=True)</code></td>
+<td>永続化オーバーライド</td>
+<td>設定ファイルに書き込まれ、再起動にわたって有効；モジュールのアンロード時に削除されない（ユーザーが明示的に設定）</td>
+</tr>
+<tr>
+<td><code>scope.set_action()</code> などのスコープルール</td>
+<td>権限制御面</td>
+<td>ユーザー/Dashboard によって管理され、モジュールのアンロード時にルールは回収されない</td>
+</tr>
+<tr>
+<td><code>overrides.acl.set(persist=True)</code></td>
+<td>コマンド ACL</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>Conversation <code>save()</code> 永続化</td>
+<td>多回対話保存</td>
+<td>データ資産はクリーンアップされない</td>
+</tr>
+</tbody></table></div>
+<p>実行時に一時的に書き込まれたもの（<code>persist=False</code>）は、owner に従って回収されます。<strong>永続化の有無が「ユーザー資産」と「モジュール実行時状態」の境界線です</strong>。</p>
+<h2 id="内部実装所有権の仕組み">内部実装：所有権の仕組み</h2>
+<p>所有権システムは<strong>2つの独立したチェーン</strong>で構成されており、それらの役割を理解することは、所有権の問題を解決するための前提です。</p>
+<h3 id="帰属チェーンcontextvar-伝播">帰属チェーン（contextvar 伝播）</h3>
+<p><code>runtime/context.py</code> の <code>current_owner</code> などの ContextVar は<strong>帰属</strong>を担当します——「このコードが登録するリソース/呼び出しが誰の名前に記録されるか」。伝播ルールは Python の contextvars 言語仕様に従います：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>実行経路</th>
+<th>context が伝播するか</th>
+<th>帰属結果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同期呼び出しチェーン / <code>await</code> チェーン</td>
+<td>✅ 伝播</td>
+<td>正確な帰属</td>
+</tr>
+<tr>
+<td><code>owner_scope</code> 内の <code>asyncio.create_task</code></td>
+<td>✅ 伝播（task は作成時の context をコピー）</td>
+<td>task 内部のフレームワーク呼び出しが正確に帰属</td>
+</tr>
+<tr>
+<td><code>run_in_executor</code> / 裸スレッド</td>
+<td>❌ 伝播しない</td>
+<td>帰属が失われる</td>
+</tr>
+<tr>
+<td>自作イベントループ</td>
+<td>❌ 伝播しない</td>
+<td>帰属が失われる</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>帰属 ≠ 登録：context 伝播は「誰の名前に記録されるか」を決定しますが、リソースがクリーンアップされるかどうかは、登録チェーンに入っているかどうかにかかっています。</p>
+</blockquote>
+<h3 id="キャンセルチェーンタスク登録表">キャンセルチェーン（タスク登録表）</h3>
+<p><code>runtime/tasks.py</code> の <code>_owner_tasks</code> 登録表は<strong>ライフサイクル</strong>を担当します——「owner 名下に未完了のタスクが何個あるか、アンロード時に一括でキャンセルするか」。タスクが登録表に入る方法：</p>
+<ol>
+<li><strong>明示的なスケジューリング</strong>：<code>spawn_background()</code> / <code>self.spawn()</code> → 作成時に <code>current_owner</code>（または明示的な <code>owner=</code> パラメータ）をキャプチャ → 登録表に登録；</li>
+<li><strong>Task Factory 自動登録</strong>（2.8.3）：<code>install_owner_task_factory()</code> はフレームワーク起動時にメインイベントループにインストールされる——<strong>すべての</strong>タスク作成（サードパーティライブラリの内部の <code>create_task</code> を含む）は、ファクトリを経由して <code>current_owner</code> を読み取り、None でなければ登録される。</li>
+</ol>
+<p>登録表は自動でクリーンアップされます：各タスクには <code>done_callback</code> が付いており、完了すると表から削除され、リークしません。</p>
+<h3 id="キャンセルタイミングモジュールアンロード">キャンセルタイミング（モジュールアンロード）</h3>
+<pre><code>module.unload()
+  → on_unload(event)                    # モジュール独自のクリーンアップ（バックアップタイムアウト保護）
+  → フレームワークがこの owner のコマンド/イベント/フック/ルーティングを登録解除
+  → cancel_owner_tasks(owner)           # タスク登録表のバックアップキャンセル
+      → 各タスク.cancel()              # キャンセルロジック自体のタスクは除外
+      → await gather(pending, timeout)  # 回収を待つ（タイムアウト後にブロックしない）
+</code></pre>
+<h3 id="問題解決のアプローチ">問題解決のアプローチ</h3>
+<ul>
+<li><strong>リソースがクリーンアップされない</strong> → 登録表を確認：<code>get_owner_tasks("MyModule")</code> に該当タスクが含まれているかを確認；含まれていない場合は登録経路が所有権チェーンを通過していない（import 時 / スレッド / 独立ループ）、上表を参照して位置を特定。</li>
+<li><strong>帰属が間違っている</strong> → <code>get_current_owner()</code> をエラー発生時の値で確認；非同期遅延実行（コールバック/タスク）の帰属は作成時の context に従い、実行時の値とは異なる。</li>
+</ul>
+<h2 id="モジュール開発者ガイド">モジュール開発者ガイド</h2>
+<h3 id="推奨書き方">推奨書き方</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> owner_scope<span class="token punctuation">,</span> spawn_background
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># フレームワークリソース：自動的に所有される、手動でクリーンアップする必要はない</span>
+        self<span class="token punctuation">.</span>task <span class="token operator">=</span> self<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>self<span class="token punctuation">.</span>polling<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>      <span class="token comment"># バックグラウンドタスク</span>
+        sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>register_home_entry<span class="token punctuation">(</span><span class="token string">"私のモジュール"</span><span class="token punctuation">,</span> <span class="token string">"/my"</span><span class="token punctuation">)</span>  <span class="token comment"># ホームエントリ</span>
+
+        <span class="token comment"># モジュール独自リソース：owner_scope に包むことで所有権体系に組み込む</span>
+        <span class="token keyword">with</span> owner_scope<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>client<span class="token punctuation">.</span>on_event<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_handle<span class="token punctuation">)</span>      <span class="token comment"># 假想の独自登録</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># フレームワークリソースは自動的に回収される、owner_scope でカバーできない独自リソースのみクリーンアップする</span>
+        <span class="token keyword">await</span> self<span class="token punctuation">.</span>client<span class="token punctuation">.</span>close<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="注意事項">注意事項</h3>
+<ul>
+<li><strong>import 時の登録には所有権がない</strong>：モジュールのトップレベル（import 時）に登録されたフック/ハンドラは <code>owner_scope</code> 以前に発生するため、フレームワークリソース（owner=None）として扱われ、<strong>クリーンアップされない</strong>。すべて <code>on_load()</code> 内に登録すること。</li>
+<li><strong>独自 domain の i18n 登録</strong>：<code>i18n.register(domain=...)</code> の domain がモジュール名と異なる場合、自動回収されないため、domain=モジュール名を保持すること。</li>
+<li><strong>バックグラウンドタスクは <code>self.spawn()</code> を推奨</strong>：2.8.3 以降、裸の <code>asyncio.create_task</code> も<strong>自動的に暗黙的に所有</strong>（Task Factory が自動登録、アンロード時にバックアップキャンセル）される。ただし、<code>self.spawn()</code> は非メインループスレッドからメインループにスケジューリング、明示的な <code>owner=</code> 指定、fire-and-forget の GC 防止のため、引き続き推奨書き方です。<strong>2.8.3 以前のバージョンでは、裸のタスクは所有されず、<code>self.spawn()</code> を使用する必要がある</strong>。</li>
+<li>クリーンアップチェーンは「失敗しても警告のみ」：1ステップのクリーンアップエラーは他のリソースの回収を中断せず、ログの DEBUG/WARNING レベルで確認可能。トラブルシューティング時は TRACE を有効にすること。</li>
+</ul>
+<h3 id="登録タイミング-所有結果対照表">登録タイミング → 所有結果対照表</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>登録状況</th>
+<th>所有結果</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>on_load()</code> 内でフレームワーク API（コマンド/イベント/lifecycle/ルーティングデコレータ）を使って登録</td>
+<td>所有モジュール</td>
+<td>アンロード時に自動的に登録解除</td>
+</tr>
+<tr>
+<td>モジュールのトップレベル（import 時）に登録</td>
+<td><strong>所有権なし</strong>（owner=None）</td>
+<td>クリーンアップされない、使用しないでください</td>
+</tr>
+<tr>
+<td><code>self.spawn()</code> で作成されたバックグラウンドタスク</td>
+<td>所有モジュール</td>
+<td>アンロード時に自動的にキャンセル</td>
+</tr>
+<tr>
+<td><code>owner_scope("Name")</code> 内でサードパーティ API を使って登録</td>
+<td>所有モジュール</td>
+<td>第三者がスコープ内で同期的に実行するコールバックに依存</td>
+</tr>
+<tr>
+<td>裸の <code>asyncio.create_task</code>（<code>loop.create_task</code> / <code>ensure_future</code> を含む）</td>
+<td><strong>自動所有</strong>（Task Factory、2.8.3+）</td>
+<td>作成瞬間に <code>current_owner</code> を読み取り、owner コンテキスト内で自動登録、アンロード時にバックアップキャンセル；以下<a href="#%E5%86%85%E9%83%A8%E5%AE%9F%E8%A3%85%E6%89%80%E6%9C%89%E6%A8%A9%E3%81%AE%E4%BB%95%E7%B5%84%E3%81%BF">内部実装</a>を参照</td>
+</tr>
+<tr>
+<td>サードパーティライブラリの非同期コールバック（aiohttp / APScheduler など）内で作成されたタスク</td>
+<td><strong>自動所有</strong>（Task Factory、2.8.3+）</td>
+<td>コールバック実行時に <code>current_owner</code> が注入されている場合（フレームワークハンドラ実行中など）、タスクは自動登録される</td>
+</tr>
+<tr>
+<td><code>run_in_executor</code>（スレッドプール）</td>
+<td><strong>所有権なし</strong>（非 asyncio.Task）</td>
+<td>スレッドはタスクファクトリの管理外、ライフサイクルを自分で管理する必要がある</td>
+</tr>
+<tr>
+<td>独自イベントループ（自作ループ）での登録</td>
+<td><strong>所有権なし</strong></td>
+<td>Task Factory はメインループにのみインストールされる；contextvars もイベントループ間で伝播しない</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p>原則：<strong>所有は登録瞬間の <code>current_owner</code> コンテキストに従う</strong>；非同期の遅延、スレッドプール、独自ループはすべてこのコンテキストから外れるため、所有が必要な場合は明示的に <code>owner_scope</code> に入る必要がある。</p>
+</blockquote>
+<h2 id="ツールモジュールガイド他のモジュールのハンドルを管理する">ツールモジュールガイド：他のモジュールのハンドルを管理する</h2>
+<p><strong>シナリオ</strong>：定時タスク、レジストリ、接続プールなどの「ツールモジュール」は、他のモジュールが保管するものを代わりに管理します。<br>他のモジュールが <code>on_load</code> で <code>sdk.Cron.on_trigger(handler)</code> を呼び出すと、あなたのコンテナはそのモジュールのインスタンスを指すコールバックを保持します。<br>フレームワークは、モジュールが登録したフレームワークリソースは自動的にクリーンアップしますが、<strong>あなたが私有コンテナに保持している参照</strong>はクリーンアップできません。<br>モジュールがアンロードされた後も、あなたのコンテナはそのインスタンスを保持しているため、GC によって回収されず（メモリリーク）、<code>purge</code> 泄漏診断では「回収不可能」と表示されます。</p>
+<p><strong>解決策</strong>：登録処理を行う関数内で <code>on_cleanup()</code> を呼び出すと、フレームワークはモジュールがアンロードまたは無効化された際にあなたのクリーンアップ関数を自動的にコールバックします：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>runtime <span class="token keyword">import</span> off_cleanup<span class="token punctuation">,</span> on_cleanup
+
+<span class="token keyword">class</span> <span class="token class-name">CronModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>_entries <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>  <span class="token comment"># {モジュール名: そのモジュールが管理するコールバックリスト}</span>
+
+    <span class="token keyword">def</span> <span class="token function">on_trigger</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> handler<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 呼び出し元モジュール名を自動的に識別（on_load からの直接呼び出し / module.call ともに正しく動作）</span>
+        <span class="token comment"># 戻り値は owner として使用できる解析されたモジュール名</span>
+        owner <span class="token operator">=</span> on_cleanup<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_drop<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>_entries<span class="token punctuation">.</span>setdefault<span class="token punctuation">(</span>owner<span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span>append<span class="token punctuation">(</span>handler<span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">_drop</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> owner<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""モジュールがアンロードまたは無効化された際にフレームワークによって自動的にコールバックされる：ハンドルを破棄するだけ"""</span>
+        self<span class="token punctuation">.</span>_entries<span class="token punctuation">.</span>pop<span class="token punctuation">(</span>owner<span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        off_cleanup<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_drop<span class="token punctuation">)</span>  <span class="token comment"># ③ 自分がアンロードされる前にハンドルを解除し、ハンドルテーブルが self を保持しないようにする</span>
+</code></pre>
+<p>フレームワークが保証する動作：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>点</th>
+<th>行動</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>呼び出しタイミング</td>
+<td>モジュールがアンロード / 無効化されたとき、またはアダプタが閉じられたとき——いずれもフレームワークのクリーンアップチェーン内で発生し、purge 泄漏診断よりも前に行われる</td>
+</tr>
+<tr>
+<td>呼び出し元の識別</td>
+<td>直接呼び出しの場合は <code>current_owner</code> を使用；<code>module.call()</code> を経由して呼び出された場合は <code>current_caller</code> を使用；または <code>on_cleanup(cb, owner="モジュール名")</code> で明示的に指定することも可能。<strong>強制検証</strong>：上記3つのいずれも取得できない場合、<code>ValueError</code> を投げる——私有ツールモジュールは自身のロードコンテキスト内でハンドルを登録する必要がある</td>
+</tr>
+<tr>
+<td>コールバックの署名</td>
+<td><code>cb(owner: str)</code>、同期または非同期のいずれでも可能；非同期の場合はタイムアウト保護が提供される（<code>CLEANUP_CALLBACK_TIMEOUT_SECS</code>、デフォルトは10秒）</td>
+</tr>
+<tr>
+<td>容錯</td>
+<td>1つのコールバックが例外やタイムアウトを起こしても、ログに記録されるのみで、他のハンドルやクリーンアップチェーンには影響しない</td>
+</tr>
+<tr>
+<td>重複登録</td>
+<td>同じ <code>(owner, callback)</code> は冪等的に重複登録を抑制する</td>
+</tr>
+</tbody></table></div>
+<p><strong>必要ない場合</strong>：もしモジュールが登録するのはフレームワークリソース（コマンド、イベントハンドラー、ルーティング、バックグラウンドタスクなど）であれば、フレームワークはすでに自動的にクリーンアップします（上記の<a href="#%E3%83%AA%E3%82%BD%E3%83%BC%E3%82%B9%E3%81%AE%E6%89%80%E6%9C%89%E6%A8%A9%E3%81%AE%E5%85%A8%E4%BD%93%E5%83%8F">リソースの所有権の全体像</a>を参照）。<br>フレームワークリソース以外に、あなたが私有コンテナに保持しているモジュールのハンドルだけが <code>on_cleanup</code> を必要とします。<br>モジュール開発者向けの速見版は、<a href="/docs/ja/developer-guide/modules/best-practices.html#%E3%83%84%E3%83%BC%E3%83%AB%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%81%8C%E4%BB%96%E4%BA%BA%E3%81%AE%E3%82%82%E3%81%AE%E3%82%92%E6%8C%81%E3%81%9F%E3%81%9B%E3%82%8B%E5%A0%B4%E5%90%88%E3%81%AB%E3%82%A2%E3%83%B3%E3%83%AD%E3%83%BC%E3%83%89%E9%80%9A%E7%9F%A5%E3%82%92%E5%8F%97%E3%81%91%E5%8F%96%E3%82%8B%E5%BF%85%E8%A6%81%E3%81%8C%E3%81%82%E3%82%8B">ベストプラクティス · ツールモジュール</a> を参照してください。</p>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/scope.html"><small>Previous</small><br>スコープ (scope)</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/interaction.html"><small>Next</small><br>交互会話システム</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>影子模块与灰度转正 - ErisPulse 文档中心</title>
+    <meta name="description" content="影子 = 同一模块的新版本，以独立 owner（如 roll_shadow）与线上旧版 并存试运行：它收到真实事件的副本、其出站被拦截记账而非真正发出—— 在 shadow_diff 里对比两个版本的行为，确认无害后 promote 一键转正， dismiss 随时放弃。模块代码零改动，全程运行时 API 驱动：..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/advanced/shadow.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/shadow.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/shadow.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/shadow.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/shadow.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/shadow.html" />
+    <meta property="og:title" content="影子模块与灰度转正 - ErisPulse 文档中心" />
+    <meta property="og:description" content="影子 = 同一模块的新版本，以独立 owner（如 roll_shadow）与线上旧版 并存试运行：它收到真实事件的副本、其出站被拦截记账而非真正发出—— 在 shadow_diff 里对比两个版本的行为，确认无害后 promote 一键转正， dismiss 随时放弃。模块代码零改动，全程运行时 API 驱动：..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/advanced/shadow.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"影子模块与灰度转正","description":"影子 = 同一模块的新版本，以独立 owner（如 roll_shadow）与线上旧版 并存试运行：它收到真实事件的副本、其出站被拦截记账而非真正发出—— 在 shadow_diff 里对比两个版本的行为，确认无害后 promote 一键转正， dismiss 随时放弃。模块代码零改动，全程运行时 API 驱动：...","url":"https://www.erisdev.com/docs/advanced/shadow.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 高级主题
+        <span class="doc-crumb-sep">/</span> <span>影子模块与灰度转正</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/advanced/shadow.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/shadow.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/shadow.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/shadow.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/shadow.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/shadow.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="影子模块与灰度转正">影子模块与灰度转正</h1>
+<p>影子 = 同一模块的<strong>新版本</strong>，以独立 owner（如 <code>roll_shadow</code>）与线上旧版
+并存试运行：它收到真实事件的<strong>副本</strong>、其出站被<strong>拦截记账</strong>而非真正发出——
+在 <code>shadow_diff</code> 里对比两个版本的行为，确认无害后 <code>promote</code> 一键转正，
+<code>dismiss</code> 随时放弃。<strong>模块代码零改动，全程运行时 API 驱动</strong>：与
+<code>load / unload / reload</code> 同类的运维动作，Dashboard / 自定义管理模块直接
+调用，没有任何配置项要写。</p>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>启动：<code>await sdk.module.shadow_start("roll", source="路径/到/v2")</code>
+——新版代码以独立 owner（默认取路径名）与旧版并存</li>
+<li>影子不参与真实分发与依赖图：同名命令进影子目录、路由只登记不挂载、
+生命周期广播静默、<code>module.call</code> 与依赖解析仍指向 v1</li>
+<li>转正永远由人确认：<code>await sdk.module.promote_shadow("roll")</code>，失败
+自动回滚旧实例继续服务；<code>dismiss_shadow</code> 随时放弃
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="快速上手">快速上手</h2>
+<pre><code class="language-python"><span class="token comment"># v2 代码：普通模块写法，零影子感知（任意目录，如 downloads/roll_v2/）</span>
+</code></pre>
+<pre><code class="language-python"><span class="token comment"># 线上机器人里（Dashboard / 管理模块调用），一行启动灰度：</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>shadow_start<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">,</span> source<span class="token operator">=</span><span class="token string">"downloads/roll_v2"</span><span class="token punctuation">)</span>
+<span class="token comment"># → 影子以独立 owner "roll_v2" 与 v1 并存，出站被拦截记账</span>
+
+<span class="token comment"># 试运行期间对比行为：</span>
+report <span class="token operator">=</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>shadow_diff<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
+<span class="token comment"># {"shadow_owner": "roll_v2", "count": 3, "aligned": [...]}</span>
+</code></pre>
+<ul>
+<li><strong>v1 实际发送</strong>：来自收件箱（transcript）的 bot 时间线</li>
+<li><strong>v2 意向发送</strong>：影子账本（出站闸记录的"想发什么"）</li>
+<li>两者按 <code>trace_id</code> 对齐——同一条消息，两个版本各自为什么触发/没触发、
+想发什么/实际发了什么，一目了然</li>
+</ul>
+<p>确认无误后转正：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>promote_shadow<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>   <span class="token comment"># 转正，失败自动回滚 v1</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>dismiss_shadow<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>   <span class="token comment"># 或：放弃影子</span>
+</code></pre>
+<h2 id="五道隔离闸">五道隔离闸</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>闸</th>
+<th>机制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>事件副本</td>
+<td>影子处理器收到事件的<strong>独立副本</strong>（带 <code>shadow</code> 标记）——影子的改写 / 认领 / 停止传播只作用于副本，不影响原事件链</td>
+</tr>
+<tr>
+<td>出站闸门</td>
+<td>影子的 <code>Send</code> DSL 与 <code>Api</code> 调用全部拦截记账（成功形状假响应），不真正发出——影子不会重复回复</td>
+</tr>
+<tr>
+<td>存储覆盖层</td>
+<td>影子的 KV 写进入内存覆盖层并丢弃落库；读先查覆盖层、未命中透传真库（灰度对着真实数据跑）；删除记墓碑</td>
+</tr>
+<tr>
+<td>路由屏蔽</td>
+<td>影子的 HTTP/WS/SSE 路由只登记不挂载；同名命令进影子命令目录、平台事件方法注入禁止</td>
+</tr>
+<tr>
+<td>生命周期静默</td>
+<td>影子不广播自身的生命周期事件、不参与生态依赖图（<code>module.call</code> 与依赖解析仍指向 v1，避免半成品被依赖）</td>
+</tr>
+</tbody></table></div>
+<p>配置继承：影子默认<strong>继承原模块的配置节</strong>（否则灰度失真），转正后配置原地生效。</p>
+<h2 id="诚实边界拦不住的">诚实边界（拦不住的）</h2>
+<ul>
+<li>走框架的发送 / API / KV 存储 / 统一 HTTP 客户端<strong>全部拦得住</strong>；
+模块绕过框架裸起 <code>aiohttp</code>、开线程写外部系统——框架拦不住</li>
+<li><strong>ORM 读写不在覆盖层语义内</strong>（按行 overlay 无法在 SQL 层干净实现）——
+影子期间建议避免依赖 ORM 写隔离</li>
+<li><strong>影子源为本地路径</strong>：新版代码以路径导入、独立 owner 装载；同一 PyPI 包
+在同解释器内受 <code>sys.modules</code> 单键限制，无法新旧两版本并存</li>
+<li>泄漏审计器（<code>sdk.module.audit</code>）可见影子资源归属；绕过框架的副作用
+至少不会无声</li>
+</ul>
+<h2 id="转正与回滚">转正与回滚</h2>
+<p><code>promote</code> 流程：快照当前版本（含级联依赖者）→ 完全卸载 → 影子以真名注册
+加载 → 任一步失败自动回滚、旧实例继续服务（尽力而为语义：<code>on_unload</code> 已
+执行的副作用不可撤销，回滚后旧实例处于已收尾态）。转正成功的影子资源被
+回收、绑定解除；原模块配置节原地生效。</p>
+<p><strong>持久化提醒</strong>：promote 是运行时切换——重启后仍以 v2 运行，需要把新版本
+<strong>持久化安装</strong>（<code>pip install -U</code> 新版本 / 替换插件文件）。运行时切换不会
+替你完成包管理。</p>
+<h2 id="相关文档">相关文档</h2>
+<ul>
+<li><a href="/docs/advanced/ownership.html">归属权（owner）系统</a>——影子以独立 owner 隔离的机制基础</li>
+<li><a href="/docs/advanced/interaction.html">交互会话</a>——<code>trace_id</code> 与收件箱（diff 对齐的数据源）</li>
+<li><a href="/docs/advanced/scope.html">作用域（scope）</a>——事件准入与出站控制面</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/advanced/interaction.html"><small>上一篇</small><br>交互会话系统</a>
+        <a class="doc-pager-next" href="/docs/advanced/module-communication.html"><small>下一篇</small><br>模块间通信</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

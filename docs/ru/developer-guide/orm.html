@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Модель данных (ORM) - ErisPulse 文档中心</title>
+    <meta name="description" content="С версии 2.9.0 фреймворк включает декларативный слой модели данных: наследуйте Model и объявляйте поля с помощью Field, чтобы получить автоматическое создани..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ru/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/orm.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/orm.html" />
+    <meta property="og:title" content="Модель данных (ORM) - ErisPulse 文档中心" />
+    <meta property="og:description" content="С версии 2.9.0 фреймворк включает декларативный слой модели данных: наследуйте Model и объявляйте поля с помощью Field, чтобы получить автоматическое создани..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ru/developer-guide/orm.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Модель данных (ORM)","description":"С версии 2.9.0 фреймворк включает декларативный слой модели данных: наследуйте Model и объявляйте поля с помощью Field, чтобы получить автоматическое создани...","url":"https://www.erisdev.com/docs/ru/developer-guide/orm.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Руководство разработчика
+        <span class="doc-crumb-sep">/</span> <span>Модель данных (ORM)</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/orm.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/orm.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/developer-guide/orm.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/orm.html">日本語</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ru/developer-guide/orm.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/orm.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="модель-данных-orm">Модель данных (ORM)</h1>
+<p>С версии 2.9.0 фреймворк включает декларативный слой модели данных: наследуйте <code>Model</code> и объявляйте поля с помощью <code>Field</code>, чтобы получить автоматическое создание таблиц и возможности добавления, удаления, изменения и поиска данных. Модели строятся на базе встроенной слоистой системы хранения — SQLite / MySQL / PostgreSQL определяется параметром <code>ErisPulse.storage.backend</code>, <strong>переключение бэкенда не требует изменения кода моделей</strong>.</p>
+<h2 id="объявление-модели">Объявление модели</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> Model<span class="token punctuation">,</span> Field
+
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+    age<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> ge<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> le<span class="token operator">=</span><span class="token number">150</span><span class="token punctuation">)</span>
+    role<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">"user"</span><span class="token punctuation">,</span> choices<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"admin"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    tags<span class="token punctuation">:</span> <span class="token builtin">list</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default_factory<span class="token operator">=</span><span class="token builtin">list</span><span class="token punctuation">)</span>          <span class="token comment"># JSON-столбец, автоматическая сериализация при чтении и записи</span>
+    bio<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span> description<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"user.bio"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Биография"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>Имя таблицы по умолчанию — имя класса в snake_case (<code>UserProfile → user_profile</code>), можно перезаписать с помощью <code>__tablename__ = "xxx"</code></li>
+<li>Словарь ограничений <code>Field</code> и декларативная конфигурация класса одинаковы (<code>choices</code> / <code>ge</code> / <code>le</code> / <code>max_length</code>, <code>description</code> поддерживает словарь i18n); движок проверки и проверка конфигурации используют один и тот же источник</li>
+</ul>
+<h2 id="параметры-поля">Параметры поля</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Параметр</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>default</code></td>
+<td>Значение по умолчанию (если не предоставлено и не автоинкремент → обязательное поле NOT NULL)</td>
+</tr>
+<tr>
+<td><code>default_factory</code></td>
+<td>Фабрика для изменяемых значений по умолчанию (например, <code>list</code>)</td>
+</tr>
+<tr>
+<td><code>primary_key</code></td>
+<td>Первичный ключ</td>
+</tr>
+<tr>
+<td><code>autoincrement</code></td>
+<td>Автоинкрементный первичный ключ (явно указывается как ключ, <code>create</code> автоматически заполняет)</td>
+</tr>
+<tr>
+<td><code>max_length</code></td>
+<td>Максимальная длина строки (генерирует <code>VARCHAR(n)</code>, проверка при записи)</td>
+</tr>
+<tr>
+<td><code>nullable</code></td>
+<td>Допускается ли NULL (по умолчанию False)</td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td>Генерация обычного индекса</td>
+</tr>
+<tr>
+<td><code>unique</code></td>
+<td>Уникальное ограничение</td>
+</tr>
+<tr>
+<td><code>choices</code> / <code>ge</code> / <code>le</code></td>
+<td>Перечисление / диапазон значений (проверка при записи)</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>Описание (словарь i18n, формат совпадает с конфигурационным классом)</td>
+</tr>
+<tr>
+<td><code>column_type</code></td>
+<td>Переопределение определения типа SQL-столбца</td>
+</tr>
+</tbody></table></div>
+<h2 id="создание-таблицы-и-crud">Создание таблицы и CRUD</h2>
+<pre><code class="language-python"><span class="token keyword">await</span> User<span class="token punctuation">.</span>create_table<span class="token punctuation">(</span><span class="token punctuation">)</span>                      <span class="token comment">#幂等操作 (IF NOT EXISTS)</span>
+
+user <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>create<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">,</span> age<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token comment"># Вставка (автоинкрементный ключ автоматически заполняется)</span>
+got <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token builtin">id</span><span class="token operator">=</span>user<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">)</span>               <span class="token comment"># Поиск первой строки по равенству</span>
+
+users <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>order_by<span class="token punctuation">(</span><span class="token string">"-age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>limit<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+first <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span>User<span class="token punctuation">.</span>name <span class="token operator">==</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">(</span><span class="token punctuation">)</span>
+total <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>count<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span>
+
+user<span class="token punctuation">.</span>age <span class="token operator">=</span> <span class="token number">21</span>
+<span class="token keyword">await</span> user<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>                              <span class="token comment"># Обновление по первичному ключу (сначала проверка ограничений); если ключ отсутствует, переходит в режим вставки (автоинкрементный ключ также заполняется в экземпляр)</span>
+<span class="token keyword">await</span> user<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>                            <span class="token comment"># Удаление по первичному ключу</span>
+
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>update_all<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">,</span> role<span class="token operator">=</span><span class="token string">"adult"</span><span class="token punctuation">)</span>  <span class="token comment"># Массовое обновление</span>
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>delete_all<span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">100</span><span class="token punctuation">)</span>               <span class="token comment"># Массовое удаление</span>
+</code></pre>
+<p>Выражения для запросов поддерживают <code>&gt; &gt;= &lt; &lt;= == !=</code> и <code>in_([...])</code>, а также комбинации <code>&amp;</code> (и) / <code>|</code> (или):</p>
+<pre><code class="language-python"><span class="token keyword">await</span> User<span class="token punctuation">.</span>where<span class="token punctuation">(</span><span class="token punctuation">(</span>User<span class="token punctuation">.</span>age <span class="token operator">&gt;</span> <span class="token number">18</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> User<span class="token punctuation">.</span>name<span class="token punctuation">.</span>in_<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"Bob"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="транзакции">Транзакции</h2>
+<p>ORM и встроенная система хранения используют одну и ту же систему маршрутизации транзакций: если операции <code>create</code> / <code>save</code> / <code>delete</code> и запросы находятся в контексте <code>storage.atransaction()</code>, то они автоматически используют один и тот же соединение транзакции, подтверждение или откат происходит вместе с транзакцией, не происходит отдельного подтверждения.</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">with</span> storage<span class="token punctuation">.</span>atransaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> User<span class="token punctuation">.</span>create<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Если в блоке возникает исключение, INSERT откатывается</span>
+</code></pre>
+<h2 id="отношение-к-классам-декларативной-конфигурации">Отношение к классам декларативной конфигурации</h2>
+<p>Декларация моделей и <code>ConfigClass</code> (<code>@dataclass + field(metadata=...)</code>) <strong>разделяют один и тот же базовый уровень</strong> — словарь ограничений, движок проверки (<code>validate_field_constraints</code>), регистрация категорий типов (<code>python_type_category</code>); однако базовые классы намеренно разделены: поля конфигурации являются обычными значениями (TOML-двоичный обмен, горячая перезагрузка при однократной загрузке), поля моделей — дескрипторы столбцов (доступ к классу = выражение запроса, доступ к экземпляру построчно). Один и тот же синтаксис декларации, две раздельные базы.</p>
+<h3 id="когда-использовать-какой-тип-декларации">Когда использовать какой тип декларации</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Аспект</th>
+<th>Конфигурационный класс <code>field(metadata=...)</code></th>
+<th>Модельное поле <code>Field()</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Область применения</td>
+<td>Параметры поведения модуля (малое количество, удобочитаемые, нуждаются в горячей перезагрузке)</td>
+<td>Записи бизнес-данных (много строк, программное чтение/запись, нуждаются в запросах)</td>
+</tr>
+<tr>
+<td>Формат хранения</td>
+<td><code>config.toml</code> (сохранение комментариев, двоичный обмен TOML)</td>
+<td>Таблица базы данных (автоматическое создание таблицы, SQL-диалект)</td>
+</tr>
+<tr>
+<td>Формат значений</td>
+<td>Обычные значения (прямое чтение атрибута <code>dataclass</code>)</td>
+<td>Дескрипторы (доступ к классу = выражение столбца, доступ к экземпляру = значение строки)</td>
+</tr>
+<tr>
+<td>Объявление ограничений</td>
+<td><code>metadata={"choices": ..., "min": ..., "max": ...}</code></td>
+<td><code>Field(choices=..., ge=..., le=..., max_length=...)</code></td>
+</tr>
+<tr>
+<td>Общий базовый уровень</td>
+<td>Движок проверки + словарь ограничений + регистрация категорий типов (одинаковые)</td>
+<td>То же самое</td>
+</tr>
+</tbody></table></div>
+<p>Эмпирическое правило: <strong>"как модуль работает" — используйте конфигурационный класс, "какие данные создал пользователь" — используйте модель</strong>.</p>
+<h2 id="ограничения-и-замечания">Ограничения и замечания</h2>
+<ul>
+<li>Бэкенд определяется глобальной конфигурацией хранения; модель может переопределить <code>__storage__</code> для использования пользовательского экземпляра <code>BaseStorage</code> (для тестирования)</li>
+<li>Поля <code>list</code> / <code>dict</code> (включая параметризованные типы, например <code>list[int]</code>, <code>dict[str, int]</code>) хранятся как столбцы JSON, автоматическая сериализация при чтении и записи</li>
+<li>При записи (<code>create</code> / <code>save</code>) автоматически выполняются проверки ограничений, при ошибке выбрасывается <code>ValueError</code> (локализованные сообщения)</li>
+<li>Автоматическая миграция поддерживает только сценарии добавления новых столбцов (см. ниже); изменения типа столбца и удаление столбцов требуют ручной обработки</li>
+<li>При сбое подключения к хранилищу поведение такое же, как у слоя хранения: фреймворк не падает, после перерыва происходит автоматическое повторное подключение</li>
+</ul>
+<h2 id="автоматическая-миграция-шаг-2">Автоматическая миграция (шаг 2)</h2>
+<p><code>create_table()</code> при наличии таблицы автоматически сравнивает существующие столбцы с полями модели: <strong>новые поля</strong> автоматически выполняют <code>ALTER TABLE ADD COLUMN</code> (удаляются ограничения <code>NOT NULL</code>, заполняются NULL для существующих строк), новые поля с <code>index=True</code> одновременно создают индекс. Нет необходимости вручную писать скрипты миграции.</p>
+<pre><code class="language-python"><span class="token comment"># После выхода v1 модели обновляются: добавляются поля email / bio</span>
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"orm_users"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+    age<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>
+    email<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span>     <span class="token comment"># Новое: при следующем create_table() автоматически добавляется столбец</span>
+    bio<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> User<span class="token punctuation">.</span>create_table<span class="token punctuation">(</span><span class="token punctuation">)</span>              <span class="token comment">#幂等: только миграция новых столбцов</span>
+</code></pre>
+<p><strong>Ограничения</strong>: поддерживается только добавление столбцов; изменение первичного ключа, типа столбца, удаление столбцов требует ручной обработки (чтобы избежать случайных повреждающих ALTER).</p>
+<h2 id="внешний-ключ-основа-сопоставления-отношений">Внешний ключ (основа сопоставления отношений)</h2>
+<p><code>foreign_key="table.column"</code> объявляет ограничение внешнего ключа на уровне столбца, DDL генерирует подфразу <code>REFERENCES</code>:</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Post</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"posts"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    author<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>foreign_key<span class="token operator">=</span><span class="token string">"orm_users.id"</span><span class="token punctuation">)</span>
+
+    content<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">255</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="сопоставление-отношений-relationship">Сопоставление отношений (relationship)</h2>
+<p>В теле класса модели объявляйте <code>relationship()</code> как атрибут класса, <strong>направление определяется автоматически по тому, где объявлен внешний ключ</strong>:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> Model<span class="token punctuation">,</span> Field<span class="token punctuation">,</span> relationship
+
+<span class="token keyword">class</span> <span class="token class-name">User</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"orm_users"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    name<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">)</span>
+
+    posts <span class="token operator">=</span> relationship<span class="token punctuation">(</span><span class="token string">"Post"</span><span class="token punctuation">,</span> foreign_key<span class="token operator">=</span><span class="token string">"author"</span><span class="token punctuation">)</span>   <span class="token comment"># Внешний ключ в другой таблице → has-many</span>
+
+<span class="token keyword">class</span> <span class="token class-name">Post</span><span class="token punctuation">(</span>Model<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    __tablename__ <span class="token operator">=</span> <span class="token string">"posts"</span>
+
+    <span class="token builtin">id</span><span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>primary_key<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> autoincrement<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    author<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>foreign_key<span class="token operator">=</span><span class="token string">"orm_users.id"</span><span class="token punctuation">)</span>
+    content<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> Field<span class="token punctuation">(</span>max_length<span class="token operator">=</span><span class="token number">255</span><span class="token punctuation">)</span>
+
+    writer <span class="token operator">=</span> relationship<span class="token punctuation">(</span><span class="token string">"User"</span><span class="token punctuation">,</span> foreign_key<span class="token operator">=</span><span class="token string">"author"</span><span class="token punctuation">)</span>  <span class="token comment"># Внешний ключ в этой таблице → belongs-to</span>
+</code></pre>
+<p><strong>has-many</strong>: атрибут экземпляра возвращает набор запросов, доступны все возможности <code>QuerySet</code>, <code>create</code> автоматически заполняет первичный ключ этой таблицы в столбец внешнего ключа другой таблицы:</p>
+<pre><code class="language-python">alice <span class="token operator">=</span> <span class="token keyword">await</span> User<span class="token punctuation">.</span>get<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">"Alice"</span><span class="token punctuation">)</span>
+
+posts <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>                          <span class="token comment"># Все статьи пользователя</span>
+latest <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>order_by<span class="token punctuation">(</span><span class="token string">"-id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>first<span class="token punctuation">(</span><span class="token punctuation">)</span>
+total <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>count<span class="token punctuation">(</span><span class="token punctuation">)</span>
+hot <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>where<span class="token punctuation">(</span>Post<span class="token punctuation">.</span>content <span class="token operator">!=</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token builtin">all</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># Дополнительные условия по столбцам другой таблицы</span>
+<span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>delete<span class="token punctuation">(</span><span class="token punctuation">)</span>                               <span class="token comment"># Удаляются только статьи этого пользователя</span>
+
+new_post <span class="token operator">=</span> <span class="token keyword">await</span> alice<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>create<span class="token punctuation">(</span>content<span class="token operator">=</span><span class="token string">"hi"</span><span class="token punctuation">)</span>        <span class="token comment"># author автоматически = alice.id</span>
+</code></pre>
+<p><strong>belongs-to</strong>: при <code>await</code> получается экземпляр другой модели (если нет соответствия или внешний ключ NULL, возвращается <code>None</code>):</p>
+<pre><code class="language-python">post <span class="token operator">=</span> <span class="token keyword">await</span> Post<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token builtin">id</span><span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+writer <span class="token operator">=</span> <span class="token keyword">await</span> post<span class="token punctuation">.</span>writer          <span class="token comment"># Экземпляр User или None</span>
+<span class="token keyword">await</span> writer<span class="token punctuation">.</span>posts<span class="token punctuation">.</span>count<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># Двусторонняя связь</span>
+</code></pre>
+<p><strong>Ключевые моменты</strong>:</p>
+<ul>
+<li><code>related</code> принимает имя класса в виде строки (ленивый парсинг по таблице регистрации классов моделей, порядок определения не важен) или напрямую передает класс модели</li>
+<li>Запросы отношений и модели используют один и тот же бэкенд хранения (не поддерживается JOIN между разными бэкендами — запросы отношений — это два отдельных SQL-запроса)</li>
+<li>Запросы отношений не кэшируются, каждый вызов — это немедленный запрос; для произвольных пользовательских запросов можно использовать <code>User.where(...)</code></li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ru/developer-guide/testing.html"><small>Previous</small><br>Модульное тестирование (ErisPulse-Testing)</a>
+        <a class="doc-pager-next" href="/docs/ru/developer-guide/module-troubleshooting.html"><small>Next</small><br>Руководство по диагностике модулей</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Система ленивой загрузки модулей - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse SDK предоставляет мощную систему ленивой загрузки модулей, которая позволяет инициализировать модули только тогда, когда они действительно необходи..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/lazy-loading.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html" />
+    <meta property="og:title" content="Система ленивой загрузки модулей - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse SDK предоставляет мощную систему ленивой загрузки модулей, которая позволяет инициализировать модули только тогда, когда они действительно необходи..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система ленивой загрузки модулей","description":"ErisPulse SDK предоставляет мощную систему ленивой загрузки модулей, которая позволяет инициализировать модули только тогда, когда они действительно необходи...","url":"https://www.erisdev.com/docs/ru/advanced/lazy-loading.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Продвинутые темы
+        <span class="doc-crumb-sep">/</span> <span>Система ленивой загрузки модулей</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/lazy-loading.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/lazy-loading.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/lazy-loading.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/lazy-loading.html">日本語</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ru/advanced/lazy-loading.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/lazy-loading.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="система-ленивой-загрузки-модулей">Система ленивой загрузки модулей</h1>
+<p>ErisPulse SDK предоставляет мощную систему ленивой загрузки модулей, которая позволяет инициализировать модули только тогда, когда они действительно необходимы, значительно повышая скорость запуска приложения и эффективность использования памяти.</p>
+<h2 id="обзор">Обзор</h2>
+<p>Система ленивого загрузки модулей является одной из ключевых особенностей ErisPulse. Она работает следующим образом:</p>
+<ul>
+<li><strong>Отложенная инициализация</strong>: модуль загружается и инициализируется только при первом обращении</li>
+<li><strong>Прозрачное использование</strong>: для разработчиков ленивые модули практически не отличаются от обычных модулей</li>
+<li><strong>Автоматическое управление зависимостями</strong>: зависимости модуля автоматически инициализируются при использовании</li>
+<li><strong>Поддержка жизненного цикла</strong>: для модулей, унаследованных от <code>BaseModule</code>, автоматически вызываются методы жизненного цикла</li>
+</ul>
+<h2 id="принцип-работы">Принцип работы</h2>
+<h3 id="класс-lazymodule">Класс LazyModule</h3>
+<p>Основой системы ленивой загрузки является класс <code>LazyModule</code>, который является обёрткой, фактически инициализирующей модуль только при первом обращении.</p>
+<h3 id="процесс-инициализации">Процесс инициализации</h3>
+<p>При первом обращении к модулю <code>LazyModule</code> выполняет следующие действия:</p>
+<ol>
+<li>Получает информацию о параметрах <code>__init__</code> класса модуля</li>
+<li>Определяет, следует ли передавать ссылку на <code>sdk</code></li>
+<li>Устанавливает атрибут <code>moduleInfo</code> модуля</li>
+<li>Для модулей, унаследованных от <code>BaseModule</code>, вызывает метод <code>on_load</code></li>
+<li>Запускает событие жизненного цикла <code>module.init</code></li>
+</ol>
+<h2 id="событийное-ленивое-активирование-activate_on">Событийное ленивое активирование (activate_on)</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>Эта функция требует ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>Модули с <code>lazy_load=True</code> по умолчанию загружаются только при <strong>первом обращении к атрибуту</strong>. Если модуль зарегистрировал обработчики команд или событий, традиционный подход предполагает полную загрузку (<code>lazy_load=False</code>). <code>activate_on</code> предоставляет третий вариант: <strong>объявить триггер, и при первом совпадающем событии/команде модуль будет автоматически активирован</strong> — он не будет постоянно в памяти, но при этом не упустит входной триггер.</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+            activate_on<span class="token operator">=</span><span class="token punctuation">[</span>
+                <span class="token comment"># ---- События (пассивные, не требуют участия пользователя)----</span>
+                <span class="token string">"message"</span><span class="token punctuation">,</span>                                    <span class="token comment"># Тип события: любое сообщение</span>
+                <span class="token punctuation">{</span><span class="token string">"notice"</span><span class="token punctuation">:</span> <span class="token string">"group_member_increase"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># Тип + detail_type</span>
+                <span class="token punctuation">{</span><span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"private"</span><span class="token punctuation">,</span> <span class="token string">"group"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">,</span>            <span class="token comment"># Тип + несколько detail_type</span>
+
+                <span class="token comment"># ---- Команды (активные, ввод пользователя, отображаются в Help)----</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token string">"roll"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>                          <span class="token comment"># Сокращённая форма: имя команды</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"roll"</span><span class="token punctuation">,</span> <span class="token string">"dice"</span><span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">,</span>                <span class="token comment"># Список имён команд</span>
+                <span class="token punctuation">{</span><span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>                                 <span class="token comment"># Форма dict (обязательно name)</span>
+                    <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"dice"</span><span class="token punctuation">,</span>
+                    <span class="token string">"help"</span><span class="token punctuation">:</span> <span class="token string">"Бросить кубик"</span><span class="token punctuation">,</span>
+                    <span class="token string">"usage"</span><span class="token punctuation">:</span> <span class="token string">"/dice"</span><span class="token punctuation">,</span>
+                    <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"Развлечения"</span><span class="token punctuation">,</span>
+                    <span class="token string">"aliases"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"d"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                    <span class="token string">"hidden"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span>
+                <span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h3 id="параметры-команды-в-формате-dict">Параметры команды в формате dict</h3>
+<p>Формат dict отражает пользовательские параметры декоратора <code>@command()</code>, и используется для регистрации временной команды до загрузки модуля:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Параметр</th>
+<th>Тип</th>
+<th>Значение по умолчанию</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td><strong>Обязательно</strong></td>
+<td>Имя команды; должно совпадать с <code>@command(name)</code> в <code>on_load</code>, иначе временная команда будет удалена при активации, и команда не будет доступна</td>
+</tr>
+<tr>
+<td><code>help</code></td>
+<td><code>str</code></td>
+<td>Цепочка возврата</td>
+<td>Описание команды в Help; если не указано, используется цепочка возврата (см. ниже)</td>
+</tr>
+<tr>
+<td><code>usage</code></td>
+<td><code>str</code></td>
+<td>Автоматически</td>
+<td>Пример использования, по умолчанию <code>{prefix}{name}</code></td>
+</tr>
+<tr>
+<td><code>group</code></td>
+<td><code>str</code></td>
+<td><code>None</code></td>
+<td>Группа команды</td>
+</tr>
+<tr>
+<td><code>aliases</code></td>
+<td><code>list[str]</code></td>
+<td><code>[]</code></td>
+<td>Список алиасов, также регистрируется, <strong>ввод алиаса также активирует модуль</strong></td>
+</tr>
+<tr>
+<td><code>hidden</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Если <code>True</code>, временная команда будет скрыта (семантика скрытости совпадает с активированной командой); пользователи, знающие имя команды, могут активировать её</td>
+</tr>
+</tbody></table></div>
+<p><strong>Не поддерживается</strong> <code>priority</code> / <code>permission</code> / <code>master</code>: временная команда предназначена только для активации, проверка прав осуществляется активированной командой (в момент активации проверка прав прерывает активацию).</p>
+<h3 id="цепочка-возврата-для-help-временной-команды">Цепочка возврата для Help временной команды</h3>
+<p>Описание команды в Help, отображаемое до загрузки модуля, берётся по следующему порядку (первое найденное значение):</p>
+<ol>
+<li><code>help</code> в команде dict (наиболее точное)</li>
+<li><code>description</code> из <code>get_meta()</code></li>
+<li><code>__description__</code> из модуля</li>
+<li><code>Summary</code> из метаданных пакета (краткое описание пакета на PyPI)</li>
+<li>Общее сообщение: «Эта команда из лениво загружаемого модуля X, при первом использовании модуль будет автоматически загружен»</li>
+</ol>
+<h3 id="семантика-триггеров">Семантика триггеров</h3>
+<ul>
+<li><strong>Событийный stub</strong>: регистрируется с низким приоритетом (<code>ACTIVATION_STUB_PRIORITY</code>) в соответствующий обработчик событий, и срабатывает в конце, после всех обычных обработчиков; при активации событие пересылается в настоящий обработчик модуля</li>
+<li><strong>Командный stub</strong>: регистрируется временная команда; при активации временная команда удаляется, настоящая команда принимает на себя текущее срабатывание</li>
+<li><strong>Предотвращение повторного запуска</strong>: <code>asyncio.Lock</code> гарантирует, что при одновременных срабатываниях модуль активируется только один раз</li>
+<li><strong>Фильтрация по области видимости</strong>: stub содержит идентификатор владельца модуля, модуль не активируется, если не включен для данного бота / сессии / платформы</li>
+<li><strong>Семантика ошибки</strong>: при неудачной активации повторная попытка не предпринимается, stub также удаляется</li>
+<li><strong>Удаление дубликатов</strong>: при смешанном объявлении сокращённых и dict-имён команд дубликаты удаляются (dict имеет приоритет); если dict не содержит <code>name</code> или <code>detail_type</code> события указан как dict, выводится предупреждение и игнорируется</li>
+</ul>
+<blockquote>
+<p>Архитектурная диаграмма и полная семантика см. в <a href="/docs/ru/architecture.html#%D0%B0%D1%80%D1%85%D0%B8%D1%82%D0%B5%D0%BA%D1%82%D1%83%D1%80%D0%B0-%D1%81%D0%BE%D0%B1%D1%8B%D1%82%D0%B8%D0%B9%D0%BD%D0%BE%D0%B3%D0%BE-%D0%BB%D0%B5%D0%BD%D0%B5%D0%B2%D0%BE%D0%B3%D0%BE-%D0%B0%D0%BA%D1%82%D0%B8%D0%B2%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-activate_on">Обзоре архитектуры</a>.</p>
+</blockquote>
+<h2 id="конфигурация-ленивой-загрузки">Конфигурация ленивой загрузки</h2>
+<h3 id="глобальная-конфигурация">Глобальная конфигурация</h3>
+<p>В файле конфигурации включите/отключите глобальную ленивую загрузку:</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.framework</span><span class="token punctuation">]</span>
+<span class="token key property">enable_lazy_loading</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>  <span class="token comment"># true=включить ленивую загрузку (по умолчанию), false=отключить ленивую загрузку</span>
+</code></pre>
+<h3 id="управление-на-уровне-модуля">Управление на уровне модуля</h3>
+<p>Модуль может контролировать стратегию загрузки, реализовав статический метод <code>get_load_strategy()</code>:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+
+<span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""Возвращает стратегию загрузки модуля"""</span>
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>  <span class="token comment"># Возвращает False для немедленной загрузки</span>
+            priority<span class="token operator">=</span><span class="token number">100</span>      <span class="token comment"># Приоритет загрузки, чем больше значение, тем выше приоритет</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h2 id="использование-модулей-с-ленивой-загрузкой">Использование модулей с ленивой загрузкой</h2>
+<h3 id="основное-использование">Основное использование</h3>
+<p>Для разработчиков использование модулей с ленивой загрузкой практически не отличается от обычных модулей:</p>
+<pre><code class="language-python"><span class="token comment"># Доступ к модулю с ленивой загрузкой через SDK</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># Следующий вызов инициирует ленивую загрузку модуля</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="единый-вход-для-получения-модуля">Единый вход для получения модуля</h3>
+<p>Независимо от того, получаете ли вы модуль через свойство SDK, свойство менеджера модулей или с помощью <code>module.get()</code>, для "зарегистрированных, но еще не загруженных" модулей с ленивой загрузкой будет возвращаться один и тот же прокси-объект ленивой загрузки. Инициализация происходит только при обращении к его свойствам:</p>
+<pre><code class="language-python"><span class="token comment"># Все три способа возвращают один и тот же прокси-объект ленивой загрузки (когда модуль еще не загружен), поведение одинаково и для пользователя прозрачно</span>
+sdk<span class="token punctuation">.</span>my_module          <span class="token comment"># Точка входа для инициации загрузки</span>
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>my_module   <span class="token comment"># Также возвращает прокси-объект ленивой загрузки</span>
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>  <span class="token comment"># Также возвращает прокси-объект ленивой загрузки, сам вызов не инициирует загрузку</span>
+
+<span class="token comment"># Инициализация модуля происходит только при обращении к свойству прокси-объекта</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>module.get()</code> — это <strong>интерфейс для запроса</strong>, сам вызов не инициирует загрузку:</p>
+<ul>
+<li>Если модуль уже загружен → возвращается реальный экземпляр</li>
+<li>Если модуль зарегистрирован, но не загружен → возвращается прокси-объект ленивой загрузки (инициализация происходит при обращении к свойству)</li>
+<li>Если модуль не зарегистрирован → возвращается <code>None</code></li>
+</ul>
+<p>Если необходимо явно инициировать загрузку, используйте <code>await sdk.load_module("my_module")</code>.</p>
+<h3 id="асинхронная-инициализация">Асинхронная инициализация</h3>
+<p>Для модулей, требующих асинхронной инициализации, рекомендуется сначала явно загрузить модуль:</p>
+<pre><code class="language-python"><span class="token comment"># Сначала явно загрузите модуль</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Затем используйте модуль</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>my_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="синхронная-инициализация">Синхронная инициализация</h3>
+<p>Для модулей, не требующих асинхронной инициализации, можно обращаться напрямую:</p>
+<pre><code class="language-python"><span class="token comment"># Прямое обращение автоматически инициирует синхронную инициализацию</span>
+result <span class="token operator">=</span> sdk<span class="token punctuation">.</span>my_module<span class="token punctuation">.</span>some_sync_method<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="рекомендуемые-практики">Рекомендуемые практики</h2>
+<p>При выборе стратегии загрузки можно использовать следующий процесс принятия решений:</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["Объявление модуля&lt;br/&gt;get_load_strategy()"] --&gt; B{"Требуется готовность при запуске&lt;br/&gt;или частое срабатывание?"}
+    B --&gt;|"Да"| C["lazy_load=False&lt;br/&gt;Загрузка немедленно"]
+    B --&gt;|"Нет"| D{"Регистрированы обработчики команд / событий?"}
+    D --&gt;|"Да"| E["lazy_load=True + activate_on&lt;br/&gt;Активация при поступлении события / команды"]
+    D --&gt;|"Нет"| F["lazy_load=True&lt;br/&gt;Загрузка при первом обращении к атрибуту"]
+    C --&gt; G["Вызов on_load() при запуске"]
+    E --&gt; H["Регистрация stub → инстанцирование при срабатывании"]
+    F --&gt; I["Прокси LazyModule"]
+</code></pre>
+<h3 id="рекомендованные-сценарии-использования-ленивой-загрузки-lazy_loadtrue">Рекомендованные сценарии использования ленивой загрузки (lazy_load=True)</h3>
+<ul>
+<li>Инструментальные классы, вызываемые пассивно (например, модуль запросов данных, преобразователи форматов и т.д., которые нужны только при вызове из других модулей)</li>
+<li>Модули, зарегистрировавшие обработчики команд / событий, но используемые нечасто — в сочетании с <code>activate_on</code> можно объявить триггер, автоматически активирующий модуль при поступлении первого соответствующего события / команды, без отказа от ленивой загрузки</li>
+</ul>
+<h3 id="рекомендованные-сценарии-отключения-ленивой-загрузки-lazy_loadfalse">Рекомендованные сценарии отключения ленивой загрузки (lazy_load=False)</h3>
+<ul>
+<li>Модули, требующие готовности при запуске (например, основные модули, предоставляющие базовые сервисы другим модулям)</li>
+<li>Часто вызываемые слушатели (каждое сообщение должно обрабатываться) — <code>activate_on</code> имеет небольшую стоимость активации, поэтому для сценариев с высокой частотой вызовов прямая загрузка предпочтительнее</li>
+<li>Модули с планировщиком задач</li>
+<li>Модули, требующие инициализации при запуске приложения</li>
+</ul>
+<blockquote>
+<p>Параметр <code>priority</code> управляет порядком инициализации модулей, загруженных немедленно: чем больше значение, тем раньше модуль будет инициализирован. Модули с одинаковым приоритетом загружаются в порядке их регистрации.</p>
+</blockquote>
+<h2 id="примечания">Примечания</h2>
+<ol>
+<li>Если ваш модуль использует ленивую загрузку, и если другие модули никогда не вызывались внутри ErisPulse, ваш модуль никогда не будет инициализирован.</li>
+<li>Если ваш модуль содержит такие компоненты, как модули, слушающие события, или другие активно слушающие модули, у вас есть два варианта: объявить триггер <code>activate_on</code> (сохранить ленивую загрузку, автоматически активировать при поступлении события) или объявить, что он должен быть загружен немедленно (<code>lazy_load=False</code>), иначе это повлияет на нормальное функционирование вашего модуля.</li>
+<li>Мы не рекомендуем отключать ленивую загрузку, если только у вас нет особых потребностей, иначе это может привести к проблемам с зависимостями и событиями жизненного цикла.</li>
+<li>В командном словаре <code>activate_on</code> объявления, <code>name</code> должен совпадать с реальным именем команды, зарегистрированной в модуле <code>on_load</code> с помощью <code>@command()</code> — в противном случае, после активации модуля, команда-заполнитель будет отменена, и команда, объявленная не соответствующая реализации, не будет существовать.</li>
+</ol>
+<h2 id="связанные-документы">Связанные документы</h2>
+<ul>
+<li><a href="/docs/ru/developer-guide/modules/getting-started.html">Руководство по разработке модулей</a> - изучите разработку модулей</li>
+<li><a href="/docs/ru/developer-guide/modules/best-practices.html">Лучшие практики</a> - узнайте больше о лучших практиках</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ru/advanced/lifecycle.html"><small>Previous</small><br>Управление жизненным циклом</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/router.html"><small>Next</small><br>Маршрутизатор</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

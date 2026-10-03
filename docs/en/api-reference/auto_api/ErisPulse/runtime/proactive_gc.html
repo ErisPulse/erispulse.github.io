@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse.runtime.proactive_gc 模块 - ErisPulse 文档中心</title>
+    <meta name="description" content="SDK 主动垃圾回收后台任务的实现：周期性 Python GC 与内部资源回收（离线 Bot 清理）、 框架配置读取与钳制、配置热更新即时重启联动、事件洪峰门控。 由 ErisPulse.SDK 的同名私有方法薄委托调用；SDK 上保留方法形态， 以便测试与子类按 patch.object(SDK, &quot;_star..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html" />
+    <meta property="og:title" content="ErisPulse.runtime.proactive_gc 模块 - ErisPulse 文档中心" />
+    <meta property="og:description" content="SDK 主动垃圾回收后台任务的实现：周期性 Python GC 与内部资源回收（离线 Bot 清理）、 框架配置读取与钳制、配置热更新即时重启联动、事件洪峰门控。 由 ErisPulse.SDK 的同名私有方法薄委托调用；SDK 上保留方法形态， 以便测试与子类按 patch.object(SDK, &quot;_star..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.runtime.proactive_gc 模块","description":"SDK 主动垃圾回收后台任务的实现：周期性 Python GC 与内部资源回收（离线 Bot 清理）、 框架配置读取与钳制、配置热更新即时重启联动、事件洪峰门控。 由 ErisPulse.SDK 的同名私有方法薄委托调用；SDK 上保留方法形态， 以便测试与子类按 patch.object(SDK, \"_star...","url":"https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> API <span class="doc-crumb-sep">/</span> 运行时
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse.runtime.proactive_gc 模块</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">简体中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/api-reference/auto_api/ErisPulse/runtime/proactive_gc.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulseruntimeproactive_gc-模块"><code>ErisPulse.runtime.proactive_gc</code> 模块</h1>
+<hr>
+<h2 id="模块概述">模块概述</h2>
+<p>ErisPulse 主动 GC 周期任务</p>
+<p>SDK 主动垃圾回收后台任务的实现：周期性 Python GC 与内部资源回收（离线 Bot 清理）、
+框架配置读取与钳制、配置热更新即时重启联动、事件洪峰门控。
+由 <code>ErisPulse.SDK</code> 的同名私有方法薄委托调用；SDK 上保留方法形态，
+以便测试与子类按 <code>patch.object(SDK, "_start_proactive_gc")</code> 方式补丁。</p>
+<hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="start_proactive_gcsdk-sdk"><code>start_proactive_gc(sdk: SDK)</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+启动主动 GC 后台任务</p>
+</blockquote>
+<p>定期执行 Python GC 和内部资源回收（离线 Bot 清理等），
+防止长期运行时的内存增长。</p>
+<p>GC 行为由多项框架配置控制（均支持热更新，变更时即时重启任务）：</p>
+<ul>
+<li><code>proactive_gc_interval</code>: 回收间隔秒数（0 禁用）</li>
+<li><code>proactive_gc_generation</code>: 常规轮次回收分代（0/1/2，钳制到 0..2）</li>
+<li><code>proactive_gc_full_every</code>: 每 N 轮做一次全量回收（0 禁用）</li>
+<li><code>proactive_gc_memory_growth_mb</code>: 全量回收的内存增长门限（0 不设限）</li>
+<li><code>proactive_gc_idle_only</code>: 事件洪峰时跳过 Python GC（避免停顿竞争）</li>
+<li><code>proactive_gc_gen0_min</code>: gen0 垃圾量下限，低于则跳过回收（空转轮次零开销）</li>
+</ul>
+<p>初始化阶段已调用 <code>gc.freeze()</code> 将框架对象移入永久代，
+此处 <code>gc.collect()</code> 仅扫描运行期新建对象。</p>
+<hr>
+<h3 id="stop_proactive_gcsdk-sdk"><code>stop_proactive_gc(sdk: SDK)</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+停止主动 GC 后台任务，并反注册配置变更钩子</p>
+</blockquote>
+<hr>
+<h3 id="read_gc_config"><code>read_gc_config()</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+读取并钳制主动 GC 相关框架配置</p>
+</blockquote>
+<p><strong>返回值</strong> (```(interval,`): generation, full_every, growth_mb, idle_only, gen0_min)<code>          元组，值均已钳制到合法范围；</code>interval`` 为秒（支持小数）</p>
+<hr>
+<h3 id="on_gc_config_eventsdk-sdk-_data-dict"><code>on_gc_config_event(sdk: SDK, _data: dict)</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+<code>config.set</code> / <code>config.updated</code> 回调：proactive_gc_* 配置变化时重启 GC 任务</p>
+</blockquote>
+<p>相比旧实现"每轮重读"，此钩子使配置变更（含 0→N 重新启用）即时生效。
+从后台线程（如 config watcher）触发时，调度回主事件循环再重启。</p>
+<hr>
+<h3 id="has_handler_backlog"><code>has_handler_backlog()</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+事件处理器洪峰检测</p>
+</blockquote>
+<p><strong>返回值</strong> (<code>存在未完成的</code>): pending handler task 时返回 True</p>
+<hr>
+<h3 id="run_full_gc_collectiongc_module-any-baseline-float-none-growth_mb-int"><code>run_full_gc_collection(gc_module: Any, baseline: float | None, growth_mb: int)</code></h3>
+<blockquote>
+<p><strong>内部方法</strong>
+执行一次全量回收（受内存增长门限约束）</p>
+</blockquote>
+<p>优先使用 tracemalloc 追踪值，不可用则回退 RSS。当 <code>growth_mb &gt; 0</code>
+且距上次全量回收基线增长不足时跳过回收，避免内存稳定时空转。</p>
+<ul>
+<li><strong>gc_module</strong> (<code>gc</code>): 模块（便于测试注入）</li>
+<li><strong>baseline</strong> (<code>上次全量回收后的内存基线（MB），None</code>): 表示首次</li>
+<li><strong>growth_mb</strong> (<code>内存增长门限（MB），0</code>): 表示不设门限
+<strong>返回值</strong> (```(collected,`): 新基线)``</li>
+</ul>
+<hr>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/en/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html"><small>Previous</small><br>`ErisPulse.runtime.plugin_reload` 模块</a>
+        <a class="doc-pager-next" href="/docs/en/api-reference/auto_api/ErisPulse/runtime/sdk_initializer.html"><small>Next</small><br>`ErisPulse.runtime.sdk_initializer` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

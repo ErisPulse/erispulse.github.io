@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>交互会话系统 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse 把&quot;与用户的持续交互&quot;做成了框架级基础设施：从一条 wait_reply， 到定时提醒、多路等待、会话互斥、重启恢复，全部由统一的 交互会话管理器（Core/Event/interaction.py，sdk.interaction）调度。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/advanced/interaction.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/interaction.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/interaction.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/interaction.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/interaction.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/interaction.html" />
+    <meta property="og:title" content="交互会话系统 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse 把&quot;与用户的持续交互&quot;做成了框架级基础设施：从一条 wait_reply， 到定时提醒、多路等待、会话互斥、重启恢复，全部由统一的 交互会话管理器（Core/Event/interaction.py，sdk.interaction）调度。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/advanced/interaction.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"交互会话系统","description":"ErisPulse 把\"与用户的持续交互\"做成了框架级基础设施：从一条 wait_reply， 到定时提醒、多路等待、会话互斥、重启恢复，全部由统一的 交互会话管理器（Core/Event/interaction.py，sdk.interaction）调度。","url":"https://www.erisdev.com/docs/advanced/interaction.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 高级主题
+        <span class="doc-crumb-sep">/</span> <span>交互会话系统</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/advanced/interaction.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/interaction.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/interaction.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/interaction.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/interaction.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/interaction.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="交互会话系统">交互会话系统</h1>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本章内容需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p>ErisPulse 把"与用户的持续交互"做成了框架级基础设施：从一条 <code>wait_reply</code>，
+到定时提醒、多路等待、会话互斥、重启恢复，全部由统一的
+<strong>交互会话管理器</strong>（<code>Core/Event/interaction.py</code>，<code>sdk.interaction</code>）调度。</p>
+<p>{!--&lt; tips &gt;!--}
+本文覆盖的每一项能力都自带<strong>归属（owner）</strong>：交互等待、租约、定时器全部记录
+注册时的模块名，模块卸载 / 适配器关闭时由框架自动清理，等待方立即得到通知
+而非干等超时——这是归属权系统在交互维度的延伸（见 <a href="/docs/advanced/ownership.html">归属权系统</a>）。
+{!--&lt; /tips &gt;!--}</p>
+<h2 id="等待回复wait_reply">等待回复：wait_reply</h2>
+<p><code>wait_reply</code> 是交互会话的基石——挂起当前协程，等待目标用户在下一条消息中"回复"。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+
+<span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ask"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ask_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>prompt<span class="token operator">=</span><span class="token string">"请输入你的名字:"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> reply <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"超时了"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"你好，</span><span class="token interpolation"><span class="token punctuation">{</span>reply<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">！"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="全参数一览">全参数一览</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>默认</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>prompt</code></td>
+<td>挂起前发送的提示消息</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>等待超时（秒）</td>
+<td>60</td>
+</tr>
+<tr>
+<td><code>pattern</code></td>
+<td>glob 过滤（<code>*</code> / <code>?</code> / <code>[seq]</code>），不匹配继续等待</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>regex</code></td>
+<td>正则过滤（与 pattern 同时给定时须都匹配），不匹配继续等待</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>validator</code></td>
+<td>校验函数（接收 Event，返回 bool），失败继续等待</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>callback</code></td>
+<td>收到回复时的回调（替代返回值式的另一种写法）</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>prompt 的发送方法</td>
+<td>"Text"</td>
+</tr>
+<tr>
+<td><code>session</code></td>
+<td><strong>会话级等待</strong>：同会话（群 / 频道）中任何人的回复均可命中</td>
+<td>False</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token comment"># 只接受数字金额，否则继续等</span>
+reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span><span class="token string">"请输入金额:"</span><span class="token punctuation">,</span> regex<span class="token operator">=</span><span class="token string">r"\d+\s*元"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 会话级等待：群协作场景，任何群友回答均可</span>
+reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> prompt<span class="token operator">=</span><span class="token string">"哪位大佬帮忙答一下？"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="等待会在什么时候被取消">等待会在什么时候被取消</h3>
+<p>等待不再是"只能等超时"——以下情况会让等待<strong>立即终止</strong>（<code>wait_reply</code> 返回 <code>None</code>），
+而不是让调用方干等到超时：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>触发</th>
+<th>取消原因（<code>InteractionCancelled.reason</code>）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>归属模块被卸载 / 禁用</td>
+<td><code>owner_unload</code></td>
+<td>归属清理：谁注册的等待，谁消失时一并回收</td>
+</tr>
+<tr>
+<td>适配器关闭 / 重启</td>
+<td><code>platform_stop</code></td>
+<td>该平台挂起的等待全部取消</td>
+</tr>
+<tr>
+<td>同会话被新的等待 / 租约取代</td>
+<td><code>conflict</code></td>
+<td>见下方"会话仲裁"</td>
+</tr>
+<tr>
+<td>回复者被拉黑 / owner 模块被解绑</td>
+<td><code>revoked</code></td>
+<td>回复命中的<strong>权限复查</strong>：scope 身份维度 + 模块维度</td>
+</tr>
+<tr>
+<td>用户回复命中</td>
+<td>——</td>
+<td>正常路径，返回回复事件</td>
+</tr>
+</tbody></table></div>
+<p>底层异常为 <code>InteractionCancelled</code>（挂在 <code>InteractionError</code> 异常体系下），
+<code>wait_reply</code> 已将其转换为返回 <code>None</code>；需要原因的调用方可直接使用
+<code>sdk.interaction.register()</code> 低层 API。</p>
+<h3 id="回复命中的完整判定链">回复命中的完整判定链</h3>
+<p>一条回复消息到达时，交互管理器按以下顺序判定（在命令匹配<strong>之前</strong>执行，
+对话连续性优先——即使消息已被其他高优先级处理器认领，挂起的对话也能完成）：</p>
+<pre><code>会话键命中（精确 user 维度 → 会话级回退）
+  → pattern / regex 文本过滤（不匹配继续等）
+  → validator 校验（失败继续等）
+  → 权限复查（scope 身份维度 + owner 模块维度，失败则终止等待）
+  → 唤醒等待方 + 认领事件（mark_processed）
+</code></pre>
+<h2 id="会话定时器remind-escalate">会话定时器：remind / escalate</h2>
+<p>把"超时"从返回值变成可编排的原语。定时器挂在交互会话上，
+随模块卸载 / 适配器关闭自动取消，单会话活跃 remind 上限 5 个。</p>
+<h3 id="remind没回复就提醒">remind：没回复就提醒</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ticket"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ticket_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"工单已提交，处理结果会在这里通知"</span><span class="token punctuation">)</span>
+    <span class="token comment"># 5 分钟无回复则温和催一次；用户任何回复都会自动取消它</span>
+    event<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">,</span> <span class="token string">"还在吗？有结果了会第一时间告诉你"</span><span class="token punctuation">)</span>
+    reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">3600</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<ul>
+<li><code>event.remind(delay, text=None, *, callback=None)</code>：到期向当前会话发送 <code>text</code>
+（或执行 <code>callback(event)</code>，支持同步 / 异步）。<strong>强制校验</strong>：<code>text</code> 与
+<code>callback</code> 必须二选一（都不给抛 <code>ValueError</code>）</li>
+<li>返回 <code>Reminder</code> 句柄：<code>reminder.cancel()</code> 手动取消、<code>reminder.expired</code> 查询状态</li>
+<li>用户在该会话<strong>回复后自动取消</strong>——这正是"提醒"语义：
+提醒只在用户沉默时出现</li>
+<li><code>Conversation</code> 内同样可用：<code>conv.remind(120, "还在考虑吗？")</code></li>
+</ul>
+<h3 id="escalate到点必达的升级">escalate：到点必达的升级</h3>
+<pre><code class="language-python">event<span class="token punctuation">.</span>escalate<span class="token punctuation">(</span><span class="token number">1800</span><span class="token punctuation">,</span> <span class="token keyword">lambda</span> e<span class="token punctuation">:</span> notify_master<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"工单 30 分钟未处理：</span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>get_command_args<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p>与 <code>remind</code> 的唯一区别：<strong>不被用户回复取消</strong>——升级动作（通知主人、转人工）
+是"超时必达"承诺，仅手动 <code>cancel()</code> / 模块卸载 / 适配器关闭才取消。</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th><code>remind</code></th>
+<th><code>escalate</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>到期行为</td>
+<td>发文本 / 执行 callback</td>
+<td>执行 callback</td>
+</tr>
+<tr>
+<td>用户回复</td>
+<td><strong>自动取消</strong></td>
+<td>不受影响</td>
+</tr>
+<tr>
+<td>归属清理（卸载 / 关平台）</td>
+<td>取消</td>
+<td>取消</td>
+</tr>
+<tr>
+<td>单会话上限</td>
+<td>5</td>
+<td>不限（随归属清理兜底）</td>
+</tr>
+</tbody></table></div>
+<h2 id="多路等待expect-select">多路等待：expect + select</h2>
+<p>同时挂起多条期望，<strong>先到先得</strong>——典型场景：等管理员审批的同时等用户撤回、
+多人协作投票。</p>
+<pre><code class="language-python">which<span class="token punctuation">,</span> reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>select<span class="token punctuation">(</span>
+    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"同意*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10001"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"拒绝*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10002"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>validator<span class="token operator">=</span><span class="token keyword">lambda</span> e<span class="token punctuation">:</span> e<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"搁置"</span><span class="token punctuation">,</span> session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    timeout<span class="token operator">=</span><span class="token number">60</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">if</span> which <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"60 秒内未收到任何审批结果"</span><span class="token punctuation">)</span>
+<span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"已同意"</span><span class="token punctuation">)</span>
+<span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"已拒绝"</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li><code>event.expect(...)</code> 构造<strong>期望描述</strong>（不注册任何等待）：支持
+<code>pattern</code> / <code>regex</code> / <code>validator</code> / <code>user</code>（限定回复者）/ <code>session</code>（任何人可答）</li>
+<li><code>event.select(*expectations, timeout=60)</code>：统一注册 → 任一命中即返回
+<code>(下标, 回复事件)</code> → 未命中的等待自动取消；全部超时返回 <code>(None, None)</code>。
+<strong>强制校验</strong>：至少传入一条 expectation，否则抛 <code>ValueError</code></li>
+<li>命中的事件已被框架认领（<code>mark_processed</code>），不会被其他处理器重复消费</li>
+</ul>
+<p>{!--&lt; tips &gt;!--}
+<code>select</code> 与多线程 <code>asyncio.wait</code> 手工编排相比：期望未命中时自动清理、
+命中事件自动认领、权限复查与归属清理全部生效——不需要自己管任何 Future。
+{!--&lt; /tips &gt;!--}</p>
+<h2 id="会话互斥acquire-hold-get_owner_of">会话互斥：acquire / hold / get_owner_of</h2>
+<p>归属权从"资源"走向"会话"——"这个用户当前正被谁占用"成为一等查询。</p>
+<pre><code class="language-python"><span class="token comment"># 查询：这个会话正被谁交互？（空闲返回 None）</span>
+owner <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>get_owner_of<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
+<span class="token keyword">if</span> owner <span class="token keyword">and</span> owner <span class="token operator">!=</span> <span class="token string">"MyModule"</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span>  <span class="token comment"># 其他模块正在对话中，避免打扰</span>
+
+<span class="token comment"># 互斥租约：独占会话（deny 策略，被占用返回 None）</span>
+lease <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span>event<span class="token punctuation">)</span>          <span class="token comment"># 默认 TTL 1 小时，可传 ttl=</span>
+<span class="token keyword">if</span> lease <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span>  <span class="token comment"># 已被占用</span>
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 独占交互</span>
+<span class="token keyword">finally</span><span class="token punctuation">:</span>
+    lease<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<p>上下文管理器形式（获取失败抛 <code>SessionOccupiedError</code>）：</p>
+<pre><code class="language-python"><span class="token keyword">with</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>hold<span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token keyword">as</span> lease<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 退出自动释放</span>
+</code></pre>
+<p>租约支持 <code>renew(ttl)</code> 续期；TTL 惰性过期——过期的租约在下次访问时自动清理。</p>
+<p><code>Conversation.resume()</code> 恢复对话时框架会自动 acquire 租约（见
+<a href="/docs/advanced/conversation.html">Conversation 多轮对话</a>的"恢复即接管"）——
+恢复的对话天然持有会话，其他模块不会插入。</p>
+<h2 id="会话收件箱eventhistory">会话收件箱：event.history</h2>
+<p>每会话近期消息流的统一记录（用户 + 机器人双方），作为 AI 上下文、
+防复读、行为分析类模块的<strong>共享事实底座</strong>——各模块不再各自存历史。</p>
+<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># 当前会话最近 20 条，时间升序</span>
+<span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># role: "user" / "bot"</span>
+</code></pre>
+<ul>
+<li>自动记录：入站消息（role=user）+ 机器人出站文本（role=bot）</li>
+<li>存储：独立 SQLite 表，保留策略 = 每会话上限（默认 50）+ 全局 TTL（默认 7 天）</li>
+<li>配置：<code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
+<li>管理器 API：<code>sdk.transcript.append() / get() / clear()</code></li>
+</ul>
+<h2 id="消息事务message_tx">消息事务：message_tx</h2>
+<p>事务内的所有出站发送自动记账；<strong>异常退出时逆序自动撤回</strong>已发送的消息
+（适配器未实现 <code>delete_message</code> 时跳过，账本仍正常记录）。</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">with</span> event<span class="token punctuation">.</span>message_tx<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"正在处理，请稍候"</span><span class="token punctuation">)</span>
+    result <span class="token operator">=</span> <span class="token keyword">await</span> do_something<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># 这里抛异常 →</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"完成: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>   <span class="token comment"># 前面的"处理中"自动撤回</span>
+</code></pre>
+<p>事务外发送不记账（零开销）；<code>get_send_receipts()</code> 可查看当前事务已发送的回执。</p>
+<h2 id="链路追踪trace-id">链路追踪：trace-id</h2>
+<p>每个入站事件自动获得追踪 ID（复用 <code>event["id"]</code>，缺失则生成），贯穿：</p>
+<ul>
+<li>handler 上下文（<code>get_current_trace_id()</code> 读取）</li>
+<li>出站发送（<code>[Send]</code> 日志行附加 <code>[trace:...]</code>，<code>message.sending/sent</code> 钩子的 <code>trace_id</code> 字段）</li>
+<li>生命周期钩子数据（dict 自动补 <code>_trace_id</code>）</li>
+<li>定向事件（<code>lifecycle.emit(..., to=...)</code>）与消息事务回执</li>
+</ul>
+<p>一条消息被多个模块接力处理时，全链路可用同一 ID 串联（日志 / 慢查询 / 审计）。</p>
+<h2 id="与其他系统的关系">与其他系统的关系</h2>
+<ul>
+<li><strong>归属权</strong>：等待 / 租约 / 定时器全部记录 owner，卸载即回收（<a href="/docs/advanced/ownership.html">归属权系统</a>）</li>
+<li><strong>作用域</strong>：回复命中复查身份 + 模块维度；跨模块调用审计走出站维度（<a href="/docs/advanced/scope.html">作用域</a>）</li>
+<li><strong>Conversation</strong>：多轮对话是交互会话之上的分支状态机（<a href="/docs/advanced/conversation.html">Conversation</a>），
+其等待同样享有本页全部取消 / 复查 / 归属语义</li>
+</ul>
+<h2 id="相关文档">相关文档</h2>
+<ul>
+<li><a href="/docs/advanced/conversation.html">Conversation 多轮对话</a> - 分支状态机、自动检查点与重启恢复</li>
+<li><a href="/docs/advanced/ownership.html">归属权（owner）系统</a> - 归属清理的全景与设计边界</li>
+<li><a href="/docs/advanced/scope.html">作用域（scope）</a> - 权限复查与出站审计的配置方式</li>
+<li><a href="/docs/advanced/module-communication.html">模块间通信</a> - 跨模块调用与定向事件</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/advanced/ownership.html"><small>上一篇</small><br>归属权（owner）系统</a>
+        <a class="doc-pager-next" href="/docs/advanced/shadow.html"><small>下一篇</small><br>影子模块与灰度转正</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

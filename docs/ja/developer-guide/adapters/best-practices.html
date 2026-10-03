@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>アダプタ開発のベストプラクティス - ErisPulse 文档中心</title>
+    <meta name="description" content="このドキュメントは、ErisPulse アダプタ開発におけるベストプラクティスを提供します。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/best-practices.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/best-practices.html" />
+    <meta property="og:title" content="アダプタ開発のベストプラクティス - ErisPulse 文档中心" />
+    <meta property="og:description" content="このドキュメントは、ErisPulse アダプタ開発におけるベストプラクティスを提供します。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/developer-guide/adapters/best-practices.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"アダプタ開発のベストプラクティス","description":"このドキュメントは、ErisPulse アダプタ開発におけるベストプラクティスを提供します。","url":"https://www.erisdev.com/docs/ja/developer-guide/adapters/best-practices.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 開発者ガイド <span class="doc-crumb-sep">/</span> アダプター開発
+        <span class="doc-crumb-sep">/</span> <span>アダプタ開発のベストプラクティス</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/adapters/best-practices.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/adapters/best-practices.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/best-practices.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/best-practices.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/best-practices.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/adapters/best-practices.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="アダプタ開発のベストプラクティス">アダプタ開発のベストプラクティス</h1>
+<p>このドキュメントは、ErisPulse アダプタ開発におけるベストプラクティスを提供します。</p>
+<h2 id="bot-状態管理と-meta-イベント">Bot 状態管理と Meta イベント</h2>
+<p>アダプタは、<code>adapter.emit()</code> を通じて Meta イベントを送信し、フレームワークが Bot の接続状態、ログイン/ログアウト、およびハートビート情報を自動的に追跡できるようにする必要があります。</p>
+<h3 id="1-何时发送-meta-事件">1. 何时发送 Meta 事件</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>イベント</th>
+<th><code>detail_type</code></th>
+<th>発生タイミング</th>
+<th>フレームワークの動作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>接続</td>
+<td><code>"connect"</code></td>
+<td>Bot がプラットフォームと接続したとき</td>
+<td>Bot を登録し、<code>adapter.bot.online</code> のライフサイクルイベントをトリガー</td>
+</tr>
+<tr>
+<td>切断</td>
+<td><code>"disconnect"</code></td>
+<td>Bot がプラットフォームと切断したとき</td>
+<td>Bot をオフラインにマークし、<code>adapter.bot.offline</code> のライフサイクルイベントをトリガー</td>
+</tr>
+<tr>
+<td>ハートビート</td>
+<td><code>"heartbeat"</code></td>
+<td>定期的に送信（30-60秒が推奨）</td>
+<td>Bot のアクティブタイムとメタ情報を更新</td>
+</tr>
+</tbody></table></div>
+<h3 id="2-发送-meta-事件">2. 发送 Meta 事件</h3>
+<p>フレームワークは <code>emit_meta()</code> メソッドを提供しており、一行で Meta イベントを送信できます：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_ws_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> websocket<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        bot_id <span class="token operator">=</span> self<span class="token punctuation">.</span>_get_bot_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># Bot 上線：一行で connect イベントを送信</span>
+        <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"connect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> user_name<span class="token operator">=</span><span class="token string">"MyBot"</span><span class="token punctuation">,</span> nickname<span class="token operator">=</span><span class="token string">"私のロボット"</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">try</span><span class="token punctuation">:</span>
+            <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+                data <span class="token operator">=</span> <span class="token keyword">await</span> websocket<span class="token punctuation">.</span>receive_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                event <span class="token operator">=</span> self<span class="token punctuation">.</span>convert<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+                <span class="token keyword">if</span> event<span class="token punctuation">:</span>
+                    <span class="token keyword">await</span> self<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
+        <span class="token keyword">except</span> WebSocketDisconnect<span class="token punctuation">:</span>
+            <span class="token keyword">pass</span>
+        <span class="token keyword">finally</span><span class="token punctuation">:</span>
+            <span class="token comment"># Bot 下線</span>
+            <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"disconnect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-心跳イベント">3. 心跳イベント</h3>
+<p>アダプタは接続が維持されている間、定期的にハートビートイベントを送信し、Bot のアクティブタイムを更新する必要があります：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_heartbeat_loop</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> bot_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">while</span> self<span class="token punctuation">.</span>_connected<span class="token punctuation">:</span>
+            <span class="token comment"># フレームワークに meta heartbeat を送信（一行で完了）</span>
+            <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"heartbeat"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
+            <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="4-self-フィールドの自動発見">4. <code>self</code> フィールドの自動発見</h3>
+<p>フレームワークの <code>adapter.emit()</code> は、すべてのイベント（Meta イベントに限らず）の <code>self</code> フィールドを自動的に処理します：</p>
+<ul>
+<li><strong>通常のイベント</strong>（message/notice/request）の <code>self</code> フィールドは自動的に Bot を登録します</li>
+<li><strong><code>self</code> フィールドの拡張情報</strong>：<code>user_name</code>、<code>nickname</code>、<code>avatar</code>、<code>account_id</code> などのオプションフィールドがサポートされます</li>
+</ul>
+<pre><code class="language-python"><span class="token comment"># 転換器に self フィールドを含めれば、Bot は自動的に登録され、アクティブタイムが更新されます</span>
+onebot_event <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"bot123"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_name"</span><span class="token punctuation">:</span> <span class="token string">"MyBot"</span><span class="token punctuation">,</span>
+        <span class="token string">"nickname"</span><span class="token punctuation">:</span> <span class="token string">"私のロボット"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token comment"># ... その他のフィールド</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">await</span> self<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span>onebot_event<span class="token punctuation">)</span>
+<span class="token comment"># Bot "bot123" は自動的に登録され、アクティブタイムが更新されます</span>
+</code></pre>
+<h3 id="5-bot-状態の照会">5. Bot 状態の照会</h3>
+<p>フレームワークは以下の照会メソッドを提供しています：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># Bot の詳細情報を取得</span>
+info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_bot_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"bot123"</span><span class="token punctuation">)</span>
+<span class="token comment"># {"status": "online", "last_active": 1712345678.0, "info": {"nickname": "MyBot"}}</span>
+
+<span class="token comment"># すべての Bot をリストアップ（プラットフォーム別にグループ化）</span>
+all_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 指定のプラットフォームの Bot をリストアップ</span>
+platform_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Bot がオンラインかどうかを確認</span>
+is_online <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>is_bot_online<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"bot123"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 完全なステータスサマリーを取得（WebUI に表示するのに適しています）</span>
+summary <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_status_summary<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {"adapters": {"myplatform": {"status": "started", "bots": {...}}}}</span>
+</code></pre>
+<h2 id="接続管理">接続管理</h2>
+<h3 id="1-接続の再試行実装">1. 接続の再試行実装</h3>
+<pre><code class="language-python"><span class="token keyword">import</span> asyncio
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        retry_count <span class="token operator">=</span> <span class="token number">0</span>
+        max_retries <span class="token operator">=</span> <span class="token number">5</span>
+        
+        <span class="token keyword">while</span> retry_count <span class="token operator">&lt;</span> max_retries<span class="token punctuation">:</span>
+            <span class="token keyword">try</span><span class="token punctuation">:</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect_to_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"接続成功"</span><span class="token punctuation">)</span>
+                <span class="token keyword">break</span>
+            <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                retry_count <span class="token operator">+=</span> <span class="token number">1</span>
+                <span class="token keyword">if</span> retry_count <span class="token operator">&lt;</span> max_retries<span class="token punctuation">:</span>
+                    <span class="token comment"># 指数バックオフ戦略</span>
+                    wait_time <span class="token operator">=</span> <span class="token builtin">min</span><span class="token punctuation">(</span><span class="token number">60</span> <span class="token operator">*</span> <span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">**</span> retry_count<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">600</span><span class="token punctuation">)</span>
+                    self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span>
+                        <span class="token string-interpolation"><span class="token string">f"接続失敗、</span><span class="token interpolation"><span class="token punctuation">{</span>wait_time<span class="token punctuation">}</span></span><span class="token string">秒後に再試行 (</span><span class="token interpolation"><span class="token punctuation">{</span>retry_count<span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>max_retries<span class="token punctuation">}</span></span><span class="token string">): </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span>
+                    <span class="token punctuation">)</span>
+                    <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span>wait_time<span class="token punctuation">)</span>
+                <span class="token keyword">else</span><span class="token punctuation">:</span>
+                    self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string">"接続失敗、最大再試行回数に達しました"</span><span class="token punctuation">)</span>
+                    <span class="token keyword">raise</span>
+</code></pre>
+<h3 id="2-接続状態管理">2. 接続状態管理</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>connection <span class="token operator">=</span> <span class="token boolean">None</span>
+        self<span class="token punctuation">.</span>_connected <span class="token operator">=</span> <span class="token boolean">False</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_ws_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> websocket<span class="token punctuation">:</span> WebSocket<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>connection <span class="token operator">=</span> websocket
+        self<span class="token punctuation">.</span>_connected <span class="token operator">=</span> <span class="token boolean">True</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"接続が確立されました"</span><span class="token punctuation">)</span>
+        
+        <span class="token keyword">try</span><span class="token punctuation">:</span>
+            <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+                data <span class="token operator">=</span> <span class="token keyword">await</span> websocket<span class="token punctuation">.</span>receive_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>_process_event<span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+        <span class="token keyword">except</span> WebSocketDisconnect<span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"接続が切断されました"</span><span class="token punctuation">)</span>
+        <span class="token keyword">finally</span><span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>connection <span class="token operator">=</span> <span class="token boolean">None</span>
+            self<span class="token punctuation">.</span>_connected <span class="token operator">=</span> <span class="token boolean">False</span>
+</code></pre>
+<h3 id="3-ハートビート保活と-meta-ハートビート">3. ハートビート保活と Meta ハートビート</h3>
+<p>アダプタのハートビートは、プラットフォームへのハートビート保活と、フレームワークへの meta heartbeat イベント送信の両方を完了する必要があります。</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>connection <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect_to_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>_heartbeat_task <span class="token operator">=</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_heartbeat_loop<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_heartbeat_loop</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">while</span> self<span class="token punctuation">.</span>connection<span class="token punctuation">:</span>
+            <span class="token keyword">try</span><span class="token punctuation">:</span>
+                <span class="token comment"># 1. プラットフォームにハートビート保活を送信</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>connection<span class="token punctuation">.</span>send_json<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"ping"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+                <span class="token comment"># 2. フレームワークに meta heartbeat を送信（emit_meta で一行で完了）</span>
+                <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"heartbeat"</span><span class="token punctuation">,</span> self<span class="token punctuation">.</span>_bot_id<span class="token punctuation">)</span>
+
+                <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">)</span>
+            <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"ハートビート失敗: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+                <span class="token keyword">break</span>
+</code></pre>
+<h3 id="4-接続情報の公開">4. 接続情報の公開</h3>
+<p>アダプタが登録するルートは、ユーザーがプラットフォーム側のコールバックアドレスを設定できるように、ユーザーに見えるようにする必要があります。<code>start()</code> で接続情報を明示的に出力することを推奨します：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        router<span class="token punctuation">.</span>register_websocket<span class="token punctuation">(</span>
+            module_name<span class="token operator">=</span>self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+            path<span class="token operator">=</span><span class="token string">"/ws"</span><span class="token punctuation">,</span>
+            handler<span class="token operator">=</span>self<span class="token punctuation">.</span>_ws_handler
+        <span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> self<span class="token punctuation">.</span>sdk<span class="token punctuation">:</span>
+            info <span class="token operator">=</span> self<span class="token punctuation">.</span>sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_connection_info<span class="token punctuation">(</span>self<span class="token punctuation">.</span>platform<span class="token punctuation">)</span>
+            <span class="token keyword">if</span> info<span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"WebSocket アドレス: "</span></span>
+                    <span class="token string-interpolation"><span class="token string">f"{info.get('connection', {}).get('base_url', '')}"</span></span>
+                    <span class="token string-interpolation"><span class="token string">f"{info.get('connection', {}).get('websocket_routes', [])}"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<p>ユーザーは以下の API を使って、アダプタのすべてのルートと接続アドレスを照会できます：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># アダプタレベルの接続情報（推奨）</span>
+info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_connection_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># ルートマネージャレベルの照会</span>
+sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>list_namespaces<span class="token punctuation">(</span><span class="token punctuation">)</span>              <span class="token comment"># すべての名前空間をリストアップ</span>
+sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>  <span class="token comment"># 詳細なルート情報</span>
+sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>    <span class="token comment"># 完全な接続 URL</span>
+</code></pre>
+<blockquote>
+<p><strong>注意</strong>: ルート登録時の <code>module_name</code> は、ErisPulse で登録するアダプタの <code>platform</code> 名と完全に一致している必要があります。そうでない場合、<code>get_connection_info()</code> はルートと関連付けられません。複数アカウントアダプタは、異なる <code>module_name</code> を使用するのではなく、サブパス（例: <code>/account1/webhook</code>、<code>/account2/webhook</code>）を各アカウントに登録する必要があります。</p>
+</blockquote>
+<h2 id="イベント変換">イベント変換</h2>
+<h3 id="1-onebot12-標準の厳密遵守">1. OneBot12 標準の厳密遵守</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyPlatformConverter</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""イベントを変換"""</span>
+        onebot_event <span class="token operator">=</span> <span class="token punctuation">{</span>
+            <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"event_id"</span><span class="token punctuation">,</span> uuid<span class="token punctuation">.</span>uuid4<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"type"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_convert_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"detail_type"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_convert_detail_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+            <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+                <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">,</span>  <span class="token comment"># 保持原始数据（必须）</span>
+            <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>  <span class="token comment"># 原始类型（必须）</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> onebot_event
+</code></pre>
+<h3 id="2-時間スタンプの標準化">2. 時間スタンプの標準化</h3>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_timestamp</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> timestamp<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""10桁の秒単位時間スタンプに変換"""</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> timestamp<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># ミリ秒単位の時間スタンプの場合</span>
+    <span class="token keyword">if</span> timestamp <span class="token operator">&gt;</span> <span class="token number">10</span><span class="token operator">**</span><span class="token number">12</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">int</span><span class="token punctuation">(</span>timestamp <span class="token operator">/</span> <span class="token number">1000</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 秒単位の時間スタンプの場合</span>
+    <span class="token keyword">return</span> <span class="token builtin">int</span><span class="token punctuation">(</span>timestamp<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-イベント-id-の生成">3. イベント ID の生成</h3>
+<pre><code class="language-python"><span class="token keyword">import</span> uuid
+
+<span class="token keyword">def</span> <span class="token function">_generate_event_id</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""イベント ID を生成"""</span>
+    event_id <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"event_id"</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> event_id<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>event_id<span class="token punctuation">)</span>
+    <span class="token comment"># プラットフォームが ID を提供していない場合、UUID を生成</span>
+    <span class="token keyword">return</span> <span class="token builtin">str</span><span class="token punctuation">(</span>uuid<span class="token punctuation">.</span>uuid4<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="senddsl-実装">SendDSL 実装</h2>
+<p><code>At</code>/<code>AtAll</code>/<code>Reply</code> 修飾子はフレームワークの SendDSL 基底クラスに既に実装されています。アダプタは <code>Raw_ob12</code> と具体的な送信メソッドを実装するだけで、<code>self._apply_modifiers(message)</code> と <code>self.send_context</code> を使用して開発を簡素化できます。</p>
+<h3 id="1-task-オブジェクトを返す必要がある">1. Task オブジェクトを返す必要がある</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""推奨実装：フレームワークの補助メソッドを使用"""</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            segments <span class="token operator">=</span> self<span class="token punctuation">.</span>_apply_modifiers<span class="token punctuation">(</span>message<span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                endpoint<span class="token operator">=</span><span class="token string">"/send_message"</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span>segments<span class="token punctuation">,</span>
+                <span class="token operator">**</span>self<span class="token punctuation">.</span>send_context<span class="token punctuation">,</span>
+                <span class="token operator">**</span>kwargs
+            <span class="token punctuation">)</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>_do_send<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">Text</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> text<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="2-鏈式修飾メソッドは-self-を返す">2. 鏈式修飾メソッドは self を返す</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
+
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> adapter<span class="token punctuation">,</span> target_type<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> target_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> account_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>adapter<span class="token punctuation">,</span> target_type<span class="token punctuation">,</span> target_id<span class="token punctuation">,</span> account_id<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>buttons <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">def</span> <span class="token function">Button</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> content<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token string">'Send'</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>buttons<span class="token punctuation">.</span>append<span class="token punctuation">(</span>content<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self <span class="token comment"># self を返す</span>
+</code></pre>
+<h3 id="3-プラットフォーム固有のメソッドをサポート">3. プラットフォーム固有のメソッドをサポート</h3>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Sticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""ステッカーを送信"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>
+            self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                endpoint<span class="token operator">=</span><span class="token string">"/send_sticker"</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"sticker"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"id"</span><span class="token punctuation">:</span> sticker_id<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                <span class="token operator">**</span>self<span class="token punctuation">.</span>send_context
+            <span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+    
+    <span class="token keyword">def</span> <span class="token function">Card</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> card_data<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""カードメッセージを送信"""</span>
+        <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>
+            self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+                endpoint<span class="token operator">=</span><span class="token string">"/send_card"</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"card"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"card_data"</span><span class="token punctuation">:</span> card_data<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                <span class="token operator">**</span>self<span class="token punctuation">.</span>send_context
+            <span class="token punctuation">)</span>
+        <span class="token punctuation">)</span>
+</code></pre>
+<h2 id="api-レスポンス">API レスポンス</h2>
+<h3 id="1-レスポンスの標準化">1. レスポンスの標準化</h3>
+<p>フレームワークは <code>make_response()</code> と <code>make_error()</code> メソッドを提供し、標準化されたレスポンスを構築できます：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        raw_response <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_platform_api_call<span class="token punctuation">(</span>endpoint<span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span>
+        
+        <span class="token keyword">if</span> raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"success"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_response<span class="token punctuation">(</span>
+                data<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                message_id<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                raw<span class="token operator">=</span>raw_response<span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>
+                retcode<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"code"</span><span class="token punctuation">,</span> <span class="token number">10001</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                message<span class="token operator">=</span>raw_response<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+                raw<span class="token operator">=</span>raw_response<span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+    <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>message<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>make_response()</code> は <code>{platform}_raw</code> キーを含むレスポンス辞書を自動的に生成します。<code>make_error()</code> はデフォルトで <code>retcode=34000</code>（Platform Error）を使用します。</p>
+<h3 id="2-エラーコード規格">2. エラーコード規格</h3>
+<p>OneBot12 標準エラーコードに従います：</p>
+<pre><code class="language-python"><span class="token comment"># 1xxxx - アクションリクエストエラー</span>
+<span class="token number">10001</span><span class="token punctuation">:</span> Bad Request
+<span class="token number">10002</span><span class="token punctuation">:</span> Unsupported Action
+<span class="token number">10003</span><span class="token punctuation">:</span> Bad Param
+
+<span class="token comment"># 2xxxx - アクションハンドラエラー</span>
+<span class="token number">20001</span><span class="token punctuation">:</span> Bad Handler
+<span class="token number">20002</span><span class="token punctuation">:</span> Internal Handler Error
+
+<span class="token comment"># 3xxxx - アクション実行エラー</span>
+<span class="token number">31000</span><span class="token punctuation">:</span> Database Error
+<span class="token number">32000</span><span class="token punctuation">:</span> Filesystem Error
+<span class="token number">33000</span><span class="token punctuation">:</span> Network Error
+<span class="token number">34000</span><span class="token punctuation">:</span> Platform Error
+<span class="token number">35000</span><span class="token punctuation">:</span> Logic Error
+</code></pre>
+<h2 id="多アカウントサポート">多アカウントサポート</h2>
+<h3 id="1-宣言的構成推奨">1. 宣言的構成（推奨）</h3>
+<p><code>AccountConfigClass</code> を宣言して構成クラスを定義した後、フレームワークが多アカウントの読み込み、検証、テンプレート生成を自動的に管理します。<code>BotAccountConfig</code> 基底クラスは <code>enabled</code> と <code>name</code> フィールドを提供しており、アダプタは宣言する必要はありません：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BotAccountConfig
+
+<span class="token decorator annotation punctuation">@dataclass</span>
+<span class="token keyword">class</span> <span class="token class-name">MyBotConfig</span><span class="token punctuation">(</span>BotAccountConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    token<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span> metadata<span class="token operator">=</span><span class="token punctuation">{</span>
+        <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.bot_token"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Bot Token"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
+        <span class="token string">"secret"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    AccountConfigClass <span class="token operator">=</span> MyBotConfig
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">for</span> name<span class="token punctuation">,</span> account <span class="token keyword">in</span> self<span class="token punctuation">.</span>enabled_accounts<span class="token punctuation">.</span>items<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"アカウント </span><span class="token interpolation"><span class="token punctuation">{</span>name<span class="token punctuation">}</span></span><span class="token string"> を起動中"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect<span class="token punctuation">(</span>name<span class="token punctuation">,</span> account<span class="token punctuation">.</span>token<span class="token punctuation">)</span>
+            <span class="token comment"># bot_id はフレームワークがプラットフォームプロトコル/ログイン応答から自動的に取得して戻し埋めします</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        account_id <span class="token operator">=</span> params<span class="token punctuation">.</span>pop<span class="token punctuation">(</span><span class="token string">"account_id"</span><span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">)</span>
+        name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span>account_id<span class="token punctuation">)</span>
+        <span class="token comment"># name: アカウント名, account: MyBotConfig インスタンス</span>
+</code></pre>
+<p>構成ファイルは自動的に生成されます：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">MyAdapter.accounts.default</span><span class="token punctuation">]</span>
+<span class="token key property">token</span> <span class="token punctuation">=</span> <span class="token string">""</span>
+<span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
+<span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">""</span>
+</code></pre>
+<h3 id="2-アカウント選択メカニズム">2. アカウント選択メカニズム</h3>
+<p>フレームワークは <code>_resolve_account()</code> メソッドを内蔵しており、以下の優先順位でマッチします：</p>
+<ol>
+<li><strong>アカウント名</strong> — 構成のキー名と正確に一致</li>
+<li><strong><code>bot_id</code> フィールド</strong> — 自動的に取得された bot_id（イベントの <code>event["self"]["user_id"]</code> から）</li>
+<li><strong>任意の str フィールド</strong> — 構成の他の文字列フィールド</li>
+<li><strong>デフォルト</strong> — 最初に有効なアカウント</li>
+</ol>
+<pre><code class="language-python"><span class="token comment"># アカウント名でマッチ</span>
+name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span><span class="token string">"account1"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># bot_id でマッチ（イベントからの最も一般的な方法）</span>
+name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span><span class="token string">"bot_123"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 最初に有効なアカウントを取得（None を渡す）</span>
+name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span><span class="token boolean">None</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="エラーハンドリング">エラーハンドリング</h2>
+<h3 id="1-エラータイプの分類">1. エラータイプの分類</h3>
+<p><code>make_error()</code> を使用して標準化されたエラーレスポンスを構築します。<code>sdk.client</code> でリクエストする際は ErisPulse のエラーをキャッチします：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError<span class="token punctuation">,</span> ClientTimeoutError
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+        resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>
+            <span class="token string-interpolation"><span class="token string">f"https://api.platform.com/</span><span class="token interpolation"><span class="token punctuation">{</span>endpoint<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span>
+            json<span class="token operator">=</span>params<span class="token punctuation">,</span>
+            max_retries<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+        response <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_response<span class="token punctuation">(</span>data<span class="token operator">=</span>response<span class="token punctuation">,</span> raw<span class="token operator">=</span>response<span class="token punctuation">)</span>
+    <span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"リクエストタイムアウト: </span><span class="token interpolation"><span class="token punctuation">{</span>endpoint<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">32000</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"リクエストタイムアウト"</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"ネットワークエラー: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">33000</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"ネットワークリクエスト失敗"</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> json<span class="token punctuation">.</span>JSONDecodeError<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string">"JSON 解析失敗"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>retcode<span class="token operator">=</span><span class="token number">10006</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"レスポンス形式エラー"</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>error<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"未知のエラー: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">,</span> exc_info<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>message<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><strong>後方互換性</strong>: <code>aiohttp</code> を直接使用する古いアダプタコードは影響を受けません。<code>sdk.client</code> を通じてリクエストする場合にのみ、エラーの変換が有効になります。</p>
+</blockquote>
+<h3 id="2-ログ記録">2. ログ記録</h3>
+<p>フレームワークはアダプタにサブロガー（<code>sdk.logger.get_child("MyAdapter")</code>）を自動的に作成します。手動の初期化は不要です：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># ConfigClass = ...  # 構成クラスを宣言した後、self.logger が自動的に利用可能になります</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"アダプタ起動中..."</span><span class="token punctuation">)</span>
+        <span class="token comment"># ...</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"アダプタ起動完了"</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"アダプタ終了中..."</span><span class="token punctuation">)</span>
+        <span class="token comment"># ...</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"アダプタ終了完了"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="テスト">テスト</h2>
+<h3 id="1-単体テスト">1. 単体テスト</h3>
+<pre><code class="language-python"><span class="token keyword">import</span> pytest
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseAdapter
+
+<span class="token keyword">class</span> <span class="token class-name">TestMyAdapter</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">test_converter</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""テスト転換器"""</span>
+        converter <span class="token operator">=</span> MyPlatformConverter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        raw_event <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span>
+        result <span class="token operator">=</span> converter<span class="token punctuation">.</span>convert<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span>
+        <span class="token keyword">assert</span> result <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span>
+        <span class="token keyword">assert</span> result<span class="token punctuation">[</span><span class="token string">"platform"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"myplatform"</span>
+        <span class="token keyword">assert</span> <span class="token string">"myplatform_raw"</span> <span class="token keyword">in</span> result
+    
+    <span class="token keyword">def</span> <span class="token function">test_api_response</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""テスト API レスポンス形式"""</span>
+        adapter <span class="token operator">=</span> MyAdapter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        response <span class="token operator">=</span> adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span><span class="token string">"/test"</span><span class="token punctuation">,</span> param<span class="token operator">=</span><span class="token string">"value"</span><span class="token punctuation">)</span>
+        <span class="token keyword">assert</span> <span class="token string">"status"</span> <span class="token keyword">in</span> response
+        <span class="token keyword">assert</span> <span class="token string">"retcode"</span> <span class="token keyword">in</span> response
+</code></pre>
+<h3 id="2-統合テスト">2. 統合テスト</h3>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@pytest<span class="token punctuation">.</span>mark<span class="token punctuation">.</span>asyncio</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">test_adapter_start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""テストアダプタ起動"""</span>
+    adapter <span class="token operator">=</span> MyAdapter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">assert</span> adapter<span class="token punctuation">.</span>_connected <span class="token keyword">is</span> <span class="token boolean">True</span>
+
+<span class="token decorator annotation punctuation">@pytest<span class="token punctuation">.</span>mark<span class="token punctuation">.</span>asyncio</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">test_send_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""テストメッセージ送信"""</span>
+    adapter <span class="token operator">=</span> MyAdapter<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    
+    result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+    <span class="token keyword">assert</span> result <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span>
+</code></pre>
+<h2 id="リバースコンバージョンとメッセージ構築">リバースコンバージョンとメッセージ構築</h2>
+<p><code>Raw_ob12</code> はアダプタが<strong>実装しなければならない</strong>メソッドで、OneBot12 → プラットフォームのリバースコンバージョンの統一エントリーポイントです。標準メソッド（<code>Text</code>、<code>Image</code> など）は <code>Raw_ob12</code> に委譲し、修飾子の状態（<code>At</code>/<code>Reply</code>/<code>AtAll</code>）は <code>Raw_ob12</code> 内でメッセージセグメントにマージされる必要があります。</p>
+<p><code>MessageBuilder</code> は <code>Raw_ob12</code> と一緒に使用するメッセージセグメント構築ツールで、チェーン呼び出しと迅速な構築をサポートします。</p>
+<blockquote>
+<p>完全な実装規格、コード例、使用方法については、以下のドキュメントを参照してください：</p>
+<ul>
+<li><a href="/docs/ja/standards/send-method-spec.html#6-%E3%83%AA%E3%83%90%E3%83%BC%E3%82%B9%E3%82%B3%E3%83%B3%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E8%A6%8F%E6%A0%BConebot12--%E3%83%97%E3%83%A9%E3%83%83%E3%83%88%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0">送信メソッド規格 §6 リバースコンバージョン規格</a></li>
+<li><a href="/docs/ja/standards/send-method-spec.html#11-%E3%83%A1%E3%83%83%E3%82%BB%E3%83%BC%E3%82%B8%E3%83%93%E3%83%AB%E3%83%80%E3%83%BC-messagebuilder">送信メソッド規格 §11 メッセージビルダー</a></li>
+</ul>
+</blockquote>
+<h2 id="プラットフォームイベントメソッド拡張">プラットフォームイベントメソッド拡張</h2>
+<p>アダプタは Event 包装クラスにプラットフォーム固有のメソッドを登録し、モジュール開発者がプラットフォーム特有のデータに簡単にアクセスできるようにすることができます。</p>
+<h3 id="1-mixin-クラスを使用した一括登録推奨">1. Mixin クラスを使用した一括登録（推奨）</h3>
+<p>プラットフォームに複数の固有メソッドがある場合、Mixin クラスの使用が推奨されます：</p>
+<pre><code class="language-python"><span class="token comment"># アダプタの start() またはモジュールレベルで登録</span>
+<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> register_event_mixin
+
+<span class="token keyword">class</span> <span class="token class-name">MyPlatformEventMixin</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">get_chat_name</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""チャット名を取得"""</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"chat"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">is_official_message</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""公式メッセージかどうかを判断"""</span>
+        raw <span class="token operator">=</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"sender"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"is_official"</span><span class="token punctuation">,</span> <span class="token boolean">False</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">get_message_type</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""プラットフォームのメッセージタイプを取得"""</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"msg_type"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 一括登録</span>
+register_event_mixin<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> MyPlatformEventMixin<span class="token punctuation">)</span>
+</code></pre>
+<h3 id="2-デコレーターを使用した個別メソッド登録">2. デコレーターを使用した個別メソッド登録</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> register_event_method
+
+<span class="token decorator annotation punctuation">@register_event_method</span><span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">get_chat_name</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"chat"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-アダプタ終了時のクリーンアップ">3. アダプタ終了時のクリーンアップ</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> unregister_platform_event_methods
+
+<span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># プラットフォームイベントメソッドの登録をクリーンアップ</span>
+        unregister_platform_event_methods<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+        <span class="token comment"># ... その他のクリーンアップ</span>
+</code></pre>
+<blockquote>
+<p>詳細な登録とアンロードの説明は、<a href="/docs/ja/api-reference/event-system.html#%E3%82%A2%E3%83%80%E3%83%97%E3%82%BF%E7%99%BB%E9%8C%B2%E3%83%97%E3%83%A9%E3%83%83%E3%83%88%E3%83%95%E3%82%A9%E3%83%BC%E3%83%A0%E6%8B%A1%E5%BC%B5%E3%83%A1%E3%82%BD%E3%83%83%E3%83%89">イベントシステム API - プラットフォーム拡張メソッドの登録</a>を参照してください。</p>
+</blockquote>
+<h2 id="ドキュメントの維持">ドキュメントの維持</h2>
+<h3 id="1-プラットフォーム機能ドキュメントの維持">1. プラットフォーム機能ドキュメントの維持</h3>
+<p><code>docs/ja/platform-guide/</code> に <code>{platform}.md</code> ドキュメントを作成します（他の言語バージョンは自動生成されます）：</p>
+<pre><code class="language-markdown"><span class="token title important"><span class="token punctuation">#</span> プラットフォーム名アダプタドキュメント</span>
+
+<span class="token title important"><span class="token punctuation">##</span> 基本情報</span>
+<span class="token list punctuation">-</span> 対応モジュールバージョン: 1.0.0
+<span class="token list punctuation">-</span> 維持者: あなたの名前
+
+<span class="token title important"><span class="token punctuation">##</span> 支援されるメッセージ送信タイプ</span>
+...
+
+<span class="token title important"><span class="token punctuation">##</span> 特有のイベントタイプ</span>
+...
+
+<span class="token title important"><span class="token punctuation">##</span> 構成オプション</span>
+...
+</code></pre>
+<h3 id="2-バージョン情報の更新">2. バージョン情報の更新</h3>
+<p>新バージョンをリリースする際、ドキュメント内のバージョン情報を更新します：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">project</span><span class="token punctuation">]</span>
+<span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"2.0.0"</span>  <span class="token comment"># バージョン番号を更新</span>
+</code></pre>
+<h2 id="関連ドキュメント">関連ドキュメント</h2>
+<ul>
+<li><a href="/docs/ja/developer-guide/adapters/getting-started.html">アダプタ開発入門</a> - 最初のアダプタを作成する</li>
+<li><a href="/docs/ja/developer-guide/adapters/core-concepts.html">アダプタのコアコンセプト</a> - アダプタアーキテクチャを理解する</li>
+<li><a href="/docs/ja/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a> - メッセージ送信を学ぶ</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/developer-guide/adapters/send-dsl.html"><small>Previous</small><br>SendDSL 详解</a>
+        <a class="doc-pager-next" href="/docs/ja/developer-guide/adapters/converter.html"><small>Next</small><br>イベントコンバーター実装ガイド</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse.Core.config 模块 - ErisPulse 文档中心</title>
+    <meta name="description" content="集中管理所有配置项，避免循环导入问题 提供自动补全缺失配置项的功能 添加内存缓存和延迟写入机制以提高性能 基于 tomlkit 实现注释保留写入：配置文件中的注释与键顺序在任何框架写入后均不丢失 配置写入采用&quot;唯一临时文件 + fsync + 原子替换&quot;（os.replace）： 进程被杀（OOM / SIGKI..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/config.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/config.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/config.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/config.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/config.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/config.html" />
+    <meta property="og:title" content="ErisPulse.Core.config 模块 - ErisPulse 文档中心" />
+    <meta property="og:description" content="集中管理所有配置项，避免循环导入问题 提供自动补全缺失配置项的功能 添加内存缓存和延迟写入机制以提高性能 基于 tomlkit 实现注释保留写入：配置文件中的注释与键顺序在任何框架写入后均不丢失 配置写入采用&quot;唯一临时文件 + fsync + 原子替换&quot;（os.replace）： 进程被杀（OOM / SIGKI..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/config.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.Core.config 模块","description":"集中管理所有配置项，避免循环导入问题 提供自动补全缺失配置项的功能 添加内存缓存和延迟写入机制以提高性能 基于 tomlkit 实现注释保留写入：配置文件中的注释与键顺序在任何框架写入后均不丢失 配置写入采用\"唯一临时文件 + fsync + 原子替换\"（os.replace）： 进程被杀（OOM / SIGKI...","url":"https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/config.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> API <span class="doc-crumb-sep">/</span> 核心模块
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse.Core.config 模块</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/config.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/config.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/config.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/config.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/config.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/api-reference/auto_api/ErisPulse/Core/config.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulsecoreconfig-模块"><code>ErisPulse.Core.config</code> 模块</h1>
+<hr>
+<h2 id="模块概述">模块概述</h2>
+<p>ErisPulse 配置中心</p>
+<p>集中管理所有配置项，避免循环导入问题
+提供自动补全缺失配置项的功能
+添加内存缓存和延迟写入机制以提高性能
+基于 tomlkit 实现注释保留写入：配置文件中的注释与键顺序在任何框架写入后均不丢失
+配置写入采用"唯一临时文件 + fsync + 原子替换"（<code>os.replace</code>）：
+进程被杀（OOM / SIGKILL）或断电时磁盘上的配置文件要么是完整旧内容、要么是完整新内容，
+不会出现空文件或半写状态；临时文件名按进程唯一，多实例共享配置目录时不再互相争抢踩踏</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li>使用 getConfig(key) / setConfig(key, value) 读写配置</li>
+<li>配置变更可通过生命周期钩子监听: @lifecycle.on("config.set")</li>
+</ol>
+</blockquote>
+<hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="parse_bool_configvalue-any"><code>parse_bool_config(value: Any)</code></h3>
+<p>解析配置中的布尔值</p>
+<ul>
+<li><strong>value</strong> (<code>Any</code>): 配置值（可以是 bool, int, str 等）
+<strong>返回值</strong> (<code>bool</code>): 解析后的布尔值</li>
+</ul>
+<blockquote>
+<p><strong>提示</strong>
+支持的值:</p>
+<ul>
+<li>True: True, 1, "true", "True", "1", "yes", "Yes", "on", "On"</li>
+<li>False: False, 0, "false", "False", "0", "no", "No", "off", "Off"</li>
+</ul>
+</blockquote>
+<hr>
+<h3 id="json_safevalue-any-_depth-int-0"><code>json_safe(value: Any, _depth: int = 0)</code></h3>
+<p>递归将任意结构转换为可直接 JSON 序列化的等价结构</p>
+<p>供 <code>get_topology</code> 等面向 WebUI 的聚合方法保证输出可序列化：
+dict / list / tuple / set 递归处理；类对象（<code>type</code>）取
+<code>__name__</code>；其余不可序列化对象退化为 <code>str()</code> 表示。</p>
+<ul>
+<li><strong>value</strong> (<code>任意值</code>): - <strong>_depth</strong> (<code>internal-use</code>): 递归深度保护
+<strong>返回值</strong> (<code>可被</code>): <code>json.dumps</code> 序列化的等价结构</li>
+</ul>
+<hr>
+<h2 id="类列表">类列表</h2>
+<h3 id="class-configmanager"><code>class ConfigManager</code></h3>
+<p>ConfigManager 类提供相关功能。</p>
+<h4 id="方法列表">方法列表</h4>
+<h5 id="__init__config_file-str-default_config_file_path"><code>__init__(config_file: str = DEFAULT_CONFIG_FILE_PATH)</code></h5>
+<p>初始化配置管理器</p>
+<ul>
+<li><strong>config_file</strong> (<code>str</code>): 配置文件路径 (默认: "config/config.toml")</li>
+</ul>
+<hr>
+<h5 id="_start_config_watcher"><code>_start_config_watcher()</code></h5>
+<p>启动后台线程定期检查配置文件变化</p>
+<p>当用户手动编辑 <code>config.toml</code> 时，后台线程检测到 mtime 变化后
+自动重载缓存并发射 <code>config.updated</code> 生命周期事件。</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_watch_config_file"><code>_watch_config_file()</code></h5>
+<p>记录配置文件的当前 mtime，用于后续检测外部修改</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_migrate_config"><code>_migrate_config()</code></h5>
+<p>迁移旧配置文件到新位置</p>
+<p>从项目根目录的 config.toml 迁移到 config/config.toml</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_load_config"><code>_load_config()</code></h5>
+<p>从文件加载配置到缓存</p>
+<p>对加载失败按三种状态分别给出可操作的诊断信息：</p>
+<ul>
+<li>文件缺失：正常首次启动，静默使用空配置</li>
+<li>TOML 语法错误：输出出错行号/列号与原因，保留上次有效缓存（不擦除）</li>
+<li>权限/其他错误：输出明确原因，保留上次有效缓存（不擦除）</li>
+</ul>
+<p><strong>返回值</strong> (<code>bool</code>): 加载成功（含文件缺失）返回 True；解析/权限等错误返回 False</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_drop_redundant_dirty_keys"><code>_drop_redundant_dirty_keys()</code></h5>
+<p>丢弃与新配置文件内容一致的待写键</p>
+<p>配置重载（外部修改）后，部分待写键的值可能已与文件一致，
+继续保留会在下次 flush 时用陈旧快照覆盖用户热更新。
+仅当待写值已反映在缓存（即文件）中时才丢弃；真正未落盘的写入仍保留。</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_log_config_errormessage-str-level-str-error"><code>_log_config_error(message: str, level: str = 'error')</code></h5>
+<p>将配置加载诊断信息写入日志</p>
+<blockquote>
+<p><strong>内部方法</strong>
+统一处理 logger 尚未就绪的早期场景，失败时静默忽略。</p>
+</blockquote>
+<ul>
+<li><strong>message</strong> (<code>str</code>): 日志消息</li>
+<li><strong>level</strong> (<code>str</code>): 日志级别（<code>error</code>/<code>warning</code>/<code>debug</code>）</li>
+</ul>
+<hr>
+<h5 id="_malformed_sentinel_path"><code>_malformed_sentinel_path()</code></h5>
+<p>跨进程告警冷却哨兵文件路径</p>
+<p>位于配置文件同级目录下的隐藏文件，通过其 mtime 实现跨进程去重：
+无论 <code>epsdk run</code> 子进程、<code>python main.py</code> 直跑、还是多实例场景，
+所有进程共享同一文件系统，自然协调告警频率。</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_acquire_instance_lock"><code>_acquire_instance_lock()</code></h5>
+<p>尝试以独占方式锁定配置目录的实例锁文件，检测多实例共享配置目录</p>
+<p>锁文件位于配置文件同级目录（:data:<code>~.constants.CONFIG_LOCK_FILE_NAME</code>），
+进程持锁后全生命周期不释放，由 OS 在进程退出时自动归还——
+无需清理逻辑，进程被强杀也不会留下"幽灵锁"。
+锁被占用说明另一个 ErisPulse 实例正在使用同一配置目录，
+此时仅记录告警（并发写入可能互相覆盖），不阻塞框架启动。</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_atomic_write_texttext-str"><code>_atomic_write_text(text: str)</code></h5>
+<p>原子写入配置文件（唯一临时文件 + fsync + <code>os.replace</code>）</p>
+<p>旧实现使用固定名 <code>&lt;config&gt;.tmp</code> 并在 rename 前不落盘，存在两类丢文件场景：
+多实例共享配置目录时同名临时文件被对端 truncate / rename（ENOENT 争抢）；
+进程被杀或断电时 rename 元数据先于数据块落盘（ext4 延迟分配），留下空文件。
+现改为：同目录 <code>mkstemp</code> 生成进程唯一临时文件 → 写毕 <code>flush + fsync</code>
+强制数据落盘 → <code>os.replace</code> 原子替换目标（POSIX / Windows 均原子）；
+POSIX 下额外 fsync 配置目录，尽力保证断电后替换结果不回退。</p>
+<ul>
+<li><strong>text</strong> (<code>str</code>): 待写入的完整文件内容
+<strong>异常</strong>: <code>OSError</code> - 临时文件创建、写入或替换失败时抛出，由调用方按写失败处理</li>
+</ul>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_set_doc_pathdoc-any-keys-liststr-value-any"><code>_set_doc_path(doc: Any, keys: list[str], value: Any)</code></h5>
+<p>在 tomlkit 文档树中按点分路径写入值</p>
+<p>中间层节点缺失或非表时以空表替换（与 dict 语义一致）；
+叶子写入保留既有注释与顺序，新键追加至所在节末尾。</p>
+<ul>
+<li><strong>doc</strong> (<code>tomlkit</code>): 文档/表对象</li>
+<li><strong>keys</strong> (<code>点分路径拆分后的键列表</code>): - <strong>value</strong>: 待写入的值（plain dict 会转换为标准 table）</li>
+</ul>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_doc_to_plain_dictdoc-any"><code>_doc_to_plain_dict(doc: Any)</code></h5>
+<p>将 tomlkit 文档转为 plain dict 缓存</p>
+<p>经 body 低层插入的条目不进入容器索引，直接 <code>unwrap()</code> 会丢失；
+渲染后重新解析可保证缓存与文件内容严格一致。</p>
+<ul>
+<li><strong>doc</strong> (<code>tomlkit</code>): 文档对象
+<strong>返回值</strong> (<code>dict</code>): 纯字典形式的配置内容</li>
+</ul>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_flush_config"><code>_flush_config()</code></h5>
+<p>将待写入的配置刷新到文件</p>
+<p>使用文件锁确保多线程环境下的原子性操作。
+基于 tomlkit 在解析出的文档树上做增量修改后整体回写，
+文件中已有的注释与键顺序不因框架写入而丢失或重排。</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_register_atexit"><code>_register_atexit()</code></h5>
+<p>注册 atexit 钩子，确保进程退出时未持久化的配置被 flush</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_flush_on_exit"><code>_flush_on_exit()</code></h5>
+<p>atexit 回调：进程退出时强制刷新所有脏配置，并清理哨兵文件</p>
+<blockquote>
+<p><strong>内部方法</strong>
+哨兵文件（<code>.flush_malformed_cooldown</code>）是运行时跨进程去重的临时标记，</p>
+</blockquote>
+<hr>
+<h5 id="_schedule_write"><code>_schedule_write()</code></h5>
+<p>安排延迟写入</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_check_cache_validity"><code>_check_cache_validity()</code></h5>
+<p>检查缓存有效性，必要时重新加载</p>
+<p>同时检测配置文件是否被外部修改（手动编辑磁盘文件），
+若文件 mtime 变化则自动重载。更新内容会在下一次
+<code>getConfig</code> 调用时生效，无需重启程序。</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_check_file_change"><code>_check_file_change()</code></h5>
+<p>检测配置文件是否被外部程序或用户手动编辑</p>
+<p>对比记录的 mtime 与当前文件 mtime，若不一致说明文件已被外部修改。
+若变化后的 mtime 与框架自身最后一次刷盘的 mtime（<code>_last_self_write_mtime</code>）
+一致，则判定为框架自身的写入而非外部修改，返回 False。</p>
+<p><strong>返回值</strong> (<code>bool</code>): 文件是否被外部修改</p>
+<blockquote>
+<p><strong>内部方法</strong></p>
+</blockquote>
+<hr>
+<h5 id="_emit_config_updatedold_config-dictstr-any"><code>_emit_config_updated(old_config: dict[str, Any])</code></h5>
+<p>发射 <code>config.updated</code> 生命周期事件，通知适配器/模块配置已变更</p>
+<p>用户手动编辑 <code>config.toml</code> 后，下一次 <code>getConfig</code> 调用会自动检测
+到文件变更并触发此事件。适配器通过 <code>on_config_update(old, new)</code> 响应。</p>
+<ul>
+<li><strong>old_config</strong> (<code>变更前的配置快照</code>): &gt; <strong>内部方法</strong></li>
+</ul>
+<hr>
+<h5 id="getconfigkey-str-default-any-none"><code>getConfig(key: str, default: Any = None)</code></h5>
+<p>获取配置项</p>
+<p>支持点分隔符路径（如 <code>"module.sub.key"</code>）。当存在待写入队列
+（延迟刷盘未落盘的 <code>setConfig</code>）时，读取结果会<strong>叠加待写值</strong>，
+保证"写后立读"一致性：</p>
+<ul>
+<li><p>查询键精确命中待写队列 → 直接返回待写值</p>
+</li>
+<li><p>待写键是查询键的祖先 → 在待写值子树内继续解析</p>
+</li>
+<li><p>待写键是查询键的后代 → 以待写值深合并覆盖缓存子树</p>
+</li>
+<li><p><strong>key</strong> (<code>str</code>): 配置键, 支持点分隔符如 "module.sub.key"</p>
+</li>
+<li><p><strong>default</strong> (<code>Any</code>): 默认值 (默认: None)
+<strong>返回值</strong> (<code>Any</code>): 配置值</p>
+</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> value <span class="token operator">=</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>getConfig<span class="token punctuation">(</span><span class="token string">"ErisPulse.server.port"</span><span class="token punctuation">,</span> <span class="token number">8000</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="_walk_cachekey-str-default-any"><code>_walk_cache(key: str, default: Any)</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+在缓存树中按点分路径取值；路径缺失或中间节点非字典时返回 default</p>
+</blockquote>
+<ul>
+<li><strong>key</strong> (<code>点分配置键</code>): - <strong>default</strong>: 路径缺失时的默认值
+<strong>返回值</strong> (<code>缓存中的值或</code>): default</li>
+</ul>
+<hr>
+<h5 id="_dirty_overlaykeys-liststr"><code>_dirty_overlay(keys: list[str])</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+收集以待查键为前缀的待写键，构建叠加子树</p>
+</blockquote>
+<ul>
+<li><strong>keys</strong> (<code>查询键的路径段列表</code>): <strong>返回值</strong>: 叠加子树（无匹配时为空字典）</li>
+</ul>
+<hr>
+<h5 id="_deep_mergebase-dictstr-any-override-dictstr-any"><code>_deep_merge(base: dict[str, Any], override: dict[str, Any])</code></h5>
+<blockquote>
+<p><strong>内部方法</strong>
+深合并字典（override 优先，仅 dict 值递归合并）</p>
+</blockquote>
+<ul>
+<li><strong>base</strong> (<code>基础字典（不修改原对象）</code>): - <strong>override</strong>: 覆盖字典
+<strong>返回值</strong>: 合并后的新字典</li>
+</ul>
+<hr>
+<h5 id="setconfigkey-str-value-any-immediate-bool-false"><code>setConfig(key: str, value: Any, immediate: bool = False)</code></h5>
+<p>设置配置项</p>
+<ul>
+<li><strong>key</strong> (<code>str</code>): 配置键, 支持点分隔符如 "module.sub.key"</li>
+<li><strong>value</strong> (<code>Any</code>): 配置值</li>
+<li><strong>immediate</strong> (<code>bool</code>): 是否立即写入磁盘 (默认: False, 延迟写入)
+<strong>返回值</strong> (<code>bool</code>): 操作是否成功</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>setConfig<span class="token punctuation">(</span><span class="token string">"ErisPulse.server.port"</span><span class="token punctuation">,</span> <span class="token number">9000</span><span class="token punctuation">)</span>
+<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>setConfig<span class="token punctuation">(</span><span class="token string">"ErisPulse.server.port"</span><span class="token punctuation">,</span> <span class="token number">9000</span><span class="token punctuation">,</span> immediate<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="force_save"><code>force_save()</code></h5>
+<p>强制立即保存所有待写入的配置到磁盘</p>
+<blockquote>
+<p><strong>提示</strong>
+注意！除非您知道您在干什么，否则请勿直接强制保存！</p>
+</blockquote>
+<hr>
+<h5 id="reload"><code>reload()</code></h5>
+<p>重新从磁盘加载配置，丢弃所有未保存的更改</p>
+<blockquote>
+<p><strong>提示</strong>
+reload 时，未持久化的配置项会被丢弃，并重新从配置文件中加载</p>
+</blockquote>
+<hr>
+<h5 id="async-agetconfigkey-str-default-any-none"><code>async agetConfig(key: str, default: Any = None)</code></h5>
+<p>异步获取配置项</p>
+<ul>
+<li><strong>key</strong> (<code>str</code>): 配置键, 支持点分隔符</li>
+<li><strong>default</strong> (<code>Any</code>): 默认值
+<strong>返回值</strong> (<code>Any</code>): 配置值</li>
+</ul>
+<hr>
+<h5 id="async-asetconfigkey-str-value-any-immediate-bool-false"><code>async asetConfig(key: str, value: Any, immediate: bool = False)</code></h5>
+<p>异步设置配置项</p>
+<ul>
+<li><strong>key</strong> (<code>str</code>): 配置键</li>
+<li><strong>value</strong> (<code>Any</code>): 配置值</li>
+<li><strong>immediate</strong> (<code>bool</code>): 是否立即写入磁盘
+<strong>返回值</strong> (<code>bool</code>): 操作是否成功</li>
+</ul>
+<hr>
+<h5 id="setconfigtemplatekey-str-toml_text-str-immediate-bool-true"><code>setConfigTemplate(key: str, toml_text: str, immediate: bool = True)</code></h5>
+<p>以带注释的 TOML 模板文本写入指定配置节</p>
+<p>用于适配器/模块首次生成配置模板：模板中的字段注释原样落盘。
+目标节已存在时不覆盖（由调用方保证仅在配置缺失时调用）；
+文件其余内容与注释不受影响。</p>
+<ul>
+<li><strong>key</strong> (<code>str</code>): 配置节键（支持点分路径，如 <code>"MyAdapter"</code>）</li>
+<li><strong>toml_text</strong> (<code>str</code>): 模板 TOML 文本（仅键值与注释，不含节头）</li>
+<li><strong>immediate</strong> (<code>bool</code>): 是否立即写入磁盘 (默认: True)
+<strong>返回值</strong> (<code>bool</code>): 是否写入成功</li>
+</ul>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>setConfigTemplate<span class="token punctuation">(</span><span class="token string">"MyAdapter"</span><span class="token punctuation">,</span> <span class="token string">'# API 令牌\ntoken = ""'</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-aforce_save"><code>async aforce_save()</code></h5>
+<p>异步强制保存所有待写入的配置到磁盘</p>
+<hr>
+<h5 id="async-areload"><code>async areload()</code></h5>
+<p>异步重新从磁盘加载配置</p>
+<hr>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/api-reference/auto_api/ErisPulse/Core/client.html"><small>上一篇</small><br>`ErisPulse.Core.client` 模块</a>
+        <a class="doc-pager-next" href="/docs/api-reference/auto_api/ErisPulse/Core/constants.html"><small>下一篇</small><br>`ErisPulse.Core.constants` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

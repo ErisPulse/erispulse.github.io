@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>モジュール間通信 - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse のモジュール間には3つの通信モデルがあり、&quot;点対点 → 定向 → ブロードキャスト&quot;の順序で配置されています：" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/module-communication.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/module-communication.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/module-communication.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/module-communication.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/module-communication.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/module-communication.html" />
+    <meta property="og:title" content="モジュール間通信 - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse のモジュール間には3つの通信モデルがあり、&quot;点対点 → 定向 → ブロードキャスト&quot;の順序で配置されています：" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/module-communication.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"モジュール間通信","description":"ErisPulse のモジュール間には3つの通信モデルがあり、\"点対点 → 定向 → ブロードキャスト\"の順序で配置されています：","url":"https://www.erisdev.com/docs/ja/advanced/module-communication.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>モジュール間通信</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/module-communication.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/module-communication.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/module-communication.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/module-communication.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/module-communication.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/module-communication.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="モジュール間通信">モジュール間通信</h1>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本章の内容は ErisPulse <strong>2.8.0+</strong> が必要です。</p>
+</div>
+<p>ErisPulse のモジュール間には<strong>3つの通信モデル</strong>があり、"点対点 → 定向 → ブロードキャスト"の順序で配置されています：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>層</th>
+<th>API</th>
+<th>語義</th>
+<th>典型的な場面</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>RPC</strong></td>
+<td><code>await sdk.module.call("Chat", "get_history", ...)</code></td>
+<td>点対点のリクエスト-レスポンス、契約 / 審計 / タイムアウト付き</td>
+<td>他のモジュールの機能を呼び出す（履歴の取得、翻訳、返金など）</td>
+</tr>
+<tr>
+<td><strong>定向イベント</strong></td>
+<td><code>await lifecycle.emit("message_received", {...}, to="Chat")</code></td>
+<td>指定されたモジュールが登録したライフサイクルフックにのみ配信</td>
+<td>上流の状態変化を下流に通知する（"新しいメッセージを受け取りました"）</td>
+</tr>
+<tr>
+<td><strong>ブロードキャスト</strong></td>
+<td><code>await lifecycle.emit("config.updated", {...})</code></td>
+<td>フレームワーク全体で見えるライフサイクルイベント</td>
+<td>設定のホット更新、モジュールの起動・停止</td>
+</tr>
+</tbody></table></div>
+<p>{!--&lt; tips &gt;!--}
+選択の口訣：<strong>返り値が必要な場合は <code>call</code> を使い、特定のモジュールのフックに通知する場合は <code>emit(..., to=...)</code> を使い、全員に通知する場合は <code>emit(...)</code> を使う</strong>。
+{!--&lt; /tips &gt;!--}</p>
+<h2 id="rpcmodulecall">RPC：module.call</h2>
+<pre><code class="language-python">result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
+</code></pre>
+<p>裸属性访问 <code>sdk.module.Chat.get_history(...)</code>（保持不变）与 <code>module.call()</code> 的差异：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th></th>
+<th><code>module.call()</code></th>
+<th>裸属性アクセス</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>目標が登録されていない / 有効化されていない</td>
+<td><code>ModuleNotAvailableError</code> をスロー</td>
+<td><code>AttributeError</code> をスロー</td>
+</tr>
+<tr>
+<td>ラグジュアリーなモジュール</td>
+<td><strong>自動的に起動</strong>（イベント駆動モジュールはアクティベーションロックを経由）</td>
+<td>非同期初期化モジュールが <code>RuntimeError</code> をスロー</td>
+</tr>
+<tr>
+<td><code>current_owner</code></td>
+<td><strong>対象モジュール</strong>に帰属（内部の <code>wait_reply</code> / 送信 / ログは正しく所有者に属する）</td>
+<td>呼び出し元のまま</td>
+</tr>
+<tr>
+<td>タイムアウト</td>
+<td>デフォルト 30 秒（<code>timeout=</code> で上書き、<code>None</code> で無制限）</td>
+<td>なし</td>
+</tr>
+<tr>
+<td>scope 審査</td>
+<td>呼び出し元の出力ゲート <code>actions.&lt;呼び出し元&gt;.call</code></td>
+<td>なし</td>
+</tr>
+<tr>
+<td>契約検証</td>
+<td><code>meta.services</code> のホワイトリスト</td>
+<td>なし</td>
+</tr>
+</tbody></table></div>
+<h3 id="例外体系">例外体系</h3>
+<pre><code>ModuleError                      # モジュールシステムの例外基底クラス
+└── ModuleCallError              # モジュール間呼び出しの基底クラス（module / method 属性を含む）
+    ├── ModuleNotAvailableError  # 目標が登録されていない / 有効化されていない / 起動に失敗
+    ├── ServiceNotProvidedError  # メソッドが services ホワイトリストにない / 私有メソッド / 存在しない
+    └── ModuleCallTimeoutError   # コルーチンメソッドのタイムアウト
+</code></pre>
+<p>すべて <code>ErisPulseError</code> 体系に属し、<code>from ErisPulse.Core import ModuleCallError</code> でキャッチ可能です。</p>
+<h2 id="サービス契約metaservices">サービス契約：meta.services</h2>
+<p>サービス提供者は <code>get_meta()</code> で公開する白リストを宣言します（<code>commands</code> フィールドと対称）：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule<span class="token punctuation">,</span> ModuleMeta
+
+<span class="token keyword">class</span> <span class="token class-name">ChatModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_meta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> ModuleMeta<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> ModuleMeta<span class="token punctuation">(</span>
+            name<span class="token operator">=</span><span class="token string">"チャット"</span><span class="token punctuation">,</span>
+            services<span class="token operator">=</span><span class="token punctuation">[</span>
+                <span class="token string">"get_history"</span><span class="token punctuation">,</span>                                       <span class="token comment"># 簡単な形</span>
+                <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"translate"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"テキストを指定された言語に翻訳する"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>  <span class="token comment"># 説明付き</span>
+            <span class="token punctuation">]</span><span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_history</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">translate</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">,</span> target_lang<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">def</span> <span class="token function">_internal_helper</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>   <span class="token comment"># アンダースコア付きメソッドは外部からの呼び出しを常に禁止</span>
+</code></pre>
+<p><strong>開発者にとっては無視されるのがデフォルト</strong>：</p>
+<ul>
+<li><code>services</code> を宣言していない場合 → すべての<strong>公開</strong>メソッドは <code>module.call()</code> で呼び出せる（属性アクセスと同様に、宣言不要）</li>
+<li>宣言した場合 → 白リストに絞られ、範囲外の呼び出しは <code>ServiceNotProvidedError</code> を送出する——「これらが外部に約束されたメソッド」を明示するため</li>
+<li>制限の<strong>主なコントロール権はユーザー側</strong>にある：<code>scope.actions</code> 設定が「誰が誰を呼び出せるか」を決定する（下記の監査を参照），
+モジュール作者の <code>services</code> はサービス面の宣言に過ぎず、2つの層は互いに代替できない</li>
+</ul>
+<p><strong>サービスの説明</strong>：各サービスに人間やAIが読める説明をつける——不要なら何も書かなくてもよい。
+説明は自動的に<strong>メソッドの docstring の最初の行</strong>を取る（フレームワークは docstring 形式を要求している）：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">translate</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">,</span> target_lang<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""テキストを指定された言語に翻訳する"""</span>    <span class="token comment"># ← この行が自動的にサービスの説明になる</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<p>docstring に上書きしたい、または多言語に対応したいなどの細かい制御が必要な場合は、dict 形式で description を宣言する（i18n 辞書に対応）：</p>
+<pre><code class="language-python">services<span class="token operator">=</span><span class="token punctuation">[</span>
+    <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"translate"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"テキストを指定された言語に翻訳する"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"summarize"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"Chat.meta.svc.summarize"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"会話の要約"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span>
+</code></pre>
+<h2 id="サービスディレクトリ-services">サービスディレクトリ: services()</h2>
+<pre><code class="language-python">sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {'Chat': [{'name': 'get_history', 'signature': '(session_id, n=20)',</span>
+<span class="token comment">#            'description': 'テキストを指定された言語に翻訳する'}]}</span>
+
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>   <span class="token comment"># 指定されたモジュールのみを照会</span>
+</code></pre>
+<ul>
+<li><code>meta.services</code> が<strong>明示的に宣言</strong>されたモジュールのみをリストアップ（宣言されていないモジュールはディレクトリに表示されない）</li>
+<li>各サービスにはメソッドの署名文字列（<code>inspect.signature</code> から抽出）と説明文が付属</li>
+<li>トポロジーにも対応：<code>sdk.module.get_topology()</code> の各モジュール項目には <code>services</code> フィールドが含まれる</li>
+</ul>
+<p>{!--&lt; tips &gt;!--}
+<strong>MCP 化の道筋</strong>：サービスディレクトリ（名前 + 署名 + 説明）は、MCP ツールの構造に自然に適合する——
+各サービスは天然に <code>{"name", "description", "parameters"}</code> の形をとる。
+将来、フレームワークは <code>services()</code> を直接 MCP サーバーエンドポイントとして公開し、AI がモジュールの機能を発見して呼び出すことが可能になる。
+また、<code>scope.actions.call</code> の監査は、AI 呼び出しのセキュリティゲートとして自然に機能する。
+{!--&lt; /tips &gt;!--}</p>
+<h2 id="出向監査誰が誰を呼び出すか">出向監査：誰が誰を呼び出すか</h2>
+<p><code>module.call()</code> のたびに、<strong>呼び出し元モジュール</strong>の身分としてスコープの出向ゲートを通過します：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.actions.CallerModule.call</span><span class="token punctuation">]</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat.get_history"</span><span class="token punctuation">]</span>        <span class="token comment"># CallerModule が Chat の get_history を呼び出すことを禁止</span>
+<span class="token comment"># allow = ["Chat.get_*"]           # またはホワイトリスト：get で始まる Chat のサービスのみを許可</span>
+</code></pre>
+<ul>
+<li><code>name</code> の形式は <code>&lt;対象モジュール&gt;.&lt;メソッド名&gt;</code> で、正確な一致、ワイルドカード、<code>re:</code> 正規表現がサポートされています</li>
+<li>フレームワーク層の呼び出し（owner コンテキストがない、起動スクリプトなど）は監査制約の対象外です</li>
+<li>拒否された呼び出しは <code>ModuleCallError</code> を送出します（TRACE ログ <code>core.module.call_denied</code>）</li>
+</ul>
+<p>設定方法は <a href="/docs/ja/advanced/docs/ja/scope.html">スコープ（scope）</a> の出向の観点を参照してください。</p>
+<h2 id="定向イベント-lifecycleemit-の-to-パラメータ">定向イベント: lifecycle.emit の to パラメータ</h2>
+<p>ライフサイクルイベントは、<code>to</code> パラメータで送信先の所有者（owner）を指定することで、特定のオーナーにイベントを送信できます。この場合、イベントはそのオーナーとして登録されたフック（モジュールが <code>on_load</code> 内で登録するフックは自動的に自身のモジュールに属します）にのみ配信され、他のモジュールやワイルドカード <code>*</code> のハンドラはイベントを感知しません。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>lifecycle <span class="token keyword">import</span> lifecycle
+
+<span class="token comment"># 送信側：イベントは Chat モジュールが登録したフックにのみ送信されます</span>
+<span class="token keyword">await</span> lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"hi"</span><span class="token punctuation">,</span> <span class="token string">"from"</span><span class="token punctuation">:</span> <span class="token string">"u1"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> to<span class="token operator">=</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 受信側（Chat モジュール内）：同名のフックを登録し、owner は登録時に自動的に記録されます</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_message_received</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>          <span class="token comment"># 点式の親プレフィックスも同様に有効（owner でフィルタリング）</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_any</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<p>動作の詳細：</p>
+<ul>
+<li>指定されたオーナーに登録されたフックがない場合 → イベントは<strong>静かに破棄</strong>されます（<strong>存在しない場所に送信されません</strong>）。<br>事前に <code>lifecycle.has_handlers("message_received")</code> を使用して存在を確認できます。</li>
+<li><code>data</code> が dict の場合、自動的に <code>_trace_id</code> を追加します（既存の値は上書きされません）。これにより、全トラッキングフローと連携できます。</li>
+<li>ブロードキャストと定向は、同じフック登録システムを使用します：<code>emit(...)</code> に <code>to=</code> を指定しない場合、イベントはフレームワーク全体にブロードキャストされます。<code>to=</code> を指定すると、同一イベントは対象モジュールのみに表示されます。</li>
+<li><code>emit_sync</code> / <code>submit_event</code>（互換 API）も <code>to=</code> パラメータをサポートします。</li>
+</ul>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p><br>定向イベントは軽量な通知であり、<strong>送信先の存在確認や遅延起動は行いません</strong>。送信先の存在確認、契約の監査、または戻り値が必要な場合は、<a href="#rpcmodulecall">RPC: module.call</a> を使用してください。</p>
+</div>
+<h2 id="慢的ロードと呼び出し">慢的ロードと呼び出し</h2>
+<p><code>module.call()</code> は、<strong>遅延ロードモジュールに対して透明な起動</strong>を提供します：</p>
+<ul>
+<li>イベント駆動の遅延モジュール（<code>activate_on</code> で宣言）→ 活性化ロック <code>_activate()</code> を通ります。活性化後、トリガースタブは自動的に登録解除されます。</li>
+<li>通常の遅延モジュール → 同期初期化または通常のロード経路（冪等性）</li>
+<li>起動失敗 → <code>ModuleNotAvailableError</code></li>
+</ul>
+<p>つまり、<strong>呼び出し元は対象モジュールが既にロードされているかどうかを気にする必要がなく、またその起動のために特定のイベントを待つ必要もありません。</strong></p>
+<p>対象イベント（<code>lifecycle.emit(..., to=...)</code>）は遅延起動を行いません。対象がロードされていない場合、フックは存在せず、イベントは静かに破棄されます。確実に送信する必要がある場合は、<code>module.call()</code> を使用してください。</p>
+<h2 id="クールスタートリプレイ">クールスタートリプレイ</h2>
+<p>新規インストール / 再起動のモジュールが一部のチャットを逃した場合、<code>get_load_strategy(replay=...)</code> により、フレームワークはモジュールが準備完了した後に、セッション受信箱内の最近のメッセージを<strong>そのモジュール自身にリプレイ</strong>します。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
+
+<span class="token keyword">class</span> <span class="token class-name">MyAIModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@staticmethod</span>
+    <span class="token keyword">def</span> <span class="token function">get_load_strategy</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
+            lazy_load<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
+            priority<span class="token operator">=</span><span class="token number">100</span><span class="token punctuation">,</span>
+            replay<span class="token operator">=</span><span class="token string">"5m"</span><span class="token punctuation">,</span>        <span class="token comment"># 最近の 5 分間をリプレイ ("1h" / "300" 秒の書き方も可能です)</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> e<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"replayed"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                <span class="token comment"># 合成イベント: コンテキストのみ補完、送信などの副作用は発生しない</span>
+                <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<p>意味の詳細:</p>
+<ul>
+<li>データソースは<a href="/docs/ja/advanced/interaction.html#%E4%BC%9A%E8%A9%B1%E5%8F%97%E4%BF%A1%E7%AE%B1eventhistory">セッション受信箱</a> (<code>sdk.transcript.recent()</code>) です。
+モジュールの読み込み完了後にバックグラウンドで実行され、起動をブロックしません。</li>
+<li>合成イベントには <code>replayed: True</code> のフラグと、<code>platform / detail_type / user_id / alt_message</code> が完全に含まれており、<strong>本モジュールのハンドラにのみ配信されます</strong>。他のモジュールはリプレイの影響を受けません。</li>
+<li>受信箱が有効でない / 記録がない / 時間長の宣言が不正な場合 (<code>replay_invalid</code> 警告) は、静かにスキップされます。</li>
+</ul>
+<h2 id="イベントの冪等性と重複除去">イベントの冪等性と重複除去</h2>
+<p>プラットフォームの WebSocket 再接続後に、同じイベント（同じ <code>event["id"]</code>）が頻繁に再送されることがあります。イベントの配信エントリポイントでは、ID に基づいて LRU 重複除去（容量 4096）が行われ、同じ ID のイベントは一度だけ配信されます。</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.framework</span><span class="token punctuation">]</span>
+<span class="token key property">event_dedupe</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>   <span class="token comment"># デフォルトで有効。テスト環境では固定 ID で合成イベントを作成する場合は無効にできます。</span>
+</code></pre>
+<p>アダプタが<strong>登録</strong>（新しい接続のライフサイクルの起点）される際に、自動的に重複除去キャッシュがリセットされます。</p>
+<h2 id="関連ドキュメント">関連ドキュメント</h2>
+<ul>
+<li><a href="/docs/ja/advanced/interaction.html">インタラクティブセッションシステム</a> - wait_reply / タイマ / マルチウェイト / セッションの排他制御</li>
+<li><a href="/docs/ja/advanced/scope.html">スコープ（scope）</a> - 出力次元監査の完全な設定</li>
+<li><a href="/docs/ja/advanced/ownership.html">所有権（owner）システム</a> - owner コンテキストがモジュール間呼び出しをどのように貫くか</li>
+<li><a href="/docs/ja/advanced/lazy-loading.html">ラジロードシステム</a> - ラジロードとイベント駆動ラジアクティベーション（activate_on）</li>
+<li><a href="/docs/ja/advanced/lifecycle.html">ライフサイクル管理</a> - ブロードキャスト層イベントバスのメカニズム</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/shadow.html"><small>Previous</small><br>シャドウモジュールとグレーディングから本番への移行</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/storage-backends.html"><small>Next</small><br>ストレージバックエンド</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>エラーシステムとキャッチガイド - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse におけるすべての独自例外は ErisPulseError を継承しており、aiohttp や aiomysql などの下層ライブラリの例外は、フレームワーク内でキャッチされ、対応する ErisPulse 例外に変換されます。業務コードでは下層ライブラリの例外型に依存する必要はありません。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/errors.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
+    <meta property="og:title" content="エラーシステムとキャッチガイド - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse におけるすべての独自例外は ErisPulseError を継承しており、aiohttp や aiomysql などの下層ライブラリの例外は、フレームワーク内でキャッチされ、対応する ErisPulse 例外に変換されます。業務コードでは下層ライブラリの例外型に依存する必要はありません。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/errors.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"エラーシステムとキャッチガイド","description":"ErisPulse におけるすべての独自例外は ErisPulseError を継承しており、aiohttp や aiomysql などの下層ライブラリの例外は、フレームワーク内でキャッチされ、対応する ErisPulse 例外に変換されます。業務コードでは下層ライブラリの例外型に依存する必要はありません。","url":"https://www.erisdev.com/docs/ja/advanced/errors.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>エラーシステムとキャッチガイド</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/errors.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/errors.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/errors.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/errors.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/errors.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/errors.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="エラーシステムとキャッチガイド">エラーシステムとキャッチガイド</h1>
+<p>ErisPulse におけるすべての独自例外は <code>ErisPulseError</code> を継承しており、aiohttp や aiomysql などの下層ライブラリの例外は、フレームワーク内でキャッチされ、対応する ErisPulse 例外に変換されます。業務コードでは<strong>下層ライブラリの例外型に依存する必要はありません</strong>。</p>
+<p>{!--&lt; tips &gt;!--}</p>
+<ol>
+<li>幅広くカバーしたい場合：<code>ErisPulseError</code>（すべてのフレームワーク例外の基底クラス）をキャッチ</li>
+<li>精度を重視した処理をしたい場合：モジュールごとにキャッチ（例：<code>ModuleCallTimeoutError</code>、<code>StorageUnreachableError</code>）</li>
+<li>ストレージ操作はデフォルトで例外をスローしません：失敗時はログを記録し、<code>False / None / default</code> を返します。接続状態の変化は <code>storage.unreachable</code> / <code>storage.recovered</code> イベントをサブスクライブしてください。
+{!--&lt; /tips &gt;!--}</li>
+</ol>
+<h2 id="エラーの概要">エラーの概要</h2>
+<pre><code class="language-text">ErisPulseError                      # すべてのフレームワークエラーの基底クラス
+├── ClientError                     # HTTP/WS クライアントリクエストエラーの基底クラス（Core/client）
+│   ├── ClientConnectionError       # 接続層エラー：DNS 解析失敗、接続拒否、ネットワーク到達不可
+│   ├── ClientTimeoutError          # リクエストタイムアウト
+│   └── HTTPStatusError             # HTTP ステータスコードエラー（4xx/5xx および raise_for_status）
+├── WebSocketError                  # WebSocket エラーの基底クラス（Core/client の WS 接続）
+│   └── WebSocketDisconnect         # WebSocket 接続切断（サーバー/クライアント共通）
+├── StorageError                    # ストレージエラーの基底クラス（Core/storage）
+│   └── StorageUnreachableError     # ストレージバックエンドに到達不可（プール作成のリトライ回数超過：データベース到達不可/認証情報エラー）
+├── InteractionError                # 交互会話エラーの基底クラス（Core/Event/interaction）
+│   ├── InteractionCancelled        # 保留中の待機/リースがキャンセルされた（wait_reply 上層で None を返す）
+│   └── SessionOccupiedError        # セッションの排他リースが占有されている（hold() で取得失敗）
+├── ModuleError                     # モジュールシステムエラーの基底クラス（Core/module）
+│   └── ModuleCallError             # モジュール間呼び出しエラーの基底クラス
+│       ├── ModuleNotAvailableError # 対象モジュールが登録されていない/有効化されていない/初期化失敗（遅延読み込みアクセス含む）
+│       ├── ServiceNotProvidedError # 対象モジュールが該当サービスを宣言していない（meta.services ホワイトリスト外）
+│       └── ModuleCallTimeoutError  # 呼び出されたメソッドの実行がタイムアウト（デフォルト 30s）
+└── StrictModeError                 # 厳格モードの致命的違反（起動プロセスを中止、loaders/strict）
+</code></pre>
+<h2 id="構造化属性">構造化属性</h2>
+<p>例外がキャプチャされた後、メッセージテキストを解析せずに構造化された属性にアクセスできます：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>例外</th>
+<th>属性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code>（およびそのサブクラス）</td>
+<td><code>.url</code> 要求のURL、<code>.method</code> 要求メソッド、<code>.attempts</code> 試行回数（リトライが失敗した場合）</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>.status</code> ステータスコード、<code>.message</code> 応答メッセージ</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td><code>.code</code> 閉じるコード、<code>.reason</code> 閉じる理由</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td><code>.backend</code> バックエンド名（sqlite/mysql/postgres）、<code>.cooldown</code> クールダウン秒数</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code>（およびそのサブクラス）</td>
+<td><code>.module</code> 目標モジュール名、<code>.method</code> 目標メソッド名</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td><code>.module/.method</code> を継承、さらに <code>.timeout</code> タイムアウト期限（秒）</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td><code>.reason</code> 取消理由、<code>.wait_key</code> セッションキー</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td><code>.wait_key</code> セッションキー、<code>.owner</code> 占有者</td>
+</tr>
+<tr>
+<td><code>StrictModeError</code></td>
+<td><code>.violations</code> 違反記録のリスト</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token punctuation">,</span> json<span class="token operator">=</span>payload<span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"要求失敗 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>method<span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>url<span class="token punctuation">}</span></span><span class="token string">、合計 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>attempts<span class="token punctuation">}</span></span><span class="token string"> 回試行: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="各種例外の説明と発生場所">各種例外の説明と発生場所</h2>
+<h3 id="client-系列-coreclientpy-corebasesclientpy">Client 系列 — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
+<p><code>sdk.client</code> / HTTP クライアントと WebSocket クライアントがリクエストを発行する際に送出されます：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>例外</th>
+<th>発生位置</th>
+<th>代表的なシナリオ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ClientError</code></td>
+<td>リクエストラッパー層</td>
+<td>その他のクライアントエラー（aiohttp の低層エラーは変換済み）</td>
+</tr>
+<tr>
+<td><code>ClientConnectionError</code></td>
+<td>接続確立段階</td>
+<td>対象サービスに到達できない、DNS 失敗、接続拒否</td>
+</tr>
+<tr>
+<td><code>ClientTimeoutError</code></td>
+<td>リクエスト実行段階</td>
+<td>リクエストのタイムアウト時間超過</td>
+</tr>
+<tr>
+<td><code>HTTPStatusError</code></td>
+<td><code>raise_for_status()</code></td>
+<td>レスポンスステータスコードが 4xx/5xx</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientTimeoutError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"https://api.example.com"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<h3 id="websocket-系列-coreclientpysend-receive">WebSocket 系列 — <code>Core/client.py</code>（<code>send</code> / <code>receive</code>）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>例外</th>
+<th>発生位置</th>
+<th>代表的なシナリオ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>WebSocketError</code></td>
+<td>WS 受信/送信メソッド</td>
+<td>接続が閉じられている、予期しないメッセージタイプを受け取った、WS の低層エラー</td>
+</tr>
+<tr>
+<td><code>WebSocketDisconnect</code></td>
+<td>WS 受信/送信メソッド</td>
+<td>対向が正常に接続を切断した（フレームワークが自動的に再接続する）</td>
+</tr>
+</tbody></table></div>
+<h3 id="storage-系列-corestorage-corebasessql_basepy">Storage 系列 — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>例外</th>
+<th>発生位置</th>
+<th>代表的なシナリオ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>StorageError</code></td>
+<td>ストレージ層</td>
+<td>ストレージ関連の例外の基底クラス</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td>プール構築段階</td>
+<td>データベースに到達できない / 認証情報が間違っている / ネットワーク隔離、リトライが尽きる</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>ストレージ操作の失敗の意味</strong>：KV とクエリ操作は<strong>デフォルトでは例外を送出しない</strong>——失敗した場合、ERROR ログを記録し、<code>False</code> / <code>None</code> / <code>default</code> を返す（フレームワークの実行を接続の問題で阻害しない）。したがって、業務コードでは通常 <code>StorageUnreachableError</code> をキャッチすることは<strong>ない</strong>（主にストレージの低層操作やカスタムバックエンドに使用される）。接続状態を実行時に感知するには、ライフサイクルイベント <code>storage.unreachable</code> / <code>storage.recovered</code> をサブスクライブする（<a href="/docs/ja/advanced/lifecycle.html#%E3%82%B9%E3%83%88%E3%83%AC%E3%83%BC%E3%82%B8%E6%8E%A5%E7%B6%9A%E7%8A%B6%E6%85%8B">ライフサイクルイベント</a>を参照）。
+接続失敗の挙動は<a href="/docs/ja/advanced/storage-backends.html#%E6%8E%A5%E7%B6%9A%E5%A4%B1%E6%95%97%E3%81%AE%E6%8C%99%E5%8B%95">ストレージバックエンド → 接続失敗の挙動</a>を参照。</p>
+</blockquote>
+<h3 id="interaction-coreeventinteractionpy">Interaction — <code>Core/Event/interaction.py</code></h3>
+<p><code>wait_reply</code> / セッションのリース / アラートタイマ関連：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>例外</th>
+<th>発生位置</th>
+<th>代表的なシナリオ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>InteractionError</code></td>
+<td>インタラクションセッション層</td>
+<td>インタラクションセッションの例外の基底クラス</td>
+</tr>
+<tr>
+<td><code>InteractionCancelled</code></td>
+<td>待機がキャンセルされたとき</td>
+<td>待機中の future に設定された（待機側がキャッチして <code>.reason</code> を取得可能）</td>
+</tr>
+<tr>
+<td><code>SessionOccupiedError</code></td>
+<td><code>hold()</code> リース取得失敗</td>
+<td>セッションが他のオーナーによって占有されている（<code>.owner</code> から占有者を確認可能）</td>
+</tr>
+</tbody></table></div>
+<p>キャンセルされた待機（モジュールのアンロード / プラットフォームのシャットダウン / 同一セッションで新しい待機が上書き）の際、<code>wait_reply</code> は例外を送出せず、**<code>None</code> を返す**（<code>InteractionCancelled</code> は内部で変換される）。キャンセルの原因を区別する必要がある場合、直接キャッチする。</p>
+<h3 id="module-系列-coremodulepysdkmodulecall">Module 系列 — <code>Core/module.py</code>（<code>sdk.module.call</code>）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>例外</th>
+<th>発生位置</th>
+<th>代表的なシナリオ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ModuleError</code></td>
+<td>モジュールシステム</td>
+<td>モジュールシステムの例外の基底クラス</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code></td>
+<td><code>module.call()</code></td>
+<td>モジュール間呼び出しの例外の基底クラス</td>
+</tr>
+<tr>
+<td><code>ModuleNotAvailableError</code></td>
+<td><code>module.call()</code> / ラジーロード属性アクセス</td>
+<td>目標が登録されていない / 有効化されていない / 初期化に失敗</td>
+</tr>
+<tr>
+<td><code>ServiceNotProvidedError</code></td>
+<td><code>module.call()</code></td>
+<td>目標の <code>meta.services</code> ホワイトリストにそのメソッドが宣言されていない</td>
+</tr>
+<tr>
+<td><code>ModuleCallTimeoutError</code></td>
+<td><code>module.call()</code></td>
+<td>被呼び出しのコルーチンがタイムアウト時間（デフォルト 30s）を超えた</td>
+</tr>
+</tbody></table></div>
+<p>「目標モジュールが利用できない」は、異なるアクセス経路での例外の種類：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>アクセス経路</th>
+<th>例外</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await sdk.module.call("X", "method")</code></td>
+<td><code>ModuleNotAvailableError</code>（型付き）</td>
+</tr>
+<tr>
+<td><code>sdk.module.X.attr</code>（ラジーロード属性アクセス、初期化失敗後）</td>
+<td><code>ModuleNotAvailableError</code></td>
+</tr>
+<tr>
+<td><code>sdk.module.X</code>（モジュールが有効化されていないときの属性アクセス）</td>
+<td><code>AttributeError</code>（Python の属性の慣例、<code>hasattr</code> はこの意味に依存）</td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ModuleNotAvailableError<span class="token punctuation">,</span> ServiceNotProvidedError
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    history <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ModuleNotAvailableError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目標モジュールが存在しない / 有効化されていない</span>
+<span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目標モジュールがそのサービスを提供していない</span>
+</code></pre>
+<h3 id="フレームワーク内部のパラメータ検証valueerror">フレームワーク内部のパラメータ検証（ValueError）</h3>
+<p>ストレージクエリビルダーのパラメータ検証（空の列タイプ、<code>Insert</code> が dict でない、安全でない列タイプなど）は標準の <code>ValueError</code> を送出する——これは<strong>開発時のコードエラー</strong>であり、通常の業務コードではキャッチすべきではなく、呼び出しを修正すべきである。</p>
+<p>アダプタの標準動作が失敗しても<strong>例外は送出しない</strong>：<code>retcode</code> を持つレスポンス辞書を返す（プロトコルの意味、例えば <code>retcode=10002</code> は動作が実装されていないことを示す）——これは client 層の「失敗時に <code>ClientError</code> を送出する」のと並行するエラーチャンネルであるため、アダプタの開発時には両方を同時に処理する必要がある。</p>
+<h2 id="エラーのキャプチャに関する提案">エラーのキャプチャに関する提案</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># 基底クラスは Core から集約的にエクスポートされています</span>
+
+<span class="token keyword">try</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword">except</span> ErisPulseError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 一括処理：フレームワークが定義したすべての独自例外</span>
+</code></pre>
+<ul>
+<li>モジュール開発：必要に応じて正確にキャッチ（上記表参照）。最外層では <code>ErisPulseError</code> を使用して一括処理が可能です。</li>
+<li>すべての例外は <code>ErisPulse.Core</code> から集約的にエクスポートされています（<code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code> 含む）。また、<code>ErisPulse.Core.Bases.errors</code> から個別にインポートすることも可能です。</li>
+<li>完全な定義は <code>src/ErisPulse/Core/Bases/errors.py</code> を参照してください。</li>
+</ul>
+<h2 id="騒音の抑制">騒音の抑制</h2>
+<p>長期間実行されるプロセスが終了（またはバックグラウンドのループがキャンセル）される際、イベントループは多くの処理されない <code>Task was destroyed but it is pending!</code> などの解釈器のノイズを出力することがよくあります。フレームワークには<strong>同種のノイズの折りたたみ</strong>が組み込まれています。2秒の時間枠内に同種のメッセージはTRACEに昇格され、統合カウントされ、1度だけ出力され、末尾には「（さらに N 件の同種のメッセージが折りたたまれました）」というサフィックスが付きます。これは意図的なノイズ抑制です。このサフィックスが表示されたからといって、フレームワークが実際の例外を無視しているわけではありません。業務上の例外（上記の各々の種類）はそのまま完全に出力されます。</p>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/storage-backends.html"><small>Previous</small><br>ストレージバックエンド</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/startup.html"><small>Next</small><br>スタートフローと手動制御</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

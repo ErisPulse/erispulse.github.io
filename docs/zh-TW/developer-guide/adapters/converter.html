@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>事件轉換器實現指南 - ErisPulse 文档中心</title>
+    <meta name="description" content="事件轉換器 (Converter) 是適配器的核心組件之一，負責將平台原生事件轉換為 ErisPulse 統一的 OneBot12 標準事件格式。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/converter.html" />
+    <meta property="og:title" content="事件轉換器實現指南 - ErisPulse 文档中心" />
+    <meta property="og:description" content="事件轉換器 (Converter) 是適配器的核心組件之一，負責將平台原生事件轉換為 ErisPulse 統一的 OneBot12 標準事件格式。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/converter.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"事件轉換器實現指南","description":"事件轉換器 (Converter) 是適配器的核心組件之一，負責將平台原生事件轉換為 ErisPulse 統一的 OneBot12 標準事件格式。","url":"https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/converter.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 開發者指南 <span class="doc-crumb-sep">/</span> 適配器開發
+        <span class="doc-crumb-sep">/</span> <span>事件轉換器實現指南</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/adapters/converter.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/converter.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/converter.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/adapters/converter.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="事件轉換器實現指南">事件轉換器實現指南</h1>
+<p>事件轉換器 (Converter) 是適配器的核心組件之一，負責將平台原生事件轉換為 ErisPulse 統一的 OneBot12 標準事件格式。</p>
+<h2 id="converter-職責">Converter 職責</h2>
+<pre><code>平台原生事件 ──→ Converter.convert() ──→ OneBot12 標準事件
+</code></pre>
+<p>Converter 只負責<strong>正向轉換</strong>（接收方向），即將平台的原生事件數據轉換為 OneBot12 標準格式。反向轉換（發送方向）由 <code>Send.Raw_ob12()</code> 方法處理。</p>
+<h3 id="核心原則">核心原則</h3>
+<ol>
+<li><strong>無損轉換</strong>：原始數據必須完整保留在 <code>{platform}_raw</code> 字段中</li>
+<li><strong>標準兼容</strong>：轉換後的事件必須符合 OneBot12 標準格式</li>
+<li><strong>平台擴展</strong>：平台特有數據使用 <code>{platform}_</code> 前綴字段存儲</li>
+</ol>
+<h2 id="baseconverter-基類推薦">BaseConverter 基類（推薦）</h2>
+<p>從 2.7.0 起，框架提供 <code>BaseConverter</code> 基類（<code>ErisPulse.Core.Bases</code>），封裝 OneBot12 事件的<strong>公共字段建構</strong>與<strong>常用消息段輔助</strong>，讓轉換器只需聚焦類型映射：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConverter
+
+
+<span class="token keyword">class</span> <span class="token class-name">MyConverter</span><span class="token punctuation">(</span>BaseConverter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>platform<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span> <span class="token operator">|</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> <span class="token boolean">None</span>
+        event_type <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        base <span class="token operator">=</span> self<span class="token punctuation">.</span>build_base_event<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> event_type<span class="token punctuation">)</span>  <span class="token comment"># id/time/platform/self/raw</span>
+        <span class="token keyword">if</span> event_type <span class="token operator">==</span> <span class="token string">"message"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"message"</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group"</span> <span class="token keyword">if</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">)</span> <span class="token keyword">else</span> <span class="token string">"private"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token builtin">str</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"sender_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">[</span>self<span class="token punctuation">.</span>text<span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">]</span>
+            base<span class="token punctuation">[</span><span class="token string">"alt_message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> base
+        <span class="token keyword">return</span> <span class="token boolean">None</span>
+</code></pre>
+<p><code>build_base_event()</code> 已填充的公共字段：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>來源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td><code>raw_event["event_id"]</code>，缺省自生成 UUID</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td><code>raw_event["timestamp"]</code>，缺省當前時間</td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td>建構時傳入的 <code>platform</code></td>
+</tr>
+<tr>
+<td><code>self</code></td>
+<td><code>{"platform": ..., "user_id": raw_event["bot_id"]}</code></td>
+</tr>
+<tr>
+<td><code>{platform}_raw</code></td>
+<td>原始事件（滿足"無損轉換"原則）</td>
+</tr>
+<tr>
+<td><code>{platform}_raw_type</code></td>
+<td>原始事件類型</td>
+</tr>
+</tbody></table></div>
+<p>常用消息段輔助方法（均為靜態方法，直接複用）：</p>
+<pre><code class="language-python">converter<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"hi"</span><span class="token punctuation">)</span>          <span class="token comment"># {"type": "text", "data": {"text": "hi"}}</span>
+converter<span class="token punctuation">.</span>at<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span>        <span class="token comment"># {"type": "at", "data": {"user_id": "123456"}}</span>
+converter<span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"file.png"</span><span class="token punctuation">)</span>   <span class="token comment"># {"type": "image", "data": {"file": "file.png"}}</span>
+</code></pre>
+<blockquote>
+<p>手動實現時 <code>build_base_event</code> 的公共字段建構是必須重複寫的樣板代碼，使用 <code>BaseConverter</code> 可省去這部分，且天然滿足"無損轉換"（原始事件始終進 <code>{platform}_raw</code>）。</p>
+</blockquote>
+<h2 id="convert-方法">convert() 方法</h2>
+<h3 id="方法簽名">方法簽名</h3>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    將平台原生事件轉換為 OneBot12 標準格式
+
+    :param raw_event: 平台原生事件數據
+    :return: OneBot12 標準格式事件字典
+    """</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<h3 id="返回值結構">返回值結構</h3>
+<p>轉換後的事件字典應包含以下標準字段：</p>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"事件唯一ID"</span><span class="token punctuation">,</span>
+    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>           <span class="token comment"># Unix 時間戳（秒）</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>             <span class="token comment"># 事件類型</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>      <span class="token comment"># 詳細類型</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>      <span class="token comment"># 平台名稱</span>
+    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
+        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"bot_user_id"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+    <span class="token comment"># 消息事件字段</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"sender_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">]</span><span class="token punctuation">,</span>              <span class="token comment"># OneBot12 消息段列表</span>
+    <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"純文本內容"</span><span class="token punctuation">,</span>
+
+    <span class="token comment"># 必須保留原始數據</span>
+    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>     <span class="token comment"># 平台原生事件完整數據</span>
+    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"原生事件類型名"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="必填字段映射">必填字段映射</h2>
+<h3 id="通用字段所有事件類型">通用字段（所有事件類型）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OB12 字段</th>
+<th>類型</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>str</td>
+<td>事件唯一標識符</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>int</td>
+<td>Unix 時間戳（秒）</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>str</td>
+<td>事件類型：<code>message</code> / <code>notice</code> / <code>request</code> / <code>meta</code></td>
+</tr>
+<tr>
+<td><code>detail_type</code></td>
+<td>str</td>
+<td>詳細類型：<code>private</code> / <code>group</code> / <code>friend</code> 等</td>
+</tr>
+<tr>
+<td><code>platform</code></td>
+<td>str</td>
+<td>平台名稱，與適配器註冊名一致</td>
+</tr>
+<tr>
+<td><code>self</code></td>
+<td>dict</td>
+<td>机器人信息：<code>{"platform": "...", "user_id": "..."}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="消息事件額外字段">消息事件額外字段</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OB12 字段</th>
+<th>類型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user_id</code></td>
+<td>str</td>
+<td>發送者 ID</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>list[dict]</td>
+<td>OneBot12 消息段列表</td>
+</tr>
+<tr>
+<td><code>alt_message</code></td>
+<td>str</td>
+<td>純文本備用內容</td>
+</tr>
+</tbody></table></div>
+<h3 id="通知事件額外字段">通知事件額外字段</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>OB12 字段</th>
+<th>類型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>user_id</code></td>
+<td>str</td>
+<td>相關用戶 ID</td>
+</tr>
+<tr>
+<td><code>operator_id</code></td>
+<td>str</td>
+<td>操作者 ID（如群成員變動）</td>
+</tr>
+</tbody></table></div>
+<h2 id="消息段轉換">消息段轉換</h2>
+<p>OneBot12 標準定義了以下消息段類型：</p>
+<pre><code class="language-python"><span class="token comment"># 文本</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># 圖片</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/img.jpg"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># 音頻</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"audio"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/audio.mp3"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># 視頻</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"video"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/video.mp4"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># 文件</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"file"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/doc.pdf"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># @提及</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># @全體</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention_all"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+
+<span class="token comment"># 回覆</span>
+<span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"reply"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"msg_123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
+</code></pre>
+<p>如果平台有不支援的消息段類型，可以省略該段或轉換為最接近的標準類型。</p>
+<h2 id="平台擴展字段">平台擴展字段</h2>
+<p>平台特有的數據應使用 <code>{platform}_</code> 前綴存儲，避免與標準字段衝突：</p>
+<pre><code class="language-python"><span class="token punctuation">{</span>
+    <span class="token comment"># 標準字段</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"group"</span><span class="token punctuation">,</span>
+    <span class="token comment"># ...</span>
+
+    <span class="token comment"># 平台擴展字段</span>
+    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># 原始事件數據（必須）</span>
+    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"chat"</span><span class="token punctuation">,</span>      <span class="token comment"># 原始事件類型（必須）</span>
+
+    <span class="token comment"># 其他平台特有字段</span>
+    <span class="token string">"myplatform_group_name"</span><span class="token punctuation">:</span> <span class="token string">"群名稱"</span><span class="token punctuation">,</span>
+    <span class="token string">"myplatform_sender_role"</span><span class="token punctuation">:</span> <span class="token string">"admin"</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p><strong>重要</strong>：<code>{platform}_raw</code> 字段是必須的，ErisPulse 的事件系統和模組可能依賴它來訪問平台原始數據。</p>
+</blockquote>
+<h2 id="完整示例">完整示例</h2>
+<p>以下是一個完整的 Converter 實現：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyConverter</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> platform<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>platform <span class="token operator">=</span> platform
+
+    <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        event_type <span class="token operator">=</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        base_event <span class="token operator">=</span> <span class="token punctuation">{</span>
+            <span class="token string">"id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"time"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"timestamp"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+            <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+                <span class="token string">"user_id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"self_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            <span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">,</span>
+            <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> event_type<span class="token punctuation">,</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token keyword">if</span> event_type <span class="token operator">==</span> <span class="token string">"chat"</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_convert_message<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> base_event<span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> event_type <span class="token operator">==</span> <span class="token string">"notification"</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_convert_notice<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> base_event<span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> event_type <span class="token operator">==</span> <span class="token string">"request"</span><span class="token punctuation">:</span>
+            <span class="token keyword">return</span> self<span class="token punctuation">.</span>_convert_request<span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> base_event<span class="token punctuation">)</span>
+
+        <span class="token keyword">return</span> base_event
+
+    <span class="token keyword">def</span> <span class="token function">_convert_message</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span> base<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"message"</span>
+        base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group"</span> <span class="token keyword">if</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">)</span> <span class="token keyword">else</span> <span class="token string">"private"</span>
+        base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"sender_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        base<span class="token punctuation">[</span><span class="token string">"message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> self<span class="token punctuation">.</span>_convert_message_segments<span class="token punctuation">(</span>raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        base<span class="token punctuation">[</span><span class="token string">"alt_message"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span>
+
+        <span class="token keyword">return</span> base
+
+    <span class="token keyword">def</span> <span class="token function">_convert_message_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> content<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">:</span>
+        segments <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        <span class="token keyword">if</span> content<span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> content<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> segments
+
+    <span class="token keyword">def</span> <span class="token function">_convert_notice</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span> base<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"notice"</span>
+        notification_type <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"notification_type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> notification_type <span class="token operator">==</span> <span class="token string">"member_join"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group_member_increase"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"operator_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"operator_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> notification_type <span class="token operator">==</span> <span class="token string">"friend_add"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"friend_increase"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">return</span> base
+
+    <span class="token keyword">def</span> <span class="token function">_convert_request</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span> base<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        base<span class="token punctuation">[</span><span class="token string">"type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"request"</span>
+        request_type <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"request_type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> request_type <span class="token operator">==</span> <span class="token string">"friend"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"friend"</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"comment"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+        <span class="token keyword">elif</span> request_type <span class="token operator">==</span> <span class="token string">"group_invite"</span><span class="token punctuation">:</span>
+            base<span class="token punctuation">[</span><span class="token string">"detail_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"group"</span>
+            base<span class="token punctuation">[</span><span class="token string">"group_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"group_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            base<span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"inviter_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">return</span> base
+</code></pre>
+<h2 id="富媒體消息轉換示例">富媒體消息轉換示例</h2>
+<p>實際平台的消息通常包含圖片、@提及、回覆等富媒體內容。以下是 <code>_convert_message_segments</code> 處理多種消息類型的示例：</p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_message_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_content<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""將平台原生消息段列表轉換為 OneBot12 標準消息段"""</span>
+    segments <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+    <span class="token keyword">for</span> item <span class="token keyword">in</span> raw_content<span class="token punctuation">:</span>
+        item_type <span class="token operator">=</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> item_type <span class="token operator">==</span> <span class="token string">"text"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"content"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"image"</span><span class="token punctuation">:</span>
+            file_url <span class="token operator">=</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"url"</span><span class="token punctuation">)</span> <span class="token keyword">or</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"file_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"image"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> file_url<span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"at"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"target_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"reply"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"reply"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> item<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"reply_to_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">elif</span> item_type <span class="token operator">==</span> <span class="token string">"at_all"</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention_all"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword">else</span><span class="token punctuation">:</span>
+            segments<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span>
+                <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"[不支援的消息類型: </span><span class="token interpolation"><span class="token punctuation">{</span>item_type<span class="token punctuation">}</span></span><span class="token string">]"</span></span><span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">return</span> segments
+</code></pre>
+<h2 id="常見陷阱">常見陷阱</h2>
+<h3 id="1-缺少-platform_raw-字段">1. 缺少 <code>{platform}_raw</code> 字段</h3>
+<p>這是常見的錯誤。缺少原始數據字段會導致模組無法訪問平台特有的資訊。</p>
+<pre><code class="language-python">base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw_event        <span class="token comment"># 必須！</span>
+base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> event_type   <span class="token comment"># 必須！</span>
+</code></pre>
+<h3 id="2-時間戳格式錯誤">2. 時間戳格式錯誤</h3>
+<p>OneBot12 標準要求 <code>time</code> 字段為 Unix 秒級時間戳（整數）。如果你的平台返回毫秒時間戳或 ISO 格式字串，需要轉換：</p>
+<pre><code class="language-python"><span class="token keyword">import</span> time
+
+<span class="token comment"># 毫秒 → 秒</span>
+<span class="token string">"time"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"timestamp"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">//</span> <span class="token number">1000</span>
+
+<span class="token comment"># ISO 字串 → 秒</span>
+<span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>mktime<span class="token punctuation">(</span>time<span class="token punctuation">.</span>strptime<span class="token punctuation">(</span>raw_event<span class="token punctuation">[</span><span class="token string">"created_at"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"%Y-%m-%dT%H:%M:%S"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-缺少-self-字段">3. 缺少 <code>self</code> 字段</h3>
+<p><code>self</code> 字段包含機器人自身資訊，<code>user_id</code> 為機器人的帳號 ID。多 Bot 場景下此字段至關重要：</p>
+<pre><code class="language-python"><span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>   <span class="token comment"># 機器人自身的 ID</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="4-detail_type-使用了非標準值">4. detail_type 使用了非標準值</h3>
+<p><code>detail_type</code> 必須使用 OneBot12 標準定義的值，如 <code>private</code>、<code>group</code>、<code>friend_increase</code>、<code>group_member_increase</code> 等。不要使用平台特有的命名。</p>
+<h3 id="5-往返一致性">5. 往返一致性</h3>
+<p>確保 Converter 生成的消息段類型與 Send 端支援的方法對應。例如，如果 Converter 將平台的圖片消息轉換為 <code>{"type": "image", ...}</code>，那麼 Send 端的 <code>Image()</code> 方法必須能處理圖片發送。</p>
+<h2 id="最佳實踐">最佳實踐</h2>
+<ol>
+<li><strong>總是保留原始數據</strong>：<code>{platform}_raw</code> 字段不能省略</li>
+<li><strong>使用標準消息段</strong>：盡量將平台消息轉換為 OneBot12 標準消息段</li>
+<li><strong>合理設定 detail_type</strong>：使用標準類型（<code>private</code>/<code>group</code>/<code>channel</code> 等），不要自定義</li>
+<li><strong>處理邊界情況</strong>：原始事件可能缺少某些字段，使用 <code>.get()</code> 並提供合理預設值</li>
+<li><strong>效能考量</strong>：<code>convert()</code> 在每個事件上呼叫，避免在其中執行耗時操作</li>
+</ol>
+<h2 id="相關文件">相關文件</h2>
+<ul>
+<li><a href="/docs/zh-TW/developer-guide/adapters/core-concepts.html">適配器核心概念</a> - 適配器整體架構</li>
+<li><a href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a> - 反向轉換（發送方向）</li>
+<li><a href="/docs/zh-TW/standards/event-conversion.html">事件轉換標準</a> - 正式的事件轉換規範</li>
+<li><a href="/docs/zh-TW/standards/session-types.html">會話類型系統</a> - 會話類型映射規則</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/developer-guide/adapters/best-practices.html"><small>Previous</small><br>適配器開發最佳實踐</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/platform-guide/README.html"><small>Next</small><br>ErisPulse PlatformFeatures 文件</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

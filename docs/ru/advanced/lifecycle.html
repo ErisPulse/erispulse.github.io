@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Управление жизненным циклом - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse предоставляет единый механизм хуков/жизненного цикла, предназначенный для мониторинга состояния работы компонентов системы, а также реализации расш..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/lifecycle.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/lifecycle.html" />
+    <meta property="og:title" content="Управление жизненным циклом - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse предоставляет единый механизм хуков/жизненного цикла, предназначенный для мониторинга состояния работы компонентов системы, а также реализации расш..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/lifecycle.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Управление жизненным циклом","description":"ErisPulse предоставляет единый механизм хуков/жизненного цикла, предназначенный для мониторинга состояния работы компонентов системы, а также реализации расш...","url":"https://www.erisdev.com/docs/ru/advanced/lifecycle.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Продвинутые темы
+        <span class="doc-crumb-sep">/</span> <span>Управление жизненным циклом</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/lifecycle.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/lifecycle.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/lifecycle.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/lifecycle.html">日本語</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ru/advanced/lifecycle.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/lifecycle.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="управление-жизненным-циклом">Управление жизненным циклом</h1>
+<p>ErisPulse предоставляет единый механизм хуков/жизненного цикла, предназначенный для мониторинга состояния работы компонентов системы, а также реализации расширенных функций аудита, статистики и пользовательской логики.</p>
+<p>Система поддерживает три способа триггеризации событий:</p>
+<ul>
+<li><code>await lifecycle.emit("event", data)</code> — упрощённая версия, передаёт любые данные (<code>to="Owner"</code> для направленной доставки)</li>
+<li><code>lifecycle.emit_sync("event", data)</code> — синхронная версия (для не-асинхронных контекстов)</li>
+<li><code>await lifecycle.submit_event("event", ...)</code> — совместимость со старыми версиями, автоматически формирует стандартный формат события</li>
+</ul>
+<h2 id="механизм-обработки-событий">Механизм обработки событий</h2>
+<h3 id="регистрация-обработчиков">Регистрация обработчиков</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token comment"># Регистрация с помощью декоратора</span>
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_module_load</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Загрузка модуля: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># Программная регистрация</span>
+sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">,</span> on_module_load<span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Отмена регистрации</span>
+sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>unregister<span class="token punctuation">(</span><span class="token string">"module.load"</span><span class="token punctuation">,</span> on_module_load<span class="token punctuation">)</span>
+
+<span class="token comment">#批量 отмена регистрации по владельцу (автоматически вызывается при выгрузке модуля/адаптера)</span>
+removed <span class="token operator">=</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>unregister_by_owner<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Удалено </span><span class="token interpolation"><span class="token punctuation">{</span>removed<span class="token punctuation">}</span></span><span class="token string"> обработчиков жизненного цикла"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="приоритет">Приоритет</h3>
+<p>Обработчики поддерживают параметр <code>priority</code>, чем больше значение, тем раньше обработчик будет выполнен (аналогично загрузчику модулей):</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span>  <span class="token comment"># Выполняется первым</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">first_handler</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">,</span> priority<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>  <span class="token comment"># Выполняется позже</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">second_handler</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<h3 id="события-с-точечной-структурой">События с точечной структурой</h3>
+<p>При срабатывании конкретного события также срабатывают и его родительские события:</p>
+<ul>
+<li>При срабатывании <code>module.load</code> также срабатывает <code>module</code></li>
+<li>При срабатывании <code>adapter.event.receive</code> также срабатывают <code>adapter.event</code> и <code>adapter</code></li>
+</ul>
+<h3 id="шаблоны-wildcards">Шаблоны (wildcards)</h3>
+<p>Регистрация с помощью <code>*</code> позволяет поймать все события:</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"*"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_anything</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Получено событие: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="направленная-передача-событий-emit-to">Направленная передача событий (emit to=)</h3>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>Эта функция доступна начиная с ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>При указании параметра <code>to</code> в <code>emit()</code> событие будет направлено только обработчикам, зарегистрированным владельцем (владельцем по умолчанию считается модуль, который зарегистрировал обработчик в <code>on_load</code>), остальные модули и обработчики с шаблоном <code>*</code> не будут уведомлены.</p>
+<pre><code class="language-python"><span class="token comment"># Отправка события: событие будет направлено только обработчикам, зарегистрированным в модуле Chat</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"hi"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> to<span class="token operator">=</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Подписка на событие (внутри модуля Chat): обработчики, зарегистрированные в этом модуле, будут получать событие</span>
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_message_received</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>   <span class="token comment"># Родительские события также обрабатываются (фильтруются по владельцу)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_any</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<ul>
+<li>Если у владельца нет зарегистрированных обработчиков → событие <strong>не будет обработано</strong> (можно заранее проверить с помощью <code>has_handlers()</code>)</li>
+<li>При <code>data</code> в виде словаря автоматически добавляется <code>_trace_id</code> (не перезаписывает уже существующее значение)</li>
+<li><code>emit_sync</code> / <code>submit_event</code> также поддерживают параметр <code>to=</code></li>
+<li>Трехуровневая модель взаимодействия между модулями (RPC / направленная / широковещательная) описана в <a href="/docs/ru/advanced/module-communication.html">Взаимодействие между модулями</a></li>
+</ul>
+<h3 id="однократная-регистрация-once">Однократная регистрация (once)</h3>
+<p>Начиная с версии 2.7.0, обработчики, зарегистрированные через <code>lifecycle.once()</code>, автоматически отменяются после первого срабатывания, что подходит для одноразовых обработчиков, таких как "первичная готовность":</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>once</span><span class="token punctuation">(</span><span class="token string">"core.init.complete"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_first_ready</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Первичная готовность, дальнейшие срабатывания не будут происходить"</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>Используется та же семантика приоритета, что и в <code>on()</code> (чем больше значение <code>priority</code>, тем раньше обработчик будет выполнен)</li>
+<li>Автоматическая отмена регистрации, без необходимости ручной отмены через <code>unregister</code></li>
+<li>Поддержка как синхронных, так и асинхронных обработчиков</li>
+</ul>
+<h3 id="проверка-наличия-слушателей-has_handlers">Проверка наличия слушателей (has_handlers)</h3>
+<p>Для ускорения выполнения в критических участках кода можно заранее проверить наличие слушателей с помощью <code>has_handlers()</code>, чтобы избежать ненужного перебора событий и задач:</p>
+<pre><code class="language-python"><span class="token keyword">if</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>has_handlers<span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">,</span> send_ctx<span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>Проверка охватывает <strong>точное имя события</strong>, шаблон <code>*</code> и родительские события</li>
+<li>Возвращает <code>False</code>, если слушателей нет, что позволяет безопасно пропустить <code>emit</code></li>
+</ul>
+<h2 id="обзор-точек-остановки-хука">Обзор точек остановки хука</h2>
+<p>Типичный цикл событий жизненного цикла сообщения от поступления из платформы в фреймворк до завершения обработки:</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant P as Платформа
+    participant A as Адаптер
+    participant F as Ядро фреймворка
+    participant M as Обработчик модуля
+
+    P-&gt;&gt;A: Пришло событие от платформы
+    A-&gt;&gt;F: adapter.event.receive (самый ранний)
+    F-&gt;&gt;F: event.pre_process (перед выполнением обработчика)
+    F-&gt;&gt;M: Доставка в обработчик (команды/сообщения/уведомления и т.д.)
+    M-&gt;&gt;M: command.matched / command.executed
+    M-&gt;&gt;F: event.reply()
+    F-&gt;&gt;F: message.sending (перед отправкой)
+    F-&gt;&gt;A: DSL отправки
+    A-&gt;&gt;P: Отправка на платформу
+    A-&gt;&gt;F: message.sent (отправка завершена)
+    F-&gt;&gt;F: adapter.event.dispatched (доставка завершена)
+</code></pre>
+<p>В фреймворке встроены следующие точки остановки хука, пользователь может слушать любую точку остановки для реализации пользовательской логики через <code>@sdk.lifecycle.on()</code>.</p>
+<h3 id="основная-инициализация">Основная инициализация</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>core.init.start</code></td>
+<td>Начало инициализации SDK</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>core.init.stage</code></td>
+<td>Начало этапа инициализации (выдается в фоне)</td>
+<td><code>{"stage": str}</code>; значения: <code>discovery</code> / <code>adapter_register</code> / <code>adapter_start</code> / <code>module_register</code> / <code>module_init</code> / <code>adapter_start_deferred</code> / <code>router_start</code></td>
+</tr>
+<tr>
+<td><code>core.init.complete</code></td>
+<td>Завершение инициализации SDK</td>
+<td><code>{"duration": float, "success": bool, "stages": {stage: float}, "adapters": {"enabled": [str], "disabled": [str]}, "modules": {"enabled": [str], "disabled": [str]}, "error": str(только при неудаче)}</code></td>
+</tr>
+<tr>
+<td><code>core.uninit.complete</code></td>
+<td>Завершение обратной инициализации SDK</td>
+<td><code>{"duration": float, "success": bool, "adapters_closed": int, "modules_unloaded": int, "module_properties_cleared": int, "module_properties_to_clear": [str], "error": str(только при неудаче)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: отображение прогресса запуска</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"core.init.stage"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">show_stage</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Запуск] Вход в этап: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'stage'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="изменение-конфигурации">Изменение конфигурации</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>config.set</code></td>
+<td>Изменение конфигурационного параметра</td>
+<td><code>{"key": str, "old_value": Any, "new_value": Any}</code></td>
+</tr>
+<tr>
+<td><code>config.updated</code></td>
+<td>Обнаружено изменение всей конфигурации после редактирования config.toml</td>
+<td><code>{"old_config": dict, "new_config": dict, "config_file": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: аудит конфигурации</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"config.set"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">audit_config</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Аудит] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'key'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'old_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'new_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="жизненный-цикл-модуля">Жизненный цикл модуля</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>module.register</code></td>
+<td>Регистрация класса модуля в менеджере</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.load</code></td>
+<td>Завершение загрузки модуля (успешное инстанцирование)</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.init</code></td>
+<td>Завершение инициализации модуля (включая ленивую загрузку)</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.unload</code></td>
+<td>Выгрузка модуля</td>
+<td><code>{"module_name": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>module.reload</code></td>
+<td>Завершение горячей перезагрузки модуля (включая перезагрузку зависимостей)</td>
+<td><code>{"module_name": str, "success": bool, "full": bool}</code>; при полной перезагрузке (<code>reload_all</code>) <code>module_name</code> равно <code>"All"</code>, в payload дополнительно присутствует <code>"results": dict[str, bool]</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="жизненный-цикл-адаптера">Жизненный цикл адаптера</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>adapter.load</code></td>
+<td>Завершение регистрации адаптера</td>
+<td><code>{"platform": str, "success": bool}</code></td>
+</tr>
+<tr>
+<td><code>adapter.start</code></td>
+<td>Запуск адаптера</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.status.change</code></td>
+<td>Изменение состояния адаптера</td>
+<td><code>{"platform": str, "status": str, "retry_count": int, "error": str(только при неудаче)}</code>; возможные значения status: <code>starting</code> / <code>started</code> / <code>start_failed</code> / <code>stopping</code> / <code>stopped</code> / <code>stop_failed</code> / <code>skipped-dependency</code> / <code>disabled</code></td>
+</tr>
+<tr>
+<td><code>adapter.stop</code></td>
+<td>Остановка адаптера</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.stopped</code></td>
+<td>Завершение остановки адаптера</td>
+<td><code>{"platforms": [str]}</code></td>
+</tr>
+<tr>
+<td><code>adapter.bot.online</code></td>
+<td>Онлайн бота</td>
+<td><code>{"platform": str, "bot_id": str, "info": dict, "status": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.bot.offline</code></td>
+<td>Оффлайн бота</td>
+<td><code>{"platform": str, "bot_id": str, "status": str}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="прием-и-обработка-событий">Прием и обработка событий</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>adapter.event.receive</code></td>
+<td>Получено событие от внешней платформы (самый ранний)</td>
+<td><code>{"platform": str, "event_type": str, "raw_event_type": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.event.blocked</code></td>
+<td>Промежуточное ПО отклонило событие (возвращает <code>False</code>, событие отбрасывается и не попадает в обработчики)</td>
+<td><code>{"middleware": str, "platform": str, "event_type": str, "detail_type": str, "event": dict, "_trace_id": str}</code></td>
+</tr>
+<tr>
+<td><code>adapter.event.dispatched</code></td>
+<td>Завершена доставка события</td>
+<td><code>{"platform": str, "event_type": str, "raw_event_type": str, "onebot_handlers_count": int}</code></td>
+</tr>
+<tr>
+<td><code>event.pre_process</code></td>
+<td>Начало выполнения обработчика события</td>
+<td><code>{"event_type": str, "platform": str, "detail_type": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: статистика событий</strong></p>
+<pre><code class="language-python">event_counter <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">count_events</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    platform <span class="token operator">=</span> data<span class="token punctuation">[</span><span class="token string">"platform"</span><span class="token punctuation">]</span>
+    event_counter<span class="token punctuation">[</span>platform<span class="token punctuation">]</span> <span class="token operator">=</span> event_counter<span class="token punctuation">.</span>get<span class="token punctuation">(</span>platform<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.dispatched"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_unhandled</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> data<span class="token punctuation">[</span><span class="token string">"onebot_handlers_count"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Необработано] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'event_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="отправка-сообщения">Отправка сообщения</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>message.sending</code></td>
+<td>Сообщение готовится к отправке</td>
+<td><code>{"platform": str, "method": str, "detail_type": str, "target_id": str, "bot_id": str}</code></td>
+</tr>
+<tr>
+<td><code>message.sent</code></td>
+<td>Сообщение успешно отправлено</td>
+<td><code>{"platform": str, "method": str, "detail_type": str, "target_id": str, "bot_id": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: аудит отправки сообщений</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message.sending"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_sending</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Отправка] -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'detail_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'target_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> через </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="командная-система">Командная система</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>command.matched</code></td>
+<td>Команда соответствует шаблону и готова к выполнению</td>
+<td><code>{"command": str, "args": list[str], "platform": str, "user_id": str}</code></td>
+</tr>
+<tr>
+<td><code>command.executed</code></td>
+<td>Команда успешно выполнена</td>
+<td><code>{"command": str, "args": list[str], "platform": str, "user_id": str, "success": bool, "error": str(только при неудаче)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: статистика команд</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"command.matched"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">count_commands</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Команда] /</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'command'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> от </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'user_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">@</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="http-маршрутизация">HTTP-маршрутизация</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server.request</code></td>
+<td>Получен HTTP-запрос</td>
+<td><code>{"method": str, "path": str, "client_ip": str}</code></td>
+</tr>
+<tr>
+<td><code>server.response</code></td>
+<td>Отправлен HTTP-ответ</td>
+<td><code>{"method": str, "path": str, "status_code": int, "client_ip": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: логирование HTTP-запросов</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.response"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">log_http</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[HTTP] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'status_code'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="websocket">WebSocket</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server.start</code></td>
+<td>Запуск сервера маршрутизации</td>
+<td><code>{"base_url": str, "host": str, "port": int, "success": bool, "error": str(только при неудаче)}</code></td>
+</tr>
+<tr>
+<td><code>server.stop</code></td>
+<td>Остановка сервера маршрутизации</td>
+<td><code>{}</code></td>
+</tr>
+<tr>
+<td><code>server.websocket.connect</code></td>
+<td>Установлено WebSocket-соединение</td>
+<td><code>{"path": str, "module_name": str, "client_ip": str}</code></td>
+</tr>
+<tr>
+<td><code>server.websocket.disconnect</code></td>
+<td>WebSocket-соединение разорвано</td>
+<td><code>{"path": str, "module_name": str, "reason": str, "error": str(только при аномалии)}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: мониторинг WebSocket-соединений</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.websocket.connect"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_ws_connect</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[WS] Подключение: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> от </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'client_ip'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.websocket.disconnect"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">on_ws_disconnect</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[WS] Отключение: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> (</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'reason'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">)"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="состояние-подключения-к-хранилищу">Состояние подключения к хранилищу</h3>
+<p>Создание, сбой и восстановление пула подключений к хранилищу (все события отправляются в фоне, не блокируют операции с хранилищем):</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>storage.ready</code></td>
+<td>Пул подключений к хранилищу готов (первое успешное создание пула в каждом цикле событий)</td>
+<td><code>{"backend": str}</code></td>
+</tr>
+<tr>
+<td><code>storage.unreachable</code></td>
+<td>Повторные попытки подключения исчерпаны, вступает период охлаждения (в течение которого операции быстро завершаются с ошибкой)</td>
+<td><code>{"backend": str, "error": str, "cooldown": float}</code></td>
+</tr>
+<tr>
+<td><code>storage.recovered</code></td>
+<td>Охлаждение закончено, повторное подключение успешно, хранилище снова доступно</td>
+<td><code>{"backend": str}</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Пример: предупреждение о сбое хранилища</strong></p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"storage.unreachable"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">alert_storage_down</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Предупреждение] Хранилище </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'backend'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> недоступно: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'error'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">, автоматическое повторное подключение через </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'cooldown'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> секунд"</span></span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"storage.recovered"</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">notify_storage_back</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[Восстановление] Хранилище </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'backend'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> снова доступно"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="http-клиент">HTTP-клиент</h3>
+<p>События запросов и подключений клиента <code>sdk.client</code> (все события отправляются в фоне):</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>client.request.success</code></td>
+<td>HTTP-запрос успешно выполнен</td>
+<td><code>{"method": str, "url": str, "status": int, "elapsed": float}</code></td>
+</tr>
+<tr>
+<td><code>client.request.failed</code></td>
+<td>HTTP-запрос не выполнен после исчерпания попыток повтора</td>
+<td><code>{"method": str, "url": str, "error": str, "attempts": int, "elapsed": float}</code></td>
+</tr>
+<tr>
+<td><code>client.ws.connect</code></td>
+<td>Установлено WebSocket-соединение</td>
+<td><code>{"url": str}</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="международная-локализация">Международная локализация</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Имя хука</th>
+<th>Точка остановки</th>
+<th>Данные</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>i18n.language.changed</code></td>
+<td>Смена языка фреймворка (<code>i18n.set_language</code>)</td>
+<td><code>{"language": str, "previous": str}</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="стандартное-определение-событий">Стандартное определение событий</h2>
+<pre><code class="language-python">STANDARD_EVENTS <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token string">"core"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"init.start"</span><span class="token punctuation">,</span> <span class="token string">"init.stage"</span><span class="token punctuation">,</span> <span class="token string">"init.complete"</span><span class="token punctuation">,</span> <span class="token string">"uninit.complete"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"module"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"load"</span><span class="token punctuation">,</span> <span class="token string">"init"</span><span class="token punctuation">,</span> <span class="token string">"unload"</span><span class="token punctuation">,</span> <span class="token string">"register"</span><span class="token punctuation">,</span> <span class="token string">"reload"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"adapter"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"load"</span><span class="token punctuation">,</span> <span class="token string">"start"</span><span class="token punctuation">,</span> <span class="token string">"status.change"</span><span class="token punctuation">,</span> <span class="token string">"stop"</span><span class="token punctuation">,</span> <span class="token string">"stopped"</span><span class="token punctuation">,</span>
+        <span class="token string">"event.receive"</span><span class="token punctuation">,</span> <span class="token string">"event.dispatched"</span><span class="token punctuation">,</span>
+        <span class="token string">"bot.online"</span><span class="token punctuation">,</span> <span class="token string">"bot.offline"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"server"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>
+        <span class="token string">"start"</span><span class="token punctuation">,</span> <span class="token string">"stop"</span><span class="token punctuation">,</span>
+        <span class="token string">"request"</span><span class="token punctuation">,</span> <span class="token string">"response"</span><span class="token punctuation">,</span>
+        <span class="token string">"websocket.connect"</span><span class="token punctuation">,</span> <span class="token string">"websocket.disconnect"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"event"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"pre_process"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"sending"</span><span class="token punctuation">,</span> <span class="token string">"sent"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"command"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"matched"</span><span class="token punctuation">,</span> <span class="token string">"executed"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"config"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"set"</span><span class="token punctuation">,</span> <span class="token string">"updated"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"storage"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"ready"</span><span class="token punctuation">,</span> <span class="token string">"unreachable"</span><span class="token punctuation">,</span> <span class="token string">"recovered"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"client"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"request.success"</span><span class="token punctuation">,</span> <span class="token string">"request.failed"</span><span class="token punctuation">,</span> <span class="token string">"ws.connect"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"language.changed"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="полная-справочная-документация-api">Полная справочная документация API</h2>
+<h3 id="регистрация-и-отмена">Регистрация и отмена</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@lifecycle.on(event, *, priority=0)</code></td>
+<td>Регистрация обработчика декоратором</td>
+</tr>
+<tr>
+<td><code>lifecycle.register(event, handler, *, priority=0)</code></td>
+<td>Программная регистрация</td>
+</tr>
+<tr>
+<td><code>lifecycle.unregister(event, handler=None)</code></td>
+<td>Отмена регистрации (если handler=None, отменяются все обработчики события)</td>
+</tr>
+</tbody></table></div>
+<h3 id="триггеризация">Триггеризация</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>await lifecycle.emit(event, data=None, *, to=None)</code></td>
+<td>Асинхронный триггер, обработчики выполняются <strong>параллельно</strong> (не блокируют друг друга, возвращается, когда все завершены), возвращаемые значения по приоритету перезаписывают data; при <code>to</code> триггер направлен на владельца</td>
+</tr>
+<tr>
+<td><code>lifecycle.fire(event, data=None, *, to=None)</code></td>
+<td><strong>Фоновый триггер (бросить в корзину)</strong>: обработчики выполняются в фоновых задачах, не ждут, без возвращаемого значения; при отсутствии слушателей — нулевые затраты. Подходит для частых горячих путей и чисто наблюдательных событий; для последовательных триггеров (например, <code>config.set</code>) используйте <code>emit</code></td>
+</tr>
+<tr>
+<td><code>lifecycle.emit_sync(event, data=None, *, to=None)</code></td>
+<td>Синхронный триггер, асинхронные обработчики запускаются через create_task</td>
+</tr>
+<tr>
+<td><code>await lifecycle.submit_event(event_type, *, source, msg, data, to=None, background=False)</code></td>
+<td>Совместимость со старыми версиями, автоматически формирует стандартный формат события; при <code>background=True</code> используется фоновый триггер <code>fire</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="утилиты">Утилиты</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lifecycle.start_timer(timer_id)</code></td>
+<td>Начать отсчёт времени</td>
+</tr>
+<tr>
+<td><code>lifecycle.get_duration(timer_id)</code></td>
+<td>Получить прошедшее время (в секундах)</td>
+</tr>
+<tr>
+<td><code>lifecycle.stop_timer(timer_id)</code></td>
+<td>Остановить отсчёт и вернуть прошедшее время</td>
+</tr>
+<tr>
+<td><code>lifecycle.list_hooks()</code></td>
+<td>Вывести все зарегистрированные хуки и количество обработчиков</td>
+</tr>
+<tr>
+<td><code>lifecycle.clear()</code></td>
+<td>Очистить все обработчики и таймеры</td>
+</tr>
+</tbody></table></div>
+<h2 id="пример-использования-в-модуле">Пример использования в модуле</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
+
+<span class="token keyword">class</span> <span class="token class-name">Main</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># Простая статистика сообщений</span>
+        self<span class="token punctuation">.</span>msg_count <span class="token operator">=</span> <span class="token number">0</span>
+        
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.receive"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">count</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">if</span> data<span class="token punctuation">[</span><span class="token string">"event_type"</span><span class="token punctuation">]</span> <span class="token operator">==</span> <span class="token string">"message"</span><span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>msg_count <span class="token operator">+=</span> <span class="token number">1</span>
+        
+        <span class="token comment"># Мониторинг всех команд</span>
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"command.matched"</span><span class="token punctuation">)</span>
+        <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">log_cmd</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Команда выполнена: /</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'command'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> от </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'user_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        
+        <span class="token comment"># Аудит изменений конфигурации</span>
+        <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"config.set"</span><span class="token punctuation">)</span>
+        <span class="token keyword">def</span> <span class="token function">audit</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Изменение конфигурации: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'key'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> = </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'new_value'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="принадлежность-фоновых-задач-и-автоматическая-отмена">Принадлежность фоновых задач и автоматическая отмена</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>Эта функция доступна начиная с ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>Фоновые задачи, созданные модулем, если не отменены в <code>on_unload</code>, будут удерживать ссылку на <code>self</code>, что приведёт к невозможности сборки мусора модуля (остатки после горячей перезагрузки). Фреймворк предоставляет следующие механизмы:</p>
+<ul>
+<li><strong><code>self.spawn(coro)</code></strong> (рекомендуется в модуле): задача автоматически привязывается к имени модуля, при выгрузке модуля фреймворк <strong>автоматически отменяет</strong> незавершённые задачи и записывает предупреждение после <code>on_unload</code></li>
+<li><strong><code>spawn_background(coro)</code></strong> (в <code>ErisPulse.runtime</code>): автоматически захватывает контекст <code>owner_scope</code>; <code>cancel_owner_tasks(owner)</code> отменяет задачи по принадлежности, <code>cancel_all_background_tasks()</code> используется для отмены всех фоновых задач в <code>sdk.uninit()</code></li>
+<li><strong>Адаптеры</strong>: при остановке отменяются фоновые задачи по платформе</li>
+</ul>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># Рекомендуется: фоновые задачи использовать self.spawn(), фреймворк автоматически отменяет их при выгрузке</span>
+    self<span class="token punctuation">.</span>spawn<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_poll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># В сценариях с точным контролем всё ещё рекомендуется отменять и ждать завершения</span>
+    <span class="token keyword">if</span> self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">.</span>cancel<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>gather<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_poll_task<span class="token punctuation">,</span> return_exceptions<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_poll</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">60</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-important"><p class="markdown-alert-title"><i class="fas fa-comment-dots" aria-hidden="true"></i>Important</p>
+<p>Фреймворк принудительно отменяет задачи (<code>cancel_owner_tasks</code>), это происходит после возврата из <code>on_unload</code>. Поэтому задачи, требующие корректного завершения (flush буферов, сохранение состояния, закрытие соединений), <strong>обязательно</strong> должны быть отменены и завершены в <code>on_unload</code> — не полагайтесь на отмену фреймворком. Фреймворк гарантирует только отсутствие задач, удерживающих <code>self</code>, но не гарантирует корректное завершение. Задачи, требующие ожидания результата, следует вызывать напрямую, а не передавать в фоновую задачу.</p>
+</div>
+<h2 id="примечания">Примечания</h2>
+<ol>
+<li><strong>Обработчики могут быть синхронными или асинхронными</strong>: система автоматически определяет и правильно вызывает</li>
+<li><strong>Передача данных</strong>: в режиме <code>emit()</code> возвращаемое обработчиком значение отличное от <code>None</code> изменяет данные, передаваемые последующим обработчикам</li>
+<li><strong>Назначение имен событий</strong>: рекомендуется использовать точечную структуру для удобства использования родительских слушателей</li>
+<li><strong>Изоляция ошибок</strong>: ошибка в одном обработчике не влияет на выполнение других обработчиков</li>
+<li><strong>Ограничения синхронного триггера</strong>: в <code>emit_sync()</code> асинхронные обработчики запускаются в фоне, возвращаемые значения не передаются</li>
+<li><strong>Очистка жизненного цикла</strong>: при вызове <code>sdk.uninit()</code> все зарегистрированные обработчики и таймеры будут очищены</li>
+<li><strong>Приоритет загрузки</strong>: если необходимо прослушивать события на раннем этапе инициализации, рекомендуется установить высокий приоритет и отключить ленивую загрузку</li>
+</ol>
+<h2 id="связанная-документация">Связанная документация</h2>
+<ul>
+<li><a href="/docs/ru/developer-guide/modules/getting-started.html">Руководство по разработке модулей</a> — подробности о методах жизненного цикла модуля</li>
+<li><a href="/docs/ru/developer-guide/modules/best-practices.html">Лучшие практики</a> — рекомендации по использованию событий жизненного цикла</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ru/advanced/README.html"><small>Previous</small><br>Расширенные темы</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/lazy-loading.html"><small>Next</small><br>Система ленивой загрузки модулей</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

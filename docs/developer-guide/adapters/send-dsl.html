@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SendDSL 详解 - ErisPulse 文档中心</title>
+    <meta name="description" content="SendDSL 是 ErisPulse 适配器提供的链式调用风格的消息发送接口。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/developer-guide/adapters/send-dsl.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/send-dsl.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/send-dsl.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/send-dsl.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/send-dsl.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/send-dsl.html" />
+    <meta property="og:title" content="SendDSL 详解 - ErisPulse 文档中心" />
+    <meta property="og:description" content="SendDSL 是 ErisPulse 适配器提供的链式调用风格的消息发送接口。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/developer-guide/adapters/send-dsl.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"SendDSL 详解","description":"SendDSL 是 ErisPulse 适配器提供的链式调用风格的消息发送接口。","url":"https://www.erisdev.com/docs/developer-guide/adapters/send-dsl.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> 开发者指南 <span class="doc-crumb-sep">/</span> 适配器开发
+        <span class="doc-crumb-sep">/</span> <span>SendDSL 详解</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/developer-guide/adapters/send-dsl.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/developer-guide/adapters/send-dsl.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/send-dsl.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/send-dsl.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/send-dsl.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/developer-guide/adapters/send-dsl.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="senddsl-详解">SendDSL 详解</h1>
+<p>SendDSL 是 ErisPulse 适配器提供的链式调用风格的消息发送接口。</p>
+<h2 id="基本调用方式">基本调用方式</h2>
+<h3 id="1-指定类型和id">1. 指定类型和ID</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="2-仅指定id">2. 仅指定ID</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="3-指定发送账号">3. 指定发送账号</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="4-组合使用">4. 组合使用</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="方法链">方法链</h2>
+<pre><code class="language-mermaid">flowchart LR
+    A["Using / Account&lt;br/&gt;（选发送账号，可选）"] --&gt; B["To&lt;br/&gt;（选目标类型与 ID）"]
+    B --&gt; C["修饰方法&lt;br/&gt;At / Reply / Expire / ForMember 等"]
+    C --&gt; D["发送方法&lt;br/&gt;Text / Image / Voice / Raw_ob12"]
+    D --&gt; E["返回 asyncio.Task"]
+</code></pre>
+<h2 id="发送方法">发送方法</h2>
+<p>所有发送方法返回 <code>asyncio.Task</code> 对象。</p>
+<h3 id="基本方法基类内置">基本方法（基类内置）</h3>
+<p>以下标准方法已由 <code>SendDSL</code> 基类内置实现，**默认委托给 <code>Raw_ob12</code>**，适配器子类无需重复实现即可直接使用，且 IDE 能补全：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>说明</th>
+<th>返回值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Text(text: str)</code></td>
+<td>发送文本消息</td>
+<td><code>asyncio.Task</code></td>
+</tr>
+<tr>
+<td><code>Image(file: bytes | str)</code></td>
+<td>发送图片</td>
+<td><code>asyncio.Task</code></td>
+</tr>
+<tr>
+<td><code>Voice(file: bytes | str)</code></td>
+<td>发送语音（OneBot12 <code>audio</code> 段）</td>
+<td><code>asyncio.Task</code></td>
+</tr>
+<tr>
+<td><code>Video(file: bytes | str)</code></td>
+<td>发送视频</td>
+<td><code>asyncio.Task</code></td>
+</tr>
+<tr>
+<td><code>File(file: bytes | str, filename: str = None)</code></td>
+<td>发送文件</td>
+<td><code>asyncio.Task</code></td>
+</tr>
+</tbody></table></div>
+<p>适配器可覆盖单个标准方法以提供平台特定逻辑：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>SendDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 必须实现</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token comment"># 可选：覆盖 Text 以提供平台特定逻辑</span>
+    <span class="token comment"># def Text(self, text: str):</span>
+    <span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
+</code></pre>
+<h3 id="协议方法">协议方法</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>说明</th>
+<th>返回值</th>
+<th>是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Raw_ob12(message)</code></td>
+<td>发送 OneBot12 格式消息</td>
+<td><code>asyncio.Task</code></td>
+<td><strong>必须实现</strong></td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>重要</strong>：<code>Raw_ob12</code> 是适配器的核心方法，<strong>必须实现</strong>。它是反向转换（OneBot12 → 平台）的统一入口。未实现时基类会记录 error 日志并返回标准错误响应（<code>status: "failed"</code>, <code>retcode: 10002</code>）。标准方法（<code>Text</code>、<code>Image</code> 等）默认委托给 <code>Raw_ob12</code>。</p>
+</blockquote>
+<h3 id="平台特有方法">平台特有方法</h3>
+<p>适配器可在 <code>Send</code> 子类中添加平台特有的发送方法（会被 <code>event.supports()</code> / <code>event.available_methods()</code> 识别）：</p>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>SendDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token comment"># 平台特有方法</span>
+    <span class="token keyword">def</span> <span class="token function">Sticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"sticker"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"id"</span><span class="token punctuation">:</span> sticker_id<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="修饰方法">修饰方法</h2>
+<p>修饰方法返回 <code>self</code> 以支持链式调用。</p>
+<h3 id="at-方法">At 方法</h3>
+<pre><code class="language-python"><span class="token comment"># @单个用户</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># @多个用户</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"你们好"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="atall-方法">AtAll 方法</h3>
+<pre><code class="language-python"><span class="token comment"># @全体成员</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AtAll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"大家好"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="reply-方法">Reply 方法</h3>
+<pre><code class="language-python"><span class="token comment"># 回复消息</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"回复内容"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="组合修饰">组合修饰</h3>
+<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"回复@的消息"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="平台专有修饰方法">平台专有修饰方法</h3>
+<p>除了内置的 <code>At</code>/<code>AtAll</code>/<code>Reply</code>，适配器可以定义<strong>平台专有的修饰方法</strong>。这类方法**只需返回 <code>self</code>**，无需任何装饰器——框架会自动识别：</p>
+<ul>
+<li>返回 <code>self</code>（SendDSL 实例）→ 修饰方法，不触发发送包装/生命周期事件，链式继续</li>
+<li>返回 <code>Task</code>/<code>Awaitable</code> → 发送方法</li>
+</ul>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>SendDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+    <span class="token comment"># 修饰方法：返回 self，不发送</span>
+    <span class="token keyword">def</span> <span class="token function">Expire</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> seconds<span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>_expire <span class="token operator">=</span> seconds
+        <span class="token keyword">return</span> self
+
+    <span class="token keyword">def</span> <span class="token function">ForMember</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> user_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>_member <span class="token operator">=</span> user_id
+        <span class="token keyword">return</span> self
+
+    <span class="token comment"># 发送方法：返回 Task，依赖修饰方法设置的状态</span>
+    <span class="token keyword">def</span> <span class="token function">Board</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> content<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"board"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> content<span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p>使用：</p>
+<pre><code class="language-python"><span class="token comment"># 修饰方法可连续链式叠加</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"big"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Expire<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ForMember<span class="token punctuation">(</span><span class="token string">"114"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Board<span class="token punctuation">(</span><span class="token string">"看板内容"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="在-event-包装类中使用修饰方法">在 Event 包装类中使用修饰方法</h2>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p><code>reply(via=)</code> 与 <code>event.send_chain()</code> 本特性需要 ErisPulse **2.7.0+**。</p>
+</div>
+<p><code>event.reply()</code> 默认只暴露 <code>at_sender</code>/<code>at_users</code>/<code>at_all</code>/<code>quote</code> 等内置修饰参数。要使用平台专有修饰方法，有两种方式：</p>
+<h3 id="方式一reply-的-via-参数">方式一：reply() 的 via 参数</h3>
+<p>适合少量、已知的修饰方法：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"看板内容"</span><span class="token punctuation">,</span> method<span class="token operator">=</span><span class="token string">"Board"</span><span class="token punctuation">,</span>
+                  via<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">"Expire"</span><span class="token punctuation">,</span> <span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">"ForMember"</span><span class="token punctuation">,</span> <span class="token string">"114514"</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>via</code> 是一个列表，每个元素可为：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>形式</th>
+<th>等价链式调用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>"Name"</code></td>
+<td><code>.Name()</code></td>
+</tr>
+<tr>
+<td><code>("Name", arg1, arg2)</code></td>
+<td><code>.Name(arg1, arg2)</code></td>
+</tr>
+<tr>
+<td><code>("Name", (arg1,), {kw: val})</code></td>
+<td><code>.Name(arg1, kw=val)</code></td>
+</tr>
+</tbody></table></div>
+<h3 id="方式二eventsend_chain">方式二：event.send_chain()</h3>
+<p>适合<strong>连续多个修饰方法</strong>或<strong>无内容参数的动作型方法</strong>（如撤回、删除）。<code>send_chain()</code> 返回已配置好 <code>To</code>/<code>Using</code> 的发送链，可自由追加任意修饰方法和发送方法：</p>
+<pre><code class="language-python"><span class="token comment"># 平台专有修饰方法 + 看板发送</span>
+<span class="token keyword">await</span> event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Expire<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Board<span class="token punctuation">(</span><span class="token string">"一小时后过期"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 连续多个修饰方法</span>
+<span class="token keyword">await</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Expire<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>ForMember<span class="token punctuation">(</span><span class="token string">"114514"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Board<span class="token punctuation">(</span><span class="token string">"看板内容"</span><span class="token punctuation">,</span> content_type<span class="token operator">=</span><span class="token string">"markdown"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 内置修饰方法同样可用</span>
+<span class="token keyword">await</span> event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"hi"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 无内容参数的动作型方法</span>
+<span class="token keyword">await</span> event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>DismissBoard<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p><code>send_chain()</code> 返回的是完整的 SendDSL 实例，因此<strong>所有链式特性都可用</strong>——不仅是修饰方法，还包括发送规则和批量构建：</p>
+</blockquote>
+<pre><code class="language-python"><span class="token comment"># 发送规则：重试 + 超时 + 成功回调</span>
+<span class="token keyword">await</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Hook<span class="token punctuation">(</span><span class="token keyword">lambda</span> r<span class="token punctuation">:</span> <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"发送成功"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"可靠发送"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 延迟发送 + 平台修饰 + 看板</span>
+<span class="token keyword">await</span> event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Defer<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Expire<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Board<span class="token punctuation">(</span><span class="token string">"延迟看板"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 批量构建模式</span>
+results <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">(</span>event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"第一句"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"pic.jpg"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"第二句"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="账户管理">账户管理</h2>
+<h3 id="using-方法">Using 方法</h3>
+<p><code>Using()</code> 用于指定发送消息的账户。传入的标识符会通过 <code>_resolve_account()</code> 按以下优先级匹配：</p>
+<ol>
+<li><strong>账户名</strong> — 配置中的键名（如 <code>"default"</code>、<code>"bot1"</code>）</li>
+<li><strong>运行时注入的 bot_id</strong> — 从事件转换时自动注入的标识符</li>
+<li><strong>任意 str 字段</strong> — 配置中其他字符串字段</li>
+<li><strong>兜底</strong> — 第一个启用的账户</li>
+</ol>
+<pre><code class="language-python"><span class="token comment"># 使用账户名</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"account1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 使用 bot_id（即事件中的 self.user_id）</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot_123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="account-方法">Account 方法</h3>
+<p><code>Account</code> 方法与 <code>Using</code> 等价：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Account<span class="token punctuation">(</span><span class="token string">"account1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="异步处理">异步处理</h2>
+<h3 id="不等待结果">不等待结果</h3>
+<pre><code class="language-python"><span class="token comment"># 消息在后台发送</span>
+task <span class="token operator">=</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 继续执行其他操作</span>
+<span class="token comment"># ...</span>
+</code></pre>
+<h3 id="等待结果">等待结果</h3>
+<pre><code class="language-python"><span class="token comment"># 直接 await 获取结果</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"发送结果: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token comment"># 先保存 Task，稍后等待</span>
+task <span class="token operator">=</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
+<span class="token comment"># ... 其他操作 ...</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> task
+</code></pre>
+<h2 id="发送规则系统">发送规则系统</h2>
+<p>SendDSL 内置了一套发送规则装饰器，通过链式方法附加规则，在最终发送时统一应用。规则覆盖常见的生产场景：超时控制、失败重试、成功回调、延迟发送、优先级丢弃、进度监控。</p>
+<p>规则方法<strong>返回 self</strong>（与 At/AtAll/Reply 一样），必须放在发送方法（Text/Image 等）之前调用。规则会随 <code>To</code>/<code>Using</code>/<code>Account</code> 创建的新实例传播。</p>
+<h3 id="规则方法一览">规则方法一览</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.Hook(callback)</code></td>
+<td>发送成功后执行的回调（可多次调用，按顺序执行）</td>
+</tr>
+<tr>
+<td><code>.Retry(times=1)</code></td>
+<td>失败自动重试 N 次（含首次共 N+1 次）</td>
+</tr>
+<tr>
+<td><code>.Timeout(seconds)</code></td>
+<td>单次发送超时，超时取消当前尝试（可与 Retry 叠加）</td>
+</tr>
+<tr>
+<td><code>.Defer(seconds=1.0)</code></td>
+<td>延迟发送（进程内定时，不持久化）</td>
+</tr>
+<tr>
+<td><code>.Priority(level, drop_if_busy=False)</code></td>
+<td>设置优先级；积压时可丢弃</td>
+</tr>
+<tr>
+<td><code>.OnProgress(callback)</code></td>
+<td>各阶段进度回调（传入 <code>SendContext</code>）</td>
+</tr>
+<tr>
+<td><code>.OnError(callback)</code></td>
+<td>最终失败时的错误回调（仅触发一次）</td>
+</tr>
+</tbody></table></div>
+<h3 id="发送成功后执行逻辑hook">发送成功后执行逻辑（Hook）</h3>
+<pre><code class="language-python"><span class="token comment"># 同步回调</span>
+<span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Hook<span class="token punctuation">(</span><span class="token keyword">lambda</span> r<span class="token punctuation">:</span> <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"发送成功，消息ID: </span><span class="token interpolation"><span class="token punctuation">{</span>r<span class="token punctuation">[</span><span class="token string">'message_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 异步回调</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">deduct_points</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> db<span class="token punctuation">.</span>update<span class="token punctuation">(</span>user_id<span class="token operator">=</span><span class="token string">"123"</span><span class="token punctuation">,</span> points<span class="token operator">=</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Hook<span class="token punctuation">(</span>deduct_points<span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"扣积分"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Hook 仅在发送最终成功（含重试成功）时执行；失败、超时、取消不触发。</p>
+<h3 id="失败自动重试retry">失败自动重试（Retry）</h3>
+<pre><code class="language-python"><span class="token comment"># 首次失败后重试 2 次，共 3 次尝试</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"带重试"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>重试触发条件：发送抛出异常、发送超时、发送返回 <code>status == "failed"</code> 的响应。</p>
+<h3 id="超时自动取消timeout">超时自动取消（Timeout）</h3>
+<pre><code class="language-python"><span class="token comment"># 单次发送超过 10 秒则取消</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"带超时"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 超时 + 重试：每次尝试 10 秒，最多 3 次</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"超时重试"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="进度监控onprogress-onerror">进度监控（OnProgress / OnError）</h3>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">on_progress</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"阶段: </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>stage<span class="token punctuation">}</span></span><span class="token string">, 尝试: </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>attempt <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>max_attempts<span class="token punctuation">}</span></span><span class="token string">, 耗时: </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>elapsed<span class="token punctuation">:</span><span class="token format-spec">.2f</span><span class="token punctuation">}</span></span><span class="token string">s"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> ctx<span class="token punctuation">.</span>stage <span class="token operator">==</span> <span class="token string">"failed"</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"  错误: </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>error<span class="token conversion-option punctuation">!r</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_error</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> notify_admin<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"发送给 </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>target_id<span class="token punctuation">}</span></span><span class="token string"> 失败: </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>error<span class="token conversion-option punctuation">!r</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>OnProgress<span class="token punctuation">(</span>on_progress<span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>OnError<span class="token punctuation">(</span>on_error<span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"监控"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>SendContext</code> 包含的字段：<code>task_id</code>、<code>platform</code>、<code>method</code>、<code>target_type</code>、<code>target_id</code>、<code>bot_id</code>、<code>stage</code>、<code>attempt</code>、<code>max_attempts</code>、<code>started_at</code>、<code>finished_at</code>、<code>elapsed</code>、<code>error</code>、<code>result</code>、<code>extra</code>。</p>
+<p><code>stage</code> 可能的值：<code>pending</code>、<code>sending</code>、<code>retrying</code>、<code>success</code>、<code>failed</code>、<code>timeout</code>、<code>cancelled</code>、<code>dropped</code>。</p>
+<h3 id="延迟发送defer">延迟发送（Defer）</h3>
+<pre><code class="language-python"><span class="token comment"># 5 秒后发送</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Defer<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"迟到消息"</span><span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>注意：延迟为进程内定时，进程重启会丢失，不提供持久化。</p>
+</blockquote>
+<h3 id="优先级与积压丢弃priority">优先级与积压丢弃（Priority）</h3>
+<pre><code class="language-python"><span class="token comment"># 低优先级消息，队列积压时自动丢弃</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>Priority<span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> drop_if_busy<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"可放弃的通知"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># 若被丢弃，result["status"] == "failed"</span>
+</code></pre>
+<p><code>drop_if_busy</code> 启用后，当在途发送任务数超过阈值（默认 64）时直接放弃本次发送。可通过 <code>.PriorityThreshold(n)</code> 调整全局阈值。</p>
+<h3 id="规则组合与后台执行">规则组合与后台执行</h3>
+<pre><code class="language-python"><span class="token comment"># 不阻塞主流程，规则照样生效</span>
+task <span class="token operator">=</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>Hook<span class="token punctuation">(</span><span class="token keyword">lambda</span> r<span class="token punctuation">:</span> <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"发送成功！"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>OnProgress<span class="token punctuation">(</span>on_progress<span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 继续执行其他操作</span>
+<span class="token keyword">await</span> handle_next_action<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="规则传播">规则传播</h3>
+<p>规则随 <code>To</code>/<code>Using</code>/<code>Account</code> 创建的新实例传播，避免链式调用中规则丢失：</p>
+<pre><code class="language-python"><span class="token comment"># 规则在 To 之前设置，也会传播到 To 创建的实例</span>
+builder <span class="token operator">=</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+send <span class="token operator">=</span> builder<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>  <span class="token comment"># send 仍携带 Retry(3) 和 Timeout(10)</span>
+<span class="token keyword">await</span> send<span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"hi"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>多个实例的规则相互独立（hooks 列表深拷贝）。</p>
+<h2 id="批量构建模式build">批量构建模式（Build）</h2>
+<p>除单发模式外，SendDSL 还支持批量构建模式：一条链路中写多个发送方法，最后统一执行。适用于“一口气发多条消息”的场景。</p>
+<h3 id="进入构建模式">进入构建模式</h3>
+<p>在发送方法之前调用 <code>.Build()</code>，返回 <code>SendBuilder</code>。此后发送方法（Text/Image 等）不再立即执行，而是累积为发送意图：</p>
+<pre><code class="language-python">results <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>                    <span class="token comment"># 进入构建模式</span>
+                 <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"第一句"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"pic.jpg"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"第二句"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>                 <span class="token comment"># 统一执行</span>
+<span class="token comment"># results = [Text结果, Image结果, Text结果]</span>
+</code></pre>
+<p><code>.send_all()</code> 返回 <code>asyncio.Task</code>，await 后得到结果列表（按意图顺序）。</p>
+<h3 id="并行与串行">并行与串行</h3>
+<p>默认<strong>并行</strong>执行（并发发送，总耗时约等于最慢的一条）。需要保证消息到达顺序时调用 <code>.Sequential()</code>：</p>
+<pre><code class="language-python"><span class="token comment"># 串行：按顺序依次发送</span>
+<span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Sequential<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"先发这个"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"再发这个"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 并行（默认，可显式调用）</span>
+<span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Parallel<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"并发1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"并发2"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="失败继续与重试">失败继续与重试</h3>
+<p>批量执行采用<strong>失败继续</strong>策略：某条失败不会中断其他条的发送。配合 <code>.Retry()</code> 时，失败的条目会自动重试（重试作用于单条，不是重试整批）：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>                       <span class="token comment"># 每条各自重试 2 次</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"可能失败的"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"也可能失败的"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="整批规则与回调">整批规则与回调</h3>
+<p>规则统一作用于整批：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.Timeout(seconds)</code></td>
+<td>每条发送的单次超时</td>
+</tr>
+<tr>
+<td><code>.Retry(times)</code></td>
+<td>每条发送各自重试（失败继续）</td>
+</tr>
+<tr>
+<td><code>.Defer(seconds)</code></td>
+<td>延迟整批发送</td>
+</tr>
+<tr>
+<td><code>.Hook(callback)</code></td>
+<td>整批全部成功后触发，接收 <code>results</code> 列表</td>
+</tr>
+<tr>
+<td><code>.OnError(callback)</code></td>
+<td>批次存在失败时触发，接收 <code>BatchContext</code></td>
+</tr>
+<tr>
+<td><code>.OnProgress(callback)</code></td>
+<td>每条完成时触发，接收 <code>BatchContext</code></td>
+</tr>
+</tbody></table></div>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">on_progress</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"进度: </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>completed<span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>total<span class="token punctuation">}</span></span><span class="token string">, 成功 </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>succeeded<span class="token punctuation">}</span></span><span class="token string">, 失败 </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>failed<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_error</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"批次有 </span><span class="token interpolation"><span class="token punctuation">{</span>ctx<span class="token punctuation">.</span>failed<span class="token punctuation">}</span></span><span class="token string"> 条失败"</span></span><span class="token punctuation">)</span>
+
+results <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Timeout<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>OnProgress<span class="token punctuation">(</span>on_progress<span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>OnError<span class="token punctuation">(</span>on_error<span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>Hook<span class="token punctuation">(</span><span class="token keyword">lambda</span> rs<span class="token punctuation">:</span> <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"整批完成"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"a"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"b"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"c"</span><span class="token punctuation">)</span>
+               <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p><code>BatchContext</code> 包含：<code>task_id</code>、<code>total</code>、<code>completed</code>、<code>succeeded</code>、<code>failed</code>、<code>stage</code>、<code>results</code>、<code>errors</code>、<code>elapsed</code>、<code>extra</code>。</p>
+<p><code>stage</code> 可能的值：<code>pending</code>、<code>sending</code>、<code>success</code>（全部成功）、<code>partial</code>（部分成功）、<code>failed</code>（全部失败）。</p>
+<h3 id="修饰器与规则的继承">修饰器与规则的继承</h3>
+<p><code>.Build()</code> 之前的 At/AtAll/Reply 修饰器和规则会继承到整批，作用于每条消息：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span>                        <span class="token comment"># 继承：每条消息都 @789</span>
+       <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>                         <span class="token comment"># 继承 + 追加：每条各自重试</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"@你的通知"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"公告图"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p>进入 Build 后仍可追加修饰器（作用于整批）：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"111"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"222"</span><span class="token punctuation">)</span>             <span class="token comment"># 追加 @，作用于整批</span>
+       <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"@多人"</span><span class="token punctuation">)</span>
+       <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="后台执行">后台执行</h3>
+<p>与单发一样，<code>.send_all()</code> 返回 Task，可不 await 让其在后台执行：</p>
+<pre><code class="language-python">task <span class="token operator">=</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>Hook<span class="token punctuation">(</span><span class="token keyword">lambda</span> rs<span class="token punctuation">:</span> <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"批量发送完成"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"a"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"b"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 不阻塞主流程</span>
+<span class="token keyword">await</span> do_something_else<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="命名规范">命名规范</h2>
+<h3 id="pascalcase-命名">PascalCase 命名</h3>
+<p>所有发送方法使用大驼峰命名法：</p>
+<pre><code class="language-python"><span class="token comment"># ✅ 正确</span>
+<span class="token keyword">def</span> <span class="token function">Text</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">Image</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token builtin">file</span><span class="token punctuation">:</span> <span class="token builtin">bytes</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+
+<span class="token comment"># ❌ 错误</span>
+<span class="token keyword">def</span> <span class="token function">text</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+
+<span class="token keyword">def</span> <span class="token function">send_image</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token builtin">file</span><span class="token punctuation">:</span> <span class="token builtin">bytes</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<h3 id="平台特有方法-2">平台特有方法</h3>
+<p>不推荐添加平台前缀方法：</p>
+<pre><code class="language-python"><span class="token comment"># ✅ 推荐</span>
+<span class="token keyword">def</span> <span class="token function">Sticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+
+<span class="token comment"># ❌ 不推荐</span>
+<span class="token keyword">def</span> <span class="token function">TelegramSticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sticker_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<p>使用 <code>Raw</code> 方法替代：</p>
+<pre><code class="language-python"><span class="token comment"># ✅ 推荐</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Raw_ob12<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"sticker"</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+<span class="token comment"># ❌ 不推荐</span>
+<span class="token keyword">def</span> <span class="token function">TelegramSticker</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">pass</span>
+</code></pre>
+<h2 id="发送链路内部拆解">发送链路内部拆解</h2>
+<p>一次 <code>await adapter.Send.To("group", "123").Text("x")</code> 的背后，框架帮你完成了下面这一串事：</p>
+<pre><code class="language-mermaid">flowchart TD
+    A["adapter.Send.To(...).Text(...)"] --&gt; B["To/Using 链式方法&lt;br/&gt;每次返回不可变新实例（顺序无关）"]
+    B --&gt; C["__getattribute__ 拦截发送方法&lt;br/&gt;包一层规则包装器"]
+    C --&gt; D["调用原始方法（如 Text）&lt;br/&gt;内部委托 Raw_ob12"]
+    D --&gt; E["Raw_ob12 返回 asyncio.create_task(...)"]
+    E --&gt; F["写 [Send] 日志"]
+    F --&gt; G["emit message.sending（fire-and-forget）"]
+    G --&gt; H{"声明了发送规则？"}
+    H --&gt;|"否"| I["Task done_callback → emit message.sent"]
+    H --&gt;|"是"| J["apply_send_rules 包成外层 Task&lt;br/&gt;重试/超时/延迟/优先级"]
+    J --&gt; I
+    I --&gt; K["await 得到标准响应 dict"]
+</code></pre>
+<p><strong>每一步框架做了什么：</strong></p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>框架做了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>链式合并</td>
+<td><code>To</code>/<code>Using</code>/<code>Account</code> 每次调用都<strong>新建不可变实例</strong>并继承已设字段，因此 <code>To(...).Using(...)</code> 与 <code>Using(...).To(...)</code> <strong>等价</strong>、顺序无关</td>
+</tr>
+<tr>
+<td>方法包装</td>
+<td>发送方法（<code>Text</code> 等）被 <code>__getattribute__</code> 拦截包一层；修饰方法（<code>To</code>/<code>Using</code>/<code>At</code>/<code>Retry</code> 等）<strong>不包装</strong>。嵌套的 <code>Raw_ob12</code> 调用靠 <code>_in_rule_wrap</code> 标记防重复包装</td>
+</tr>
+<tr>
+<td>Task 创建</td>
+<td><code>Raw_ob12</code> 内部 <code>asyncio.create_task()</code> 才是 Task 真正的创建点；<code>Text()</code> 只是同步返回这个 Task，<strong>不阻塞</strong></td>
+</tr>
+<tr>
+<td>发送日志</td>
+<td>写 <code>[Send] platform/method -&gt; target</code> 事件日志（<code>exclude_levels=["EVENT"]</code> 可屏蔽）</td>
+</tr>
+<tr>
+<td><code>message.sending</code></td>
+<td>发送方法被调用时<strong>立即</strong>以 fire-and-forget 触发（仅当存在监听者，先 <code>has_handlers</code> 短路）</td>
+</tr>
+<tr>
+<td><code>message.sent</code></td>
+<td>绑定在 Task 的 <code>done_callback</code> 上——<strong>有规则时覆盖整个重试流程的最终结果</strong>，无规则时即原始 Task 完成</td>
+</tr>
+</tbody></table></div>
+<h3 id="账户解析回退链">账户解析回退链</h3>
+<p>当适配器内部调用 <code>_resolve_account(account_id)</code> 时，按以下顺序解析到具体账户：</p>
+<ol>
+<li>单账户适配器（无 <code>AccountConfigClass</code>）→ 直接返回</li>
+<li>账户名精确匹配 <code>account_id</code></li>
+<li>各账户 <code>bot_id</code> 字段匹配</li>
+<li>各账户任意 <code>str</code> 字段值匹配（排除 <code>enabled</code>/<code>name</code>）</li>
+<li>兜底第一个启用的账户</li>
+<li>全部失败 → 抛 <code>ValueError</code></li>
+</ol>
+<blockquote>
+<p>你传的 <code>account_id</code> 来自：<code>Using()</code> 显式指定 &gt; 事件 <code>self</code> 字段（<code>account_id</code> 优先于 <code>user_id</code>，由 <code>event.reply()</code> 自动注入）&gt; 不指定（由适配器兜底第一个启用账户）。</p>
+</blockquote>
+<h3 id="发送规则引擎重试超时延迟">发送规则引擎（重试/超时/延迟）</h3>
+<p>规则在 <code>Raw_ob12</code> 返回 Task <strong>之后</strong>包装成新的外层 Task，不影响主流程。关键事实：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>规则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Retry(n)</code></td>
+<td>总尝试 <code>n+1</code> 次；<strong>失败后立即重发，无指数退避</strong></td>
+</tr>
+<tr>
+<td><code>Timeout(s)</code></td>
+<td>单次发送超时取消（<code>asyncio.wait_for</code>），未耗尽则重试</td>
+</tr>
+<tr>
+<td><code>Defer(s)</code></td>
+<td>发送前延迟 sleep</td>
+</tr>
+<tr>
+<td><code>Priority(level, drop_if_busy)</code></td>
+<td>积压超阈值时直接返回 <code>{status:"failed", retcode:10002, message:"dropped_low_priority"}</code></td>
+</tr>
+<tr>
+<td><code>Hook(fn)</code></td>
+<td>仅最终成功时按序执行</td>
+</tr>
+<tr>
+<td><code>on_progress</code> / <code>on_error</code></td>
+<td>各阶段 / 最终失败回调</td>
+</tr>
+</tbody></table></div>
+<blockquote>
+<p><strong>注意</strong>：重试是「立即重发」，没有退避间隔；若平台限流需要退避，请在 <code>on_error</code> 回调里自行 sleep 后再手动重发。规则的成功判定以返回 dict 的 <code>status == "ok"</code> 为准（<code>retcode == 0</code>）。</p>
+</blockquote>
+<blockquote>
+<p>标准响应格式与 <code>retcode</code> 完整语义见 <a href="/docs/standards/api-response.html">API 响应规范</a>。</p>
+</blockquote>
+<h2 id="返回值">返回值</h2>
+<h3 id="task-对象">Task 对象</h3>
+<p>所有发送方法返回 <code>asyncio.Task</code>。适配器只需实现 <code>Raw_ob12</code>，标准方法（Text/Image 等）默认委托给它：</p>
+<pre><code class="language-python"><span class="token keyword">import</span> asyncio
+
+<span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        segments <span class="token operator">=</span> self<span class="token punctuation">.</span>_apply_modifiers<span class="token punctuation">(</span>message<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
+            endpoint<span class="token operator">=</span><span class="token string">"/send_message"</span><span class="token punctuation">,</span>
+            message<span class="token operator">=</span>segments<span class="token punctuation">,</span>
+            <span class="token operator">**</span>self<span class="token punctuation">.</span>send_context<span class="token punctuation">,</span>
+            <span class="token operator">**</span>kwargs<span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+    <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>_do_send<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Text/Image/Voice/Video/File 已从基类继承，自动委托给 Raw_ob12</span>
+<span class="token comment"># 如需覆盖标准方法，返回 asyncio.Task 即可：</span>
+<span class="token comment"># def Text(self, text: str):</span>
+<span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
+</code></pre>
+<h3 id="标准化响应">标准化响应</h3>
+<p><code>call_api</code> 应返回标准化响应。推荐使用 <code>make_response()</code> / <code>make_error()</code> 方法：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        result <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_do_api_call<span class="token punctuation">(</span>endpoint<span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_response<span class="token punctuation">(</span>
+            data<span class="token operator">=</span>result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"data"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            message_id<span class="token operator">=</span>result<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"message_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+            raw<span class="token operator">=</span>result<span class="token punctuation">,</span>
+        <span class="token punctuation">)</span>
+    <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>message<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<p>也支持手动构造（旧版方式仍然兼容）：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+        <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span> <span class="token keyword">or</span> <span class="token string">"failed"</span><span class="token punctuation">,</span>
+        <span class="token string">"retcode"</span><span class="token punctuation">:</span> <span class="token number">0</span> <span class="token keyword">or</span> error_code<span class="token punctuation">,</span>
+        <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"msg_id"</span> <span class="token keyword">or</span> <span class="token string">""</span><span class="token punctuation">,</span>
+        <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+        <span class="token string">"{platform}_raw"</span><span class="token punctuation">:</span> raw_response
+    <span class="token punctuation">}</span>
+</code></pre>
+<h2 id="完整示例">完整示例</h2>
+<h3 id="基本使用">基本使用</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> adapter
+
+my_adapter <span class="token operator">=</span> adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 发送文本</span>
+<span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello World!"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 发送图片</span>
+<span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"https://example.com/image.jpg"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 发送文件</span>
+<span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token string">"document.pdf"</span><span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>
+    <span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>File<span class="token punctuation">(</span>f<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="链式调用">链式调用</h3>
+<pre><code class="language-python"><span class="token comment"># @用户 + 回复</span>
+<span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"回复@的消息"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># @全体 + 多个修饰</span>
+<span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AtAll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"公告消息"</span><span class="token punctuation">)</span>
+</code></pre>
+<h3 id="原始消息与消息构建">原始消息与消息构建</h3>
+<p><code>Raw_ob12</code> 是反向转换的核心入口（接收 OB12 消息段 → 平台 API 调用），<code>MessageBuilder</code> 是配合其使用的链式消息段构建工具。</p>
+<blockquote>
+<p>完整的 <code>Raw_ob12</code> 实现规范、<code>MessageBuilder</code> 用法及代码示例请参阅：</p>
+<ul>
+<li><a href="/docs/standards/send-method-spec.html#6-%E5%8F%8D%E5%90%91%E8%BD%AC%E6%8D%A2%E8%A7%84%E8%8C%83onebot12--%E5%B9%B3%E5%8F%B0">发送方法规范 §6 反向转换规范</a></li>
+<li><a href="/docs/standards/send-method-spec.html#11-%E6%B6%88%E6%81%AF%E6%9E%84%E5%BB%BA%E5%99%A8-messagebuilder">发送方法规范 §11 消息构建器</a></li>
+</ul>
+</blockquote>
+<h2 id="相关文档">相关文档</h2>
+<ul>
+<li><a href="/docs/developer-guide/adapters/getting-started.html">适配器开发入门</a> - 创建适配器</li>
+<li><a href="/docs/developer-guide/adapters/core-concepts.html">适配器核心概念</a> - 了解适配器架构</li>
+<li><a href="/docs/developer-guide/adapters/best-practices.html">适配器最佳实践</a> - 开发高质量适配器</li>
+<li><a href="/docs/standards/send-method-spec.html">发送方法规范</a> - 发送方法完整规范</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/developer-guide/adapters/core-concepts.html"><small>上一篇</small><br>适配器核心概念</a>
+        <a class="doc-pager-next" href="/docs/developer-guide/adapters/best-practices.html"><small>下一篇</small><br>适配器开发最佳实践</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>
