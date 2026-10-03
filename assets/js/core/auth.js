@@ -86,6 +86,11 @@ export const AuthManager = (function () {
             showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
             return;
         }
+        // 软屏蔽：disabled 的 provider 不放行登录（入口已隐藏，此处兜底）
+        if (providerConfig.disabled) {
+            showMessage(I18n.t('account.yunhuDisabled'), 'error');
+            return;
+        }
 
         var authUrl = new URL(providerConfig.authUrl);
         authUrl.searchParams.set('client_id', providerConfig.clientId);

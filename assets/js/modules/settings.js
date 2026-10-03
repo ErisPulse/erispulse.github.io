@@ -378,13 +378,21 @@ function renderAccountCard() {
         loadAccountModuleCount(auth);
         loadAccountDiscussions(user);
     } else {
+        // 登录按钮：跳过软屏蔽的提供方（云湖授权服务端故障），并给出认领归属提示
+        var yunhuDisabled = !!(CONFIG.OAUTH_PROVIDERS.yunhu && CONFIG.OAUTH_PROVIDERS.yunhu.disabled);
+        var loginButtons =
+            '<button class="btn btn-outline btn-sm" data-account-provider="github"><i class="fab fa-github"></i> GitHub</button>' +
+            '<button class="btn btn-outline btn-sm" data-account-provider="codeberg"><img src="assets/img/codeberg.svg" alt="" width="14" height="14"> Codeberg</button>';
+        if (!yunhuDisabled) {
+            loginButtons += '<button class="btn btn-outline btn-sm" data-account-provider="yunhu"><img src="assets/img/yunhu.png" alt="" width="14" height="14"> 云湖</button>';
+        }
+        var yunhuNote = yunhuDisabled
+            ? '<p class="oauth-disabled-note"><span>' + escapeHtmlSetting(I18n.t('account.yunhuDisabled')) + '</span> ' +
+              '<a href="https://github.com/ErisPulse/ErisPulse/issues" target="_blank" rel="noopener noreferrer">ErisPulse Issues →</a></p>'
+            : '';
         box.innerHTML =
             '<p class="account-card-hint">' + escapeHtmlSetting(I18n.t('account.loginHint')) + '</p>' +
-            '<div class="account-card-login">' +
-            '<button class="btn btn-outline btn-sm" data-account-provider="github"><i class="fab fa-github"></i> GitHub</button>' +
-            '<button class="btn btn-outline btn-sm" data-account-provider="codeberg"><img src="assets/img/codeberg.svg" alt="" width="14" height="14"> Codeberg</button>' +
-            '<button class="btn btn-outline btn-sm" data-account-provider="yunhu"><img src="assets/img/yunhu.png" alt="" width="14" height="14"> 云湖</button>' +
-            '</div>' +
+            '<div class="account-card-login">' + loginButtons + '</div>' + yunhuNote +
             '<p class="account-card-note">' + escapeHtmlSetting(I18n.t('account.whereUsed')) + '</p>';
 
         box.querySelectorAll('[data-account-provider]').forEach(function (btn) {

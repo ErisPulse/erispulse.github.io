@@ -19,10 +19,24 @@ export const SubmitModuleManager = (function () {
         setupModalEvents();
         setupFormSubmission();
         setupTabs();
+        applyDisabledProviders();
         // 导航栏账户菜单等入口请求打开本弹窗（detail.tab 指定初始页签）
         document.addEventListener('erispulse-open-submit-modal', function (e) {
             var detail = (e && e.detail) || {};
             openSubmitModal(detail.tab);
+        });
+    }
+
+    /** 软屏蔽的 OAuth 提供方：隐藏登录入口并显示提示（如云湖授权服务端故障） */
+    function applyDisabledProviders() {
+        Object.keys(CONFIG.OAUTH_PROVIDERS).forEach(function (p) {
+            if (!CONFIG.OAUTH_PROVIDERS[p].disabled) return;
+            document.querySelectorAll('[data-provider="' + p + '"]').forEach(function (btn) {
+                btn.style.display = 'none';
+            });
+            document.querySelectorAll('[data-provider-note="' + p + '"]').forEach(function (note) {
+                note.style.display = '';
+            });
         });
     }
 

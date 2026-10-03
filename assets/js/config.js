@@ -223,6 +223,9 @@ export const CONFIG = {
       authUrl: "https://oauth2.jwzhd.com/oauth/authorize",
       redirectUri: "https://www.erisdev.com/#market",
       scope: "profile",
+      // 云湖授权服务端暂时返回 invalid_request，前端软屏蔽登录入口；
+      // 恢复后改回 false 即可（代码与 Worker 端点全部保留）
+      disabled: true,
       parseUser: function (data) {
         var a = data.avatar_url || "";
         return {
