@@ -93,10 +93,11 @@ export const AuthManager = (function () {
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', providerConfig.scope);
          
-        authUrl.searchParams.set(
-            'state',
-            'erispulse-submit:' + provider + ':' + (returnView || currentReturnView())
-        );
+        var state = 'erispulse-submit:' + provider + ':' + (returnView || currentReturnView());
+         
+         
+        while (state.length < 32) state += ':0' + Math.random().toString(36).slice(2, 3);
+        authUrl.searchParams.set('state', state);
         if (provider === 'yunhu' || provider === 'codeberg') {
             authUrl.searchParams.set('response_type', 'code');
         }
