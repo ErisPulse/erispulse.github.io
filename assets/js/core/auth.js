@@ -86,6 +86,11 @@ export const AuthManager = (function () {
             showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
             return;
         }
+         
+        if (providerConfig.disabled) {
+            showMessage(I18n.t('account.yunhuDisabled'), 'error');
+            return;
+        }
 
         var authUrl = new URL(providerConfig.authUrl);
         authUrl.searchParams.set('client_id', providerConfig.clientId);

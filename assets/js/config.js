@@ -223,6 +223,9 @@ export const CONFIG = {
       authUrl: "https://oauth2.jwzhd.com/oauth/authorize",
       redirectUri: "https://www.erisdev.com/#market",
       scope: "profile",
+       
+       
+      disabled: true,
       parseUser: function (data) {
         var a = data.avatar_url || "";
         return {

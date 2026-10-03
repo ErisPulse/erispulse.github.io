@@ -19,10 +19,24 @@ export const SubmitModuleManager = (function () {
         setupModalEvents();
         setupFormSubmission();
         setupTabs();
+        applyDisabledProviders();
          
         document.addEventListener('erispulse-open-submit-modal', function (e) {
             var detail = (e && e.detail) || {};
             openSubmitModal(detail.tab);
+        });
+    }
+
+     
+    function applyDisabledProviders() {
+        Object.keys(CONFIG.OAUTH_PROVIDERS).forEach(function (p) {
+            if (!CONFIG.OAUTH_PROVIDERS[p].disabled) return;
+            document.querySelectorAll('[data-provider="' + p + '"]').forEach(function (btn) {
+                btn.style.display = 'none';
+            });
+            document.querySelectorAll('[data-provider-note="' + p + '"]').forEach(function (note) {
+                note.style.display = '';
+            });
         });
     }
 
