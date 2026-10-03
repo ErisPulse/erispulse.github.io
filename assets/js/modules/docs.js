@@ -10,6 +10,7 @@ import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
 import { state, saveUserSettings } from '../core/state.js';
 import { showMessage, showActionToast, escapeHtml, timeAgo } from '../core/notify.js';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js';
 import { DocsIndexManager } from './docs-index.js';
 import { DocsContentCache } from './docs-cache.js';
 import { renderModules } from './marketplace.js';
@@ -1464,14 +1465,43 @@ export async function loadDocument(docPath, targetLine = null, keyword = null, s
     }
 }
 
+
+
+
+
+
+function updateDocMeta(docPath, docsContent) {
+    const heading = docsContent.querySelector('h1, h2');
+    const docTitle = heading ? heading.textContent.trim() : docPath;
+    document.title = docTitle + ' - ErisPulse 文档中心';
+
+    let desc = '';
+    const paras = docsContent.querySelectorAll('p');
+    for (let i = 0; i < paras.length; i++) {
+        const text = (paras[i].textContent || '').replace(/\s+/g, ' ').trim();
+        if (text.length > 30) {
+            desc = text;
+            break;
+        }
+    }
+    if (desc.length > 160) desc = desc.slice(0, 157) + '...';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc && desc) metaDesc.setAttribute('content', desc);
+}
+
 function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, keyword, section = null) {
     const docsContent = document.getElementById('docs-content');
     let htmlContent = marked.parse(markdownContent);
 
+     
+    htmlContent = enhanceGitHubMarkdown(htmlContent);
     htmlContent = addTableOfContents(htmlContent);
     htmlContent = wrapTables(htmlContent);
 
     docsContent.innerHTML = htmlContent;
+
+     
+    updateDocMeta(docPath, docsContent);
     addDocumentMetaInfo(docsContent, docPath, commitInfo);
 
     if (docPath === 'ai-support/README.md') {

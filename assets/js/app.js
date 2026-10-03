@@ -8,7 +8,6 @@
 
 
 import { I18n } from "./i18n.js";
-import { HeroCanvas } from "./hero-canvas.js";
 import { loadUserSettings } from "./core/state.js";
 import { loadViews } from "./core/views.js";
 import * as settings from "./modules/settings.js";
@@ -18,6 +17,8 @@ import * as docs from "./modules/docs.js";
 import { renderFriendLinks, renderDependencies } from "./modules/about.js";
 import * as home from "./modules/home.js";
 import { SubmitModuleManager } from "./modules/submit.js";
+import { CommunityManager } from "./modules/community.js";
+import { AuthManager } from "./core/auth.js";
 
 
 
@@ -76,6 +77,11 @@ function runInit() {
   nav.registerServiceWorker();
   settings.setupThemeToggle();
   nav.setupHamburgerMenu();
+   
+   
+  AuthManager.init();
+  SubmitModuleManager.init();
+  CommunityManager.init();
   nav.setupViewSwitching();
   settings.setupGlobalLangSwitcher();
   market.setupMarketplace();
@@ -87,8 +93,9 @@ function runInit() {
   home.setupHomeAnimations();
   home.initBannerCarousel();
   home.initInstallOverlay();
+  home.initHeroStats();
+  home.initCommunityTeaser();
   nav.setupOnlineOffline();
-  SubmitModuleManager.init();
 }
 
 
@@ -223,7 +230,6 @@ async function bootstrap() {
     console.error("Failed to bootstrap application:", err);
   } finally {
      
-    if (HeroCanvas) HeroCanvas.init();
      
     requestAnimationFrame(() => requestAnimationFrame(hideLoader));
   }

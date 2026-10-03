@@ -19,6 +19,7 @@ const FRAGMENTS = [
   "docs",
   "settings",
   "about",
+  "community",
   "modals",
 ];
 

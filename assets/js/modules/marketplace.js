@@ -6,6 +6,7 @@ import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
 import { state } from '../core/state.js';
 import { showMessage } from '../core/notify.js';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js';
 import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js';
 
  
@@ -875,7 +876,7 @@ export function showDocsModal(packageName, repoUrl) {
     modal.classList.add('active');
 
     fetchReadmeContent(repoUrl).then(markdown => {
-        const htmlContent = marked.parse(markdown);
+        const htmlContent = enhanceGitHubMarkdown(marked.parse(markdown));
 
         modalContent.innerHTML = `
             <div class="markdown-content">
