@@ -113,13 +113,14 @@
 </ol>
 </blockquote>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="_load_config_masters"><code>_load_config_masters()</code></h5>
+<h5 id="_load_config_masters---tupledictstr-setstr-setstr"><code>_load_config_masters() -&gt; tuple[dict[str, set[str]], set[str]]</code></h5>
 <p>从配置加载主人列表</p>
-<p><strong>返回值</strong> (<code>(platform_masters,</code>): global_masters)
-    - platform_masters: {platform: {user_id, ...}}
-    - global_masters: {user_id, ...}</p>
+<p><strong>返回值</strong>: (platform_masters, global_masters)</p>
+<pre><code>- platform_masters: {platform: {user_id, ...}}
+- global_masters: {user_id, ...}
+</code></pre>
 <hr>
-<h5 id="is_masterplatform_or_event-str-_eventlike-user_id-str-none-none"><code>is_master(platform_or_event: str | _EventLike, user_id: str | None = None)</code></h5>
+<h5 id="is_masterplatform_or_event-str-_eventlike-user_id-str-none-none---bool"><code>is_master(platform_or_event: str | _EventLike, user_id: str | None = None) -&gt; bool</code></h5>
 <p>检查是否为框架主人</p>
 <p>支持两种调用方式：</p>
 <ul>
@@ -129,34 +130,33 @@
 <p>检查范围：配置中的主人 + 运行时添加的主人 + 已注册的 provider 链。
 全局主人（配置为 list 或运行时添加为 None 平台）对所有平台生效。</p>
 <ul>
-<li><strong>platform_or_event</strong> (<code>平台名称</code>): 或 事件对象</li>
-<li><strong>user_id</strong> (<code>用户</code>): ID（当第一个参数为平台名时使用）
-<strong>返回值</strong> (<code>是否为框架主人</code>): 
-<strong>示例</strong>:</li>
+<li><strong>platform_or_event</strong>: 平台名称 或 事件对象</li>
+<li><strong>user_id</strong>: 用户 ID（当第一个参数为平台名时使用）</li>
 </ul>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># 从事件检查</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">if</span> master<span class="token punctuation">.</span>is_master<span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"主人你好"</span><span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># 显式检查</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">if</span> master<span class="token punctuation">.</span>is_master<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"是主人"</span><span class="token punctuation">)</span>
+<p><strong>返回值</strong>: 是否为框架主人</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
+
+<span class="token comment"># 从事件检查</span>
+<span class="token keyword">if</span> master<span class="token punctuation">.</span>is_master<span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"主人你好"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 显式检查</span>
+<span class="token keyword">if</span> master<span class="token punctuation">.</span>is_master<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"是主人"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="_check_providersplatform-str-user_id-str"><code>_check_providers(platform: str, user_id: str)</code></h5>
-<blockquote>
+<h5 id="_check_providersplatform-str-user_id-str---bool"><code>_check_providers(platform: str, user_id: str) -&gt; bool</code></h5>
 <p><strong>内部方法</strong>
 依次尝试 provider 链，任一放行即认定为主人</p>
-</blockquote>
 <p>provider 异常被捕获并跳过（记录 warning），不阻断后续判定。</p>
 <ul>
-<li><strong>platform</strong> (<code>平台名称</code>): - <strong>user_id</strong>: 用户 ID
-<strong>返回值</strong> (<code>是否有</code>): provider 认定该用户为主人</li>
+<li><strong>platform</strong>: 平台名称</li>
+<li><strong>user_id</strong>: 用户 ID</li>
 </ul>
+<p><strong>返回值</strong>: 是否有 provider 认定该用户为主人</p>
 <hr>
-<h5 id="providerfn-masterprovider"><code>provider(fn: MasterProvider)</code></h5>
+<h5 id="providerfn-masterprovider---masterprovider"><code>provider(fn: MasterProvider) -&gt; MasterProvider</code></h5>
 <p>注册自定义身份源 provider（装饰器 / 函数调用两用）</p>
 <p>签名：<code>fn(platform: str, user_id: str) -&gt; bool</code>，返回 True 表示
 认定该用户为主人。所有 provider 在内置身份源（配置 + 运行时记录）
@@ -166,81 +166,91 @@
 内注册，模块卸载时会被框架自动注销（无需手动 <code>unregister</code>）；
 模块级装饰器用法（非加载上下文）为常驻身份源，仅显式注销。</p>
 <ul>
-<li><strong>fn</strong> (<code>身份源检查函数（普通函数</code>): / 模块级函数皆可挂 <code>unregister</code>；
-     绑定实例方法请用模块级函数或在注册后自行保存注销句柄）</li>
+<li><p><strong>fn</strong>: 身份源检查函数（普通函数 / 模块级函数皆可挂 <code>unregister</code>；</p>
+<pre><code>     绑定实例方法请用模块级函数或在注册后自行保存注销句柄）
+</code></pre>
+</li>
 </ul>
-<p><strong>返回值</strong> (<code>原函数（已注册，并尽可能挂载</code>): <code>unregister</code> 方法）</p>
+<p><strong>返回值</strong>: 原函数（已注册，并尽可能挂载 <code>unregister</code> 方法）</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># 装饰器用法（常驻身份源，推荐）</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> @master<span class="token punctuation">.</span>provider
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token keyword">def</span> <span class="token function">admin_provider</span><span class="token punctuation">(</span>platform<span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">return</span> user_id <span class="token keyword">in</span> <span class="token punctuation">{</span><span class="token string">"999"</span><span class="token punctuation">}</span>  <span class="token comment"># 自定义判定逻辑</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> master<span class="token punctuation">.</span>is_master<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"999"</span><span class="token punctuation">)</span>  <span class="token comment"># True</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> admin_provider<span class="token punctuation">.</span>unregister<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># 不再需要时注销</span>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
 
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># 函数式用法（模块加载期注册、卸载期注销）</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> fn <span class="token operator">=</span> master<span class="token punctuation">.</span>provider<span class="token punctuation">(</span>admin_provider<span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> fn<span class="token punctuation">.</span>unregister<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># 装饰器用法（常驻身份源，推荐）</span>
+<span class="token decorator annotation punctuation">@master<span class="token punctuation">.</span>provider</span>
+<span class="token keyword">def</span> <span class="token function">admin_provider</span><span class="token punctuation">(</span>platform<span class="token punctuation">,</span> user_id<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> user_id <span class="token keyword">in</span> <span class="token punctuation">{</span><span class="token string">"999"</span><span class="token punctuation">}</span>  <span class="token comment"># 自定义判定逻辑</span>
+
+master<span class="token punctuation">.</span>is_master<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"999"</span><span class="token punctuation">)</span>  <span class="token comment"># True</span>
+admin_provider<span class="token punctuation">.</span>unregister<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># 不再需要时注销</span>
+</code></pre>
+<pre><code class="language-python"><span class="token comment"># 函数式用法（模块加载期注册、卸载期注销）</span>
+fn <span class="token operator">=</span> master<span class="token punctuation">.</span>provider<span class="token punctuation">(</span>admin_provider<span class="token punctuation">)</span>
+fn<span class="token punctuation">.</span>unregister<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="_drop_providerfn-masterprovider"><code>_drop_provider(fn: MasterProvider)</code></h5>
-<blockquote>
+<h5 id="_drop_providerfn-masterprovider---none"><code>_drop_provider(fn: MasterProvider) -&gt; None</code></h5>
 <p><strong>内部方法</strong>
 从 provider 链移除指定函数（幂等）</p>
-</blockquote>
 <ul>
-<li><strong>fn</strong> (<code>已注册的</code>): provider 函数</li>
+<li><strong>fn</strong>: 已注册的 provider 函数</li>
 </ul>
 <hr>
-<h5 id="unregister_by_ownerowner-str"><code>unregister_by_owner(owner: str)</code></h5>
+<h5 id="unregister_by_ownerowner-str---int"><code>unregister_by_owner(owner: str) -&gt; int</code></h5>
 <p>注销指定 owner（模块）注册的全部 provider</p>
 <p>模块在加载上下文（on_load）内注册的 provider 会由框架在卸载时
 自动调用本方法，实现作用域清理——模块开发者无需在 on_unload 手动注销。</p>
 <ul>
-<li><strong>owner</strong> (<code>模块名（owner）</code>): <strong>返回值</strong> (<code>注销的</code>): provider 数量</li>
+<li><strong>owner</strong>: 模块名（owner）</li>
 </ul>
+<p><strong>返回值</strong>: 注销的 provider 数量</p>
 <hr>
-<h5 id="list"><code>list()</code></h5>
+<h5 id="list---dictstr-liststr"><code>list() -&gt; dict[str, list[str]]</code></h5>
 <p>获取所有主人列表</p>
-<p><strong>返回值</strong> (<code>字典，``{"global":</code>): [...], "<platform>": [...]}``
-    global 键包含对所有平台生效的主人</platform></p>
+<p><strong>返回值</strong>: 字典，<code>{"global": [...], "&lt;platform&gt;": [...]}</code></p>
+<pre><code>global 键包含对所有平台生效的主人
+</code></pre>
 <hr>
-<h5 id="addplatform-str-none-user_id-str-persist-bool-true"><code>add(platform: str | None, user_id: str, persist: bool = True)</code></h5>
+<h5 id="addplatform-str-none-user_id-str-persist-bool-true---none"><code>add(platform: str | None, user_id: str, persist: bool = True) -&gt; None</code></h5>
 <p>添加主人</p>
 <ul>
-<li><strong>platform</strong> (<code>平台名称，None</code>): 表示全局主人</li>
-<li><strong>user_id</strong> (<code>用户</code>): ID</li>
-<li><strong>persist</strong> (<code>是否持久化到配置文件</code>): (默认: True)
-          为 True 时写入 <code>ErisPulse.master.users</code> 配置，重启后仍然生效；
-          为 False 时仅运行时生效，重启后失效。</li>
+<li><p><strong>platform</strong>: 平台名称，None 表示全局主人</p>
+</li>
+<li><p><strong>user_id</strong>: 用户 ID</p>
+</li>
+<li><p><strong>persist</strong>: 是否持久化到配置文件 (默认: True)</p>
+<pre><code>          为 True 时写入 ``ErisPulse.master.users`` 配置，重启后仍然生效；
+          为 False 时仅运行时生效，重启后失效。
+</code></pre>
+</li>
 </ul>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> master<span class="token punctuation">.</span>add<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span>  <span class="token comment"># 持久化到配置</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> master<span class="token punctuation">.</span>add<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"999"</span><span class="token punctuation">,</span> persist<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># 仅本次运行有效</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> master<span class="token punctuation">.</span>add<span class="token punctuation">(</span><span class="token boolean">None</span><span class="token punctuation">,</span> <span class="token string">"888"</span><span class="token punctuation">)</span>  <span class="token comment"># 全局主人</span>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
+master<span class="token punctuation">.</span>add<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span>  <span class="token comment"># 持久化到配置</span>
+master<span class="token punctuation">.</span>add<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"999"</span><span class="token punctuation">,</span> persist<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># 仅本次运行有效</span>
+master<span class="token punctuation">.</span>add<span class="token punctuation">(</span><span class="token boolean">None</span><span class="token punctuation">,</span> <span class="token string">"888"</span><span class="token punctuation">)</span>  <span class="token comment"># 全局主人</span>
 </code></pre>
 <hr>
-<h5 id="removeplatform-str-none-user_id-str-persist-bool-true"><code>remove(platform: str | None, user_id: str, persist: bool = True)</code></h5>
+<h5 id="removeplatform-str-none-user_id-str-persist-bool-true---bool"><code>remove(platform: str | None, user_id: str, persist: bool = True) -&gt; bool</code></h5>
 <p>移除主人</p>
 <ul>
-<li><strong>platform</strong> (<code>平台名称，None</code>): 表示全局</li>
-<li><strong>user_id</strong> (<code>用户</code>): ID</li>
-<li><strong>persist</strong> (<code>是否持久化移除</code>): (默认: True)
-          为 True 时同时从配置文件中移除；
-          为 False 时仅移除运行时记录。</li>
+<li><p><strong>platform</strong>: 平台名称，None 表示全局</p>
+</li>
+<li><p><strong>user_id</strong>: 用户 ID</p>
+</li>
+<li><p><strong>persist</strong>: 是否持久化移除 (默认: True)</p>
+<pre><code>          为 True 时同时从配置文件中移除；
+          为 False 时仅移除运行时记录。
+</code></pre>
+</li>
 </ul>
-<p><strong>返回值</strong> (<code>是否成功移除（不存在则返回</code>): False）</p>
+<p><strong>返回值</strong>: 是否成功移除（不存在则返回 False）</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> master<span class="token punctuation">.</span>remove<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span>  <span class="token comment"># 持久化</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> master<span class="token punctuation">.</span>remove<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"999"</span><span class="token punctuation">,</span> persist<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># 仅运行时</span>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> master
+master<span class="token punctuation">.</span>remove<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span>  <span class="token comment"># 持久化</span>
+master<span class="token punctuation">.</span>remove<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> <span class="token string">"999"</span><span class="token punctuation">,</span> persist<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># 仅运行时</span>
 </code></pre>
 <hr>
-<h5 id="reset"><code>reset()</code></h5>
+<h5 id="reset---none"><code>reset() -&gt; None</code></h5>
 <p>清空所有运行时主人与已注册的 provider（用于测试或软重启）</p>
 <p>注意：不影响配置文件中的主人。
 软重启时模块会被重新加载，provider 持有的旧引用一并清空，

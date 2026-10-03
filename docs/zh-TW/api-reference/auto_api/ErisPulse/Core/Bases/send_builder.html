@@ -109,10 +109,10 @@ Timeout/Retry（失败继续、重试失败的），整批层面统一 Hook/OnEr
 :ivar finished_at: 结束时间戳，未结束时为 None
 :ivar extra: 预留扩展字段</p>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="elapsed"><code>elapsed()</code></h5>
+<h5 id="elapsed---floatproperty"><code>elapsed -&gt; float</code>（property）</h5>
 <p>已耗时（秒）</p>
 <hr>
-<h5 id="to_dict"><code>to_dict()</code></h5>
+<h5 id="to_dict---dictstr-any"><code>to_dict() -&gt; dict[str, Any]</code></h5>
 <p>转为可序列化字典（用于日志/上报）</p>
 <hr>
 <h3 id="class-sendbuilder"><code>class SendBuilder</code></h3>
@@ -128,79 +128,80 @@ Timeout/Retry（失败继续、重试失败的），整批层面统一 Hook/OnEr
 <li><code>OnProgress</code>：每条完成时触发，接收 :class:<code>BatchContext</code></li>
 </ul>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> results <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                  <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                  <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"第一句"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                  <span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"pic.jpg"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                  <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                  <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># results = [Text结果, Image结果]</span>
+<pre><code class="language-python">results <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token punctuation">(</span>adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Build<span class="token punctuation">(</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"第一句"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Image<span class="token punctuation">(</span><span class="token string">"pic.jpg"</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>Retry<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span>
+                 <span class="token punctuation">.</span>send_all<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token comment"># results = [Text结果, Image结果]</span>
 </code></pre>
 <h4 id="方法列表-2">方法列表</h4>
 <h5 id="__init__send_dsl-senddsl"><code>__init__(send_dsl: 'SendDSL')</code></h5>
 <p>从 SendDSL 实例构建批量发送器</p>
 <ul>
-<li><strong>send_dsl</strong> (<code>进入</code>): Build 前的 SendDSL 实例（继承其上下文与规则）</li>
+<li><strong>send_dsl</strong>: 进入 Build 前的 SendDSL 实例（继承其上下文与规则）</li>
 </ul>
 <hr>
-<h5 id="atuser_id-str"><code>At(user_id: str)</code></h5>
+<h5 id="atuser_id-str---sendbuilder"><code>At(user_id: str) -&gt; 'SendBuilder'</code></h5>
 <p>@指定用户（作用于整批所有消息）</p>
 <ul>
-<li><strong>user_id</strong> (<code>要@的用户ID</code>): <strong>返回值</strong>: SendBuilder实例自身</li>
+<li><strong>user_id</strong>: 要@的用户ID</li>
 </ul>
+<p><strong>返回值</strong> (<code>SendBuilder</code>): 实例自身</p>
 <hr>
-<h5 id="atall"><code>AtAll()</code></h5>
+<h5 id="atall---sendbuilder"><code>AtAll() -&gt; 'SendBuilder'</code></h5>
 <p>@全体成员（作用于整批所有消息）</p>
 <hr>
-<h5 id="replymessage_id-str"><code>Reply(message_id: str)</code></h5>
+<h5 id="replymessage_id-str---sendbuilder"><code>Reply(message_id: str) -&gt; 'SendBuilder'</code></h5>
 <p>回复指定消息（作用于整批所有消息）</p>
 <ul>
 <li><strong>message_id</strong>: 要回复的消息ID</li>
 </ul>
 <hr>
-<h5 id="sequential"><code>Sequential()</code></h5>
+<h5 id="sequential---sendbuilder"><code>Sequential() -&gt; 'SendBuilder'</code></h5>
 <p>切换为串行执行（按意图顺序依次发送）</p>
 <p>保证消息到达顺序，但总耗时为各条耗时之和。</p>
-<p><strong>返回值</strong>: SendBuilder实例自身</p>
+<p><strong>返回值</strong> (<code>SendBuilder</code>): 实例自身</p>
 <hr>
-<h5 id="parallel"><code>Parallel()</code></h5>
+<h5 id="parallel---sendbuilder"><code>Parallel() -&gt; 'SendBuilder'</code></h5>
 <p>切换为并行执行（默认）</p>
 <p>并发发送所有意图，总耗时约等于最慢的一条。不保证消息到达顺序。</p>
-<p><strong>返回值</strong>: SendBuilder实例自身</p>
+<p><strong>返回值</strong> (<code>SendBuilder</code>): 实例自身</p>
 <hr>
-<h5 id="retrytimes-int-1"><code>Retry(times: int = 1)</code></h5>
+<h5 id="retrytimes-int-1---sendbuilder"><code>Retry(times: int = 1) -&gt; 'SendBuilder'</code></h5>
 <p>设置每条发送的失败重试次数（作用于每条，非整批重试）</p>
 <ul>
-<li><strong>times</strong> (<code>重试次数（不含首次），默认</code>): 1</li>
+<li><strong>times</strong>: 重试次数（不含首次），默认 1</li>
 </ul>
 <hr>
-<h5 id="timeoutseconds-float"><code>Timeout(seconds: float)</code></h5>
+<h5 id="timeoutseconds-float---sendbuilder"><code>Timeout(seconds: float) -&gt; 'SendBuilder'</code></h5>
 <p>设置每条发送的单次超时时间</p>
 <ul>
 <li><strong>seconds</strong>: 超时秒数</li>
 </ul>
 <hr>
-<h5 id="deferseconds-float-10"><code>Defer(seconds: float = 1.0)</code></h5>
+<h5 id="deferseconds-float-10---sendbuilder"><code>Defer(seconds: float = 1.0) -&gt; 'SendBuilder'</code></h5>
 <p>延迟执行整批发送</p>
 <ul>
 <li><strong>seconds</strong>: 延迟秒数</li>
 </ul>
 <hr>
-<h5 id="hookcallback-callable"><code>Hook(callback: Callable)</code></h5>
+<h5 id="hookcallback-callable---sendbuilder"><code>Hook(callback: Callable) -&gt; 'SendBuilder'</code></h5>
 <p>附加整批成功后的回调</p>
 <p>仅当批次全部成功时触发一次，回调签名为 <code>callback(results: list)</code>。</p>
 <ul>
 <li><strong>callback</strong>: 回调函数（同步或协程），接收结果列表</li>
 </ul>
 <hr>
-<h5 id="onerrorcallback-callable"><code>OnError(callback: Callable)</code></h5>
+<h5 id="onerrorcallback-callable---sendbuilder"><code>OnError(callback: Callable) -&gt; 'SendBuilder'</code></h5>
 <p>设置批次失败回调</p>
 <p>批次存在任意失败条目时触发一次，回调签名为 <code>callback(ctx: BatchContext)</code>。</p>
 <ul>
 <li><strong>callback</strong>: 回调函数（同步或协程）</li>
 </ul>
 <hr>
-<h5 id="onprogresscallback-callable"><code>OnProgress(callback: Callable)</code></h5>
+<h5 id="onprogresscallback-callable---sendbuilder"><code>OnProgress(callback: Callable) -&gt; 'SendBuilder'</code></h5>
 <p>设置批次进度回调</p>
 <p>每条意图完成时触发，回调签名为 <code>callback(ctx: BatchContext)</code>。</p>
 <ul>
@@ -212,11 +213,11 @@ Timeout/Retry（失败继续、重试失败的），整批层面统一 Hook/OnEr
 <p>任何非下划线、非已定义方法的属性访问，都会被视为发送方法，
 返回一个函数；调用后把 (方法名, 参数) 存入意图队列，返回 self 以继续链式。</p>
 <hr>
-<h5 id="send_all"><code>send_all()</code></h5>
+<h5 id="send_all---asynciotask"><code>send_all() -&gt; asyncio.Task</code></h5>
 <p>执行整批发送</p>
 <p>根据执行模式（默认并行 / .Sequential() 串行）发送所有意图，
 失败的条目自动重试（沿用 Retry 规则），其他条目继续发送。</p>
-<p><strong>返回值</strong> (```asyncio.Task``，await`): 后返回每条结果的列表（按意图顺序）</p>
+<p><strong>返回值</strong>: <code>asyncio.Task</code>，await 后返回每条结果的列表（按意图顺序）</p>
 <hr>
 <h5 id="_make_send_instance"><code>_make_send_instance()</code></h5>
 <p>创建一个带当前 modifiers/target 的 SendDSL 实例（用于调用原始发送方法）</p>
@@ -225,9 +226,9 @@ Timeout/Retry（失败继续、重试失败的），整批层面统一 Hook/OnEr
 <hr>
 <h5 id="_resolve_methodsend_inst-method_name-str"><code>_resolve_method(send_inst, method_name: str)</code></h5>
 <p>在 SendDSL 实例的类上解析发送方法（大小写不敏感）</p>
-<p><strong>返回值</strong> (<code>未绑定的方法对象，或</code>): None（未找到）</p>
+<p><strong>返回值</strong>: 未绑定的方法对象，或 None（未找到）</p>
 <hr>
-<h5 id="async-_emit_lifecycleevent-str"><code>async _emit_lifecycle(event: str)</code></h5>
+<h5 id="async-_emit_lifecycleevent-str---none"><code>async _emit_lifecycle(event: str) -&gt; None</code></h5>
 <p>触发整批的生命周期事件</p>
 <hr>
 

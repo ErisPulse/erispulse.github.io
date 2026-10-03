@@ -376,6 +376,23 @@ ORM の <code>Field()</code> は「ユーザーがどのようなデータを生
 <td><code>cors.*</code> / <code>security.*</code> の変更は<strong>警告のみ</strong>（再起動が必要）</td>
 </tr>
 </tbody></table></div>
+<h2 id="設定の読み取りと削除-api">設定の読み取りと削除 API</h2>
+<h3 id="getallconfig全設定のスナップショット">getAllConfig：全設定のスナップショット</h3>
+<p>直接にプライベートな <code>_cache</code> を読み取る代わりに（外部からプライベート属性を読み取るのはバージョン互換性の保護を受けません）：</p>
+<pre><code class="language-python">config <span class="token operator">=</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>getAllConfig<span class="token punctuation">(</span><span class="token punctuation">)</span>     <span class="token comment"># 深いコピーのスナップショット、元の場所で変更してもフレームワークの状態に影響しません</span>
+config<span class="token punctuation">[</span><span class="token string">"ErisPulse"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"server"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"port"</span><span class="token punctuation">]</span>
+</code></pre>
+<p><code>getConfig</code> と同様の視点で、未落盤の <code>setConfig</code> / <code>delete</code> はすべて反映されており、遅延書き込み後のファイル内容と厳密に一致します。</p>
+<h3 id="delconfig設定キーの削除">delConfig：設定キーの削除</h3>
+<p><code>setConfig(key, None)</code> は空に設定するだけで、キーはファイルに残ります。<code>delConfig</code> はキーをファイルから<strong>削除</strong>します：</p>
+<pre><code class="language-python">sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>delConfig<span class="token punctuation">(</span><span class="token string">"ErisPulse.modules.status.OldModule"</span><span class="token punctuation">)</span>            <span class="token comment"># 遅延書き込み</span>
+sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>delConfig<span class="token punctuation">(</span><span class="token string">"OneBot.deprecated_key"</span><span class="token punctuation">,</span> immediate<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>         <span class="token comment"># 立即落盤</span>
+</code></pre>
+<ul>
+<li>ドット区切りのパスをサポートします。キーが存在しない場合は <code>False</code> を返します。</li>
+<li>ファイルのコメント保持パスを使用して落盤し、ファイルの他の内容や順序には影響しません。</li>
+<li><code>config.set</code> イベントのブロードキャストを再利用します（<code>new_value=None</code>）：アダプタやモジュールの <code>on_config_update</code> 等の既存のリスナーは変更なしで削除を感知できます。</li>
+</ul>
 <h2 id="完全な設定例">完全な設定例</h2>
 <pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.server</span><span class="token punctuation">]</span>
 <span class="token key property">host</span> <span class="token punctuation">=</span> <span class="token string">"0.0.0.0"</span>

@@ -355,6 +355,18 @@
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
+<h3 id="运行时热重载服务器配置">运行时热重载服务器配置</h3>
+<p>修改监听地址 / 端口 / SSL 证书后无需重启进程，在任意协程中调用 <code>router.reload()</code>：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># 换端口</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 热更换证书（证书续期场景）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 缺省参数沿用当前配置</span>
+</code></pre>
+<ul>
+<li>复用同一 FastAPI 应用，模块注册的 HTTP / WebSocket / SSE 路由全部保留</li>
+<li>先验证新配置（证书可构建、端口可用）再切换；失败时以旧配置恢复服务并返回 <code>False</code>，
+保证返回 <code>False</code> = 旧服务保持可用</li>
+<li>服务器未运行时返回 <code>False</code>（首次启动请使用 <code>sdk.router.start()</code>）</li>
+</ul>
 <h3 id="备份">备份</h3>
 <p>定期备份 <code>config/</code> 目录：</p>
 <pre><code class="language-bash"><span class="token comment"># Docker 部署</span>

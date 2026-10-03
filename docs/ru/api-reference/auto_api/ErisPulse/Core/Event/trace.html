@@ -90,35 +90,42 @@
 </blockquote>
 <hr>
 <h2 id="函数列表">函数列表</h2>
-<h3 id="start_dispatch_trace"><code>start_dispatch_trace()</code></h3>
+<h3 id="start_dispatch_trace---iteratorlistdictstr-any"><code>start_dispatch_trace() -&gt; Iterator[list[dict[str, Any]]]</code></h3>
 <p>开启一次分发决策链采集</p>
 <p>采集列表经 ContextVar 传播到本次分发派生的全部处理器 Task
 （ContextVar 在 Task 创建时复制），with 退出后恢复原状。</p>
 <p>:yields: 记录列表（采集期间持续追加，可在外部直接读取）</p>
 <hr>
-<h3 id="get_dispatch_trace"><code>get_dispatch_trace()</code></h3>
+<h3 id="get_dispatch_trace---listdictstr-any"><code>get_dispatch_trace() -&gt; list[dict[str, Any]]</code></h3>
 <p>读取当前采集上下文中的记录（不在采集上下文时返回空列表）</p>
 <p><strong>返回值</strong>: 决策记录列表</p>
 <hr>
-<h3 id="trace_stepstage-str-verdict-str-message_key-str-none-none"><code>trace_step(stage: str, verdict: str, message_key: str | None = None)</code></h3>
+<h3 id="trace_stepstage-str-verdict-str-message_key-str-none-none-details-any---none"><code>trace_step(stage: str, verdict: str, message_key: str | None = None, **details: Any) -&gt; None</code></h3>
 <p>记录一个判定点（未处于采集上下文时零开销直接返回）</p>
 <ul>
-<li><strong>stage</strong> (<code>判定阶段标识（如</code>): <code>command_match</code> / <code>permission</code> / <code>cooldown</code>）</li>
-<li><strong>verdict</strong> (`判定结论（<code>ok```): / </code>rejected<code>/</code>dropped<code>/</code>failed<code>/</code>passed``）</li>
-<li><strong>message_key</strong> (<code>该判定的本地化说明键（i18n，可空）</code>): - <strong>details</strong>: 判定上下文参数（命令名、原因、耗时等）</li>
+<li><strong>stage</strong>: 判定阶段标识（如 <code>command_match</code> / <code>permission</code> / <code>cooldown</code>）</li>
+<li><strong>verdict</strong>: 判定结论（<code>ok</code> / <code>rejected</code> / <code>dropped</code> / <code>failed</code> / <code>passed</code>）</li>
+<li><strong>message_key</strong>: 该判定的本地化说明键（i18n，可空）</li>
+<li><strong>details</strong>: 判定上下文参数（命令名、原因、耗时等）</li>
 </ul>
 <hr>
-<h3 id="format_dispatch_tracerecords-listdictstr-any"><code>format_dispatch_trace(records: list[dict[str, Any]])</code></h3>
+<h3 id="format_dispatch_tracerecords-listdictstr-any---str"><code>format_dispatch_trace(records: list[dict[str, Any]]) -&gt; str</code></h3>
 <p>将决策记录渲染为人类可读的因果链文本（当前语言）</p>
 <ul>
-<li><strong>records</strong> (<code>决策记录列表</code>): <strong>返回值</strong>: 逐行文本；无记录时返回提示文案</li>
+<li><strong>records</strong>: 决策记录列表</li>
 </ul>
+<p><strong>返回值</strong>: 逐行文本；无记录时返回提示文案</p>
 <hr>
-<h3 id="final_verdictrecords-listdictstr-any"><code>final_verdict(records: list[dict[str, Any]])</code></h3>
+<h3 id="final_verdictrecords-listdictstr-any---str"><code>final_verdict(records: list[dict[str, Any]]) -&gt; str</code></h3>
 <p>从决策记录推断最终结论</p>
 <ul>
-<li><strong>records</strong> (<code>决策记录列表</code>): <strong>返回值</strong> (```executed<code>（已执行）/`): </code>rejected<code>（被权限类判定拒绝）/   </code>dropped<code>（被冷却等静默丢弃）/ </code>failed<code>（执行出错）/   </code>no_match<code>（带前缀但未命中任何命令）/ </code>passed<code>（非命令文本，   放行给消息处理器）/ </code>unknown``（无记录）</li>
+<li><strong>records</strong>: 决策记录列表</li>
 </ul>
+<p><strong>返回值</strong>: <code>executed</code>（已执行）/ <code>rejected</code>（被权限类判定拒绝）/</p>
+<pre><code>``dropped``（被冷却等静默丢弃）/ ``failed``（执行出错）/
+``no_match``（带前缀但未命中任何命令）/ ``passed``（非命令文本，
+放行给消息处理器）/ ``unknown``（无记录）
+</code></pre>
 <hr>
 
         </article>

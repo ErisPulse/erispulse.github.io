@@ -78,14 +78,16 @@
 <p>ErisPulse KV 查询构建器</p>
 <p>将链式 SQL 操作（Table/Insert/Select/Where 等）映射为 KV 键前缀操作。
 任何实现了 BaseStorage KV 接口的后端（Redis、内存字典等）均可使用。</p>
-<p>键命名规则：
-    _table:{table_name}:schema    — 表结构定义（列名 → 类型）
-    _table:{table_name}:next_id   — 自增 ID 计数器
-    _table:{table_name}:data:{id} — 行数据（JSON 序列化）</p>
-<p>使用方式：
-    &gt;&gt;&gt; storage = MyKVStorage()
-    &gt;&gt;&gt; qb = KVQueryBuilder(storage, "users")
-    &gt;&gt;&gt; qb.Insert({"name": "Alice", "age": 30}).Execute()</p>
+<p>键命名规则:</p>
+<pre><code>_table:{table_name}:schema    — 表结构定义（列名 → 类型）
+_table:{table_name}:next_id   — 自增 ID 计数器
+_table:{table_name}:data:{id} — 行数据（JSON 序列化）
+</code></pre>
+<p>使用方式:</p>
+<pre><code>storage = MyKVStorage()
+qb = KVQueryBuilder(storage, "users")
+qb.Insert({"name": "Alice", "age": 30}).Execute()
+</code></pre>
 <blockquote>
 <p><strong>提示</strong></p>
 <ol>
@@ -101,38 +103,36 @@
 <p>将 Insert/Select/Update/Delete/Where/OrderBy/Limit 等链式操作
 映射为对 BaseStorage KV 接口的调用。</p>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="_get_next_id"><code>_get_next_id()</code></h5>
+<h5 id="_get_next_id---int"><code>_get_next_id() -&gt; int</code></h5>
 <p>获取并递增自增 ID</p>
 <hr>
-<h5 id="_scan_rows"><code>_scan_rows()</code></h5>
+<h5 id="_scan_rows---listtupleint-dict"><code>_scan_rows() -&gt; list[tuple[int, dict]]</code></h5>
 <p>扫描所有行，返回 [(row_id, row_data), ...]</p>
 <hr>
-<h5 id="_match_rowrow-dict"><code>_match_row(row: dict)</code></h5>
+<h5 id="_match_rowrow-dict---bool"><code>_match_row(row: dict) -&gt; bool</code></h5>
 <p>检查行是否满足所有 WHERE 条件</p>
 <hr>
 <h5 id="_bind_clauses"><code>_bind_clauses()</code></h5>
 <p>将 WHERE 子句中的 ? 替换为实际参数（只执行一次）</p>
 <hr>
-<h5 id="_eval_clauserow-dict-clause-str"><code>_eval_clause(row: dict, clause: str)</code></h5>
+<h5 id="_eval_clauserow-dict-clause-str---bool"><code>_eval_clause(row: dict, clause: str) -&gt; bool</code></h5>
 <p>评估单条已绑定的 WHERE 子句</p>
 <p>clause 中的占位符 <code>?</code> 已在 <code>_bind_clauses</code> 中替换为实际值。
 支持的操作符: =, !=, &gt;, &gt;=, &lt;, &lt;=, LIKE</p>
 <hr>
-<h5 id="_coerce_valueexpected-any-actual-any"><code>_coerce_value(expected: Any, actual: Any)</code></h5>
+<h5 id="_coerce_valueexpected-any-actual-any---anystaticmethod"><code>_coerce_value(expected: Any, actual: Any) -&gt; Any</code>（staticmethod）</h5>
 <p>根据 actual 的类型，将 expected 转换为同类型</p>
 <hr>
-<h5 id="_safe_cmpa-any-b-any"><code>_safe_cmp(a: Any, b: Any)</code></h5>
+<h5 id="_safe_cmpa-any-b-any---intstaticmethod"><code>_safe_cmp(a: Any, b: Any) -&gt; int</code>（staticmethod）</h5>
 <p>安全比较，处理 None</p>
 <hr>
-<h5 id="_require_dataexpected-typet-key-str"><code>_require_data(expected: type[T], key: str)</code></h5>
-<blockquote>
+<h5 id="_require_dataexpected-typet-key-str---t"><code>_require_data(expected: type[T], key: str) -&gt; T</code></h5>
 <p><strong>内部方法</strong> 校验构建器数据形态并返回（同步/异步执行路径共用，兼作类型收窄）</p>
-</blockquote>
 <hr>
-<h5 id="async-_ascan_rows"><code>async _ascan_rows()</code></h5>
+<h5 id="async-_ascan_rows---listtupleint-dict"><code>async _ascan_rows() -&gt; list[tuple[int, dict]]</code></h5>
 <p>异步扫描所有行</p>
 <hr>
-<h5 id="async-aexecute"><code>async aExecute()</code></h5>
+<h5 id="async-aexecute---listtuple-int"><code>async aExecute() -&gt; list[tuple] | int</code></h5>
 <p>异步执行查询</p>
 <hr>
 

@@ -94,7 +94,7 @@
 </blockquote>
 <hr>
 <h2 id="函数列表">函数列表</h2>
-<h3 id="on_cleanupcallback-callablestr-any"><code>on_cleanup(callback: Callable[[str], Any])</code></h3>
+<h3 id="on_cleanupcallback-callablestr-any-owner-str-none-none---str"><code>on_cleanup(callback: Callable[[str], Any], *, owner: str | None = None) -&gt; str</code></h3>
 <p>登记归属清理钩子：<code>owner</code> 被卸载/禁用时由框架回调 <code>callback(owner)</code></p>
 <p>供工具模块在替其它模块托管资源时使用——在对方注册资源的调用路径内
 登记钩子，框架在该模块卸载链内触发回调，工具模块据此抛弃内部持有的
@@ -103,48 +103,47 @@
 <code>module.call</code> 被调用期间，owner 已归因到本模块，调用方身份在
 caller 上下文）&gt; <code>current_owner</code>（对方 <code>on_load</code> 等直接调用场景）。</p>
 <ul>
-<li><strong>callback</strong> (<code>清理回调，签名</code>): <code>callback(owner: str)</code>，支持同步/异步</li>
-<li><strong>owner</strong> (<code>目标归属者（模块名/平台名），缺省按上述优先级自动解析</code>): <strong>返回值</strong> (<code>str</code>): 解析并登记的目标 owner（可直接用作自有句柄的记名键）
-<strong>异常</strong>: <code>ValueError</code> - 无法确定目标 owner 时抛出</li>
+<li><strong>callback</strong>: 清理回调，签名 <code>callback(owner: str)</code>，支持同步/异步</li>
+<li><strong>owner</strong>: 目标归属者（模块名/平台名），缺省按上述优先级自动解析</li>
 </ul>
+<p><strong>返回值</strong> (<code>str</code>): 解析并登记的目标 owner（可直接用作自有句柄的记名键）</p>
+<p><strong>异常</strong>: <code>ValueError</code> - 无法确定目标 owner 时抛出</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># 工具模块（如定时任务）托管外部回调时按 owner 记名并登记钩子</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">def</span> <span class="token function">register_handler</span><span class="token punctuation">(</span>handler<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     owner <span class="token operator">=</span> on_cleanup<span class="token punctuation">(</span><span class="token keyword">lambda</span> o<span class="token punctuation">:</span> _drop_owner_handlers<span class="token punctuation">(</span>o<span class="token punctuation">)</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     _handlers<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">(</span>owner<span class="token punctuation">,</span> handler<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<pre><code class="language-python"><span class="token comment"># 工具模块（如定时任务）托管外部回调时按 owner 记名并登记钩子</span>
+<span class="token keyword">def</span> <span class="token function">register_handler</span><span class="token punctuation">(</span>handler<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    owner <span class="token operator">=</span> on_cleanup<span class="token punctuation">(</span><span class="token keyword">lambda</span> o<span class="token punctuation">:</span> _drop_owner_handlers<span class="token punctuation">(</span>o<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    _handlers<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">(</span>owner<span class="token punctuation">,</span> handler<span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h3 id="off_cleanupcallback-callablestr-any-owner-str-none-none"><code>off_cleanup(callback: Callable[[str], Any], owner: str | None = None)</code></h3>
+<h3 id="off_cleanupcallback-callablestr-any-owner-str-none-none---int"><code>off_cleanup(callback: Callable[[str], Any], owner: str | None = None) -&gt; int</code></h3>
 <p>注销归属清理钩子</p>
 <p>工具模块应在自身 <code>on_unload</code> 中调用 <code>off_cleanup(cb)</code> 注销自己
 登记过的钩子，避免钩子表持有自身实例引用导致无法被回收。</p>
 <ul>
-<li><strong>callback</strong> (<code>已登记的清理回调</code>): - <strong>owner</strong>: 仅注销该 owner 名下的钩子；None 表示注销该回调的全部
-<strong>返回值</strong> (<code>int</code>): 实际注销的条目数</li>
+<li><strong>callback</strong>: 已登记的清理回调</li>
+<li><strong>owner</strong>: 仅注销该 owner 名下的钩子；None 表示注销该回调的全部</li>
 </ul>
+<p><strong>返回值</strong> (<code>int</code>): 实际注销的条目数</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     off_cleanup<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_owner_guard<span class="token punctuation">)</span>  <span class="token comment"># 移除本模块登记的全部钩子</span>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    off_cleanup<span class="token punctuation">(</span>self<span class="token punctuation">.</span>_owner_guard<span class="token punctuation">)</span>  <span class="token comment"># 移除本模块登记的全部钩子</span>
 </code></pre>
 <hr>
-<h3 id="async-run_owner_cleanupsowner-str"><code>async run_owner_cleanups(owner: str)</code></h3>
+<h3 id="async-run_owner_cleanupsowner-str---int"><code>async run_owner_cleanups(owner: str) -&gt; int</code></h3>
 <p>触发并移除指定 owner 的全部清理钩子（框架清理链内部调用）</p>
 <p>依次执行钩子并从表中移除；异步回调带超时保护（超时视同失败），
 单个回调异常被隔离、仅记日志，不中断其余钩子与清理链。</p>
-<blockquote>
 <p><strong>内部方法</strong>
 由模块卸载/禁用与适配器关闭的清理链调用；重复调用同一 owner 时
 首次后即为空操作。</p>
-</blockquote>
 <ul>
-<li><strong>owner</strong> (<code>归属者（模块名/适配器平台名）</code>): <strong>返回值</strong> (<code>int</code>): 成功执行的回调数</li>
+<li><strong>owner</strong>: 归属者（模块名/适配器平台名）</li>
 </ul>
+<p><strong>返回值</strong> (<code>int</code>): 成功执行的回调数</p>
 <hr>
-<h3 id="_log_failureowner-str-callback-callablestr-any"><code>_log_failure(owner: str, callback: Callable[[str], Any])</code></h3>
+<h3 id="_log_failureowner-str-callback-callablestr-any-error-exception-none-none-timeout-bool-false---none"><code>_log_failure(owner: str, callback: Callable[[str], Any], *, error: Exception | None = None, timeout: bool = False) -&gt; None</code></h3>
 <p>记录钩子执行失败（惰性导入框架日志/i18n，避免运行时层的循环依赖）</p>
-<blockquote>
 <p><strong>内部方法</strong></p>
-</blockquote>
 <hr>
 
         </article>

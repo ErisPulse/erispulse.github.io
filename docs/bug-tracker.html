@@ -834,7 +834,7 @@
 <p><strong>问题</strong>: 以 <code>scope.set(path, value, persist=False)</code> 写入的运行时绑定（文档承诺不落盘、进程重启即失效、模块卸载时清理）会随任意一次无关的 <code>persist=True</code> 写入（默认值，如模块 <code>set_module</code> / WebUI 保存配置）被差量写入用户 <code>config.toml</code>；此后即使模块卸载注销了运行时绑定，下次配置重载时该绑定仍从磁盘"复活"继续生效、进程重启后依然存在——与"运行时绑定不落盘"的语义契约相反，且极难排查。</p>
 <p><strong>原因</strong>: 根因链路：<code>ScopeManager.set()</code> 先把值写入内存配置树 <code>_data</code>（运行时绑定同样直接写入 <code>_data</code>）→ 持久化分支对<strong>整棵 <code>_data</code></strong> 做深拷贝快照提交给 <code>update_erispulse_config</code> 差量落盘 → 快照中混入了 <code>persist=False</code> 绑定的值。<code>delete(persist=True)</code> 同源：把 <code>_data</code> 的活引用（<code>parent</code> 节点）交给延迟写脏队列，延迟刷盘期间对该节点下兄弟键的运行时修改会被一并落盘，且活引用在脏队列滞留期间存在跨写污染窗口。</p>
 <p><strong>影响版本</strong>: 2.8.0-dev.2 - 2.9.0-dev.0</p>
-<p><strong>修复版本</strong>: 2.9.0-dev.1</p>
+<p><strong>修复版本</strong>: 2.9.0-dev.2</p>
 <p><strong>修复内容</strong>: 引入持久化基线 <code>_persisted_tree</code>（配置树重建时以磁盘加载、校验后的树刷新）作为磁盘真相镜像：<code>set(persist=True)</code> 只在基线上应用本次变更后提交差量，运行时绑定永不进入持久化内容；"写后立读"改用内存最终态快照直接恢复，不再经 <code>_apply_tree</code> 重建以免污染基线。<code>delete(persist=True)</code> 同口径：在基线上应用删除并把基线子树的深拷贝交给持久化层；<code>set_action</code> 整体替换语义先按同口径删除再写入，旧规则键不残留在持久化内容中。</p>
 <p><strong>修复日期</strong>: 2026/09/27</p>
 <p><strong>复现步骤</strong>: ① 模块内执行 <code>scope.set("bots.p.debug_mode", {"blocked": ["X"]}, persist=False)</code>；② 触发任意持久化写入（如另一模块调用 <code>set_module</code>）；③ 打开 <code>config/config.toml</code>，可见 <code>debug_mode</code> 已被写入（修复前）；④ 卸载该模块（运行时绑定被注销）后触发配置重载，<code>scope.get("bots.p.debug_mode")</code> 仍返回绑定值。</p>
@@ -845,8 +845,8 @@
 <h3 id="bug-039-整节写与点分写并存时读写不一致点分覆写丢失">[BUG-039] 整节写与点分写并存时读写不一致（点分覆写丢失）</h3>
 <p><strong>问题</strong>: 延迟刷盘窗口内，同节并存整节写（<code>setConfig("Mod", {...})</code>，如 <code>BaseModule.cfg</code> 写回）与点分写（<code>setConfig("Mod.key", v)</code>，如配置热更 / 测试工具覆写）时有两个变体：变体 A（读路径）——<code>getConfig("Mod")</code> 整节读取返回旧整节待写快照，看不到更晚的点分覆写（点分读取路径正常）；变体 B（写路径，更重）——点分写在前、整节写在后（测试工具注入覆写 → 模块 <code>self.cfg = ...</code> 写回的常见时序）时，flush 按插入序应用脏键，整节写整体替换该节，<strong>点分覆写在磁盘上永久丢失</strong>。生产环境"配置热更 + 模块运行时写回"组合即可触发，与测试环境无关（ErisPulse-DailyCard 测试反馈暴露）。</p>
 <p><strong>原因</strong>: <code>getConfig</code> 第①段（精确命中 <code>_dirty_keys</code>）提前 <code>return self._dirty_keys[key]</code>，完全绕过第④段 <code>_dirty_overlay</code> 后代叠加；<code>_flush_config</code> 按 <code>_dirty_keys</code> 插入序应用脏键，整节写恰好排在点分写之后时点分值被整体替换。另：第①段返回脏队列<strong>原对象引用</strong>，调用方原地修改返回 dict 会直接改动待落盘状态。</p>
-<p><strong>影响版本</strong>: 2.6.0 - 2.9.0-dev.1</p>
-<p><strong>修复版本</strong>: 2.9.0-dev.1</p>
+<p><strong>影响版本</strong>: 2.6.0 - 2.9.0-dev.2</p>
+<p><strong>修复版本</strong>: 2.9.0-dev.2</p>
 <p><strong>修复内容</strong>: 脏窗口内统一为<strong>特异性优先</strong>语义——点分（更具体）待写值优先于整节（较宽）待写值，读路径与落盘路径同口径：① <code>getConfig</code> 精确命中待写键后仍叠加 <code>_dirty_overlay</code> 后代待写值（非 dict 值返回叠加子树，与③+④标量边角同口径）；② <code>_flush_config</code> 脏键按路径深度排序应用（整节/祖先先、点分/后代后，稳定排序保持同深度写入时序）。代价：同一脏窗口内（约 5 秒）整节写回无法覆盖仍挂起的点分写——读路径修复后读-改-写自然携带点分值，实际影响面极小。③ 涉及待写值的 <code>getConfig</code> 返回（精确命中 / 祖先子树 / 叠加合并）改为 <code>copy.deepcopy</code> 隔离拷贝，不再泄漏脏队列内部引用；无脏键快路径与纯缓存读行为不变。</p>
 <p><strong>修复日期</strong>: 2026/09/28</p>
 <p><strong>复现步骤</strong>: ① <code>setConfig("FB.y", 1)</code>；② <code>setConfig("FB", {"z": 2})</code>；③ <code>force_save()</code>——修复前磁盘只剩 <code>[FB] z = 2</code>（y 丢失），修复后 <code>{"y": 1, "z": 2}</code>；变体 A：步骤①②后不落盘直接 <code>getConfig("FB")</code>——修复前不含 <code>y</code>，修复后可见。</p>

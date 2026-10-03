@@ -81,15 +81,18 @@
 从而支持按模块精确清理（热禁用、热重载）。</p>
 <blockquote>
 <p><strong>提示</strong>
-使用方式::
-from ErisPulse.runtime.context import owner_scope, get_current_owner</p>
-<h1 id="或通过-sdksdkcontextowner_scope-sdkcontextget_current_owner">或通过 SDK：sdk.context.owner_scope(...) / sdk.context.get_current_owner()</h1>
-<h1 id="在指定-owner-上下文下执行代码块自动复位">在指定 owner 上下文下执行代码块（自动复位）</h1>
-<p>with owner_scope("Dashboard"):</p>
-<h1 id="注册的-handler-会自动打上-ownerdashboard">注册的 handler 会自动打上 owner="Dashboard"</h1>
-<p>pass</p>
-<h1 id="读取当前-owner">读取当前 owner</h1>
-<p>owner = get_current_owner()  # 返回 "Dashboard" 或 None</p>
+使用方式:</p>
+<pre><code>from ErisPulse.runtime.context import owner_scope, get_current_owner
+# 或通过 SDK：sdk.context.owner_scope(...) / sdk.context.get_current_owner()
+
+# 在指定 owner 上下文下执行代码块（自动复位）
+with owner_scope("Dashboard"):
+    # 注册的 handler 会自动打上 owner="Dashboard"
+    pass
+
+# 读取当前 owner
+owner = get_current_owner()  # 返回 "Dashboard" 或 None
+</code></pre>
 </blockquote>
 <hr>
 <h2 id="函数列表">函数列表</h2>
@@ -99,54 +102,54 @@ from ErisPulse.runtime.context import owner_scope, get_current_owner</p>
 可用本上下文管理器让资源自动归属到指定 owner，从而被作用域过滤与按 owner 清理识别。
 比手写 <code>token = current_owner.set(...); try/finally: reset</code> 更简洁安全。</p>
 <ul>
-<li><strong>owner</strong> (<code>资源归属者（模块名或适配器平台名），None</code>): 表示清除当前 owner</li>
+<li><strong>owner</strong>: 资源归属者（模块名或适配器平台名），None 表示清除当前 owner</li>
 </ul>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">with</span> owner_scope<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     @command<span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<pre><code class="language-python"><span class="token keyword">with</span> owner_scope<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
 <hr>
-<h3 id="get_current_owner"><code>get_current_owner()</code></h3>
+<h3 id="get_current_owner---str-none"><code>get_current_owner() -&gt; str | None</code></h3>
 <p>获取当前资源归属者（模块名或适配器平台名）</p>
 <p>在事件处理器 / 命令 / 钩子执行期间，框架已注入对应模块或适配器的 owner，
 可用于日志归因、权限判断等。</p>
-<p><strong>返回值</strong> (<code>当前</code>): owner，不在任何加载/执行上下文时返回 None</p>
+<p><strong>返回值</strong>: 当前 owner，不在任何加载/执行上下文时返回 None</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> owner <span class="token operator">=</span> get_current_owner<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<pre><code class="language-python">owner <span class="token operator">=</span> get_current_owner<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h3 id="get_current_caller"><code>get_current_caller()</code></h3>
+<h3 id="get_current_caller---str-none"><code>get_current_caller() -&gt; str | None</code></h3>
 <p>获取当前跨模块调用的调用方身份（模块名或适配器平台名）</p>
 <p>经 <code>sdk.module.call()</code> 被调用期间，<code>current_owner</code> 已归因到目标
 模块（自己的代码归属自己），而调用方身份保留在本上下文中——被调方
 可据此识别"谁在调用我"。直接属性访问（<code>sdk.Cron.once(...)</code>）不经
 此上下文，此时调用方身份即 <code>get_current_owner()</code>。</p>
-<p><strong>返回值</strong> (<code>调用方身份，非</code>): <code>module.call</code> 调用链或框架层调用时返回 None</p>
+<p><strong>返回值</strong>: 调用方身份，非 <code>module.call</code> 调用链或框架层调用时返回 None</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> caller <span class="token operator">=</span> get_current_caller<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># "OrderModule" 或 None</span>
+<pre><code class="language-python">caller <span class="token operator">=</span> get_current_caller<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># "OrderModule" 或 None</span>
 </code></pre>
 <hr>
-<h3 id="get_handler_waits"><code>get_handler_waits()</code></h3>
+<h3 id="get_handler_waits---listdictstr-any-none"><code>get_handler_waits() -&gt; list[dict[str, Any]] | None</code></h3>
 <p>获取当前 handler 的 wait_reply 调用记录（slow-log 归因用）</p>
-<p><strong>返回值</strong> (<code>记录列表或</code>): None（不在 handler / Task 上下文内）</p>
+<p><strong>返回值</strong>: 记录列表或 None（不在 handler / Task 上下文内）</p>
 <hr>
-<h3 id="get_current_trace_id"><code>get_current_trace_id()</code></h3>
+<h3 id="get_current_trace_id---str-none"><code>get_current_trace_id() -&gt; str | None</code></h3>
 <p>获取当前事件处理链路的追踪 ID（trace-id）</p>
 <p>在事件分发 / handler 执行 / 出站发送期间可读取，用于跨模块日志关联；
 不在事件处理上下文内（如后台定时任务）返回 None。</p>
-<p><strong>返回值</strong> (<code>当前</code>): trace-id 或 None</p>
+<p><strong>返回值</strong>: 当前 trace-id 或 None</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> trace_id <span class="token operator">=</span> get_current_trace_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<pre><code class="language-python">trace_id <span class="token operator">=</span> get_current_trace_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h3 id="get_send_receipts"><code>get_send_receipts()</code></h3>
+<h3 id="get_send_receipts---listdictstr-str-none"><code>get_send_receipts() -&gt; list[dict[str, str]] | None</code></h3>
 <p>获取当前消息事务的回执账本</p>
 <p>仅在 <code>Event.message_tx()</code> 事务内返回非 None；
 可用于查看本次事务已发送了哪些消息。</p>
-<p><strong>返回值</strong> (<code>回执记录列表或</code>): None（不在事务内）</p>
+<p><strong>返回值</strong>: 回执记录列表或 None（不在事务内）</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> receipts <span class="token operator">=</span> get_send_receipts<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<pre><code class="language-python">receipts <span class="token operator">=</span> get_send_receipts<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
 

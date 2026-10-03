@@ -82,11 +82,9 @@
 以便测试与子类按 <code>patch.object(SDK, "_start_proactive_gc")</code> 方式补丁。</p>
 <hr>
 <h2 id="函数列表">函数列表</h2>
-<h3 id="start_proactive_gcsdk-sdk"><code>start_proactive_gc(sdk: SDK)</code></h3>
-<blockquote>
+<h3 id="start_proactive_gcsdk-sdk---none"><code>start_proactive_gc(sdk: SDK) -&gt; None</code></h3>
 <p><strong>内部方法</strong>
 启动主动 GC 后台任务</p>
-</blockquote>
 <p>定期执行 Python GC 和内部资源回收（离线 Bot 清理等），
 防止长期运行时的内存增长。</p>
 <p>GC 行为由多项框架配置控制（均支持热更新，变更时即时重启任务）：</p>
@@ -101,47 +99,39 @@
 <p>初始化阶段已调用 <code>gc.freeze()</code> 将框架对象移入永久代，
 此处 <code>gc.collect()</code> 仅扫描运行期新建对象。</p>
 <hr>
-<h3 id="stop_proactive_gcsdk-sdk"><code>stop_proactive_gc(sdk: SDK)</code></h3>
-<blockquote>
+<h3 id="stop_proactive_gcsdk-sdk---none"><code>stop_proactive_gc(sdk: SDK) -&gt; None</code></h3>
 <p><strong>内部方法</strong>
 停止主动 GC 后台任务，并反注册配置变更钩子</p>
-</blockquote>
 <hr>
-<h3 id="read_gc_config"><code>read_gc_config()</code></h3>
-<blockquote>
+<h3 id="read_gc_config---tuplefloat-int-int-int-bool-int"><code>read_gc_config() -&gt; tuple[float, int, int, int, bool, int]</code></h3>
 <p><strong>内部方法</strong>
 读取并钳制主动 GC 相关框架配置</p>
-</blockquote>
-<p><strong>返回值</strong> (```(interval,`): generation, full_every, growth_mb, idle_only, gen0_min)<code>          元组，值均已钳制到合法范围；</code>interval`` 为秒（支持小数）</p>
+<p><strong>返回值</strong>: <code>(interval, generation, full_every, growth_mb, idle_only, gen0_min)</code></p>
+<pre><code>     元组，值均已钳制到合法范围；``interval`` 为秒（支持小数）
+</code></pre>
 <hr>
-<h3 id="on_gc_config_eventsdk-sdk-_data-dict"><code>on_gc_config_event(sdk: SDK, _data: dict)</code></h3>
-<blockquote>
+<h3 id="on_gc_config_eventsdk-sdk-_data-dict---none"><code>on_gc_config_event(sdk: SDK, _data: dict) -&gt; None</code></h3>
 <p><strong>内部方法</strong>
 <code>config.set</code> / <code>config.updated</code> 回调：proactive_gc_* 配置变化时重启 GC 任务</p>
-</blockquote>
 <p>相比旧实现"每轮重读"，此钩子使配置变更（含 0→N 重新启用）即时生效。
 从后台线程（如 config watcher）触发时，调度回主事件循环再重启。</p>
 <hr>
-<h3 id="has_handler_backlog"><code>has_handler_backlog()</code></h3>
-<blockquote>
+<h3 id="has_handler_backlog---bool"><code>has_handler_backlog() -&gt; bool</code></h3>
 <p><strong>内部方法</strong>
 事件处理器洪峰检测</p>
-</blockquote>
-<p><strong>返回值</strong> (<code>存在未完成的</code>): pending handler task 时返回 True</p>
+<p><strong>返回值</strong>: 存在未完成的 pending handler task 时返回 True</p>
 <hr>
-<h3 id="run_full_gc_collectiongc_module-any-baseline-float-none-growth_mb-int"><code>run_full_gc_collection(gc_module: Any, baseline: float | None, growth_mb: int)</code></h3>
-<blockquote>
+<h3 id="run_full_gc_collectiongc_module-any-baseline-float-none-growth_mb-int---tupleint-float-none"><code>run_full_gc_collection(gc_module: Any, baseline: float | None, growth_mb: int) -&gt; tuple[int, float | None]</code></h3>
 <p><strong>内部方法</strong>
 执行一次全量回收（受内存增长门限约束）</p>
-</blockquote>
 <p>优先使用 tracemalloc 追踪值，不可用则回退 RSS。当 <code>growth_mb &gt; 0</code>
 且距上次全量回收基线增长不足时跳过回收，避免内存稳定时空转。</p>
 <ul>
-<li><strong>gc_module</strong> (<code>gc</code>): 模块（便于测试注入）</li>
-<li><strong>baseline</strong> (<code>上次全量回收后的内存基线（MB），None</code>): 表示首次</li>
-<li><strong>growth_mb</strong> (<code>内存增长门限（MB），0</code>): 表示不设门限
-<strong>返回值</strong> (```(collected,`): 新基线)``</li>
+<li><strong>gc_module</strong>: <code>gc</code> 模块（便于测试注入）</li>
+<li><strong>baseline</strong>: 上次全量回收后的内存基线（MB），None 表示首次</li>
+<li><strong>growth_mb</strong>: 内存增长门限（MB），0 表示不设门限</li>
 </ul>
+<p><strong>返回值</strong>: <code>(collected, 新基线)</code></p>
 <hr>
 
         </article>

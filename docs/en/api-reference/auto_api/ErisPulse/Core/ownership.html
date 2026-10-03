@@ -110,100 +110,107 @@ owner 名下的全部资源（模块卸载 / 禁用 / 失败回滚共用的回�
 子系统内部表通过惰性导入访问，避免加载链耦合（与 module.py 清理链的
 既有风格一致）。</p>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="register_shadowowner-str"><code>register_shadow(owner: str)</code></h5>
+<h5 id="register_shadowowner-str---none"><code>register_shadow(owner: str) -&gt; None</code></h5>
 <p>登记影子 owner（ShadowManager 装配影子模块时调用）</p>
 <ul>
-<li><strong>owner</strong> (<code>影子</code>): owner 名（如 <code>"roll_shadow"</code>）</li>
+<li><strong>owner</strong>: 影子 owner 名（如 <code>"roll_shadow"</code>）</li>
 </ul>
 <hr>
-<h5 id="unregister_shadowowner-str"><code>unregister_shadow(owner: str)</code></h5>
+<h5 id="unregister_shadowowner-str---none"><code>unregister_shadow(owner: str) -&gt; None</code></h5>
 <p>移除影子 owner 登记（影子转正 / 放弃时调用）</p>
 <ul>
-<li><strong>owner</strong> (<code>影子</code>): owner 名</li>
+<li><strong>owner</strong>: 影子 owner 名</li>
 </ul>
 <hr>
-<h5 id="is_shadowowner-str-none"><code>is_shadow(owner: 'str | None')</code></h5>
+<h5 id="is_shadowowner-str-none---bool"><code>is_shadow(owner: 'str | None') -&gt; bool</code></h5>
 <p>判定 owner 是否为影子模块 owner（八道隔离闸的统一判定入口）</p>
 <ul>
-<li><strong>owner</strong> (<code>owner</code>): 名
-<strong>返回值</strong> (<code>是否为已登记的影子</code>): owner</li>
+<li><strong>owner</strong> (<code>owner</code>): 名</li>
 </ul>
+<p><strong>返回值</strong>: 是否为已登记的影子 owner</p>
 <hr>
-<h5 id="shadow_owners"><code>shadow_owners()</code></h5>
+<h5 id="shadow_owners---frozensetstr"><code>shadow_owners() -&gt; 'frozenset[str]'</code></h5>
 <p>当前全部影子 owner（只读视图）</p>
-<p><strong>返回值</strong> (<code>影子</code>): owner 名集合</p>
+<p><strong>返回值</strong>: 影子 owner 名集合</p>
 <hr>
-<h5 id="async-reclaimowner-str"><code>async reclaim(owner: str)</code></h5>
+<h5 id="async-reclaimowner-str---dictstr-int"><code>async reclaim(owner: str) -&gt; 'dict[str, int]'</code></h5>
 <p>统一注销 owner 名下的全部资源（异步完整版）</p>
 <p>顺序：取消归属后台任务 → 触发外部清理钩子（on_cleanup）→ 注销全部
 注册类资源。模块卸载 / 禁用的标准回收路径。</p>
 <ul>
-<li><strong>owner</strong> (<code>owner</code>): 名（模块名或适配器平台名）
-<strong>返回值</strong> (<code>各类资源注销数量（键见</code>): :meth:<code>reclaim_sync</code>，另含
-   <code>tasks_cancelled</code> / <code>cleanups_run</code>）</li>
+<li><strong>owner</strong> (<code>owner</code>): 名（模块名或适配器平台名）</li>
 </ul>
+<p><strong>返回值</strong>: 各类资源注销数量（键见 :meth:<code>reclaim_sync</code>，另含</p>
+<pre><code>     ``tasks_cancelled`` / ``cleanups_run``）
+</code></pre>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ownership
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> ownership<span class="token punctuation">.</span>reclaim<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ownership
+<span class="token keyword">await</span> ownership<span class="token punctuation">.</span>reclaim<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="async-reclaim_tasksowner-str"><code>async reclaim_tasks(owner: str)</code></h5>
+<h5 id="async-reclaim_tasksowner-str---dictstr-int"><code>async reclaim_tasks(owner: str) -&gt; 'dict[str, int]'</code></h5>
 <p>注销 owner 的进行中工作：归属后台任务取消 + 外部清理钩子触发</p>
 <ul>
-<li><strong>owner</strong> (<code>owner</code>): 名
-<strong>返回值</strong> (<code>{"tasks_cancelled":</code>): int, "cleanups_run": int}</li>
+<li><strong>owner</strong> (<code>owner</code>): 名</li>
 </ul>
+<p><strong>返回值</strong>: {"tasks_cancelled": int, "cleanups_run": int}</p>
 <hr>
-<h5 id="reclaim_syncowner-str"><code>reclaim_sync(owner: str)</code></h5>
+<h5 id="reclaim_syncowner-str---dictstr-int"><code>reclaim_sync(owner: str) -&gt; 'dict[str, int]'</code></h5>
 <p>注销 owner 的全部注册类资源（同步版，不含任务取消）</p>
 <p>涵盖：i18n 翻译域、路由（命名空间 + owner 兜底）、适配器事件处理器、
 自定义会话类型、平台事件方法注入、事件覆写、scope 覆写、命令与
 四类事件处理器、交互会话等待、主人身份源、生命周期钩子。
 每步独立容错，单步失败不阻断后续回收。</p>
 <ul>
-<li><strong>owner</strong> (<code>owner</code>): 名（模块名或适配器平台名）
-<strong>返回值</strong> (<code>各类资源注销数量</code>): 
-<strong>示例</strong>:</li>
+<li><strong>owner</strong> (<code>owner</code>): 名（模块名或适配器平台名）</li>
 </ul>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> ownership<span class="token punctuation">.</span>reclaim_sync<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
+<p><strong>返回值</strong>: 各类资源注销数量</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">ownership<span class="token punctuation">.</span>reclaim_sync<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span><span class="token string">"routes_http"</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">"commands"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span>
 </code></pre>
 <hr>
-<h5 id="countsowner-str-none-none"><code>counts(owner: 'str | None' = None)</code></h5>
+<h5 id="countsowner-str-none-none---any"><code>counts(owner: 'str | None' = None) -&gt; Any</code></h5>
 <p>统计 owner 在册的归属资源（只读，无副作用）</p>
 <ul>
-<li><strong>owner</strong> (<code>owner</code>): 名；None 时返回全部 owner 的计数
-<strong>返回值</strong> (<code>owner</code>): 给定时为 {资源类: 数量}；None 时为
-   {owner: {资源类: 数量}}（未挂任何资源的 owner 不出现）</li>
+<li><strong>owner</strong> (<code>owner</code>): 名；None 时返回全部 owner 的计数</li>
 </ul>
+<p><strong>返回值</strong>: <code>owner</code> 给定时为 {资源类: 数量}；None 时为</p>
+<pre><code>     {owner: {资源类: 数量}}（未挂任何资源的 owner 不出现）
+</code></pre>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> ownership<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
+<pre><code class="language-python">ownership<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span><span class="token string">"commands"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token string">"lifecycle_hooks"</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">}</span>
 </code></pre>
 <hr>
-<h5 id="orphans"><code>orphans()</code></h5>
+<h5 id="orphans---listdictstr-any"><code>orphans() -&gt; 'list[dict[str, Any]]'</code></h5>
 <p>孤儿 owner 扫描：资源仍在册、而 owner（模块 / 适配器）已注销</p>
 <p>这是资源泄漏的实锤信号——清理链对"有注册存根的 owner"生效，
 孤儿资源（如工具模块私有容器持有的句柄、第三方库内部的引用）
 框架无法自动回收，但本扫描让它们<strong>可见</strong>。</p>
-<p><strong>返回值</strong> (<code>{"owner": str, "total": int, "resources": {资源类: 数量}}, ...</code>): 按 owner 名排序；无孤儿时为空列表</p>
+<p><strong>返回值</strong> (<code>{"owner": str, "total": int, "resources": {资源类: 数量}}, ...</code>):</p>
+<pre><code>     按 owner 名排序；无孤儿时为空列表
+</code></pre>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ownership
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> ownership<span class="token punctuation">.</span>orphans<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ownership
+ownership<span class="token punctuation">.</span>orphans<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"owner"</span><span class="token punctuation">:</span> <span class="token string">"ghost_module"</span><span class="token punctuation">,</span> <span class="token string">"total"</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">"resources"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"commands"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span>
 </code></pre>
 <hr>
-<h5 id="auditowner-str-none-none-deep-bool-false"><code>audit(owner: 'str | None' = None, deep: bool = False)</code></h5>
+<h5 id="auditowner-str-none-none-deep-bool-false---dictstr-any"><code>audit(owner: 'str | None' = None, deep: bool = False) -&gt; 'dict[str, Any]'</code></h5>
 <p>泄漏审计：计数 + 孤儿扫描（+ 可选 gc 实例普查）</p>
 <ul>
-<li><strong>owner</strong> (<code>目标</code>): owner（模块名）；None 时审计全局（全部 owner 计数）</li>
-<li><strong>deep</strong> (<code>对模块实例做</code>): weakref 存活普查——<code>gc.collect()</code> 后检查
-       实例是否可回收，不可回收时给出引用方类型（有全局暂停
-       开销，仅显式使用）</li>
+<li><p><strong>owner</strong>: 目标 owner（模块名）；None 时审计全局（全部 owner 计数）</p>
+</li>
+<li><p><strong>deep</strong>: 对模块实例做 weakref 存活普查——<code>gc.collect()</code> 后检查</p>
+<pre><code>       实例是否可回收，不可回收时给出引用方类型（有全局暂停
+       开销，仅显式使用）
+</code></pre>
+</li>
 </ul>
-<p><strong>返回值</strong> (<code>审计报告</code>): dict（owner / counts / orphans / 深普查结果）</p>
+<p><strong>返回值</strong>: 审计报告 dict（owner / counts / orphans / 深普查结果）</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> ownership<span class="token punctuation">.</span>audit<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">,</span> deep<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+<pre><code class="language-python">ownership<span class="token punctuation">.</span>audit<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">,</span> deep<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span><span class="token string">"owner"</span><span class="token punctuation">:</span> <span class="token string">"roll"</span><span class="token punctuation">,</span> <span class="token string">"counts"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token string">"orphans"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"instance_recyclable"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
 </code></pre>
 <hr>

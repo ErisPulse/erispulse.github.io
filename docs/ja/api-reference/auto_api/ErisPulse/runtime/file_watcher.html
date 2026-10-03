@@ -91,31 +91,36 @@
 <p>文件事件处理器基类</p>
 <p>子类可覆写 on_modified 等回调以响应文件变更事件。</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">class</span> <span class="token class-name">MyHandler</span><span class="token punctuation">(</span>FileSystemEventHandler<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">def</span> <span class="token function">on_modified</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>         <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"changed: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>src_path<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyHandler</span><span class="token punctuation">(</span>FileSystemEventHandler<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">on_modified</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"changed: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>src_path<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="on_modifiedevent-filechangeevent"><code>on_modified(event: 'FileChangeEvent')</code></h5>
+<h5 id="on_modifiedevent-filechangeevent---none"><code>on_modified(event: 'FileChangeEvent') -&gt; None</code></h5>
 <p>文件修改事件回调</p>
 <ul>
 <li><strong>event</strong> (<code>FileChangeEvent</code>): 文件变更事件</li>
 </ul>
 <hr>
-<h5 id="on_createdevent-filechangeevent"><code>on_created(event: 'FileChangeEvent')</code></h5>
+<h5 id="on_createdevent-filechangeevent---none"><code>on_created(event: 'FileChangeEvent') -&gt; None</code></h5>
 <p>文件创建事件回调</p>
 <ul>
 <li><strong>event</strong> (<code>FileChangeEvent</code>): 文件变更事件</li>
 </ul>
 <hr>
-<h5 id="on_deletedevent-filechangeevent"><code>on_deleted(event: 'FileChangeEvent')</code></h5>
+<h5 id="on_deletedevent-filechangeevent---none"><code>on_deleted(event: 'FileChangeEvent') -&gt; None</code></h5>
 <p>文件删除事件回调</p>
 <ul>
 <li><strong>event</strong> (<code>FileChangeEvent</code>): 文件变更事件</li>
 </ul>
 <hr>
-<h5 id="on_movedevent-filechangeevent"><code>on_moved(event: 'FileChangeEvent')</code></h5>
+<h5 id="on_movedevent-filechangeevent---none"><code>on_moved(event: 'FileChangeEvent') -&gt; None</code></h5>
 <p>文件移动事件回调</p>
+<blockquote>
+<p><strong>提示</strong>
+轮询实现（PollingObserver）基于 mtime 比较，不触发本回调——移动
+表现为旧路径 <code>on_deleted</code> + 新路径 <code>on_created</code>。</p>
+</blockquote>
 <ul>
 <li><strong>event</strong> (<code>FileChangeEvent</code>): 文件变更事件</li>
 </ul>
@@ -147,9 +152,9 @@
 <li><strong>interval</strong> (<code>float</code>): 轮询间隔（秒） (默认: 1.0)</li>
 </ul>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> observer <span class="token operator">=</span> PollingObserver<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> observer<span class="token punctuation">.</span>schedule<span class="token punctuation">(</span>MyHandler<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"."</span><span class="token punctuation">,</span> recursive<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> observer<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<pre><code class="language-python">observer <span class="token operator">=</span> PollingObserver<span class="token punctuation">(</span><span class="token punctuation">)</span>
+observer<span class="token punctuation">.</span>schedule<span class="token punctuation">(</span>MyHandler<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"."</span><span class="token punctuation">,</span> recursive<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+observer<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="方法列表-3">方法列表</h4>
 <h5 id="__init__interval-float-10"><code>__init__(interval: float = 1.0)</code></h5>
@@ -158,7 +163,7 @@
 <li><strong>interval</strong> (<code>float</code>): 轮询间隔（秒） (默认: 1.0)</li>
 </ul>
 <hr>
-<h5 id="scheduleevent_handler-filesystemeventhandler-path-str-recursive-bool-false"><code>schedule(event_handler: FileSystemEventHandler, path: str, recursive: bool = False)</code></h5>
+<h5 id="scheduleevent_handler-filesystemeventhandler-path-str-recursive-bool-false---none"><code>schedule(event_handler: FileSystemEventHandler, path: str, recursive: bool = False) -&gt; None</code></h5>
 <p>注册事件处理器与监控目录</p>
 <ul>
 <li><strong>event_handler</strong> (<code>FileSystemEventHandler</code>): 文件事件处理器</li>
@@ -166,37 +171,34 @@
 <li><strong>recursive</strong> (<code>bool</code>): 是否递归监控子目录 (默认: False)</li>
 </ul>
 <hr>
-<h5 id="start"><code>start()</code></h5>
+<h5 id="start---none"><code>start() -&gt; None</code></h5>
 <p>记录初始快照后启动后台轮询线程</p>
 <hr>
-<h5 id="stop"><code>stop()</code></h5>
+<h5 id="stop---none"><code>stop() -&gt; None</code></h5>
 <p>请求停止轮询线程</p>
 <hr>
-<h5 id="join"><code>join()</code></h5>
+<h5 id="join---none"><code>join() -&gt; None</code></h5>
 <p>等待轮询线程结束</p>
 <hr>
-<h5 id="_walk_pypath-str-recursive-bool"><code>_walk_py(path: str, recursive: bool)</code></h5>
+<h5 id="_walk_pypath-str-recursive-boolstaticmethod"><code>_walk_py(path: str, recursive: bool)</code>（staticmethod）</h5>
 <p>遍历目录下的 .py 文件</p>
-<blockquote>
 <p><strong>内部方法</strong></p>
-</blockquote>
 <ul>
 <li><strong>path</strong> (<code>str</code>): 目录路径</li>
-<li><strong>recursive</strong> (<code>bool</code>): 是否递归子目录
-<strong>返回值</strong> (<code>Generator</code>): .py 文件路径生成器</li>
+<li><strong>recursive</strong> (<code>bool</code>): 是否递归子目录</li>
 </ul>
+<p><strong>返回值</strong> (<code>Generator</code>): .py 文件路径生成器</p>
 <hr>
-<h5 id="_snapshot"><code>_snapshot()</code></h5>
+<h5 id="_snapshot---none"><code>_snapshot() -&gt; None</code></h5>
 <p>记录所有 .py 文件的当前 mtime，作为变更比较基准</p>
-<blockquote>
 <p><strong>内部方法</strong></p>
-</blockquote>
 <hr>
-<h5 id="_run"><code>_run()</code></h5>
+<h5 id="_run---none"><code>_run() -&gt; None</code></h5>
 <p>轮询主循环：比较 mtime 并在变更时回调处理器</p>
-<blockquote>
+<p>除修改外补发创建 / 删除事件：本轮新出现的文件回调 <code>on_created</code>，
+stat 失败（已删除）的文件回调 <code>on_deleted</code>。移动 = 旧路径删除 +
+新路径创建（<code>on_moved</code> 在轮询实现下不触发）。</p>
 <p><strong>内部方法</strong></p>
-</blockquote>
 <hr>
 
         </article>

@@ -95,21 +95,23 @@
 </blockquote>
 <hr>
 <h2 id="函数列表">函数列表</h2>
-<h3 id="_is_successresult-any"><code>_is_success(result: Any)</code></h3>
+<h3 id="_is_successresult-any---bool"><code>_is_success(result: Any) -&gt; bool</code></h3>
 <p>判断发送结果是否为成功</p>
 <p>约定：标准响应 dict 中 <code>status == "ok"</code> 视为成功；
 非 dict 结果（无法判断）默认视为成功，避免误触发重试。</p>
 <ul>
-<li><strong>result</strong> (<code>发送方法的返回值</code>): <strong>返回值</strong>: 是否成功</li>
+<li><strong>result</strong>: 发送方法的返回值</li>
 </ul>
+<p><strong>返回值</strong>: 是否成功</p>
 <hr>
-<h3 id="async-_invoke_callbackcallback-any-ctx-any"><code>async _invoke_callback(callback: Any, ctx: Any)</code></h3>
+<h3 id="async-_invoke_callbackcallback-any-ctx-any---none"><code>async _invoke_callback(callback: Any, ctx: Any) -&gt; None</code></h3>
 <p>安全调用用户回调（兼容同步/异步），异常被吞掉不影响主流程</p>
 <ul>
-<li><strong>callback</strong> (<code>用户回调（同步函数或协程函数）</code>): - <strong>ctx</strong>: 上下文对象（SendContext 或 BatchContext）</li>
+<li><strong>callback</strong>: 用户回调（同步函数或协程函数）</li>
+<li><strong>ctx</strong>: 上下文对象（SendContext 或 BatchContext）</li>
 </ul>
 <hr>
-<h3 id="apply_send_rulesbase_task_factory-any"><code>apply_send_rules(base_task_factory: Any)</code></h3>
+<h3 id="apply_send_rulesbase_task_factory-any-rules-dictstr-any-send_ctx-dictstr-any---asynciotask"><code>apply_send_rules(base_task_factory: Any, *, rules: dict[str, Any], send_ctx: dict[str, Any]) -&gt; asyncio.Task</code></h3>
 <p>根据 <code>_rules</code> 包装一次发送，返回统一处理后的 Task</p>
 <p>该函数：</p>
 <ol>
@@ -121,11 +123,15 @@
 <li>触发 OnProgress / OnError / Hook 回调</li>
 </ol>
 <ul>
-<li><strong>base_task_factory</strong> (<code>无参可调用对象，每次调用返回一个新的</code>): <code>asyncio.Task</code>
-  （重试时需要重新发起，因此用工厂而非固定 Task）</li>
-<li><strong>rules</strong> (<code>SendDSL</code>): 的 <code>_rules</code> 字典</li>
-<li><strong>send_ctx</strong> (<code>基础发送上下文（platform/method/target_type/target_id/bot_id）</code>): <strong>返回值</strong> (<code>统一包装后的</code>): <code>asyncio.Task</code></li>
+<li><p><strong>base_task_factory</strong>: 无参可调用对象，每次调用返回一个新的 <code>asyncio.Task</code></p>
+<p>  （重试时需要重新发起，因此用工厂而非固定 Task）</p>
+</li>
+<li><p><strong>rules</strong> (<code>SendDSL</code>): 的 <code>_rules</code> 字典</p>
+</li>
+<li><p><strong>send_ctx</strong>: 基础发送上下文（platform/method/target_type/target_id/bot_id）</p>
+</li>
 </ul>
+<p><strong>返回值</strong>: 统一包装后的 <code>asyncio.Task</code></p>
 <hr>
 <h2 id="类列表">类列表</h2>
 <h3 id="class-sendcontext"><code>class SendContext</code></h3>
@@ -151,13 +157,13 @@
 :ivar result: 成功时的发送结果
 :ivar extra: 预留扩展字段</p>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="elapsed"><code>elapsed()</code></h5>
+<h5 id="elapsed---floatproperty"><code>elapsed -&gt; float</code>（property）</h5>
 <p>已耗时（秒）</p>
-<p><strong>返回值</strong> (<code>从</code>): started_at 到当前时间（若已结束则为 finished_at）的秒数</p>
+<p><strong>返回值</strong>: 从 started_at 到当前时间（若已结束则为 finished_at）的秒数</p>
 <hr>
-<h5 id="to_dict"><code>to_dict()</code></h5>
+<h5 id="to_dict---dictstr-any"><code>to_dict() -&gt; dict[str, Any]</code></h5>
 <p>转为可序列化字典（用于日志/上报）</p>
-<p><strong>返回值</strong> (<code>包含上下文字段的字典，error</code>): 字段被转为字符串</p>
+<p><strong>返回值</strong>: 包含上下文字段的字典，error 字段被转为字符串</p>
 <hr>
 <h3 id="class-_priorityqueue"><code>class _PriorityQueue</code></h3>
 <p>优先级丢弃的轻量级并发跟踪器（进程内、非持久化）</p>
@@ -165,19 +171,19 @@
 当 <code>drop_if_busy</code> 启用且在途任务超过阈值时，新消息直接放弃。</p>
 <p>阈值可通过 <code>rules["priority_threshold"]</code> 配置（默认 64）。</p>
 <h4 id="方法列表-2">方法列表</h4>
-<h5 id="is_busy"><code>is_busy()</code></h5>
+<h5 id="is_busy---boolclassmethod"><code>is_busy() -&gt; bool</code>（classmethod）</h5>
 <p>判断当前是否处于积压状态</p>
 <hr>
-<h5 id="entertask_id-str"><code>enter(task_id: str)</code></h5>
+<h5 id="entertask_id-str---noneclassmethod"><code>enter(task_id: str) -&gt; None</code>（classmethod）</h5>
 <p>登记一个在途发送任务</p>
 <hr>
-<h5 id="leavetask_id-str"><code>leave(task_id: str)</code></h5>
+<h5 id="leavetask_id-str---noneclassmethod"><code>leave(task_id: str) -&gt; None</code>（classmethod）</h5>
 <p>注销一个在途发送任务</p>
 <hr>
-<h5 id="set_thresholdthreshold-int"><code>set_threshold(threshold: int)</code></h5>
+<h5 id="set_thresholdthreshold-int---noneclassmethod"><code>set_threshold(threshold: int) -&gt; None</code>（classmethod）</h5>
 <p>设置积压阈值</p>
 <hr>
-<h5 id="reset"><code>reset()</code></h5>
+<h5 id="reset---noneclassmethod"><code>reset() -&gt; None</code>（classmethod）</h5>
 <p>重置状态（主要用于测试）</p>
 <hr>
 

@@ -74,8 +74,8 @@
         <article class="markdown-content" id="docs-content">
             <h1 id="руководство-по-развертыванию">Руководство по развертыванию</h1>
 <p>Лучшие практики развертывания бота ErisPulse в производственной среде.</p>
-<h2 id="docker-集成-рекомендуется">Docker 集成 (Рекомендуется)</h2>
-<p>ErisPulse предоставляет официальный Docker-образ, включающий фреймворк ErisPulse и панель управления Dashboard, поддерживает архитектуры <code>linux/amd64</code> и <code>linux/arm64</code>.</p>
+<h2 id="docker-развертывание-рекомендуется">Docker-развертывание (рекомендуется)</h2>
+<p>ErisPulse предоставляет официальный образ Docker, включающий фреймворк ErisPulse и панель управления Dashboard, поддерживающий архитектуры <code>linux/amd64</code> и <code>linux/arm64</code>.</p>
 <h3 id="быстрый-старт">Быстрый старт</h3>
 <pre><code class="language-bash"><span class="token comment"># Загрузка образа</span>
 <span class="token function">docker</span> pull erispulse/erispulse:latest
@@ -86,12 +86,12 @@
 <span class="token comment"># Установка токена для входа в Dashboard и запуск</span>
 <span class="token assign-left variable">ERISPULSE_DASHBOARD_TOKEN</span><span class="token operator">=</span>your-token <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
-<p>После запуска перейдите по адресу <code>http://localhost:8000/Dashboard</code> и используйте установленный токен в качестве пароля для входа.</p>
-<h3 id="ускорение-загрузки-образа-в-китае">Ускорение загрузки образа в Китае</h3>
+<p>После запуска откройте <code>http://localhost:8000/Dashboard</code> и войдите, используя установленный токен в качестве пароля.</p>
+<h3 id="ускорение-загрузки-образов-в-китае">Ускорение загрузки образов в Китае</h3>
 <p>Если Docker Hub недоступен, можно использовать GitHub Container Registry для загрузки образа:</p>
 <pre><code class="language-bash"><span class="token function">docker</span> pull ghcr.io/erispulse/erispulse:latest
 </code></pre>
-<p>При использовании образа из ghcr.io необходимо изменить параметр <code>image</code> в <code>docker-compose.yml</code>:</p>
+<p>При использовании образа ghcr.io необходимо изменить <code>docker-compose.yml</code> для указания нового образа:</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">image</span><span class="token punctuation">:</span> ghcr.io/erispulse/erispulse<span class="token punctuation">:</span>latest
@@ -105,7 +105,7 @@
       <span class="token punctuation">-</span> <span class="token string">"${ERISPULSE_PORT:-8000}:8000"</span>
     <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> ./config<span class="token punctuation">:</span>/app/config
-      <span class="token comment"># Сохранение директории Python-пакетов</span>
+      <span class="token comment"># Постоянное хранение папки Python-пакетов</span>
       <span class="token punctuation">-</span> ./config/.packages<span class="token punctuation">:</span>/usr/local/lib/python3.13/site<span class="token punctuation">-</span>packages
     <span class="token key atrule">environment</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> TZ=$<span class="token punctuation">{</span>TZ<span class="token punctuation">:</span><span class="token punctuation">-</span>Asia/Shanghai<span class="token punctuation">}</span>
@@ -115,7 +115,7 @@
     <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
 </code></pre>
 <blockquote>
-<p>Рекомендуется использовать файл <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> из корня репозитория, он уже содержит вышеуказанные настройки, а также проверку работоспособности, переменные окружения для часового пояса и языка.</p>
+<p>Рекомендуется использовать <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> из корня репозитория, он уже содержит вышеуказанные настройки, а также проверки на работоспособность, переменные окружения часового пояса и языка.</p>
 </blockquote>
 <h3 id="переменные-окружения">Переменные окружения</h3>
 <div class="table-wrapper"><table>
@@ -129,7 +129,7 @@
 <tbody><tr>
 <td><code>ERISPULSE_PORT</code></td>
 <td><code>8000</code></td>
-<td>Порт для панели управления Dashboard</td>
+<td>Порт для Dashboard</td>
 </tr>
 <tr>
 <td><code>ERISPULSE_DASHBOARD_TOKEN</code></td>
@@ -152,18 +152,18 @@
 <td>Принудительный язык интерфейса запуска: <code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code> (переопределяет <code>LANG</code>)</td>
 </tr>
 </tbody></table></div>
-<h3 id="сохранение-данных">Сохранение данных</h3>
-<p>Директория <code>./config</code> монтируется для хранения конфигурационных файлов и базы данных, включая:</p>
+<h3 id="постоянное-хранение-данных">Постоянное хранение данных</h3>
+<p>Папка <code>./config</code> подключена для хранения конфигурации и базы данных, включая:</p>
 <ul>
 <li><code>config/config.toml</code> — конфигурационный файл</li>
 <li><code>config/config.db</code> — база данных SQLite</li>
-<li><code>config/.packages</code> — директория site-packages Python, сохраняющая фреймворк, адаптеры и установленные модули (при первом запуске инициализируется автоматически из резервной копии в образе, последующие установки модулей и горячие обновления фреймворка записываются в эту директорию)</li>
+<li><code>config/.packages</code> — папка site-packages Python, используемая для постоянного хранения, содержит установленные пакеты (впервые при запуске инициализируется из резервной копии в образе, последующие установки и обновления записываются в эту папку)</li>
 </ul>
 <blockquote>
-<p><strong>Обновление фреймворка (включая pre/rc) и самовосстановление образа</strong>: точка входа выполняет проверку целостности основных пакетов при каждом запуске контейнера, при повреждении восстанавливает пакеты по принципу "приоритет установленной пользователем версии" — если версия была явно установлена/обновлена в сохранённом томе (например, предварительная версия, установленная через Dashboard), то она будет переустановлена из PyPI <strong>в той же версии</strong>, без тихого возврата к версии из образа. Таким образом, после обновления фреймворка через Dashboard, при любом перезапуске контейнера будет сохраняться целевая версия.</p>
+<p><strong>Обновление фреймворка (включая pre/rc) и самовосстановление образа</strong>: при каждом запуске контейнера точка входа проверяет целостность основных пакетов, при повреждении восстанавливает версию, установленную пользователем — если версия была установлена через Dashboard (например, pre-версия), она будет переустановлена с PyPI в той же версии, без тихого возврата к версии из образа. Таким образом, после обновления Dashboard фреймворк будет оставаться в нужной версии даже после перезапуска контейнера.</p>
 </blockquote>
 <h2 id="панель-управления-dashboard">Панель управления Dashboard</h2>
-<p>В Docker-образе ErisPulse встроен модуль Dashboard, предоставляющий веб-интерфейс для визуального управления.</p>
+<p>В Docker-образе ErisPulse встроен модуль Dashboard, предоставляющий веб-интерфейс для управления.</p>
 <h3 id="обзор-функций">Обзор функций</h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -178,7 +178,7 @@
 </tr>
 <tr>
 <td>Управление ботами</td>
-<td>Просмотр статуса и информации о ботах на различных платформах</td>
+<td>Просмотр статуса и информации о ботах на разных платформах</td>
 </tr>
 <tr>
 <td>Просмотр событий</td>
@@ -190,11 +190,11 @@
 </tr>
 <tr>
 <td>Управление модулями</td>
-<td>Просмотр, загрузка, выгрузка установленных модулей и адаптеров</td>
+<td>Просмотр, загрузка, отключение установленных модулей и адаптеров</td>
 </tr>
 <tr>
 <td>Магазин модулей</td>
-<td>Просмотр удалённых доступных пакетов и установка с помощью одной кнопки</td>
+<td>Просмотр доступных удаленных пакетов и установка с одного клика</td>
 </tr>
 <tr>
 <td>Редактирование конфигурации</td>
@@ -216,27 +216,27 @@
 <h3 id="установка-модулей-через-dashboard">Установка модулей через Dashboard</h3>
 <p>Dashboard включает функцию магазина модулей, с помощью которой вы можете:</p>
 <ol>
-<li><strong>Установка из магазина</strong>: Просмотр удалённого списка модулей, выбор нужного модуля и установка с помощью одной кнопки</li>
-<li><strong>Загрузка локального пакета</strong>: Прямая загрузка <code>.whl</code> или <code>.zip</code> файлов для установки, удобно для тестирования собственных разработок модулей</li>
+<li><strong>Установить из магазина</strong>: просмотреть список доступных модулей и установить нужный с одного клика</li>
+<li><strong>Загрузить локальный пакет</strong>: загрузить <code>.whl</code> или <code>.zip</code> файл для установки, удобно для тестирования разработанных модулей</li>
 </ol>
 <blockquote>
-<p><strong>Быстрый тестовый процесс для разработчиков модулей</strong>: После развертывания с помощью Docker, в Dashboard используйте функцию «Загрузка локального пакета» для прямой загрузки собранного вами <code>.whl</code> файла для тестирования, без необходимости ручного взаимодействия с контейнером.</p>
+<p><strong>Быстрый тестовый процесс для разработчиков модулей</strong>: после развертывания в Docker, используйте функцию «Загрузить локальный пакет» в Dashboard для загрузки собранного <code>.whl</code> файла и проведения тестирования, без необходимости ручного взаимодействия с контейнером.</p>
 </blockquote>
-<h2 id="мониторинг-процессов-и-жесткий-перезапуск">Мониторинг процессов и жесткий перезапуск</h2>
-<p>Жесткий перезапуск ErisPulse (<code>sdk.hard_restart()</code>) зависит от <strong>внешнего монитора</strong>, который перезапускает процесс при коде выхода 42 — SDK сам не запускает новый процесс. В продакшен-среде обязательно настройте монитор, иначе после жесткого перезапуска процесс не восстановится автоматически:</p>
+<h2 id="надзор-за-процессом-и-жесткий-перезапуск">Надзор за процессом и жесткий перезапуск</h2>
+<p>Жесткий перезапуск ErisPulse (<code>sdk.hard_restart()</code>) зависит от внешнего надзирателя, который перезапускает процесс при коде выхода 42 — SDK сам не запускает новый процесс. В производственной среде необходимо настроить надзирателя, иначе после жесткого перезапуска процесс не будет автоматически восстановлен:</p>
 <ul>
 <li>Docker: <code>restart: unless-stopped</code> (перезапуск при любом коде выхода, включая 42)</li>
 <li>systemd: <code>Restart=on-failure</code> + <code>RestartForceExitStatus=42</code></li>
-<li>PM2 / supervisord: добавьте 42 в список кодов выхода для перезапуска</li>
-<li>Чистый Python с пользовательским монитором: цикл <code>Popen</code> + проверка <code>returncode == 42</code></li>
+<li>PM2 / supervisord: добавьте 42 в список перезапускаемых кодов выхода</li>
+<li>Собственный надзиратель на Python: цикл <code>Popen</code> + проверка <code>returncode == 42</code></li>
 </ul>
-<p>Полные примеры конфигурации мониторов и описание контракта с кодом выхода 42 см. в разделе <a href="/docs/ru/advanced/startup.html#%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE-%D0%BF%D0%BE-%D0%BC%D0%BE%D0%BD%D0%B8%D1%82%D0%BE%D1%80%D0%B0%D0%BC">Процесс запуска → Руководство по мониторам</a>.</p>
-<h2 id="проверка-состояния">Проверка состояния</h2>
-<p>В SDK встроен конечный эндпоинт для проверки состояния:</p>
-<pre><code class="language-bash"><span class="token comment"># Проверка состояния</span>
+<p>Примеры полной конфигурации надзирателей и описание контракта с кодом выхода 42 см. в разделе <a href="/docs/ru/advanced/startup.html#%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE-%D0%BF%D0%BE-%D0%BD%D0%B0%D0%B4%D0%B7%D0%B8%D1%80%D0%B0%D1%82%D0%B5%D0%BB%D1%8F%D0%BC">Процесс запуска → Руководство по надзирателям</a>.</p>
+<h2 id="проверка-работоспособности">Проверка работоспособности</h2>
+<p>SDK включает конечную точку проверки работоспособности:</p>
+<pre><code class="language-bash"><span class="token comment"># Проверка работоспособности</span>
 <span class="token function">curl</span> http://localhost:8000/health
 </code></pre>
-<p>Для проверки состояния в Docker можно добавить в <code>docker-compose.yml</code>:</p>
+<p>Проверку работоспособности в Docker можно добавить в <code>docker-compose.yml</code>:</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">healthcheck</span><span class="token punctuation">:</span>
@@ -247,7 +247,7 @@
       <span class="token key atrule">retries</span><span class="token punctuation">:</span> <span class="token number">3</span>
 </code></pre>
 <h2 id="обратный-прокси">Обратный прокси</h2>
-<p>Если необходимо выставить Dashboard через обратный прокси-сервер, например, Nginx:</p>
+<p>Если необходимо выставить Dashboard через обратный прокси, например, Nginx:</p>
 <pre><code class="language-nginx">server {
     listen 80;
     server_name bot.example.com;
@@ -259,7 +259,7 @@
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # Поддержка WebSocket (требуется для потоковых событий Dashboard)
+    # Поддержка WebSocket (требуется для потока событий Dashboard)
     location /Dashboard/ws {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -271,9 +271,9 @@
 <p>Для SSL можно использовать Let's Encrypt:</p>
 <pre><code class="language-bash"><span class="token function">sudo</span> certbot <span class="token parameter variable">--nginx</span> <span class="token parameter variable">-d</span> bot.example.com
 </code></pre>
-<h2 id="ручная-установка-pip">Ручная установка (pip)</h2>
-<p>Если вы не используете Docker, вы также можете выполнить ручную установку.</p>
-<h3 id="настройка-для-рабочей-среды">Настройка для рабочей среды</h3>
+<h2 id="ручное-развертывание-pip">Ручное развертывание (pip)</h2>
+<p>Если Docker не используется, можно развернуть вручную.</p>
+<h3 id="конфигурация-для-производственной-среды">Конфигурация для производственной среды</h3>
 <pre><code class="language-toml"><span class="token comment"># config/config.toml</span>
 
 <span class="token punctuation">[</span><span class="token table class-name">ErisPulse.server</span><span class="token punctuation">]</span>
@@ -289,7 +289,7 @@
 <span class="token key property">enable_lazy_loading</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
 </code></pre>
 <h3 id="systemd-linux">systemd (Linux)</h3>
-<p>Создайте файл <code>/etc/systemd/system/erispulse-bot.service</code>:</p>
+<p>Создайте <code>/etc/systemd/system/erispulse-bot.service</code>:</p>
 <pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Unit</span><span class="token punctuation">]</span></span>
 <span class="token key attr-name">Description</span><span class="token punctuation">=</span><span class="token value attr-value">ErisPulse Bot</span>
 <span class="token key attr-name">After</span><span class="token punctuation">=</span><span class="token value attr-value">network.target</span>
@@ -314,7 +314,7 @@
 <span class="token function">sudo</span> journalctl <span class="token parameter variable">-u</span> erispulse-bot <span class="token parameter variable">-f</span>
 </code></pre>
 <h3 id="supervisor">Supervisor</h3>
-<p>Создайте файл <code>/etc/supervisor/conf.d/erispulse-bot.conf</code>:</p>
+<p>Создайте <code>/etc/supervisor/conf.d/erispulse-bot.conf</code>:</p>
 <pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">program:erispulse-bot</span><span class="token punctuation">]</span></span>
 <span class="token key attr-name">command</span><span class="token punctuation">=</span><span class="token value attr-value">/opt/erispulse-bot/venv/bin/python -m ErisPulse run main.py</span>
 <span class="token key attr-name">directory</span><span class="token punctuation">=</span><span class="token value attr-value">/opt/erispulse-bot</span>
@@ -326,35 +326,46 @@
 </code></pre>
 <h2 id="рекомендации-по-безопасности">Рекомендации по безопасности</h2>
 <ol>
-<li><strong>Установите токен для Dashboard</strong>: Используйте сильный случайный токен, не оставляйте значение по умолчанию</li>
-<li><strong>Не открывайте порт для публичного доступа</strong>: Если не используется обратный прокси + SSL, ограничьте порт Dashboard доступом только из локальной сети</li>
-<li><strong>Защитите каталог данных</strong>: Каталог <code>config/</code> содержит конфигурацию и базу данных, установите соответствующие права доступа к файлам</li>
-<li><strong>Регулярно обновляйте</strong>: Используйте <code>epsdk self-update</code> или получите последнюю версию Docker-образа</li>
-<li><strong>Не запускайте от root</strong>: При ручной установке создайте специального пользователя</li>
-<li><strong>Используйте стратегию перезапуска Docker</strong>: <code>restart: unless-stopped</code>, чтобы обеспечить автоматический перезапуск после аварийного завершения</li>
+<li><strong>Установите токен для Dashboard</strong>: используйте сильный случайный токен, не используйте значения по умолчанию</li>
+<li><strong>Не открывайте порт для публичного доступа</strong>: если не используется обратный прокси + SSL, ограничьте порт Dashboard внутренней сетью</li>
+<li><strong>Защитите папку с данными</strong>: папка <code>config/</code> содержит конфигурацию и базу данных, установите правильные права доступа</li>
+<li><strong>Регулярно обновляйтесь</strong>: используйте <code>epsdk self-update</code> или обновите Docker-образ</li>
+<li><strong>Не запускайте от root</strong>: при ручном развертывании создайте специального пользователя</li>
+<li><strong>Используйте стратегию перезапуска Docker</strong>: <code>restart: unless-stopped</code>, чтобы автоматически перезапускать процесс при сбое</li>
 </ol>
-<h2 id="множественный-запуск-экземпляров">Множественный запуск экземпляров</h2>
-<p>При запуске нескольких экземпляров роботов:</p>
+<h2 id="многократное-развертывание">Многократное развертывание</h2>
+<p>При запуске нескольких экземпляров бота:</p>
 <ol>
 <li>Каждый экземпляр использует отдельный каталог проекта и <code>docker-compose.yml</code></li>
 <li>Используйте разные порты: <code>ERISPULSE_PORT=8001</code></li>
 <li>Используйте разные имена контейнеров: <code>container_name: erispulse-bot2</code></li>
 </ol>
 <h2 id="обновление-и-обслуживание">Обновление и обслуживание</h2>
-<h3 id="способ-docker">Способ Docker</h3>
-<pre><code class="language-bash"><span class="token comment"># Получение последней версии образа</span>
+<h3 id="docker-метод">Docker-метод</h3>
+<pre><code class="language-bash"><span class="token comment"># Загрузка последнего образа</span>
 <span class="token function">docker</span> compose pull
 
-<span class="token comment"># Перезапуск с использованием нового образа</span>
+<span class="token comment"># Перезапуск с новым образом</span>
 <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
-<h3 id="способ-pip">Способ pip</h3>
+<h3 id="pip-метод">pip-метод</h3>
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
+<h3 id="горячая-перезагрузка-серверных-конфигураций-в-режиме-работы">Горячая перезагрузка серверных конфигураций в режиме работы</h3>
+<p>После изменения адреса прослушивания / порта / SSL-сертификата перезапуск процесса не требуется. В любом корутине вызовите <code>router.reload()</code>:</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># Смена порта</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># Горячая замена сертификата (сценарий продления)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># Параметры по умолчанию используют текущую конфигурацию</span>
+</code></pre>
+<ul>
+<li>Используется один и тот же экземпляр FastAPI, все зарегистрированные HTTP / WebSocket / SSE-маршруты сохраняются</li>
+<li>Сначала проверяется новая конфигурация (можно ли построить сертификат, доступен ли порт), затем происходит переключение; при ошибке сервис возвращается к старой конфигурации и возвращает <code>False</code>, гарантируя, что возвращение <code>False</code> = старый сервис остается доступным</li>
+<li>При отсутствии запущенного сервера возвращается <code>False</code> (при первом запуске используйте <code>sdk.router.start()</code>)</li>
+</ul>
 <h3 id="резервное-копирование">Резервное копирование</h3>
-<p>Регулярно создавайте резервную копию каталога <code>config/</code>:</p>
-<pre><code class="language-bash"><span class="token comment"># Развертывание с использованием Docker</span>
+<p>Регулярно создавайте резервные копии папки <code>config/</code>:</p>
+<pre><code class="language-bash"><span class="token comment"># Docker-развертывание</span>
 <span class="token function">tar</span> czf erispulse-backup-<span class="token variable"><span class="token variable">$(</span><span class="token function">date</span> +%Y%m%d<span class="token variable">)</span></span>.tar.gz config/
 
 <span class="token comment"># Или используйте функцию «Резервное копирование» в Dashboard для экспорта</span>

@@ -125,6 +125,11 @@ is_running <span class="token operator">=</span> sdk<span class="token punctuati
 
 <span class="token comment"># 列出所有正在運行的適配器</span>
 running <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_running<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 讀取適配器元資訊（對齊 module.get_meta，供面板 / 商店等消費）</span>
+info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_info<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>   <span class="token comment"># 注冊資訊（meta + 類名，json-safe）</span>
+meta <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>   <span class="token comment"># 介紹元資訊（description 支持 i18n 解析）</span>
+raw <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">,</span> resolve_i18n<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># 透傳原始 i18n 字典</span>
 </code></pre>
 <h2 id="中間件">中間件</h2>
 <p>中間件在事件分發到處理器之前執行，可以對事件資料進行修改、過濾或記錄。</p>
@@ -139,7 +144,7 @@ running <span class="token operator">=</span> sdk<span class="token punctuation"
 <li><strong>執行順序</strong>：中間件按註冊順序執行（先註冊先執行）</li>
 <li><strong>資料傳遞</strong>：每個中間件接收上一個中間件返回的 <code>event</code> 資料；如果某個中間件返回 <code>None</code>，則忽略該返回值並保留原資料繼續傳遞（同時輸出 <code>warning</code> 級別日誌）</li>
 <li><strong>修改資料</strong>：中間件可以修改事件資料並返回修改後的字典</li>
-<li><strong>事件否決</strong>：中間件顯式返回 <code>False</code> 時否決事件——事件被丟棄，不進入任何處理器、無任何出站副作用；否決時輸出 TRACE 日誌並觸發 <code>adapter.event.blocked</code> 生命周期鉤子（攜帶中間件名與完整事件）</li>
+<li><strong>事件否決</strong>：中間件顯式返回 <code>False</code> 時否決事件——事件被丟棄，不進入任何處理器、無任何出站副作用；否決時輸出 TRACE 日誌並觸發 <code>adapter.event.blocked</code> 生命週期鉤子（攜帶中間件名與完整事件）</li>
 </ul>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">add_timestamp</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -210,7 +215,7 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 <h2 id="api-調用">API 調用</h2>
 <h3 id="call_api-方法">call_api 方法</h3>
 <blockquote>
-<p><strong>注意</strong>：<code>call_api</code> 是直接調用平台原生 API 的底層方法，各平台的參數和返回值可能不同，請參考對應平台適配器文件。<strong>推薦使用 Send DSL 發送訊息</strong>，僅在 Send DSL 不支援的場景（如獲取平台特有的資料、調用平台管理介面等）中使用 <code>call_api</code>。</p>
+<p><strong>注意</strong>：<code>call_api</code> 是直接調用平台原生 API 的底層方法，各平台的參數和回傳值可能不同，請參考對應平台適配器文件。<strong>推薦使用 Send DSL 發送訊息</strong>，僅在 Send DSL 不支援的場景（如獲取平台特有的資料、呼叫平台管理介面等）中使用 <code>call_api</code>。</p>
 </blockquote>
 <pre><code class="language-python"><span class="token comment"># 調用平台 API</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
@@ -355,7 +360,7 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token string">"telegram_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"bot_connected"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>系統處理：註冊 Bot，標記為 <code>online</code>，觸發 <code>adapter.bot.online</code> 生命周期事件。</p>
+<p>系統處理：註冊 Bot，標記為 <code>online</code>，觸發 <code>adapter.bot.online</code> 生命週期事件。</p>
 <h4 id="heartbeat-心跳">heartbeat — 心跳</h4>
 <pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
     <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique_id"</span><span class="token punctuation">,</span>
@@ -383,7 +388,7 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>系統處理：標記 Bot 為 <code>offline</code>，觸發 <code>adapter.bot.offline</code> 生命周期事件。</p>
+<p>系統處理：標記 Bot 為 <code>offline</code>，觸發 <code>adapter.bot.offline</code> 生命週期事件。</p>
 <h3 id="普通事件的自動發現">普通事件的自動發現</h3>
 <p>除了 <code>meta</code> 事件外，普通事件（<code>message</code>/<code>notice</code>/<code>request</code>）中的 <code>self</code> 字段也會自動發現並註冊 Bot、更新活躍時間。這意味著即使適配器不發送 <code>connect</code> 事件，框架也能從第一條普通事件中發現 Bot。</p>
 <h3 id="適配器接入示例">適配器接入示例</h3>
@@ -475,7 +480,7 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 <td>未知（僅註冊但未確認狀態）</td>
 </tr>
 </tbody></table></div>
-<h3 id="生命周期事件">生命周期事件</h3>
+<h3 id="生命週期事件">生命週期事件</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>

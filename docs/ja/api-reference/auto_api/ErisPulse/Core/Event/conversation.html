@@ -89,16 +89,12 @@
 </blockquote>
 <hr>
 <h2 id="函数列表">函数列表</h2>
-<h3 id="_consume_task_exceptiontask-asynciotask"><code>_consume_task_exception(task: 'asyncio.Task')</code></h3>
-<blockquote>
+<h3 id="_consume_task_exceptiontask-asynciotask---none"><code>_consume_task_exception(task: 'asyncio.Task') -&gt; None</code></h3>
 <p><strong>内部方法</strong> 消费后台检查点任务的异常（防未检索告警）</p>
-</blockquote>
 <hr>
-<h3 id="async-_rollback_receiptsreceipts-listdictstr-str"><code>async _rollback_receipts(receipts: list[dict[str, str]])</code></h3>
-<blockquote>
+<h3 id="async-_rollback_receiptsreceipts-listdictstr-str---none"><code>async _rollback_receipts(receipts: list[dict[str, str]]) -&gt; None</code></h3>
 <p><strong>内部方法</strong>
 逆序撤回消息事务账本中的消息（能力感知）</p>
-</blockquote>
 <p>适配器未实现 <code>delete_message</code>（Api 能力缺失）时跳过该条并记录 TRACE 日志；
 单条撤回失败不中断后续撤回。</p>
 <ul>
@@ -106,21 +102,15 @@
 </ul>
 <hr>
 <h3 id="_start_checkpoint_gc"><code>_start_checkpoint_gc()</code></h3>
-<blockquote>
 <p><strong>内部方法</strong> 惰性启动过期检查点周期清理（仅启动一次，失败静默）</p>
-</blockquote>
 <hr>
 <h3 id="async-_checkpoint_gc_loop"><code>async _checkpoint_gc_loop()</code></h3>
-<blockquote>
 <p><strong>内部方法</strong> 周期清理循环（CONVERSATION_CHECKPOINT_GC_INTERVAL_SECS 间隔）</p>
-</blockquote>
 <hr>
 <h2 id="类列表">类列表</h2>
 <h3 id="class-_messagetx"><code>class _MessageTx</code></h3>
-<blockquote>
 <p><strong>内部方法</strong>
 消息事务上下文管理器（由 :meth:<code>Event.message_tx</code> 创建）</p>
-</blockquote>
 <p>事务内所有出站发送自动记入回执账本；异常退出时逆序撤回已发送的消息
 （适配器需实现 <code>delete_message</code>，未实现时跳过）。正常退出不撤回。</p>
 <h3 id="class-conversation"><code>class Conversation</code></h3>
@@ -141,102 +131,105 @@
 <h5 id="__init__event-event-timeout-float-default_wait_timeout_secs"><code>__init__(event: 'Event', timeout: float = DEFAULT_WAIT_TIMEOUT_SECS)</code></h5>
 <p>初始化对话上下文</p>
 <ul>
-<li><strong>event</strong> (<code>Event</code>): - 事件对象</li>
-<li><strong>timeout</strong> (<code>float</code>): - 默认超时时间(秒)（默认: 60.0）</li>
+<li><strong>event</strong>: Event - 事件对象</li>
+<li><strong>timeout</strong>: float - 默认超时时间(秒)（默认: 60.0）</li>
 </ul>
 <hr>
-<h5 id="is_active"><code>is_active()</code></h5>
+<h5 id="is_active---boolproperty"><code>is_active -&gt; bool</code>（property）</h5>
 <p>对话是否处于活跃状态</p>
-<p><strong>返回值</strong> (<code>bool</code>): - 是否活跃</p>
+<p><strong>返回值</strong>: bool - 是否活跃</p>
 <hr>
-<h5 id="async-saycontent-str"><code>async say(content: str)</code></h5>
+<h5 id="async-saycontent-str-kwargs---conversation"><code>async say(content: str, **kwargs) -&gt; 'Conversation'</code></h5>
 <p>发送消息</p>
 <ul>
-<li><strong>content</strong> (<code>str</code>): - 消息内容
-<strong>返回值</strong> (<code>Conversation</code>): - self（支持链式调用）</li>
+<li><strong>content</strong>: str - 消息内容</li>
 </ul>
+<p><strong>返回值</strong>: Conversation - self（支持链式调用）</p>
 <hr>
-<h5 id="async-waitprompt-str-none-none-timeout-float-none-none-method-str-default_send_method"><code>async wait(prompt: str | None = None, timeout: float | None = None, method: str = DEFAULT_SEND_METHOD)</code></h5>
+<h5 id="async-waitprompt-str-none-none-timeout-float-none-none-method-str-default_send_method---optionalevent"><code>async wait(prompt: str | None = None, timeout: float | None = None, method: str = DEFAULT_SEND_METHOD) -&gt; Optional['Event']</code></h5>
 <p>等待用户回复</p>
 <ul>
-<li><strong>prompt</strong> (<code>str</code>): - 提示消息（可选）</li>
-<li><strong>timeout</strong> (<code>float</code>): - 超时时间(秒)，默认使用对话的超时设置</li>
-<li><strong>method</strong> (<code>str</code>): - 发送方法（默认: "Text"）
-<strong>返回值</strong> (<code>Event|None</code>): - 用户回复的事件, 超时返回 None</li>
+<li><strong>prompt</strong>: str - 提示消息（可选）</li>
+<li><strong>timeout</strong>: float - 超时时间(秒)，默认使用对话的超时设置</li>
+<li><strong>method</strong>: str - 发送方法（默认: "Text"）</li>
 </ul>
+<p><strong>返回值</strong>: Event|None - 用户回复的事件, 超时返回 None</p>
 <hr>
-<h5 id="async-confirmprompt-str-none-none"><code>async confirm(prompt: str | None = None)</code></h5>
+<h5 id="async-confirmprompt-str-none-none-kwargs---bool-none"><code>async confirm(prompt: str | None = None, **kwargs) -&gt; bool | None</code></h5>
 <p>等待用户确认</p>
 <ul>
-<li><strong>prompt</strong> (<code>str</code>): - 提示消息
-<strong>返回值</strong> (<code>bool|None</code>): - True/False/None</li>
+<li><strong>prompt</strong>: str - 提示消息</li>
 </ul>
+<p><strong>返回值</strong>: bool|None - True/False/None</p>
 <hr>
-<h5 id="async-chooseprompt-str-options-liststr"><code>async choose(prompt: str, options: list[str])</code></h5>
+<h5 id="async-chooseprompt-str-options-liststr-kwargs---int-none"><code>async choose(prompt: str, options: list[str], **kwargs) -&gt; int | None</code></h5>
 <p>等待用户选择</p>
 <ul>
-<li><strong>prompt</strong> (<code>str</code>): - 提示消息</li>
-<li><strong>options</strong> (<code>list[str]</code>): - 选项列表
-<strong>返回值</strong> (<code>int|None</code>): - 选中索引或 None</li>
+<li><strong>prompt</strong>: str - 提示消息</li>
+<li><strong>options</strong>: list[str] - 选项列表</li>
 </ul>
+<p><strong>返回值</strong>: int|None - 选中索引或 None</p>
 <hr>
-<h5 id="async-collectfields-listdict"><code>async collect(fields: list[dict])</code></h5>
+<h5 id="async-collectfields-listdict-kwargs---dict-none"><code>async collect(fields: list[dict], **kwargs) -&gt; dict | None</code></h5>
 <p>多步骤收集信息</p>
 <ul>
-<li><strong>fields</strong> (<code>list[dict]</code>): - 字段列表，支持 condition 字段:<ul>
-<li>condition: callable - 接收已收集数据 dict, 返回 bool 决定是否收集此字段
-<strong>返回值</strong> (<code>dict|None</code>): - 收集到的数据字典或 None</li>
+<li><p><strong>fields</strong>: list[dict] - 字段列表，支持 condition 字段:</p>
+<ul>
+<li>condition: callable - 接收已收集数据 dict, 返回 bool 决定是否收集此字段</li>
 </ul>
 </li>
 </ul>
+<p><strong>返回值</strong>: dict|None - 收集到的数据字典或 None</p>
 <hr>
 <h5 id="stop"><code>stop()</code></h5>
 <p>结束对话</p>
 <p>终态自动清除已保存的对话检查点。</p>
 <hr>
-<h5 id="reminddelay-float-text-str-none-none"><code>remind(delay: float, text: str | None = None)</code></h5>
+<h5 id="reminddelay-float-text-str-none-none-callback-any-none---any"><code>remind(delay: float, text: str | None = None, *, callback: Any = None) -&gt; Any</code></h5>
 <p>会话定时提醒（转发到当前对话事件的 <code>Event.remind</code>）</p>
 <p>delay 秒后无回复则发送提醒文本 / 执行回调；用户在会话回复后自动取消。</p>
 <ul>
-<li><strong>delay</strong> (<code>延迟秒数</code>): - <strong>text</strong>: 到期发送的提醒文本（与 callback 二选一）</li>
-<li><strong>callback</strong> (<code>到期执行的回调（接收当前</code>): Event 为参数）
-<strong>返回值</strong> (<code>Reminder</code>): 句柄；超过单会话上限时返回 None</li>
+<li><strong>delay</strong>: 延迟秒数</li>
+<li><strong>text</strong>: 到期发送的提醒文本（与 callback 二选一）</li>
+<li><strong>callback</strong>: 到期执行的回调（接收当前 Event 为参数）</li>
 </ul>
+<p><strong>返回值</strong> (<code>Reminder</code>): 句柄；超过单会话上限时返回 None</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> conv<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">120</span><span class="token punctuation">,</span> <span class="token string">"还在考虑吗？需要帮助请输入「帮助」"</span><span class="token punctuation">)</span>
+<pre><code class="language-python">conv<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">120</span><span class="token punctuation">,</span> <span class="token string">"还在考虑吗？需要帮助请输入「帮助」"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="escalatedelay-float-callback-any"><code>escalate(delay: float, callback: Any)</code></h5>
+<h5 id="escalatedelay-float-callback-any---any"><code>escalate(delay: float, callback: Any) -&gt; Any</code></h5>
 <p>超时升级（转发到当前对话事件的 <code>Event.escalate</code>，不被回复取消）</p>
 <ul>
-<li><strong>delay</strong> (<code>延迟秒数</code>): - <strong>callback</strong>: 到期执行的回调（接收当前 Event 为参数）
-<strong>返回值</strong> (<code>Reminder</code>): 句柄</li>
+<li><strong>delay</strong>: 延迟秒数</li>
+<li><strong>callback</strong>: 到期执行的回调（接收当前 Event 为参数）</li>
 </ul>
+<p><strong>返回值</strong> (<code>Reminder</code>): 句柄</p>
 <hr>
 <h5 id="branchname-str"><code>branch(name: str)</code></h5>
 <p>注册分支处理器</p>
 <ul>
-<li><strong>name</strong> (<code>str</code>): 分支名称
-<strong>返回值</strong> (<code>Callable</code>): 装饰器</li>
+<li><strong>name</strong> (<code>str</code>): 分支名称</li>
 </ul>
+<p><strong>返回值</strong> (<code>Callable</code>): 装饰器</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> conv <span class="token operator">=</span> event<span class="token punctuation">.</span>conversation<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> @conv<span class="token punctuation">.</span>branch<span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">menu_branch</span><span class="token punctuation">(</span>conv<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">await</span> conv<span class="token punctuation">.</span>say<span class="token punctuation">(</span><span class="token string">"1.饮品 2.主食"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     resp <span class="token operator">=</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">if</span> resp <span class="token keyword">and</span> resp<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"1"</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>         conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span><span class="token string">"drink"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> @conv<span class="token punctuation">.</span>branch<span class="token punctuation">(</span><span class="token string">"drink"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">drink_branch</span><span class="token punctuation">(</span>conv<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">await</span> conv<span class="token punctuation">.</span>say<span class="token punctuation">(</span><span class="token string">"请选择饮品"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     resp <span class="token operator">=</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     conv<span class="token punctuation">.</span>context<span class="token punctuation">[</span><span class="token string">"drink"</span><span class="token punctuation">]</span> <span class="token operator">=</span> resp<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span><span class="token string">"confirm"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> conv<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
+<pre><code class="language-python">conv <span class="token operator">=</span> event<span class="token punctuation">.</span>conversation<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@conv<span class="token punctuation">.</span>branch</span><span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">menu_branch</span><span class="token punctuation">(</span>conv<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> conv<span class="token punctuation">.</span>say<span class="token punctuation">(</span><span class="token string">"1.饮品 2.主食"</span><span class="token punctuation">)</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> resp <span class="token keyword">and</span> resp<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"1"</span><span class="token punctuation">:</span>
+        conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span><span class="token string">"drink"</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@conv<span class="token punctuation">.</span>branch</span><span class="token punctuation">(</span><span class="token string">"drink"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">drink_branch</span><span class="token punctuation">(</span>conv<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> conv<span class="token punctuation">.</span>say<span class="token punctuation">(</span><span class="token string">"请选择饮品"</span><span class="token punctuation">)</span>
+    resp <span class="token operator">=</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>wait<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    conv<span class="token punctuation">.</span>context<span class="token punctuation">[</span><span class="token string">"drink"</span><span class="token punctuation">]</span> <span class="token operator">=</span> resp<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span><span class="token string">"confirm"</span><span class="token punctuation">)</span>
+
+conv<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
 <h5 id="gotobranch_name-str-event-event-none-none"><code>goto(branch_name: str, event: 'Event | None' = None)</code></h5>
@@ -247,7 +240,7 @@
 </ul>
 <p><strong>异常</strong>: <code>ValueError</code> - 当目标分支不存在时</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span><span class="token string">"drink"</span><span class="token punctuation">)</span>
+<pre><code class="language-python">conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span><span class="token string">"drink"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
 <h5 id="startbranch_name-str-event-event-none-none"><code>start(branch_name: str, event: 'Event | None' = None)</code></h5>
@@ -258,50 +251,41 @@
 </ul>
 <p><strong>异常</strong>: <code>ValueError</code> - 当起始分支不存在时</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> conv<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
+<pre><code class="language-python">conv<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="get_current_branch"><code>get_current_branch()</code></h5>
+<h5 id="get_current_branch---str-none"><code>get_current_branch() -&gt; str | None</code></h5>
 <p>获取当前分支名称</p>
 <p><strong>返回值</strong> (<code>str|None</code>): 当前分支名, 未在分支中时返回 None</p>
 <hr>
-<h5 id="has_branchname-str"><code>has_branch(name: str)</code></h5>
+<h5 id="has_branchname-str---bool"><code>has_branch(name: str) -&gt; bool</code></h5>
 <p>检查分支是否存在</p>
 <ul>
-<li><strong>name</strong> (<code>str</code>): 分支名称
-<strong>返回值</strong> (<code>bool</code>): 是否存在</li>
+<li><strong>name</strong> (<code>str</code>): 分支名称</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 是否存在</p>
 <hr>
-<h5 id="_checkpoint_keyevent-event"><code>_checkpoint_key(event: 'Event')</code></h5>
-<blockquote>
+<h5 id="_checkpoint_keyevent-event---strstaticmethod"><code>_checkpoint_key(event: 'Event') -&gt; str</code>（staticmethod）</h5>
 <p><strong>内部方法</strong>
 生成对话检查点存储键（含 target 维度，避免同一用户多会话互覆）</p>
-</blockquote>
 <ul>
-<li><strong>event</strong> (<code>事件对象</code>): <strong>返回值</strong>: 存储键（conversation:{platform}:{user_id}:{target_id}）</li>
+<li><strong>event</strong>: 事件对象</li>
 </ul>
+<p><strong>返回值</strong>: 存储键（conversation:{platform}:{user_id}:{target_id}）</p>
 <hr>
-<h5 id="_checkpoint_ttl"><code>_checkpoint_ttl()</code></h5>
-<blockquote>
+<h5 id="_checkpoint_ttl---floatstaticmethod"><code>_checkpoint_ttl() -&gt; float</code>（staticmethod）</h5>
 <p><strong>内部方法</strong>
 读取检查点过期时长（ErisPulse.interaction.checkpoint_ttl，秒）</p>
-</blockquote>
 <p><strong>返回值</strong>: 过期秒数</p>
 <hr>
 <h5 id="_schedule_checkpoint"><code>_schedule_checkpoint()</code></h5>
-<blockquote>
 <p><strong>内部方法</strong> 后台保存检查点（分支跳转自动触发，失败静默）</p>
-</blockquote>
 <hr>
 <h5 id="_schedule_checkpoint_clear"><code>_schedule_checkpoint_clear()</code></h5>
-<blockquote>
 <p><strong>内部方法</strong> 后台清除检查点（对话终态自动触发，失败静默）</p>
-</blockquote>
 <hr>
 <h5 id="async-_checkpointsave-bool"><code>async _checkpoint(save: bool)</code></h5>
-<blockquote>
 <p><strong>内部方法</strong> 检查点写入/清除的统一异常兜底</p>
-</blockquote>
 <hr>
 <h5 id="async-save"><code>async save()</code></h5>
 <p>保存对话状态到 storage（自动检查点）</p>
@@ -309,14 +293,15 @@
 存储键含 target 维度（conversation:{platform}:{user_id}:{target_id}），
 同一用户在不同会话中的对话互不覆盖。</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token operator">&gt;</span> <span class="token operator">**</span>提示<span class="token operator">**</span>
-<span class="token operator">&gt;</span> 保存内容包括<span class="token punctuation">:</span> 当前分支、上下文数据、活跃状态、存档时间。
-<span class="token operator">&gt;</span> 超过 ``ErisPulse<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>checkpoint_ttl``（默认 24h）的存档在恢复时被丢弃。
+<pre><code class="language-python"><span class="token keyword">await</span> conv<span class="token punctuation">.</span>save<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
+<blockquote>
+<p><strong>提示</strong>
+保存内容包括: 当前分支、上下文数据、活跃状态、存档时间。
+超过 <code>ErisPulse.interaction.checkpoint_ttl</code>（默认 24h）的存档在恢复时被丢弃。</p>
+</blockquote>
 <hr>
-<h5 id="async-resumeevent-event-none-none-with_history-int-10"><code>async resume(event: 'Event | None' = None, with_history: int = 10)</code></h5>
+<h5 id="async-resumeevent-event-none-none-with_history-int-10---bool"><code>async resume(event: 'Event | None' = None, with_history: int = 10) -&gt; bool</code></h5>
 <p>从 storage 恢复对话状态（含会话接管与历史带回）</p>
 <p>恢复流程：读取检查点（含 target 维度新键，旧格式自动迁移）→
 <strong>会话接管</strong>（自动 acquire 会话租约，被其他模块占用时放弃恢复）→
@@ -324,63 +309,60 @@
 <p>超过 checkpoint_ttl 的存档视为过期，丢弃并返回 False。</p>
 <ul>
 <li><strong>event</strong> (<code>Event</code>): 新的事件对象 (可选, 不传则使用原事件)</li>
-<li><strong>with_history</strong> (<code>恢复时从会话收件箱带回的最近消息条数（0</code>): 关闭）
-<strong>返回值</strong> (<code>bool</code>): 是否恢复成功</li>
+<li><strong>with_history</strong>: 恢复时从会话收件箱带回的最近消息条数（0 关闭）</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 是否恢复成功</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> conv <span class="token operator">=</span> event<span class="token punctuation">.</span>conversation<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token comment"># ... 注册分支 ...</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">if</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>resume<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span>conv<span class="token punctuation">.</span>get_current_branch<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-
-<span class="token operator">&gt;</span> <span class="token operator">**</span>提示<span class="token operator">**</span>
-<span class="token operator">&gt;</span> 需要在 resume<span class="token punctuation">(</span><span class="token punctuation">)</span> 之前先注册好所有分支；注册分支后也可使用
-<span class="token operator">&gt;</span> <span class="token punctuation">:</span>meth<span class="token punctuation">:</span>`register_resume_handler` 声明恢复工厂，由框架在重启后
-<span class="token operator">&gt;</span> 首条命中消息自动完成恢复。
+<pre><code class="language-python">conv <span class="token operator">=</span> event<span class="token punctuation">.</span>conversation<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># ... 注册分支 ...</span>
+<span class="token keyword">if</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>resume<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    conv<span class="token punctuation">.</span>goto<span class="token punctuation">(</span>conv<span class="token punctuation">.</span>get_current_branch<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
+<blockquote>
+<p><strong>提示</strong>
+需要在 resume() 之前先注册好所有分支；注册分支后也可使用
+:meth:<code>register_resume_handler</code> 声明恢复工厂，由框架在重启后
+首条命中消息自动完成恢复。</p>
+</blockquote>
 <hr>
 <h5 id="async-clear_saved"><code>async clear_saved()</code></h5>
 <p>清除保存的对话状态</p>
 <p>同时清理含 target 的新键与旧格式键。</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">await</span> conv<span class="token punctuation">.</span>clear_saved<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<pre><code class="language-python"><span class="token keyword">await</span> conv<span class="token punctuation">.</span>clear_saved<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="register_resume_handlerplatform-str-none-none"><code>register_resume_handler(platform: str | None = None)</code></h5>
+<h5 id="register_resume_handlerplatform-str-none-none---callableclassmethod"><code>register_resume_handler(platform: str | None = None) -&gt; Callable</code>（classmethod）</h5>
 <p>注册对话恢复工厂（类装饰器方法，模块加载时调用）</p>
 <p>框架在重启后收到该会话的首条消息时，若存在有效检查点，
 会调用已注册的工厂重建 Conversation（模块需在工厂内重新注册所有分支），
 随后自动 <code>goto</code> 到存档分支继续对话。</p>
 <ul>
-<li><strong>platform</strong> (<code>仅匹配指定平台的事件；None</code>): 表示匹配所有平台
-<strong>返回值</strong> (<code>装饰器</code>): 
-<strong>示例</strong>:</li>
+<li><strong>platform</strong>: 仅匹配指定平台的事件；None 表示匹配所有平台</li>
 </ul>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> @Conversation<span class="token punctuation">.</span>register_resume_handler<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token keyword">def</span> <span class="token function">make_conversation</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> Conversation<span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     conv <span class="token operator">=</span> event<span class="token punctuation">.</span>conversation<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     @conv<span class="token punctuation">.</span>branch<span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">menu</span><span class="token punctuation">(</span>conv<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">return</span> conv
+<p><strong>返回值</strong>: 装饰器</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@Conversation<span class="token punctuation">.</span>register_resume_handler</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">make_conversation</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> Conversation<span class="token punctuation">:</span>
+    conv <span class="token operator">=</span> event<span class="token punctuation">.</span>conversation<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token decorator annotation punctuation">@conv<span class="token punctuation">.</span>branch</span><span class="token punctuation">(</span><span class="token string">"menu"</span><span class="token punctuation">)</span>
+    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">menu</span><span class="token punctuation">(</span>conv<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token keyword">return</span> conv
 </code></pre>
 <hr>
-<h5 id="async-try_auto_resumeevent-event"><code>async try_auto_resume(event: 'Event')</code></h5>
-<blockquote>
+<h5 id="async-try_auto_resumeevent-event---boolclassmethod"><code>async try_auto_resume(event: 'Event') -&gt; bool</code>（classmethod）</h5>
 <p><strong>内部方法</strong>
 尝试对当前消息事件自动恢复挂起的对话（框架在消息入口调用）</p>
-</blockquote>
 <p>无已注册恢复工厂时立即返回（零开销路径）；存在有效检查点且
 某工厂成功重建对话时，恢复上下文、认领事件并跳转到存档分支。</p>
 <ul>
-<li><strong>event</strong> (<code>消息事件（Event</code>): 包装类）
-<strong>返回值</strong>: 是否完成了自动恢复（事件已被消费）</li>
+<li><strong>event</strong>: 消息事件（Event 包装类）</li>
 </ul>
+<p><strong>返回值</strong>: 是否完成了自动恢复（事件已被消费）</p>
 <hr>
-<h5 id="async-_gc_expired_checkpoints"><code>async _gc_expired_checkpoints()</code></h5>
-<blockquote>
+<h5 id="async-_gc_expired_checkpoints---intclassmethod"><code>async _gc_expired_checkpoints() -&gt; int</code>（classmethod）</h5>
 <p><strong>内部方法</strong>
 主动清理过期对话检查点（周期任务调用）</p>
-</blockquote>
 <p>枚举 <code>conversation:</code> 前缀的全部存储键，按 <code>saved_at</code> 与
 <code>ErisPulse.interaction.checkpoint_ttl</code> 判定过期并删除——补全
 "仅在 resume 时惰性清理"的缺口，长期未恢复的存档不再永久驻留。</p>

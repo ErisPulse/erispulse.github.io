@@ -86,17 +86,20 @@
 </ul>
 <blockquote>
 <p><strong>提示</strong>
-配置（<code>ErisPulse.transcript</code>）::
-[ErisPulse.transcript]
+配置（<code>ErisPulse.transcript</code>）:</p>
+<pre><code>[ErisPulse.transcript]
 enabled = true          # 是否启用（关闭后停止写入，历史仍可查询）
 max_per_session = 50    # 每会话保留的最大条数
 ttl_hours = 168         # 全局过期时间（小时），过期记录惰性清理
-使用方式::
-from ErisPulse.Core import transcript</p>
-<h1 id="查询当前会话最近-20-条消息含用户与机器人">查询当前会话最近 20 条消息（含用户与机器人）</h1>
-<p>messages = await event.history(20)   # 或 transcript.get(event, 20)
+</code></pre>
+<p>使用方式:</p>
+<pre><code>from ErisPulse.Core import transcript
+
+# 查询当前会话最近 20 条消息（含用户与机器人）
+messages = await event.history(20)   # 或 transcript.get(event, 20)
 for m in messages:
-print(m["role"], m["text"])</p>
+    print(m["role"], m["text"])
+</code></pre>
 </blockquote>
 <hr>
 <h2 id="类列表">类列表</h2>
@@ -105,106 +108,100 @@ print(m["role"], m["text"])</p>
 <p>以 <code>platform:detail_type:target_id</code> 为会话键记录消息流，
 存储于独立 SQLite 表，支持条数上限与 TTL 双重保留策略。</p>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="_config"><code>_config()</code></h5>
-<blockquote>
+<h5 id="_config---dictstr-any"><code>_config() -&gt; dict[str, Any]</code></h5>
 <p><strong>内部方法</strong> 读取 transcript 配置节</p>
-</blockquote>
 <hr>
-<h5 id="enabled"><code>enabled()</code></h5>
+<h5 id="enabled---boolproperty"><code>enabled -&gt; bool</code>（property）</h5>
 <p>是否启用自动记录（ErisPulse.transcript.enabled）</p>
 <hr>
-<h5 id="session_key_from_eventevent-any"><code>session_key_from_event(event: Any)</code></h5>
+<h5 id="session_key_from_eventevent-any---strstaticmethod"><code>session_key_from_event(event: Any) -&gt; str</code>（staticmethod）</h5>
 <p>从事件推导会话键（platform:detail_type:target_id）</p>
 <p>target 语义与交互会话等待键一致（复用 session_type 的目标推导，
 私聊为 user_id，群聊 / 频道等对应目标 ID）。</p>
 <ul>
-<li><strong>event</strong> (<code>事件数据（Event</code>): 或 dict）
-<strong>返回值</strong>: 会话键字符串</li>
+<li><strong>event</strong>: 事件数据（Event 或 dict）</li>
 </ul>
+<p><strong>返回值</strong>: 会话键字符串</p>
 <hr>
-<h5 id="_ctx_keyctx-dict"><code>_ctx_key(ctx: dict)</code></h5>
-<blockquote>
+<h5 id="_ctx_keyctx-dict---strstaticmethod"><code>_ctx_key(ctx: dict) -&gt; str</code>（staticmethod）</h5>
 <p><strong>内部方法</strong> 从 message.sent 发送上下文推导会话键</p>
-</blockquote>
 <hr>
-<h5 id="_ensure_table"><code>_ensure_table()</code></h5>
-<blockquote>
+<h5 id="_ensure_table---bool"><code>_ensure_table() -&gt; bool</code></h5>
 <p><strong>内部方法</strong> 惰性建表（含旧表 sender 列迁移）</p>
-</blockquote>
 <hr>
-<h5 id="_migrate_add_sender"><code>_migrate_add_sender()</code></h5>
-<blockquote>
+<h5 id="_migrate_add_sender---none"><code>_migrate_add_sender() -&gt; None</code></h5>
 <p><strong>内部方法</strong> 旧表缺 sender 列时自动补列（2.8.0 新增）</p>
-</blockquote>
 <hr>
-<h5 id="_retentionsession_key-str-max_per_session-int-ttl_hours-float"><code>_retention(session_key: str, max_per_session: int, ttl_hours: float)</code></h5>
-<blockquote>
+<h5 id="_retentionsession_key-str-max_per_session-int-ttl_hours-float---none"><code>_retention(session_key: str, max_per_session: int, ttl_hours: float) -&gt; None</code></h5>
 <p><strong>内部方法</strong> 保留策略：每会话条数上限 + 全局 TTL（惰性触发）</p>
-</blockquote>
 <hr>
-<h5 id="appendsession-any-role-str-text-str-event_id-str-sender-str-"><code>append(session: Any, role: str, text: str, event_id: str = '', sender: str = '')</code></h5>
+<h5 id="appendsession-any-role-str-text-str-event_id-str-sender-str---bool"><code>append(session: Any, role: str, text: str, event_id: str = '', sender: str = '') -&gt; bool</code></h5>
 <p>记录一条消息到会话收件箱</p>
 <ul>
-<li><strong>session</strong> (<code>事件数据（Event</code>): / dict，自动推导会话键）或会话键字符串</li>
-<li><strong>role</strong> (<code>消息角色（"user"</code>): / "bot"）</li>
-<li><strong>text</strong> (<code>消息文本（超长自动截断）</code>): - <strong>event_id</strong>: 关联的事件 ID（可选）</li>
-<li><strong>sender</strong> (<code>发送者标识（user_id，可选，回放时还原消息来源）</code>): <strong>返回值</strong> (<code>是否写入成功（未启用时返回</code>): False）</li>
+<li><strong>session</strong>: 事件数据（Event / dict，自动推导会话键）或会话键字符串</li>
+<li><strong>role</strong>: 消息角色（"user" / "bot"）</li>
+<li><strong>text</strong>: 消息文本（超长自动截断）</li>
+<li><strong>event_id</strong>: 关联的事件 ID（可选）</li>
+<li><strong>sender</strong>: 发送者标识（user_id，可选，回放时还原消息来源）</li>
 </ul>
+<p><strong>返回值</strong>: 是否写入成功（未启用时返回 False）</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> transcript<span class="token punctuation">.</span>append<span class="token punctuation">(</span>event<span class="token punctuation">,</span> <span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"你好"</span><span class="token punctuation">)</span>
+<pre><code class="language-python">transcript<span class="token punctuation">.</span>append<span class="token punctuation">(</span>event<span class="token punctuation">,</span> <span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"你好"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="getsession-any-n-int-20"><code>get(session: Any, n: int = 20)</code></h5>
+<h5 id="getsession-any-n-int-20---listdictstr-any"><code>get(session: Any, n: int = 20) -&gt; list[dict[str, Any]]</code></h5>
 <p>查询会话近期消息（按时间升序）</p>
 <ul>
-<li><strong>session</strong> (<code>事件数据或会话键字符串</code>): - <strong>n</strong>: 返回的最大条数
-<strong>返回值</strong> (<code>消息列表，每条含</code>): role / text / ts / event_id；无记录时返回空列表</li>
+<li><strong>session</strong>: 事件数据或会话键字符串</li>
+<li><strong>n</strong>: 返回的最大条数</li>
 </ul>
+<p><strong>返回值</strong>: 消息列表，每条含 role / text / ts / event_id；无记录时返回空列表</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> messages <span class="token operator">=</span> transcript<span class="token punctuation">.</span>get<span class="token punctuation">(</span>event<span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">)</span>
-<span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> <span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
-<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>     <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+<pre><code class="language-python">messages <span class="token operator">=</span> transcript<span class="token punctuation">.</span>get<span class="token punctuation">(</span>event<span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">)</span>
+<span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="recentseconds-float-limit-int-200"><code>recent(seconds: float, limit: int = 200)</code></h5>
+<h5 id="recentseconds-float-limit-int-200---listdictstr-any"><code>recent(seconds: float, limit: int = 200) -&gt; list[dict[str, Any]]</code></h5>
 <p>查询全部会话中最近一段时间内的消息（跨会话，按时间升序）</p>
 <p>冷启动回放（<code>get_load_strategy(replay=...)</code>）的数据源；
 每条记录额外携带 <code>session_key</code>，用于还原消息来源会话。</p>
 <ul>
-<li><strong>seconds</strong> (<code>回溯时长（秒）</code>): - <strong>limit</strong>: 最大返回条数（防止模块冷启动被打爆）
-<strong>返回值</strong> (<code>消息列表（role</code>): / text / ts / sender / session_key）</li>
+<li><strong>seconds</strong>: 回溯时长（秒）</li>
+<li><strong>limit</strong>: 最大返回条数（防止模块冷启动被打爆）</li>
 </ul>
+<p><strong>返回值</strong>: 消息列表（role / text / ts / sender / session_key）</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> transcript<span class="token punctuation">.</span>recent<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">)</span>  <span class="token comment"># 最近 5 分钟</span>
+<pre><code class="language-python">transcript<span class="token punctuation">.</span>recent<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">)</span>  <span class="token comment"># 最近 5 分钟</span>
 </code></pre>
 <hr>
-<h5 id="clearsession-any"><code>clear(session: Any)</code></h5>
+<h5 id="clearsession-any---int"><code>clear(session: Any) -&gt; int</code></h5>
 <p>清空指定会话的收件箱</p>
 <ul>
-<li><strong>session</strong> (<code>事件数据或会话键字符串</code>): <strong>返回值</strong> (<code>删除的记录数</code>): 
-<strong>示例</strong>:</li>
+<li><strong>session</strong>: 事件数据或会话键字符串</li>
 </ul>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> transcript<span class="token punctuation">.</span>clear<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
+<p><strong>返回值</strong>: 删除的记录数</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">transcript<span class="token punctuation">.</span>clear<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="attach"><code>attach()</code></h5>
+<h5 id="attach---bool"><code>attach() -&gt; bool</code></h5>
 <p>挂接出站自动记录（message.sent 钩子，框架初始化时调用）</p>
 <p>重复调用安全；未启用时跳过注册（运行时改为启用需重启或重新 attach）。</p>
 <p><strong>返回值</strong>: 是否成功挂接</p>
 <hr>
-<h5 id="async-_on_message_sentdata-any"><code>async _on_message_sent(data: Any)</code></h5>
-<blockquote>
+<h5 id="async-_on_message_sentdata-any---none"><code>async _on_message_sent(data: Any) -&gt; None</code></h5>
 <p><strong>内部方法</strong> message.sent 钩子：记录机器人出站文本</p>
-</blockquote>
 <hr>
-<h5 id="get_by_tracetrace_id-str-limit-int-20"><code>get_by_trace(trace_id: str, limit: int = 20)</code></h5>
+<h5 id="get_by_tracetrace_id-str-limit-int-20---listdictstr-any"><code>get_by_trace(trace_id: str, limit: int = 20) -&gt; 'list[dict[str, Any]]'</code></h5>
 <p>按链路 ID 查询出站记录（影子模块 diff 对齐用，方向十一）</p>
 <ul>
-<li><strong>trace_id</strong> (<code>事件链路</code>): ID（事件 <code>id</code>）</li>
-<li><strong>limit</strong> (<code>返回的最大条数</code>): <strong>返回值</strong> (<code>消息列表（role</code>): / text / ts / event_id），时间升序</li>
+<li><strong>trace_id</strong>: 事件链路 ID（事件 <code>id</code>）</li>
+<li><strong>limit</strong>: 返回的最大条数</li>
 </ul>
+<p><strong>返回值</strong>: 消息列表（role / text / ts / event_id），时间升序</p>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python"><span class="token operator">&gt;&gt;</span><span class="token operator">&gt;</span> transcript<span class="token punctuation">.</span>get_by_trace<span class="token punctuation">(</span><span class="token string">"evt-abc123"</span><span class="token punctuation">)</span>
+<pre><code class="language-python">transcript<span class="token punctuation">.</span>get_by_trace<span class="token punctuation">(</span><span class="token string">"evt-abc123"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
 
