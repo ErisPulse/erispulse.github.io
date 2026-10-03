@@ -93,10 +93,11 @@ export const AuthManager = (function () {
         authUrl.searchParams.set('redirect_uri', redirectUri);
         authUrl.searchParams.set('scope', providerConfig.scope);
         // state 第三段携带回跳视图，回调后据此恢复 hash
-        authUrl.searchParams.set(
-            'state',
-            'erispulse-submit:' + provider + ':' + (returnView || currentReturnView())
-        );
+        var state = 'erispulse-submit:' + provider + ':' + (returnView || currentReturnView());
+        // 云湖要求 state 长度 32-128（旧格式一直不达标导致登录报错）；
+        // 补随机尾巴凑长——回调按 ':' 切片只取前三段，尾巴不影响解析，顺带强化 CSRF
+        while (state.length < 32) state += ':0' + Math.random().toString(36).slice(2, 3);
+        authUrl.searchParams.set('state', state);
         if (provider === 'yunhu' || provider === 'codeberg') {
             authUrl.searchParams.set('response_type', 'code');
         }
