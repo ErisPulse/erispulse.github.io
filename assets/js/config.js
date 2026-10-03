@@ -178,6 +178,13 @@ export const CONFIG = {
     submitModule: "https://erisdev.com/api/submit-module",
     checkPyPI: "https://erisdev.com/api/check-pypi",
     pypiVersions: "https://erisdev.com/api/pypi-versions",
+    // 社区（GitHub Discussions 镜像 + 互动，Worker 代理）
+    discussions: "https://erisdev.com/api/discussions",
+    discussionCategories: "https://erisdev.com/api/discussions/categories",
+    discussionDetail: "https://erisdev.com/api/discussions/detail",
+    discussionCreate: "https://erisdev.com/api/discussions/create",
+    discussionComment: "https://erisdev.com/api/discussions/comment",
+    siteStats: "https://erisdev.com/api/stats",
   },
 
   OAUTH_PROVIDERS: {
@@ -185,7 +192,9 @@ export const CONFIG = {
       clientId: "Ov23lioo2vSXXnRcDixA",
       authUrl: "https://github.com/login/oauth/authorize",
       redirectUri: null,
-      scope: "read:user,user:email",
+      // 这是 GitHub App（Ov23li 前缀），实际权限由 App 后台配置决定（Discussions
+      // 读写需在 App 设置里开启 Discussions: Read and write），scope 参数仅作展示
+      scope: "read:user,user:email,public_repo",
       parseUser: function (data) {
         return {
           uid: "github:" + data.id,

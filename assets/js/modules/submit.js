@@ -1,6 +1,7 @@
 /**
  * 提交模块管理器
- * OAuth 登录（GitHub / Codeberg / 云湖）、模块提交 / 编辑 / 删除、我的模块列表。
+ * 模块提交 / 编辑 / 删除、我的模块列表。
+ * 登录态由 core/auth.js（AuthManager）统一管理，本模块只消费。
  */
 
 import { CONFIG } from '../config.js';
@@ -8,110 +9,21 @@ import { I18n } from '../i18n.js';
 import { showMessage } from '../core/notify.js';
 import { state } from '../core/state.js';
 import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js';
+import { AuthManager } from '../core/auth.js';
 
 export const SubmitModuleManager = (function () {
-    const STORAGE_KEY = 'erispulse-oauth-auth';
-    let authState = null;
     let pendingMinSdk = null;    // 需要强制选中的最低 SDK 版本（编辑时置入，渲染后清空）
 
     function init() {
-        loadAuthState();
-        setupOAuthCallback();
         setupSubmitButton();
         setupModalEvents();
         setupFormSubmission();
         setupTabs();
-    }
-
-    function loadAuthState() {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                authState = JSON.parse(saved);
-                if (authState.expiresAt && Date.now() > authState.expiresAt) {
-                    logout();
-                }
-            }
-        } catch (e) {
-            authState = null;
-        }
-    }
-
-    function saveAuthState() {
-        if (authState) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(authState));
-        } else {
-            localStorage.removeItem(STORAGE_KEY);
-        }
-    }
-
-    function setupOAuthCallback() {
-        var url = new URL(window.location.href);
-        var code = url.searchParams.get('code');
-        var stateParam = url.searchParams.get('state');
-
-        if (code && stateParam && stateParam.indexOf('erispulse-submit') === 0) {
-            var provider = stateParam.split(':')[1] || 'github';
-
-            url.searchParams.delete('code');
-            url.searchParams.delete('state');
-            url.hash = '#market';
-            window.history.replaceState({}, '', url.toString());
-
-            exchangeCodeForToken(code, provider);
-        }
-    }
-
-    async function exchangeCodeForToken(code, provider) {
-        try {
-            var response = await fetch(CONFIG.API.oauthToken, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ provider: provider, code: code })
-            });
-
-            var data = await response.json();
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            authState = {
-                accessToken: data.access_token,
-                provider: provider,
-                user: null,
-                expiresAt: Date.now() + 3600000
-            };
-
-            await fetchUserInfo();
-            saveAuthState();
-            openSubmitModal();
-        } catch (error) {
-            console.error('OAuth failed:', error);
-            showMessage(I18n.t('submit.loginFailed'), 'error');
-        }
-    }
-
-    async function fetchUserInfo() {
-        if (!authState || !authState.accessToken) return;
-
-        var provider = authState.provider || 'github';
-        var providerConfig = CONFIG.OAUTH_PROVIDERS[provider];
-        if (!providerConfig) return;
-
-        try {
-            var response = await fetch(CONFIG.API.userInfo, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ provider: provider, access_token: authState.accessToken })
-            });
-
-            if (response.ok) {
-                var rawData = await response.json();
-                authState.user = providerConfig.parseUser(rawData);
-            }
-        } catch (e) {
-            console.error('Failed to fetch user info:', e);
-        }
+        // 导航栏账户菜单等入口请求打开本弹窗（detail.tab 指定初始页签）
+        document.addEventListener('erispulse-open-submit-modal', function (e) {
+            var detail = (e && e.detail) || {};
+            openSubmitModal(detail.tab);
+        });
     }
 
     function setupSubmitButton() {
@@ -140,13 +52,14 @@ export const SubmitModuleManager = (function () {
         document.querySelectorAll('[data-provider]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var provider = this.getAttribute('data-provider');
-                startOAuthLogin(provider);
+                // 提交弹窗发起的登录固定回跳 market，回调后自动重开弹窗（auth.js 处理）
+                AuthManager.startOAuthLogin(provider, 'market');
             });
         });
 
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function () {
-                logout();
+                AuthManager.logout();
                 showLoginState();
             });
         }
@@ -284,34 +197,20 @@ export const SubmitModuleManager = (function () {
         input.value = current.join(', ');
     }
 
-    function startOAuthLogin(provider) {
-        var providerConfig = CONFIG.OAUTH_PROVIDERS[provider];
-        if (!providerConfig || !providerConfig.clientId) {
-            showMessage(I18n.t('submit.oauthNotConfigured'), 'error');
-            return;
-        }
-
-        var authUrl = new URL(providerConfig.authUrl);
-        authUrl.searchParams.set('client_id', providerConfig.clientId);
-        var redirectUri = providerConfig.redirectUri || (window.location.origin + '/');
-        authUrl.searchParams.set('redirect_uri', redirectUri);
-        authUrl.searchParams.set('scope', providerConfig.scope);
-        authUrl.searchParams.set('state', 'erispulse-submit:' + provider);
-        if (provider === 'yunhu' || provider === 'codeberg') {
-            authUrl.searchParams.set('response_type', 'code');
-        }
-        window.location.href = authUrl.toString();
-    }
-
-    function openSubmitModal() {
+    function openSubmitModal(initialTab) {
         var modal = document.getElementById('submit-module-modal');
         if (!modal) return;
 
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
 
-        if (authState && authState.accessToken && authState.user) {
+        if (AuthManager.isLoggedIn()) {
             showFormState();
+            // 从导航栏账户菜单等入口打开时可指定初始页签（如 my-modules）
+            if (initialTab && initialTab !== 'submit') {
+                var tabBtn = document.querySelector('.submit-tab[data-tab="' + initialTab + '"]');
+                if (tabBtn) tabBtn.click();
+            }
         } else {
             showLoginState();
         }
@@ -344,12 +243,13 @@ export const SubmitModuleManager = (function () {
         // 最低 SDK 版本选项来自 PyPI 实时版本：先渲染已知值，取到后再补全
         loadMinSdkOptions();
 
-        if (authState && authState.user) {
+        var auth = AuthManager.getAuthState();
+        if (auth && auth.user) {
             var avatarEl = document.getElementById('submit-user-avatar');
-            avatarEl.src = authState.user.avatar_url || '';
+            avatarEl.src = auth.user.avatar_url || '';
             avatarEl.setAttribute('referrerpolicy', 'no-referrer');
-            document.getElementById('submit-user-name').textContent = authState.user.name || authState.user.login;
-            document.getElementById('submit-author').value = authState.user.name || authState.user.login;
+            document.getElementById('submit-user-name').textContent = auth.user.name || auth.user.login;
+            document.getElementById('submit-author').value = auth.user.name || auth.user.login;
         }
     }
 
@@ -368,14 +268,10 @@ export const SubmitModuleManager = (function () {
         document.getElementById('submit-error-message').textContent = message;
     }
 
-    function logout() {
-        authState = null;
-        localStorage.removeItem(STORAGE_KEY);
-    }
-
     async function handleSubmit(e) {
         e.preventDefault();
 
+        var auth = AuthManager.getAuthState();
         var submitBtn = document.getElementById('submit-confirm-btn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('submit.validating') + '</span>';
@@ -392,8 +288,8 @@ export const SubmitModuleManager = (function () {
             category: Number(document.getElementById('submit-category').value) || 0,
             // 标签：自由文本，前端不做任何内容限制
             tags: document.getElementById('submit-tags').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean),
-            access_token: authState ? authState.accessToken : '',
-            oauth_provider: authState ? authState.provider || '' : ''
+            access_token: auth ? auth.accessToken : '',
+            oauth_provider: auth ? auth.provider || '' : ''
         };
 
         if (formData.description.length < 10) {
@@ -448,8 +344,8 @@ export const SubmitModuleManager = (function () {
                         action: 'edit',
                         name: editingModule.name,
                         type: editingModule.type,
-                        access_token: authState.accessToken,
-                        provider: authState.provider,
+                        access_token: auth.accessToken,
+                        provider: auth.provider,
                         edit_data: {
                             package: formData.package,
                             description: formData.description,
@@ -508,7 +404,8 @@ export const SubmitModuleManager = (function () {
     }
 
     async function loadMyModules() {
-        if (!authState || !authState.accessToken) return;
+        var auth = AuthManager.getAuthState();
+        if (!auth || !auth.accessToken) return;
         var container = document.getElementById('my-modules-list');
         container.innerHTML = '<div class="my-modules-loading"><i class="fas fa-spinner fa-spin"></i> <span>' + I18n.t('manage.loading') + '</span></div>';
 
@@ -516,7 +413,7 @@ export const SubmitModuleManager = (function () {
             var response = await fetch(CONFIG.API.myModules, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ access_token: authState.accessToken, provider: authState.provider })
+                body: JSON.stringify({ access_token: auth.accessToken, provider: auth.provider })
             });
             var data = await response.json();
             if (data.error) throw new Error(data.error);
@@ -598,7 +495,8 @@ export const SubmitModuleManager = (function () {
     }
 
     async function handleManageAction(action, name, type) {
-        if (!authState || !authState.accessToken) return;
+        var auth = AuthManager.getAuthState();
+        if (!auth || !auth.accessToken) return;
         var confirmMsg = I18n.t('manage.confirm' + action.charAt(0).toUpperCase() + action.slice(1), { name: name });
         if (!confirm(confirmMsg)) return;
 
@@ -610,8 +508,8 @@ export const SubmitModuleManager = (function () {
                     action: action,
                     name: name,
                     type: type,
-                    access_token: authState.accessToken,
-                    provider: authState.provider
+                    access_token: auth.accessToken,
+                    provider: auth.provider
                 })
             });
             var data = await response.json();
@@ -624,14 +522,8 @@ export const SubmitModuleManager = (function () {
         }
     }
 
-    function isLoggedIn() {
-        return !!(authState && authState.accessToken && authState.user);
-    }
-
     return {
         init: init,
-        openSubmitModal: openSubmitModal,
-        isLoggedIn: isLoggedIn,
-        getUserName: function () { return authState && authState.user ? authState.user.login : null; }
+        openSubmitModal: openSubmitModal
     };
 })();
