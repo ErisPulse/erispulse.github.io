@@ -34,6 +34,8 @@ import { enhanceGitHubMarkdown } from '../../assets/js/core/gh-markdown.js';
 // ── 常量 ──
 const ROOT = process.cwd();
 const SITE = 'https://www.erisdev.com';
+// 数据 API 走根域名（Cloudflare Worker），站点页面在 www（GitHub Pages）
+const API_BASE = 'https://erisdev.com';
 const UPSTREAM = 'ErisPulse/ErisPulse';
 const BRANCH = 'Develop/v2';
 const LANGS = ['zh-CN', 'en', 'zh-TW', 'ja', 'ru'];
@@ -110,9 +112,13 @@ async function pool(items, worker, size = CONCURRENCY) {
 
 // ── DOM 辅助（预填充全程 DOM 操作，杜绝正则切 HTML；可重复运行） ──
 
-/** 解析 HTML 片段（views 片段无 html/body 包装也适用），返回 body 元素 */
+/** 解析 HTML 片段（views 片段无 html/body 包装也适用），返回包装元素。
+ *  两个坑：views/home.html 带 BOM 要先剥；linkedom 对裸片段会把内容挂在
+ *  documentElement 下而非 body（body 恒为空），所以包一层 div 再取。 */
 function parseFragment(html) {
-    return new DOMParser().parseFromString(html, 'text/html').body;
+    const clean = html.replace(/^\uFEFF/, '').trim();
+    const doc = new DOMParser().parseFromString('<div id="__ep_frag">' + clean + '</div>', 'text/html');
+    return doc.querySelector('#__ep_frag');
 }
 
 /** 解析完整入口页，返回 { doc, bom } */
@@ -438,8 +444,8 @@ function prefillSlot(pageFile, slotName, viewFile, mutate) {
     const viewDoc = parseFragment(fs.readFileSync(path.join(ROOT, 'views', viewFile), 'utf-8'));
     if (mutate) mutate(viewDoc);
 
-    slot.innerHTML = '';
-    while (viewDoc.firstChild) slot.appendChild(viewDoc.firstChild);
+    // innerHTML 赋值替换全部子节点（幂等），不做跨文档节点搬运
+    slot.innerHTML = viewDoc.innerHTML;
 
     fs.writeFileSync(path.join(ROOT, pageFile), serializePage(doc, bom));
     console.log('OK 预填充', pageFile, `(slot: ${slotName})`);
@@ -447,7 +453,7 @@ function prefillSlot(pageFile, slotName, viewFile, mutate) {
 
 async function prefillEntryPages() {
     let stats = {};
-    try { stats = (await fetchText(SITE + '/api/stats').then(JSON.parse)).stats || {}; } catch (e) { console.warn('stats 拉取失败:', e.message); }
+    try { stats = (await fetchText(API_BASE + '/api/stats').then(JSON.parse)).stats || {}; } catch (e) { console.warn('stats 拉取失败:', e.message); }
 
     let discussions = [];
     try {
@@ -464,7 +470,7 @@ async function prefillEntryPages() {
     } catch (e) { console.warn('discussions 拉取失败:', e.message); }
 
     let packages = null;
-    for (const url of [SITE + '/packages.json', 'https://raw.githubusercontent.com/ErisPulse/ErisPulse-ModuleRepo/2x/packages.json']) {
+    for (const url of [API_BASE + '/packages.json', 'https://raw.githubusercontent.com/ErisPulse/ErisPulse-ModuleRepo/2x/packages.json']) {
         try { packages = JSON.parse(await fetchText(url)); break; }
         catch (e) { console.warn('packages 拉取失败:', url, e.message); }
     }
