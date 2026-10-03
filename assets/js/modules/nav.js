@@ -7,6 +7,7 @@ import { state } from "../core/state.js";
 import { showMessage } from "../core/notify.js";
 import * as docs from "./docs.js";
 import * as market from "./marketplace.js";
+import * as community from "./community.js";
 import { loadContributors } from "./about.js";
 
 let _hashProgrammatic = false;
@@ -202,6 +203,14 @@ function switchViewByHash() {
     view = "about";
   } else if (hash === "settings") {
     view = "settings";
+  } else if (hash.startsWith("community")) {
+    view = "community";
+    // 深链 #community/<number>：直接打开对应讨论详情
+    const detailMatch = hash.match(/community\/(\d+)/);
+    if (detailMatch && detailMatch[1]) {
+      const number = detailMatch[1];
+      setTimeout(() => community.CommunityManager.openDetail(number), 500);
+    }
   }
 
   if (initialView) {
@@ -295,6 +304,10 @@ export function updateView(view, updateHash = false) {
 
   if (view === "about") {
     loadContributors();
+  }
+
+  if (view === "community") {
+    community.CommunityManager.loadDiscussions();
   }
 
   if (view === "settings") {

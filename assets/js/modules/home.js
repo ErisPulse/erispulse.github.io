@@ -3,9 +3,13 @@
  *  - Banner 轮播
  *  - 滚动驱动的特性展示
  *  - 安装命令浮层（Install Overlay）
+ *  - Hero GitHub 实时数据条
+ *  - 社区速览条带（最新 Discussions）
  */
 
 import { I18n } from '../i18n.js';
+import { CONFIG } from '../config.js';
+import { CommunityManager } from './community.js';
 
 // 仅首页模块使用的本地状态
 var featuresInitialized = false;
@@ -22,6 +26,15 @@ export function setupHomeAnimations() {
     } else if (!document.body.classList.contains('no-animations') && featuresUpdateFn) {
         featuresPrevActive = -1;
         requestAnimationFrame(featuresUpdateFn);
+    }
+    // Hero 代码窗（产品图）独立高亮，与特性面板同一 Prism 模式
+    highlightHeroCode();
+}
+
+function highlightHeroCode() {
+    var heroCode = document.querySelector('.hero-code-window code');
+    if (heroCode && typeof Prism !== 'undefined') {
+        try { Prism.highlightElement(heroCode); } catch (e) { /* 高亮失败不影响展示 */ }
     }
 }
 
@@ -313,4 +326,176 @@ export function initInstallOverlay() {
             copyBtn.classList.remove('copied');
         }, 2000);
     });
+}
+
+// ==================== Hero GitHub 实时数据条 ====================
+
+var STATS_CACHE_KEY = 'erispulse-site-stats';
+var STATS_CACHE_TTL = 10 * 60 * 1000;
+
+function formatCount(n) {
+    if (typeof n !== 'number' || isNaN(n)) return '--';
+    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+}
+
+function renderHeroStats(stats) {
+    if (!stats) return;
+    var map = {
+        'stat-stars': formatCount(stats.stars),
+        'stat-contributors': formatCount(stats.contributors),
+        'stat-release': stats.latest_release || '--',
+        'stat-discussions': formatCount(stats.discussions),
+    };
+    Object.keys(map).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && map[id] != null) el.textContent = map[id];
+    });
+}
+
+/** 单次拉取 /api/stats（Worker 边缘缓存 1h），失败保持 '--' 降级 */
+export function initHeroStats() {
+    if (!document.getElementById('hero-stats')) return;
+
+    try {
+        var cached = JSON.parse(localStorage.getItem(STATS_CACHE_KEY));
+        if (cached && cached.stats && Date.now() - cached.fetchedAt < STATS_CACHE_TTL) {
+            renderHeroStats(cached.stats);
+            return;
+        }
+    } catch (e) { /* 缓存损坏则忽略 */ }
+
+    fetch(CONFIG.API.siteStats)
+        .then(function (resp) {
+            if (!resp.ok) throw new Error('stats ' + resp.status);
+            return resp.json();
+        })
+        .then(function (data) {
+            if (!data || !data.stats) throw new Error('bad payload');
+            try {
+                localStorage.setItem(STATS_CACHE_KEY, JSON.stringify({ stats: data.stats, fetchedAt: Date.now() }));
+            } catch (e) { /* 存储异常忽略 */ }
+            renderHeroStats(data.stats);
+        })
+        .catch(function (e) {
+            console.warn('[home] 数据条加载失败，保持降级显示:', e);
+        });
+}
+
+// ==================== 社区速览条带 ====================
+
+var COMMUNITY_CACHE_KEY = 'erispulse-community-cache';
+var teaserList = [];
+
+function escapeHtmlHome(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+}
+
+function timeAgoHome(iso) {
+    if (!iso) return '';
+    var t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    var min = Math.floor((Date.now() - t) / 60000);
+    if (min < 1) return I18n.t('community.time.justNow');
+    if (min < 60) return I18n.t('community.time.minutesAgo', { n: min });
+    var hours = Math.floor(min / 60);
+    if (hours < 24) return I18n.t('community.time.hoursAgo', { n: hours });
+    var days = Math.floor(hours / 24);
+    if (days < 30) return I18n.t('community.time.daysAgo', { n: days });
+    try { return new Date(iso).toLocaleDateString(); } catch (e) { return ''; }
+}
+
+function renderTeaser() {
+    var grid = document.getElementById('home-community-grid');
+    if (!grid) return;
+
+    var items = teaserList.slice(0, 3);
+    if (!items.length) {
+        grid.innerHTML = '<div class="home-community-empty">' + escapeHtmlHome(I18n.t('home.community.empty')) + '</div>';
+        return;
+    }
+
+    grid.innerHTML = items.map(function (d) {
+        var c = d.category || {};
+        return '<a class="home-community-card" href="' + escapeHtmlHome(d.html_url || '#community') + '" data-number="' + d.number + '">' +
+            '<div class="home-community-card-top">' +
+            (c.name
+                ? '<span class="home-community-chip">' + escapeHtmlHome((function(){ var e = CommunityManager.categoryEmoji ? CommunityManager.categoryEmoji(c) : ''; return (e ? e + ' ' : ''); })() + CommunityManager.categoryLabel(c)) + '</span>'
+                : '') +
+            '<span class="home-community-card-comments"><i class="far fa-comment"></i> ' + (typeof d.comments === 'number' ? d.comments : 0) + '</span>' +
+            '</div>' +
+            '<span class="home-community-card-title">' + escapeHtmlHome(d.title || '') + '</span>' +
+            '<span class="home-community-card-meta">' + escapeHtmlHome(d.author && d.author.login ? d.author.login : '') + ' · ' + escapeHtmlHome(timeAgoHome(d.created_at)) + '</span>' +
+            '</a>';
+    }).join('');
+
+    // 点击卡片直接打开站内详情弹窗（弹窗在 community 视图片段里，所有页面都已注入）
+    grid.querySelectorAll('.home-community-card').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+            e.preventDefault();
+            var number = card.getAttribute('data-number');
+            if (number) {
+                CommunityManager.openDetail(number);
+            } else {
+                window.location.hash = 'community';
+            }
+        });
+    });
+}
+
+function applyTeaserData(data, source, fetchedAt) {
+    if (!data || !Array.isArray(data.discussions)) return;
+    teaserList = data.discussions;
+    // 写回与社区页共享的缓存键，社区页打开时秒出
+    try {
+        localStorage.setItem(COMMUNITY_CACHE_KEY, JSON.stringify({ data: data, source: source, fetchedAt: fetchedAt }));
+    } catch (e) { /* 存储异常忽略 */ }
+    renderTeaser();
+}
+
+/** 首页社区速览：实时优先 —— 缓存仅用于秒出首屏，随后总是拉取实时数据覆盖 */
+export function initCommunityTeaser() {
+    var grid = document.getElementById('home-community-grid');
+    if (!grid) return;
+
+    // 有缓存先秒出（无论新鲜度），实时数据到达后覆盖
+    try {
+        var cached = JSON.parse(localStorage.getItem(COMMUNITY_CACHE_KEY));
+        if (cached && cached.data && Array.isArray(cached.data.discussions) && cached.data.discussions.length) {
+            teaserList = cached.data.discussions;
+            renderTeaser();
+        }
+    } catch (e) { /* 缓存损坏忽略 */ }
+
+    fetch(CONFIG.API.discussions)
+        .then(function (resp) {
+            if (!resp.ok) throw new Error('worker ' + resp.status);
+            return resp.json();
+        })
+        .then(function (data) {
+            applyTeaserData(data, 'worker', Date.now());
+        })
+        .catch(function () {
+            // Worker 不可用 → Actions 定时同步的静态快照
+            fetch('assets/data/discussions.json', { cache: 'no-cache' })
+                .then(function (resp) {
+                    if (!resp.ok) throw new Error('snapshot ' + resp.status);
+                    return resp.json();
+                })
+                .then(function (data) {
+                    var ts = data && data.generated_at ? new Date(data.generated_at).getTime() : Date.now();
+                    applyTeaserData(data, 'snapshot', isNaN(ts) ? Date.now() : ts);
+                })
+                .catch(function (e) {
+                    console.warn('[home] 社区速览加载失败:', e);
+                    if (!teaserList.length && grid) {
+                        grid.innerHTML = '<div class="home-community-empty">' + escapeHtmlHome(I18n.t('home.community.empty')) + '</div>';
+                    }
+                });
+        });
+
+    // 语言切换后按新语言重渲染（分类名、相对时间）
+    document.addEventListener('erispulse-lang-changed', renderTeaser);
 }

@@ -2,13 +2,12 @@
  * 应用入口（原生 ES Module）
  *
  * 取代原先的 <script src="main.js" defer>。
- * 负责：等待 DOM → 加载视图片段 → 按原始顺序初始化各功能模块 → 初始化 HeroCanvas → 隐藏加载动画。
+ * 负责：等待 DOM → 加载视图片段 → 按原始顺序初始化各功能模块 → 隐藏加载动画。
  *
  * 初始化顺序与原 main.js 中 ErisPulseApp.init() 严格一致，以保证行为不变。
  */
 
 import { I18n } from "./i18n.js";
-import { HeroCanvas } from "./hero-canvas.js";
 import { loadUserSettings } from "./core/state.js";
 import { loadViews } from "./core/views.js";
 import * as settings from "./modules/settings.js";
@@ -18,6 +17,8 @@ import * as docs from "./modules/docs.js";
 import { renderFriendLinks, renderDependencies } from "./modules/about.js";
 import * as home from "./modules/home.js";
 import { SubmitModuleManager } from "./modules/submit.js";
+import { CommunityManager } from "./modules/community.js";
+import { AuthManager } from "./core/auth.js";
 
 /**
  * GitHub 风格 .md 深链归一化：
@@ -76,6 +77,11 @@ function runInit() {
   nav.registerServiceWorker();
   settings.setupThemeToggle();
   nav.setupHamburgerMenu();
+  // 账户与社区模块先于视图切换初始化：
+  // setupViewSwitching 会按 __INITIAL_VIEW__ 触发 community 视图的数据加载
+  AuthManager.init();
+  SubmitModuleManager.init();
+  CommunityManager.init();
   nav.setupViewSwitching();
   settings.setupGlobalLangSwitcher();
   market.setupMarketplace();
@@ -87,8 +93,9 @@ function runInit() {
   home.setupHomeAnimations();
   home.initBannerCarousel();
   home.initInstallOverlay();
+  home.initHeroStats();
+  home.initCommunityTeaser();
   nav.setupOnlineOffline();
-  SubmitModuleManager.init();
 }
 
 /**
@@ -213,7 +220,7 @@ function hideLoader() {
 }
 
 /**
- * 启动流程：加载视图 → 初始化模块 → 初始化 HeroCanvas → 隐藏加载动画
+ * 启动流程：加载视图 → 初始化模块 → 隐藏加载动画
  */
 async function bootstrap() {
   try {
@@ -223,7 +230,6 @@ async function bootstrap() {
     console.error("Failed to bootstrap application:", err);
   } finally {
     // 即使初始化失败也要隐藏加载层，避免卡在空白遮罩
-    if (HeroCanvas) HeroCanvas.init();
     // 等待两帧确保 DOM 已绘制，再开始波浪退潮
     requestAnimationFrame(() => requestAnimationFrame(hideLoader));
   }

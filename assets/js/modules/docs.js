@@ -10,6 +10,7 @@ import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
 import { state, saveUserSettings } from '../core/state.js';
 import { showMessage, showActionToast, escapeHtml, timeAgo } from '../core/notify.js';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js';
 import { DocsIndexManager } from './docs-index.js';
 import { DocsContentCache } from './docs-cache.js';
 import { renderModules } from './marketplace.js';
@@ -1464,14 +1465,43 @@ export async function loadDocument(docPath, targetLine = null, keyword = null, s
     }
 }
 
+/**
+ * 同步每篇文档的页面标题与描述（浏览器标签页 + SEO）。
+ * 之前只有调用没有实现，导致渲染链在此抛 ReferenceError、
+ * 后续的 meta 卡/标题锚点/代码高亮全部中断——修复见 #1467。
+ */
+function updateDocMeta(docPath, docsContent) {
+    const heading = docsContent.querySelector('h1, h2');
+    const docTitle = heading ? heading.textContent.trim() : docPath;
+    document.title = docTitle + ' - ErisPulse 文档中心';
+
+    let desc = '';
+    const paras = docsContent.querySelectorAll('p');
+    for (let i = 0; i < paras.length; i++) {
+        const text = (paras[i].textContent || '').replace(/\s+/g, ' ').trim();
+        if (text.length > 30) {
+            desc = text;
+            break;
+        }
+    }
+    if (desc.length > 160) desc = desc.slice(0, 157) + '...';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc && desc) metaDesc.setAttribute('content', desc);
+}
+
 function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, keyword, section = null) {
     const docsContent = document.getElementById('docs-content');
     let htmlContent = marked.parse(markdownContent);
 
+    // GitHub Alerts（> [!NOTE] 等）转提示框
+    htmlContent = enhanceGitHubMarkdown(htmlContent);
     htmlContent = addTableOfContents(htmlContent);
     htmlContent = wrapTables(htmlContent);
 
     docsContent.innerHTML = htmlContent;
+
+    // SEO：每篇文档同步页面标题与描述（爬虫 + 浏览器标签页共用）
+    updateDocMeta(docPath, docsContent);
     addDocumentMetaInfo(docsContent, docPath, commitInfo);
 
     if (docPath === 'ai-support/README.md') {

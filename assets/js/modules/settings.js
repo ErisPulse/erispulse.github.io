@@ -9,6 +9,8 @@ import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
 import { state, saveUserSettings } from '../core/state.js';
 import { showMessage } from '../core/notify.js';
+import { AuthManager } from '../core/auth.js';
+import { CommunityManager } from './community.js';
 import * as docs from './docs.js';
 import * as home from './home.js';
 
@@ -315,6 +317,82 @@ export function setupSettings() {
     }
 
     setTimeout(initSettingsForm, 100);
+    setupAccountCard();
+}
+
+// ==================== 设置页账户卡片 ====================
+// 登录入口收敛到设置页与功能弹窗内，导航栏不再放全局按钮
+
+function escapeHtmlSetting(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+}
+
+function setupAccountCard() {
+    if (!document.getElementById('settings-account')) return;
+    renderAccountCard();
+    document.addEventListener('erispulse-auth-changed', renderAccountCard);
+    document.addEventListener('erispulse-lang-changed', renderAccountCard);
+}
+
+function renderAccountCard() {
+    var box = document.getElementById('settings-account');
+    if (!box) return;
+    var auth = AuthManager.getAuthState();
+
+    if (AuthManager.isLoggedIn() && auth && auth.user) {
+        var user = auth.user;
+        var providerNames = { github: 'GitHub', codeberg: 'Codeberg', yunhu: '云湖' };
+        box.innerHTML =
+            '<div class="account-card-user">' +
+            '<img class="account-card-avatar" src="' + escapeHtmlSetting(user.avatar_url || '') + '" alt="" referrerpolicy="no-referrer">' +
+            '<div class="account-card-id">' +
+            '<span class="account-card-name">' + escapeHtmlSetting(user.name || user.login || '') + '</span>' +
+            '<span class="account-card-provider">' + escapeHtmlSetting(providerNames[auth.provider] || auth.provider || '') + '</span>' +
+            '</div>' +
+            '<button class="btn btn-outline btn-sm" id="account-logout-btn"><span data-i18n="submit.logout">退出登录</span></button>' +
+            '</div>' +
+            '<div class="account-card-mine">' +
+            '<button class="account-mine-row" id="account-my-modules-btn">' +
+            '<span><i class="fas fa-box-open"></i> ' + escapeHtmlSetting(I18n.t('account.myModules')) + '</span>' +
+            '<span class="account-mine-count" id="account-module-count">…</span>' +
+            '</button>' +
+            '<div class="account-mine-row account-mine-static">' +
+            '<span><i class="far fa-comments"></i> ' + escapeHtmlSetting(I18n.t('account.myDiscussions')) + '</span>' +
+            '<span class="account-mine-count" id="account-discussion-count">…</span>' +
+            '</div>' +
+            '<div id="account-discussion-list" class="account-discussion-list">' +
+            '<p class="account-card-loading"><i class="fas fa-spinner fa-spin"></i> ' + escapeHtmlSetting(I18n.t('manage.loading')) + '</p>' +
+            '</div>' +
+            '</div>';
+
+        box.querySelector('#account-logout-btn').addEventListener('click', function () {
+            AuthManager.logout();
+            showMessage(I18n.t('submit.logoutSuccess'), 'success');
+        });
+        box.querySelector('#account-my-modules-btn').addEventListener('click', function () {
+            document.dispatchEvent(new CustomEvent('erispulse-open-submit-modal', { detail: { tab: 'my-modules' } }));
+        });
+
+        loadAccountModuleCount(auth);
+        loadAccountDiscussions(user);
+    } else {
+        box.innerHTML =
+            '<p class="account-card-hint">' + escapeHtmlSetting(I18n.t('account.loginHint')) + '</p>' +
+            '<div class="account-card-login">' +
+            '<button class="btn btn-outline btn-sm" data-account-provider="github"><i class="fab fa-github"></i> GitHub</button>' +
+            '<button class="btn btn-outline btn-sm" data-account-provider="codeberg"><img src="assets/img/codeberg.svg" alt="" width="14" height="14"> Codeberg</button>' +
+            '<button class="btn btn-outline btn-sm" data-account-provider="yunhu"><img src="assets/img/yunhu.png" alt="" width="14" height="14"> 云湖</button>' +
+            '</div>' +
+            '<p class="account-card-note">' + escapeHtmlSetting(I18n.t('account.whereUsed')) + '</p>';
+
+        box.querySelectorAll('[data-account-provider]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                AuthManager.startOAuthLogin(btn.getAttribute('data-account-provider'), 'settings');
+            });
+        });
+    }
 }
 
 function initSettingsForm() {
@@ -334,4 +412,89 @@ function initSettingsForm() {
         document.getElementById('disable-online-refresh').checked = state.userSettings.disableOnlineCacheRefresh !== false;
     }
     docs.updateDocsCacheStatus();
+}
+
+// 我发布的模块数：走现有 /api/my-modules 端点（token 无效时显示 --）
+function loadAccountModuleCount(auth) {
+    var countEl = document.getElementById('account-module-count');
+    if (!countEl) return;
+    fetch(CONFIG.API.myModules, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: auth.accessToken, provider: auth.provider })
+    })
+        .then(function (resp) { return resp.json(); })
+        .then(function (data) {
+            countEl.textContent = data && data.modules ? String(data.modules.length) : '--';
+        })
+        .catch(function () {
+            countEl.textContent = '--';
+        });
+}
+
+// 我发布的讨论：从社区数据链（共享缓存 → Worker → 静态快照）按作者过滤，
+// 展示最近 3 条，点击直接打开站内详情弹窗
+function loadAccountDiscussions(user) {
+    var listEl = document.getElementById('account-discussion-list');
+    var countEl = document.getElementById('account-discussion-count');
+    if (!listEl || !countEl) return;
+
+    function apply(discussions) {
+        if (!Array.isArray(discussions)) return false;
+        var mine = discussions.filter(function (d) {
+            return d.author && user.login && d.author.login === user.login;
+        });
+        countEl.textContent = String(mine.length);
+        if (!mine.length) {
+            listEl.innerHTML = '<p class="account-card-empty">' + escapeHtmlSetting(I18n.t('account.noDiscussions')) + '</p>';
+            return true;
+        }
+        listEl.innerHTML = mine.slice(0, 3).map(function (d) {
+            return '<a class="account-discussion-item" href="' + escapeHtmlSetting(d.html_url || '#community') + '" data-number="' + d.number + '">' +
+                '<span class="account-discussion-title">' + escapeHtmlSetting(d.title || '') + '</span>' +
+                '<span class="account-discussion-meta"><i class="far fa-comment"></i> ' + (typeof d.comments === 'number' ? d.comments : 0) + '</span>' +
+                '</a>';
+        }).join('');
+        listEl.querySelectorAll('.account-discussion-item').forEach(function (a) {
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                CommunityManager.openDetail(a.getAttribute('data-number'));
+            });
+        });
+        return true;
+    }
+
+    var cached = null;
+    try { cached = JSON.parse(localStorage.getItem('erispulse-community-cache')); } catch (e) {}
+    if (cached && cached.data && apply(cached.data.discussions)) return;
+
+    fetch(CONFIG.API.discussions)
+        .then(function (resp) {
+            if (!resp.ok) throw new Error('worker ' + resp.status);
+            return resp.json();
+        })
+        .then(function (data) {
+            if (apply(data && data.discussions)) {
+                try {
+                    localStorage.setItem('erispulse-community-cache', JSON.stringify({ data: data, source: 'worker', fetchedAt: Date.now() }));
+                } catch (e) {}
+            }
+        })
+        .catch(function () {
+            fetch('assets/data/discussions.json', { cache: 'no-cache' })
+                .then(function (resp) {
+                    if (!resp.ok) throw new Error('snapshot ' + resp.status);
+                    return resp.json();
+                })
+                .then(function (data) {
+                    if (!apply(data && data.discussions)) {
+                        countEl.textContent = '--';
+                        listEl.innerHTML = '';
+                    }
+                })
+                .catch(function () {
+                    countEl.textContent = '--';
+                    listEl.innerHTML = '';
+                });
+        });
 }
