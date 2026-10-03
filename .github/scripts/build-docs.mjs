@@ -34,6 +34,8 @@ import { enhanceGitHubMarkdown } from '../../assets/js/core/gh-markdown.js';
  
 const ROOT = process.cwd();
 const SITE = 'https://www.erisdev.com';
+ 
+const API_BASE = 'https://erisdev.com';
 const UPSTREAM = 'ErisPulse/ErisPulse';
 const BRANCH = 'Develop/v2';
 const LANGS = ['zh-CN', 'en', 'zh-TW', 'ja', 'ru'];
@@ -110,9 +112,13 @@ async function pool(items, worker, size = CONCURRENCY) {
 
  
 
- 
+
+
+
 function parseFragment(html) {
-    return new DOMParser().parseFromString(html, 'text/html').body;
+    const clean = html.replace(/^\uFEFF/, '').trim();
+    const doc = new DOMParser().parseFromString('<div id="__ep_frag">' + clean + '</div>', 'text/html');
+    return doc.querySelector('#__ep_frag');
 }
 
  
@@ -438,8 +444,8 @@ function prefillSlot(pageFile, slotName, viewFile, mutate) {
     const viewDoc = parseFragment(fs.readFileSync(path.join(ROOT, 'views', viewFile), 'utf-8'));
     if (mutate) mutate(viewDoc);
 
-    slot.innerHTML = '';
-    while (viewDoc.firstChild) slot.appendChild(viewDoc.firstChild);
+     
+    slot.innerHTML = viewDoc.innerHTML;
 
     fs.writeFileSync(path.join(ROOT, pageFile), serializePage(doc, bom));
     console.log('OK 预填充', pageFile, `(slot: ${slotName})`);
@@ -447,7 +453,7 @@ function prefillSlot(pageFile, slotName, viewFile, mutate) {
 
 async function prefillEntryPages() {
     let stats = {};
-    try { stats = (await fetchText(SITE + '/api/stats').then(JSON.parse)).stats || {}; } catch (e) { console.warn('stats 拉取失败:', e.message); }
+    try { stats = (await fetchText(API_BASE + '/api/stats').then(JSON.parse)).stats || {}; } catch (e) { console.warn('stats 拉取失败:', e.message); }
 
     let discussions = [];
     try {
@@ -464,7 +470,7 @@ async function prefillEntryPages() {
     } catch (e) { console.warn('discussions 拉取失败:', e.message); }
 
     let packages = null;
-    for (const url of [SITE + '/packages.json', 'https://raw.githubusercontent.com/ErisPulse/ErisPulse-ModuleRepo/2x/packages.json']) {
+    for (const url of [API_BASE + '/packages.json', 'https://raw.githubusercontent.com/ErisPulse/ErisPulse-ModuleRepo/2x/packages.json']) {
         try { packages = JSON.parse(await fetchText(url)); break; }
         catch (e) { console.warn('packages 拉取失败:', url, e.message); }
     }
