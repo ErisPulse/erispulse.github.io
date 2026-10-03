@@ -81,25 +81,25 @@
 <span class="token comment"># Get an adapter by name</span>
 adapter <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Or access it directly via attribute</span>
+<span class="token comment"># Or access directly via property</span>
 adapter <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>platform_name
 </code></pre>
 <h3 id="use-adapter-event-listeners">Use Adapter Event Listeners</h3>
 <blockquote>
-<p>It is generally recommended to use the <code>Event</code> module for event listening/handling;</p>
-<p>The <code>Event</code> module also provides powerful wrappers that can bring more convenience to your module development.</p>
+<p>In general, it is recommended to use the <code>Event</code> module for event listening/handling;
+The <code>Event</code> module also provides powerful wrappers, which can bring more convenience for your module development.</p>
 </blockquote>
-<pre><code class="language-python"><span class="token comment"># Listen to OneBot12 standard events</span>
+<pre><code class="language-python"><span class="token comment"># Listen for OneBot12 standard events</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_message</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 
-<span class="token comment"># Listen to specific platform standard events</span>
+<span class="token comment"># Listen for specific platform standard events</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> platform<span class="token operator">=</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_yunhu_message</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 
-<span class="token comment"># Listen to platform native events</span>
+<span class="token comment"># Listen for platform-native events</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"raw_event"</span><span class="token punctuation">,</span> raw<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> platform<span class="token operator">=</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_raw_event</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
@@ -116,7 +116,7 @@ sdk<span class="token punctuation">.</span>adapter<span class="token punctuation
 sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>disable<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>
 
 <span class="token comment"># Start/Stop an adapter</span>
-<span class="token comment"># The following methods only show the case of passing parameters; without parameters, it means start/stop all registered adapters</span>
+<span class="token comment"># The following methods only show parameter cases; without parameters, they start/stop all registered adapters</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"platform1"</span><span class="token punctuation">,</span> <span class="token string">"platform2"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"platform1"</span><span class="token punctuation">,</span> <span class="token string">"platform2"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 
@@ -125,6 +125,11 @@ is_running <span class="token operator">=</span> sdk<span class="token punctuati
 
 <span class="token comment"># List all running adapters</span>
 running <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_running<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Read adapter metadata (aligns with module.get_meta, for consumption by panels / stores, etc.)</span>
+info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_info<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>   <span class="token comment"># Registration information (meta + class name, json-safe)</span>
+meta <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>   <span class="token comment"># Description metadata (description supports i18n parsing)</span>
+raw <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">,</span> resolve_i18n<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># Pass-through original i18n dictionary</span>
 </code></pre>
 <h2 id="middleware">Middleware</h2>
 <p>Middleware executes before events are dispatched to handlers, allowing modification, filtering, or logging of event data.</p>
@@ -136,10 +141,10 @@ running <span class="token operator">=</span> sdk<span class="token punctuation"
 </code></pre>
 <h3 id="middleware-execution-model">Middleware Execution Model</h3>
 <ul>
-<li><strong>Execution Order</strong>: Middleware executes in registration order (first registered, first executed)</li>
-<li><strong>Data Passing</strong>: Each middleware receives the <code>event</code> data returned by the previous middleware; if a middleware returns <code>None</code>, the return value is ignored and the original data continues to be passed (while outputting a <code>warning</code> level log)</li>
+<li><strong>Execution Order</strong>: Middleware executes in the order of registration (earlier registration executes first)</li>
+<li><strong>Data Passing</strong>: Each middleware receives the <code>event</code> data returned by the previous middleware; if a middleware returns <code>None</code>, the return value is ignored while preserving the original data and outputting a <code>warning</code> level log</li>
 <li><strong>Data Modification</strong>: Middleware can modify event data and return the modified dictionary</li>
-<li><strong>Event Rejection</strong>: Middleware explicitly returns <code>False</code> to reject an event—the event is discarded, not entering any handler, and there are no outbound side effects; rejection outputs a TRACE log and triggers the <code>adapter.event.blocked</code> lifecycle hook (carrying the middleware name and full event)</li>
+<li><strong>Event Rejection</strong>: Middleware explicitly returns <code>False</code> to reject the event—the event is discarded and does not enter any handler, with no outbound side effects; rejection outputs a TRACE level log and triggers the <code>adapter.event.blocked</code> lifecycle hook (carrying the middleware name and complete event)</li>
 </ul>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">add_timestamp</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -150,13 +155,12 @@ running <span class="token operator">=</span> sdk<span class="token punctuation"
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">filter_spam</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"detail_type"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"private"</span><span class="token punctuation">:</span>
         text <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"alt_message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
-        <span class="token keyword">if</span> <span class="token string">"spam advertisement"</span> <span class="token keyword">in</span> text<span class="token punctuation">:</span>
-            <span class="token keyword">return</span> <span class="token boolean">False</span>  <span class="token comment"># Reject: event is discarded, not entering any handler</span>
+        <span class="token keyword">if</span> <span class="token string">"spam"</span> <span class="token keyword">in</span> text<span class="token punctuation">:</span>
+            <span class="token keyword">return</span> <span class="token boolean">False</span>  <span class="token comment"># Reject: event is discarded, does not enter any handler</span>
     <span class="token keyword">return</span> event
 </code></pre>
 <blockquote>
-<p><strong>Note</strong>: Only explicitly returning <code>False</code> rejects the event (returning empty dictionary / <code>0</code> / <code>""</code> and other falsy values does not reject);
-Returning <code>None</code> still allows the event and keeps the payload unchanged. Events after rejection can be audited and traced by listening to the <code>adapter.event.blocked</code> hook to understand "why the event was not responded to".</p>
+<p><strong>Note</strong>: Only explicitly returning <code>False</code> rejects the event (returning falsy values such as empty dict / 0 / "" does not reject it); returning <code>None</code> still allows the event to proceed without any payload change. Events that are rejected can be audited and traced by listening to the <code>adapter.event.blocked</code> hook to investigate why an event did not respond.</p>
 </blockquote>
 <h2 id="send-message">Send Message</h2>
 <h3 id="basic-sending">Basic Sending</h3>
@@ -177,11 +181,11 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
 <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="query-supported-sending-methods">Query Supported Sending Methods</h3>
-<pre><code class="language-python"><span class="token comment"># List all sending methods supported by the platform</span>
+<pre><code class="language-python"><span class="token comment"># List all supported sending methods for the platform</span>
 methods <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_sends<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">)</span>
 <span class="token comment"># Returns: ["Text", "Image", "Voice", "Markdown", ...]</span>
 
-<span class="token comment"># Get detailed information about a method</span>
+<span class="token comment"># Get detailed information for a specific method</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>send_info<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"Text"</span><span class="token punctuation">)</span>
 <span class="token comment"># Returns:</span>
 <span class="token comment"># {</span>
@@ -193,23 +197,23 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 <span class="token comment">#     "docstring": "Send text message..."</span>
 <span class="token comment"># }</span>
 </code></pre>
-<h3 id="chaining-modifiers">Chaining Modifiers</h3>
-<pre><code class="language-python"><span class="token comment"># @user</span>
+<h3 id="chained-modifiers">Chained Modifiers</h3>
+<pre><code class="language-python"><span class="token comment"># @User</span>
 <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># @all members</span>
-<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AtAll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello, everyone"</span><span class="token punctuation">)</span>
+<span class="token comment"># @All Members</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AtAll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello everyone"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Reply to message</span>
+<span class="token comment"># Reply to Message</span>
 <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Reply content"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Combine usage</span>
+<span class="token comment"># Combinable usage</span>
 <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Reply to @ message"</span><span class="token punctuation">)</span>
 </code></pre>
 <h2 id="api-calls">API Calls</h2>
 <h3 id="call_api-method">call_api Method</h3>
 <blockquote>
-<p><strong>Note</strong>: <code>call_api</code> is a low-level method to directly call the platform's native API. The parameters and return values may vary across platforms; please refer to the corresponding platform adapter documentation. <strong>It is recommended to use the Send DSL to send messages</strong>, and only use <code>call_api</code> in scenarios not supported by the Send DSL (such as obtaining platform-specific data, calling platform management APIs, etc.).</p>
+<p><strong>Note</strong>: <code>call_api</code> is a low-level method for directly calling native platform APIs; parameters and return values may vary across platforms, please refer to the corresponding platform adapter documentation. <strong>It is recommended to use the Send DSL for sending messages</strong>; use <code>call_api</code> only in scenarios where the Send DSL is not supported (such as retrieving platform-specific data or calling platform management APIs).</p>
 </blockquote>
 <pre><code class="language-python"><span class="token comment"># Call platform API</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
@@ -238,19 +242,19 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span><span class="token punctuation">)</span>
         self<span class="token punctuation">.</span>sdk <span class="token operator">=</span> sdk
-        <span class="token comment"># Initialize the adapter</span>
+        <span class="token comment"># Initialize adapter</span>
         <span class="token keyword">pass</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Start the adapter (must be implemented)"""</span>
+        <span class="token triple-quoted-string string">"""Start adapter (must implement)"""</span>
         <span class="token keyword">pass</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Shutdown the adapter (must be implemented)"""</span>
+        <span class="token triple-quoted-string string">"""Shutdown adapter (must implement)"""</span>
         <span class="token keyword">pass</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Call the platform API (must be implemented)"""</span>
+        <span class="token triple-quoted-string string">"""Call platform API (must implement)"""</span>
         <span class="token keyword">pass</span>
 </code></pre>
 <h3 id="send-nested-class">Send Nested Class</h3>
@@ -269,9 +273,9 @@ result <span class="token operator">=</span> <span class="token keyword">await</
             <span class="token punctuation">)</span>
 </code></pre>
 <h2 id="bot-status-management">Bot Status Management</h2>
-<p>Adapters inform the framework of the Bot's connection status by sending OneBot12 standard <strong><code>meta</code> events</strong>. The system automatically extracts Bot information from these events for status tracking.</p>
+<p>Adapters inform the framework of the Bot's connection status by emitting OneBot12 standard <strong><code>meta</code> events</strong>. The system automatically extracts Bot information from these events for status tracking.</p>
 <h3 id="meta-event-types">meta Event Types</h3>
-<p>Adapters should send the following three <code>meta</code> events:</p>
+<p>Adapters should emit the following three <code>meta</code> events:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -285,23 +289,23 @@ result <span class="token operator">=</span> <span class="token keyword">await</
 <td><code>meta</code></td>
 <td><code>connect</code></td>
 <td>Bot connects online</td>
-<td>After the adapter successfully establishes a connection with the platform</td>
+<td>After adapter successfully establishes a connection with the platform</td>
 </tr>
 <tr>
 <td><code>meta</code></td>
 <td><code>heartbeat</code></td>
 <td>Bot heartbeat</td>
-<td>Sent periodically (recommended every 30-60 seconds)</td>
+<td>Regularly sent (recommended every 30-60 seconds)</td>
 </tr>
 <tr>
 <td><code>meta</code></td>
 <td><code>disconnect</code></td>
 <td>Bot disconnects</td>
-<td>When a connection disconnection is detected</td>
+<td>When connection loss is detected</td>
 </tr>
 </tbody></table></div>
 <h3 id="self-field-extension">self Field Extension</h3>
-<p>ErisPulse extends the <code>self</code> field in the OneBot12 standard with the following optional fields:</p>
+<p>ErisPulse extends the following optional fields on the standard OneBot12 <code>self</code> field:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -337,7 +341,7 @@ result <span class="token operator">=</span> <span class="token keyword">await</
 </tr>
 </tbody></table></div>
 <h3 id="meta-event-format">meta Event Format</h3>
-<h4 id="connect-connect-online">connect — Connect Online</h4>
+<h4 id="connect-connection-online">connect — Connection Online</h4>
 <pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
     <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique_id"</span><span class="token punctuation">,</span>
     <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1712345678</span><span class="token punctuation">,</span>
@@ -354,7 +358,7 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token string">"telegram_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"bot_connected"</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>System processing: Register the Bot, mark as <code>online</code>, and trigger the <code>adapter.bot.online</code> lifecycle event.</p>
+<p>System handling: Register Bot, mark as <code>online</code>, trigger <code>adapter.bot.online</code> lifecycle event.</p>
 <h4 id="heartbeat-heartbeat">heartbeat — Heartbeat</h4>
 <pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
     <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique_id"</span><span class="token punctuation">,</span>
@@ -368,7 +372,7 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>System processing: Update <code>last_active</code> time (the heartbeat also supports updating metadata).</p>
+<p>System handling: Update <code>last_active</code> time (also supports updating metadata in heartbeat).</p>
 <h4 id="disconnect-disconnect">disconnect — Disconnect</h4>
 <pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
     <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique_id"</span><span class="token punctuation">,</span>
@@ -382,13 +386,13 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>System processing: Mark the Bot as <code>offline</code>, and trigger the <code>adapter.bot.offline</code> lifecycle event.</p>
+<p>System handling: Mark Bot as <code>offline</code>, trigger <code>adapter.bot.offline</code> lifecycle event.</p>
 <h3 id="automatic-discovery-of-regular-events">Automatic Discovery of Regular Events</h3>
-<p>In addition to <code>meta</code> events, the <code>self</code> field in regular events (<code>message</code>/<code>notice</code>/<code>request</code>) will also be automatically discovered and registered for the Bot, updating the active time. This means that even if the adapter does not send a <code>connect</code> event, the framework can discover the Bot from the first regular event.</p>
+<p>In addition to <code>meta</code> events, the <code>self</code> field in regular events (<code>message</code>/<code>notice</code>/<code>request</code>) will also automatically discover and register the Bot, updating the active time. This means that even if the adapter does not send a <code>connect</code> event, the framework can still discover the Bot from the first regular event.</p>
 <h3 id="adapter-integration-example">Adapter Integration Example</h3>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token comment"># Establish connection with the platform...</span>
+        <span class="token comment"># Establish connection with platform...</span>
         connection <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect<span class="token punctuation">(</span><span class="token punctuation">)</span>
         
         <span class="token comment"># Connection successful, send connect event</span>
@@ -446,10 +450,10 @@ all_bots <span class="token operator">=</span> sdk<span class="token punctuation
 <span class="token comment"># List Bots for a specific platform</span>
 tg_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Get details of a single Bot</span>
+<span class="token comment"># Get single Bot details</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_bot_info<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Check if a Bot is online</span>
+<span class="token comment"># Check if Bot is online</span>
 <span class="token keyword">if</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>is_bot_online<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Bot is online"</span><span class="token punctuation">)</span>
 </code></pre>
@@ -463,11 +467,11 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 </thead>
 <tbody><tr>
 <td><code>online</code></td>
-<td>Online (continuously receiving events or actively marked by the adapter)</td>
+<td>Online (continuously receiving events or actively marked by adapter)</td>
 </tr>
 <tr>
 <td><code>offline</code></td>
-<td>Offline (actively marked by the adapter or automatically set by the system on shutdown)</td>
+<td>Offline (actively marked by adapter or automatically set on system shutdown)</td>
 </tr>
 <tr>
 <td><code>unknown</code></td>
@@ -491,27 +495,27 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 <tr>
 <td><code>adapter.status.change</code></td>
 <td>Adapter status change</td>
-<td><code>{platform, status}</code>, status full values: <code>starting</code> / <code>started</code> / <code>start_failed</code> / <code>stopping</code> / <code>stopped</code> / <code>stop_failed</code> / <code>skipped-dependency</code> (skipped due to unready dependencies) / <code>disabled</code> (configuration disabled)</td>
+<td><code>{platform, status}</code>, status complete values: <code>starting</code> / <code>started</code> / <code>start_failed</code> / <code>stopping</code> / <code>stopped</code> / <code>stop_failed</code> / <code>skipped-dependency</code> (skipped startup due to unready dependencies) / <code>disabled</code> (configuration disabled)</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python"><span class="token comment"># Listen to Bot online event</span>
+<pre><code class="language-python"><span class="token comment"># Listen for Bot online event</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.bot.online"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">on_bot_online</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Bot online: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'bot_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># Listen to adapter status change</span>
+<span class="token comment"># Listen for adapter status change</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.status.change"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">on_status_change</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Adapter status: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'status'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>When the system shuts down (via <code>shutdown</code>), all Bots are automatically marked as <code>offline</code>.</p>
+<p>On system shutdown (<code>shutdown</code>), all Bots are automatically marked as <code>offline</code>.</p>
 </blockquote>
 <h2 id="related-documentation">Related Documentation</h2>
 <ul>
 <li><a href="/docs/en/api-reference/core-modules.html">Core Modules API</a> - Core Modules API</li>
 <li><a href="/docs/en/api-reference/event-system.html">Event System API</a> - Event Module API</li>
-<li><a href="/docs/en/developer-guide/adapters.html">Adapter Development Guide</a> - Developing Platform Adapters</li>
+<li><a href="/docs/en/developer-guide/adapters.html">Adapter Development Guide</a> - Develop Platform Adapters</li>
 </ul>
 
         </article>

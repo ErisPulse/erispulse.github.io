@@ -79,57 +79,59 @@
 <p>提供包安装、卸载、升级和查询功能</p>
 <hr>
 <h2 id="函数列表">函数列表</h2>
-<h3 id="create_project_venvproject_dir-path"><code>create_project_venv(project_dir: Path)</code></h3>
+<h3 id="create_project_venvproject_dir-path---str-none"><code>create_project_venv(project_dir: Path) -&gt; 'str | None'</code></h3>
 <p>在项目目录创建 <code>.venv</code> 虚拟环境</p>
 <p>优先使用 uv（<code>uv venv</code>，秒级、无 pip）；uv 不可用时回退
 <code>python -m venv</code>（自带 pip）。</p>
 <ul>
-<li><strong>project_dir</strong> (<code>项目目录（.venv</code>): 创建于其下）
-<strong>返回值</strong> (<code>成功时返回</code>): .venv 的 Python 解释器路径；失败返回 None</li>
+<li><strong>project_dir</strong>: 项目目录（.venv 创建于其下）</li>
 </ul>
+<p><strong>返回值</strong>: 成功时返回 .venv 的 Python 解释器路径；失败返回 None</p>
 <hr>
-<h3 id="uv_addproject_dir-path-packages-liststr"><code>uv_add(project_dir: Path, packages: 'list[str]')</code></h3>
+<h3 id="uv_addproject_dir-path-packages-liststr---bool"><code>uv_add(project_dir: Path, packages: 'list[str]') -&gt; bool</code></h3>
 <p>在项目目录执行 <code>uv add &lt;packages&gt;</code>（安装依赖并同步写入 pyproject.toml）</p>
 <p>uv 会自动创建/使用项目 <code>.venv</code> 并生成 uv.lock——安装与依赖声明
 一步完成，天然免疫 <code>uv sync</code> 的未声明包清理。</p>
 <ul>
-<li><strong>project_dir</strong> (<code>项目目录（须已生成</code>): pyproject.toml）</li>
-<li><strong>packages</strong> (<code>包名列表</code>): <strong>返回值</strong>: 是否成功</li>
+<li><strong>project_dir</strong>: 项目目录（须已生成 pyproject.toml）</li>
+<li><strong>packages</strong>: 包名列表</li>
 </ul>
+<p><strong>返回值</strong>: 是否成功</p>
 <hr>
-<h3 id="append_pyproject_dependenciesproject_dir-path-packages-liststr"><code>append_pyproject_dependencies(project_dir: Path, packages: 'list[str]')</code></h3>
+<h3 id="append_pyproject_dependenciesproject_dir-path-packages-liststr---bool"><code>append_pyproject_dependencies(project_dir: Path, packages: 'list[str]') -&gt; bool</code></h3>
 <p>手动向 pyproject.toml 的 project.dependencies 追加依赖（pip 回退路径用）</p>
 <p>使用 tomlkit 保留文件注释与格式。</p>
 <ul>
-<li><strong>project_dir</strong> (<code>项目目录</code>): - <strong>packages</strong>: 依赖包名列表
-<strong>返回值</strong> (<code>是否成功（pyproject</code>): 不存在 / 解析失败返回 False）</li>
+<li><strong>project_dir</strong>: 项目目录</li>
+<li><strong>packages</strong>: 依赖包名列表</li>
 </ul>
+<p><strong>返回值</strong>: 是否成功（pyproject 不存在 / 解析失败返回 False）</p>
 <hr>
-<h3 id="resolve_target_pythonproject_dir-path-none-none"><code>resolve_target_python(project_dir: 'Path | None' = None)</code></h3>
+<h3 id="resolve_target_pythonproject_dir-path-none-none---tuplestr-str"><code>resolve_target_python(project_dir: 'Path | None' = None) -&gt; 'tuple[str, str]'</code></h3>
 <p>解析目标 Python 解释器（CLI 各命令统一入口）</p>
 <p>优先级：<code>ERISPULSE_PYTHON</code> 环境变量 &gt; 项目 <code>.venv</code> 内解释器 &gt;
 <code>VIRTUAL_ENV</code> &gt; 当前解释器。</p>
 <ul>
-<li><strong>project_dir</strong> (<code>项目目录（默认当前目录）；在该目录下探测</code>): <code>.venv</code>
-<strong>返回值</strong> (<code>(解释器路径,</code>): 来源描述)——来源用于提示用户当前操作所作用的环境</li>
+<li><strong>project_dir</strong>: 项目目录（默认当前目录）；在该目录下探测 <code>.venv</code></li>
 </ul>
+<p><strong>返回值</strong>: (解释器路径, 来源描述)——来源用于提示用户当前操作所作用的环境</p>
 <hr>
-<h3 id="build_uv_tool_update_commanduv_cmd-liststr-target_version-str-none"><code>build_uv_tool_update_command(uv_cmd: 'list[str]', target_version: 'str | None')</code></h3>
+<h3 id="build_uv_tool_update_commanduv_cmd-liststr-target_version-str-none---liststr"><code>build_uv_tool_update_command(uv_cmd: 'list[str]', target_version: 'str | None') -&gt; 'list[str]'</code></h3>
 <p>构建 uv tool 通道的 SDK 自更新命令</p>
 <ul>
 <li><strong>uv_cmd</strong> (<code>list[str</code>): ] uv 命令前缀（如 ["uv"]）</li>
-<li><strong>target_version</strong> (<code>str | None</code>): 目标版本号；None 表示升级到最新
-<strong>返回值</strong> (<code>list[str</code>): ] 完整命令列表</li>
+<li><strong>target_version</strong> (<code>str | None</code>): 目标版本号；None 表示升级到最新</li>
 </ul>
+<p><strong>返回值</strong> (<code>list[str</code>): ] 完整命令列表</p>
 <hr>
-<h3 id="_ps_quotetext-str"><code>_ps_quote(text: str)</code></h3>
+<h3 id="_ps_quotetext-str---str"><code>_ps_quote(text: str) -&gt; str</code></h3>
 <p>转义 PowerShell 单引号字符串中的单引号</p>
 <ul>
-<li><strong>text</strong> (<code>str</code>): 原始文本
-<strong>返回值</strong> (<code>str</code>): 可安全嵌入 PowerShell 单引号字面量的文本</li>
+<li><strong>text</strong> (<code>str</code>): 原始文本</li>
 </ul>
+<p><strong>返回值</strong> (<code>str</code>): 可安全嵌入 PowerShell 单引号字面量的文本</p>
 <hr>
-<h3 id="build_windows_tool_update_scriptcmd-liststr-parent_pid-int-msg_done-str-msg_failed-str-press_key-str"><code>build_windows_tool_update_script(cmd: 'list[str]', parent_pid: int, msg_done: str, msg_failed: str, press_key: str)</code></h3>
+<h3 id="build_windows_tool_update_scriptcmd-liststr-parent_pid-int-msg_done-str-msg_failed-str-press_key-str---str"><code>build_windows_tool_update_script(cmd: 'list[str]', parent_pid: int, msg_done: str, msg_failed: str, press_key: str) -&gt; str</code></h3>
 <p>生成 Windows 分离更新用的 PowerShell 脚本文本</p>
 <p>脚本流程：等待当前 CLI 进程退出（工具环境文件不再被占用）→ 执行
 uv tool 更新命令 → 报告结果 → 自删除 → 等待用户按键，防止新控制台
@@ -139,18 +141,18 @@ uv tool 更新命令 → 报告结果 → 自删除 → 等待用户按键，防
 <li><strong>parent_pid</strong> (<code>int</code>): 当前 CLI 进程 PID（脚本等待其退出）</li>
 <li><strong>msg_done</strong> (<code>str</code>): 更新成功提示</li>
 <li><strong>msg_failed</strong> (<code>str</code>): 更新失败提示</li>
-<li><strong>press_key</strong> (<code>str</code>): 退出前按键提示
-<strong>返回值</strong> (<code>str</code>): PowerShell 脚本文本</li>
+<li><strong>press_key</strong> (<code>str</code>): 退出前按键提示</li>
 </ul>
+<p><strong>返回值</strong> (<code>str</code>): PowerShell 脚本文本</p>
 <hr>
-<h3 id="warn_if_uv_isolated"><code>warn_if_uv_isolated()</code></h3>
+<h3 id="warn_if_uv_isolated---bool"><code>warn_if_uv_isolated() -&gt; bool</code></h3>
 <p>检测当前是否处于 uv 无项目的隔离运行上下文并输出警告</p>
 <p><code>uv run</code> 在<strong>无 pyproject.toml</strong> 的目录执行时，命令运行于一次性
 隔离环境——其中安装的包不会持久化。通过 <code>UV</code> 环境变量识别 uv
 上下文，结合 cwd 项目文件缺失判定隔离场景。</p>
-<p><strong>返回值</strong> (<code>是否处于隔离场景（True</code>): = 已输出警告）</p>
+<p><strong>返回值</strong>: 是否处于隔离场景（True = 已输出警告）</p>
 <hr>
-<h3 id="is_uv_tool_env"><code>is_uv_tool_env()</code></h3>
+<h3 id="is_uv_tool_env---bool"><code>is_uv_tool_env() -&gt; bool</code></h3>
 <p>检测当前解释器是否位于 <code>uv tool install</code> 创建的工具环境中</p>
 <p>uv tool 环境位于 uv 数据目录下的 <code>uv/tools/&lt;包名&gt;/</code>（Linux:
 <code>~/.local/share/uv/tools</code>，Windows: <code>%APPDATA%\uv\tools</code>），
@@ -158,7 +160,7 @@ uv tool 更新命令 → 报告结果 → 自删除 → 等待用户按键，防
 uv tool 的入口 shim 执行时不会设置 UV 变量。</p>
 <p><strong>返回值</strong> (<code>bool</code>): 当前 epsdk 运行于 uv tool 环境时返回 True</p>
 <hr>
-<h3 id="warn_if_uv_tool_env_without_project"><code>warn_if_uv_tool_env_without_project()</code></h3>
+<h3 id="warn_if_uv_tool_env_without_project---bool"><code>warn_if_uv_tool_env_without_project() -&gt; bool</code></h3>
 <p>检测「uv tool 环境运行 + 无项目环境」场景并输出提示</p>
 <p><code>uv tool install ErisPulse</code> 后，epsdk 运行于全局工具环境；若用户
 未在项目内（无 <code>.venv</code> 且未激活 <code>VIRTUAL_ENV</code>），组件安装目标会
@@ -178,162 +180,163 @@ uv tool 的入口 shim 执行时不会设置 UV 变量。</p>
 </ol>
 </blockquote>
 <h4 id="方法列表">方法列表</h4>
-<h5 id="_sanitize_proxy_urlurl-str"><code>_sanitize_proxy_url(url: str)</code></h5>
+<h5 id="_sanitize_proxy_urlurl-str---strstaticmethod"><code>_sanitize_proxy_url(url: str) -&gt; str</code>（staticmethod）</h5>
 <p>对代理URL中的密码进行脱敏处理</p>
 <ul>
-<li><strong>url</strong> (<code>str</code>): 原始代理URL
-<strong>返回值</strong> (<code>str</code>): 密码被替换为 *** 的脱敏URL</li>
+<li><strong>url</strong> (<code>str</code>): 原始代理URL</li>
 </ul>
+<p><strong>返回值</strong> (<code>str</code>): 密码被替换为 *** 的脱敏URL</p>
 <hr>
 <h5 id="__init__python_executable-str-none-none"><code>__init__(python_executable: 'str | None' = None)</code></h5>
 <p>初始化包管理器，设置缓存、查找器、代理与 uv 相关状态</p>
 <ul>
-<li><strong>python_executable</strong> (<code>str | None</code>): 显式指定目标 Python 解释器
-  （如项目 .venv 内的解释器）。指定后查找器与安装/卸载目标环境
-  全部指向该解释器；None 时按 _get_target_python() 自动解析</li>
+<li><p><strong>python_executable</strong> (<code>str | None</code>): 显式指定目标 Python 解释器</p>
+<p>  （如项目 .venv 内的解释器）。指定后查找器与安装/卸载目标环境
+  全部指向该解释器；None 时按 _get_target_python() 自动解析</p>
+</li>
 </ul>
 <hr>
-<h5 id="_parse_sizesize_str-str"><code>_parse_size(size_str: str)</code></h5>
+<h5 id="_parse_sizesize_str-str---floatstaticmethod"><code>_parse_size(size_str: str) -&gt; float</code>（staticmethod）</h5>
 <p>将带单位的尺寸字符串解析为字节数</p>
 <ul>
-<li><strong>size_str</strong> (<code>str</code>): 尺寸字符串，如 "10MB"
-<strong>返回值</strong> (<code>float</code>): 对应的字节数，无法解析时返回 0</li>
+<li><strong>size_str</strong> (<code>str</code>): 尺寸字符串，如 "10MB"</li>
 </ul>
+<p><strong>返回值</strong> (<code>float</code>): 对应的字节数，无法解析时返回 0</p>
 <hr>
-<h5 id="_get_system_proxy"><code>_get_system_proxy()</code></h5>
+<h5 id="_get_system_proxy---dictstr-str-none"><code>_get_system_proxy() -&gt; dict[str, str] | None</code></h5>
 <p>获取系统代理配置，优先读取环境变量，其次读取Windows注册表</p>
 <p><strong>返回值</strong> (<code>Optional[Dict[str, str</code>): ]] 代理配置字典，无代理时返回 None</p>
 <hr>
-<h5 id="_parse_windows_proxyproxy_server-str"><code>_parse_windows_proxy(proxy_server: str)</code></h5>
+<h5 id="_parse_windows_proxyproxy_server-str---dictstr-strstaticmethod"><code>_parse_windows_proxy(proxy_server: str) -&gt; dict[str, str]</code>（staticmethod）</h5>
 <p>解析Windows注册表中的代理服务器字符串为协议到URL的映射</p>
 <ul>
-<li><strong>proxy_server</strong> (<code>str</code>): Windows代理服务器字符串
-<strong>返回值</strong> (<code>Dict[str, str</code>): ] 协议到代理URL的映射</li>
+<li><strong>proxy_server</strong> (<code>str</code>): Windows代理服务器字符串</li>
 </ul>
+<p><strong>返回值</strong> (<code>Dict[str, str</code>): ] 协议到代理URL的映射</p>
 <hr>
-<h5 id="_get_proxy_for_urlurl-str"><code>_get_proxy_for_url(url: str)</code></h5>
+<h5 id="_get_proxy_for_urlurl-str---str-none"><code>_get_proxy_for_url(url: str) -&gt; str | None</code></h5>
 <p>根据URL的协议获取对应的代理地址</p>
 <ul>
-<li><strong>url</strong> (<code>str</code>): 目标URL
-<strong>返回值</strong> (<code>Optional[str</code>): ] 对应的代理URL，无匹配代理时返回 None</li>
+<li><strong>url</strong> (<code>str</code>): 目标URL</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[str</code>): ] 对应的代理URL，无匹配代理时返回 None</p>
 <hr>
-<h5 id="_build_subprocess_env"><code>_build_subprocess_env()</code></h5>
+<h5 id="_build_subprocess_env---dictstr-str"><code>_build_subprocess_env() -&gt; dict[str, str]</code></h5>
 <p>构建子进程环境变量，未设置时注入系统代理配置</p>
 <p><strong>返回值</strong> (<code>Dict[str, str</code>): ] 包含代理配置的环境变量字典</p>
 <hr>
-<h5 id="_http_geturl-str-timeout-int-15"><code>_http_get(url: str, timeout: int = 15)</code></h5>
+<h5 id="_http_geturl-str-timeout-int-15---str-none"><code>_http_get(url: str, timeout: int = 15) -&gt; str | None</code></h5>
 <p>发起HTTP GET请求并返回响应文本，自动应用系统代理</p>
 <ul>
 <li><strong>url</strong> (<code>str</code>): 请求URL</li>
-<li><strong>timeout</strong> (<code>int</code>): 超时时间(秒) (默认: 15)
-<strong>返回值</strong> (<code>Optional[str</code>): ] 响应文本，请求失败时返回 None</li>
+<li><strong>timeout</strong> (<code>int</code>): 超时时间(秒) (默认: 15)</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[str</code>): ] 响应文本，请求失败时返回 None</p>
 <hr>
-<h5 id="_fetch_remote_packages_syncurl-str"><code>_fetch_remote_packages_sync(url: str)</code></h5>
+<h5 id="_fetch_remote_packages_syncurl-str---dict-none"><code>_fetch_remote_packages_sync(url: str) -&gt; dict | None</code></h5>
 <p>同步获取并解析远程包列表JSON</p>
 <ul>
-<li><strong>url</strong> (<code>str</code>): 远程包列表URL
-<strong>返回值</strong> (<code>Optional[dict</code>): ] 解析后的包列表字典，失败时返回 None</li>
+<li><strong>url</strong> (<code>str</code>): 远程包列表URL</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[dict</code>): ] 解析后的包列表字典，失败时返回 None</p>
 <hr>
-<h5 id="async-_fetch_remote_packagesurl-str"><code>async _fetch_remote_packages(url: str)</code></h5>
+<h5 id="async-_fetch_remote_packagesurl-str---dict-none"><code>async _fetch_remote_packages(url: str) -&gt; dict | None</code></h5>
 <p>异步获取远程包列表</p>
 <ul>
-<li><strong>url</strong> (<code>str</code>): 远程包列表URL
-<strong>返回值</strong> (<code>Optional[dict</code>): ] 解析后的包列表字典，失败时返回 None</li>
+<li><strong>url</strong> (<code>str</code>): 远程包列表URL</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[dict</code>): ] 解析后的包列表字典，失败时返回 None</p>
 <hr>
-<h5 id="async-get_remote_packagesforce_refresh-bool-false"><code>async get_remote_packages(force_refresh: bool = False)</code></h5>
+<h5 id="async-get_remote_packagesforce_refresh-bool-false---dict"><code>async get_remote_packages(force_refresh: bool = False) -&gt; dict</code></h5>
 <p>获取远程包列表，带缓存机制</p>
 <ul>
-<li><strong>force_refresh</strong> (<code>bool</code>): 是否强制刷新缓存 (默认: False)
-<strong>返回值</strong> (<code>dict</code>): 包含 modules 和 adapters 信息的字典</li>
+<li><strong>force_refresh</strong> (<code>bool</code>): 是否强制刷新缓存 (默认: False)</li>
 </ul>
+<p><strong>返回值</strong> (<code>dict</code>): 包含 modules 和 adapters 信息的字典</p>
 <hr>
-<h5 id="get_installed_packages"><code>get_installed_packages()</code></h5>
+<h5 id="get_installed_packages---dictstr-dictstr-dictstr-str"><code>get_installed_packages() -&gt; dict[str, dict[str, dict[str, str]]]</code></h5>
 <p>获取已安装的模块和适配器信息</p>
 <p><strong>返回值</strong> (<code>Dict[str, Dict[str, Dict[str, str</code>): ]] 包含 modules 和 adapters 信息的字典</p>
 <hr>
-<h5 id="_is_module_enabledmodule_name-str"><code>_is_module_enabled(module_name: str)</code></h5>
+<h5 id="_is_module_enabledmodule_name-str---bool"><code>_is_module_enabled(module_name: str) -&gt; bool</code></h5>
 <p>检查指定模块是否已启用</p>
 <ul>
-<li><strong>module_name</strong> (<code>str</code>): 模块名称
-<strong>返回值</strong> (<code>bool</code>): 模块已启用返回 True，无法判断时默认返回 True</li>
+<li><strong>module_name</strong> (<code>str</code>): 模块名称</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 模块已启用返回 True，无法判断时默认返回 True</p>
 <hr>
-<h5 id="_normalize_namename-str"><code>_normalize_name(name: str)</code></h5>
+<h5 id="_normalize_namename-str---str"><code>_normalize_name(name: str) -&gt; str</code></h5>
 <p>将名称标准化为小写并去除首尾空白</p>
 <ul>
-<li><strong>name</strong> (<code>str</code>): 原始名称
-<strong>返回值</strong> (<code>str</code>): 标准化后的名称</li>
+<li><strong>name</strong> (<code>str</code>): 原始名称</li>
 </ul>
+<p><strong>返回值</strong> (<code>str</code>): 标准化后的名称</p>
 <hr>
-<h5 id="async-_find_package_by_aliasalias-str"><code>async _find_package_by_alias(alias: str)</code></h5>
+<h5 id="async-_find_package_by_aliasalias-str---str-none"><code>async _find_package_by_alias(alias: str) -&gt; str | None</code></h5>
 <p>通过别名查找实际的包名，依次匹配已安装包和远程包</p>
 <ul>
-<li><strong>alias</strong> (<code>str</code>): 别名或包名
-<strong>返回值</strong> (<code>Optional[str</code>): ] 实际的包名，未找到时返回 None</li>
+<li><strong>alias</strong> (<code>str</code>): 别名或包名</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[str</code>): ] 实际的包名，未找到时返回 None</p>
 <hr>
-<h5 id="_find_installed_package_by_namename-str"><code>_find_installed_package_by_name(name: str)</code></h5>
+<h5 id="_find_installed_package_by_namename-str---str-none"><code>_find_installed_package_by_name(name: str) -&gt; str | None</code></h5>
 <p>在已安装的模块和适配器中按名称查找实际包名</p>
 <ul>
-<li><strong>name</strong> (<code>str</code>): 包名或别名
-<strong>返回值</strong> (<code>Optional[str</code>): ] 已安装的实际包名，未找到时返回 None</li>
+<li><strong>name</strong> (<code>str</code>): 包名或别名</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[str</code>): ] 已安装的实际包名，未找到时返回 None</p>
 <hr>
-<h5 id="async-check_package_updates"><code>async check_package_updates()</code></h5>
+<h5 id="async-check_package_updates---dictstr-tuplestr-str"><code>async check_package_updates() -&gt; dict[str, tuple[str, str]]</code></h5>
 <p>检查已安装包的可用更新</p>
 <p><strong>返回值</strong> (<code>Dict[str, Tuple[str, str</code>): ]] 包名到(当前版本, 最新版本)的映射</p>
 <hr>
-<h5 id="_get_pypi_version_syncpackage_name-str"><code>_get_pypi_version_sync(package_name: str)</code></h5>
+<h5 id="_get_pypi_version_syncpackage_name-str---str-none"><code>_get_pypi_version_sync(package_name: str) -&gt; str | None</code></h5>
 <p>同步从PyPI获取指定包的最新版本号</p>
 <ul>
-<li><strong>package_name</strong> (<code>str</code>): 包名
-<strong>返回值</strong> (<code>Optional[str</code>): ] 最新版本号，失败时返回 None</li>
+<li><strong>package_name</strong> (<code>str</code>): 包名</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[str</code>): ] 最新版本号，失败时返回 None</p>
 <hr>
-<h5 id="async-_get_pypi_package_versionpackage_name-str-force_refresh-bool-false"><code>async _get_pypi_package_version(package_name: str, force_refresh: bool = False)</code></h5>
+<h5 id="async-_get_pypi_package_versionpackage_name-str-force_refresh-bool-false---str-none"><code>async _get_pypi_package_version(package_name: str, force_refresh: bool = False) -&gt; str | None</code></h5>
 <p>异步获取指定包的PyPI最新版本，带缓存机制</p>
 <ul>
 <li><strong>package_name</strong> (<code>str</code>): 包名</li>
-<li><strong>force_refresh</strong> (<code>bool</code>): 是否强制刷新缓存 (默认: False)
-<strong>返回值</strong> (<code>Optional[str</code>): ] 最新版本号，失败时返回 None</li>
+<li><strong>force_refresh</strong> (<code>bool</code>): 是否强制刷新缓存 (默认: False)</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[str</code>): ] 最新版本号，失败时返回 None</p>
 <hr>
-<h5 id="_is_uv_disabled"><code>_is_uv_disabled()</code></h5>
+<h5 id="_is_uv_disabled---bool"><code>_is_uv_disabled() -&gt; bool</code></h5>
 <p>是否禁用 uv：CLI --no-uv 优先，其次环境变量 ERISPULSE_NO_UV</p>
 <hr>
-<h5 id="_detect_uv"><code>_detect_uv()</code></h5>
+<h5 id="_detect_uv---liststr-none"><code>_detect_uv() -&gt; list[str] | None</code></h5>
 <p>检测可用的 uv 命令。</p>
 <p>优先使用 PATH 上的独立 uv 二进制（用户可能是全局安装，
 而非作为 pip 包安装在当前环境），其次回退到 python -m uv。</p>
 <p><strong>返回值</strong> (<code>Optional[List[str</code>): ]] 形如 ["uv"] 或 [python, "-m", "uv"] 的命令前缀；未找到返回 None</p>
 <hr>
-<h5 id="_get_uv_command"><code>_get_uv_command()</code></h5>
+<h5 id="_get_uv_command---liststr-none"><code>_get_uv_command() -&gt; list[str] | None</code></h5>
 <p>返回应使用的 uv 命令前缀。</p>
 <p>当通过 --no-uv 禁用或 uv 不可用时返回 None。</p>
 <p><strong>返回值</strong> (<code>Optional[List[str</code>): ]] uv 命令前缀或 None</p>
 <hr>
-<h5 id="_get_target_python"><code>_get_target_python()</code></h5>
+<h5 id="_get_target_python---str"><code>_get_target_python() -&gt; str</code></h5>
 <p>返回应当作为安装目标的 Python 解释器路径。</p>
 <p>若用户激活了虚拟环境 (VIRTUAL_ENV) 但 epsdk 自身运行在别处
 （例如通过 pipx 全局安装），则返回该虚拟环境的 Python，
 以确保包安装到用户期望的环境中而非全局。</p>
 <p><strong>返回值</strong> (<code>str</code>): 目标 Python 解释器路径</p>
 <hr>
-<h5 id="_execute_backendbase_cmd-liststr-args-liststr-description-str-backend-str"><code>_execute_backend(base_cmd: list[str], args: list[str], description: str, backend: str)</code></h5>
+<h5 id="_execute_backendbase_cmd-liststr-args-liststr-description-str-backend-str---bool"><code>_execute_backend(base_cmd: list[str], args: list[str], description: str, backend: str) -&gt; bool</code></h5>
 <p>使用指定的后端 (uv/pip) 执行命令并实时输出到当前终端。</p>
 <ul>
 <li><strong>base_cmd</strong> (<code>List[str</code>): ] 后端命令前缀，如 ["uv", "pip"] 或 [python, "-m", "pip"]</li>
 <li><strong>args</strong> (<code>List[str</code>): ] 传递给后端的子命令与参数</li>
 <li><strong>description</strong> (<code>str</code>): 展示给用户的操作描述</li>
-<li><strong>backend</strong> (<code>str</code>): 后端名称 (uv/pip)，用于展示与错误提示
-<strong>返回值</strong> (<code>bool</code>): 执行成功返回 True</li>
+<li><strong>backend</strong> (<code>str</code>): 后端名称 (uv/pip)，用于展示与错误提示</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 执行成功返回 True</p>
 <hr>
-<h5 id="_build_install_commandpackage_spec-str-upgrade-bool-true"><code>_build_install_command(package_spec: str, upgrade: bool = True)</code></h5>
+<h5 id="_build_install_commandpackage_spec-str-upgrade-bool-true---tupleliststr-str"><code>_build_install_command(package_spec: str, upgrade: bool = True) -&gt; tuple[list[str], str]</code></h5>
 <p>构建安装命令（uv 优先，回退 pip），供各安装场景复用。</p>
 <p>策略：</p>
 <ol>
@@ -345,11 +348,11 @@ uv tool 的入口 shim 执行时不会设置 UV 变量。</p>
 </ol>
 <ul>
 <li><strong>package_spec</strong> (<code>str</code>): 包描述，如 "ErisPulse==1.0.0"</li>
-<li><strong>upgrade</strong> (<code>bool</code>): 是否添加 --upgrade 参数 (默认: True)
-<strong>返回值</strong> (<code>Tuple[List[str</code>): , str]] (完整安装命令列表, 后端名称 uv/pip)</li>
+<li><strong>upgrade</strong> (<code>bool</code>): 是否添加 --upgrade 参数 (默认: True)</li>
 </ul>
+<p><strong>返回值</strong> (<code>Tuple[List[str</code>): , str]] (完整安装命令列表, 后端名称 uv/pip)</p>
 <hr>
-<h5 id="_run_pip_command_with_outputargs-liststr-description-str"><code>_run_pip_command_with_output(args: list[str], description: str)</code></h5>
+<h5 id="_run_pip_command_with_outputargs-liststr-description-str---bool"><code>_run_pip_command_with_output(args: list[str], description: str) -&gt; bool</code></h5>
 <p>执行 pip 类操作 (install/uninstall)。</p>
 <p>策略：</p>
 <ol>
@@ -363,119 +366,119 @@ install 子命令复用 :meth:<code>_build_install_command</code> 构建完整�
 </ol>
 <ul>
 <li><strong>args</strong> (<code>List[str</code>): ] pip 子命令与参数，如 ["install", "--upgrade", pkg]</li>
-<li><strong>description</strong> (<code>str</code>): 展示给用户的操作描述
-<strong>返回值</strong> (<code>bool</code>): 执行成功返回 True</li>
+<li><strong>description</strong> (<code>str</code>): 展示给用户的操作描述</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 执行成功返回 True</p>
 <hr>
-<h5 id="_ensure_pip_availabletarget_python-str"><code>_ensure_pip_available(target_python: str)</code></h5>
+<h5 id="_ensure_pip_availabletarget_python-str---bool"><code>_ensure_pip_available(target_python: str) -&gt; bool</code></h5>
 <p>确保目标 Python 环境可用 pip</p>
 <p>uv 创建的 venv 默认不含 pip（uv 自身可装包）。当 uv 不可用或执行失败需
 回退到 pip 时，必须先检测 pip 是否可用，否则会出现
 “No module named pip” 的错误。这里通过 <code>python -m ensurepip</code> 自举安装。</p>
 <ul>
-<li><strong>target_python</strong> (<code>str</code>): 目标 Python 解释器路径
-<strong>返回值</strong> (<code>bool</code>): pip 可用返回 True，无法 bootstrap 返回 False</li>
+<li><strong>target_python</strong> (<code>str</code>): 目标 Python 解释器路径</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): pip 可用返回 True，无法 bootstrap 返回 False</p>
 <hr>
-<h5 id="_version_keyversion-str"><code>_version_key(version: str)</code></h5>
+<h5 id="_version_keyversion-str---tuple"><code>_version_key(version: str) -&gt; tuple</code></h5>
 <p>将版本号解析为可比较的元组键</p>
 <p>委托 :func:<code>ErisPulse.runtime.version.version_key</code>（框架内唯一实现）。</p>
 <ul>
-<li><strong>version</strong> (<code>str</code>): 版本号字符串
-<strong>返回值</strong> (<code>tuple</code>): 逐段可比较的比较键元组</li>
+<li><strong>version</strong> (<code>str</code>): 版本号字符串</li>
 </ul>
+<p><strong>返回值</strong> (<code>tuple</code>): 逐段可比较的比较键元组</p>
 <hr>
-<h5 id="_compare_versionsversion1-str-version2-str"><code>_compare_versions(version1: str, version2: str)</code></h5>
+<h5 id="_compare_versionsversion1-str-version2-str---int"><code>_compare_versions(version1: str, version2: str) -&gt; int</code></h5>
 <p>比较两个版本号的大小</p>
 <p>委托 :func:<code>ErisPulse.runtime.version.compare_versions</code>（框架内唯一实现）。</p>
 <ul>
 <li><strong>version1</strong> (<code>str</code>): 第一个版本号</li>
-<li><strong>version2</strong> (<code>str</code>): 第二个版本号
-<strong>返回值</strong> (<code>int</code>): version1 大于/等于/小于 version2 时分别返回 1/0/-1</li>
+<li><strong>version2</strong> (<code>str</code>): 第二个版本号</li>
 </ul>
+<p><strong>返回值</strong> (<code>int</code>): version1 大于/等于/小于 version2 时分别返回 1/0/-1</p>
 <hr>
-<h5 id="_check_sdk_compatibilitymin_sdk_version-str"><code>_check_sdk_compatibility(min_sdk_version: str)</code></h5>
+<h5 id="_check_sdk_compatibilitymin_sdk_version-str---tuplebool-str"><code>_check_sdk_compatibility(min_sdk_version: str) -&gt; tuple[bool, str]</code></h5>
 <p>检查当前SDK版本是否满足最低版本要求</p>
 <ul>
-<li><strong>min_sdk_version</strong> (<code>str</code>): 所需的最低SDK版本
-<strong>返回值</strong> (<code>Tuple[bool, str</code>): ] (是否兼容, 提示信息)</li>
+<li><strong>min_sdk_version</strong> (<code>str</code>): 所需的最低SDK版本</li>
 </ul>
+<p><strong>返回值</strong> (<code>Tuple[bool, str</code>): ] (是否兼容, 提示信息)</p>
 <hr>
-<h5 id="async-_get_package_infopackage_name-str"><code>async _get_package_info(package_name: str)</code></h5>
+<h5 id="async-_get_package_infopackage_name-str---dictstr-any-none"><code>async _get_package_info(package_name: str) -&gt; dict[str, Any] | None</code></h5>
 <p>从远程包列表中获取指定包的详细信息</p>
 <ul>
-<li><strong>package_name</strong> (<code>str</code>): 包名
-<strong>返回值</strong> (<code>Optional[Dict[str, Any</code>): ]] 包信息字典，未找到时返回 None</li>
+<li><strong>package_name</strong> (<code>str</code>): 包名</li>
 </ul>
+<p><strong>返回值</strong> (<code>Optional[Dict[str, Any</code>): ]] 包信息字典，未找到时返回 None</p>
 <hr>
-<h5 id="install_packagepackage_names-liststr-upgrade-bool-false-pre-bool-false-extra_pip_args-liststr-none-none"><code>install_package(package_names: list[str], upgrade: bool = False, pre: bool = False, extra_pip_args: list[str] | None = None)</code></h5>
+<h5 id="install_packagepackage_names-liststr-upgrade-bool-false-pre-bool-false-extra_pip_args-liststr-none-none---bool"><code>install_package(package_names: list[str], upgrade: bool = False, pre: bool = False, extra_pip_args: list[str] | None = None) -&gt; bool</code></h5>
 <p>安装一个或多个包，支持别名映射、未验证包确认和SDK兼容性检查</p>
 <ul>
 <li><strong>package_names</strong> (<code>List[str</code>): ] 待安装的包名或别名列表</li>
 <li><strong>upgrade</strong> (<code>bool</code>): 是否升级已安装的包 (默认: False)</li>
 <li><strong>pre</strong> (<code>bool</code>): 是否允许预发布版本 (默认: False)</li>
-<li><strong>extra_pip_args</strong> (<code>Optional[List[str</code>): ]] 附加的pip参数 (默认: None)
-<strong>返回值</strong> (<code>bool</code>): 全部安装成功返回 True</li>
+<li><strong>extra_pip_args</strong> (<code>Optional[List[str</code>): ]] 附加的pip参数 (默认: None)</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 全部安装成功返回 True</p>
 <hr>
-<h5 id="install_directpip_args-liststr-description-str-pip-install"><code>install_direct(pip_args: list[str], description: str = 'pip install')</code></h5>
+<h5 id="install_directpip_args-liststr-description-str-pip-install---bool"><code>install_direct(pip_args: list[str], description: str = 'pip install') -&gt; bool</code></h5>
 <p>直接使用给定参数执行pip安装</p>
 <ul>
 <li><strong>pip_args</strong> (<code>List[str</code>): ] pip install 的参数列表</li>
-<li><strong>description</strong> (<code>str</code>): 展示给用户的操作描述 (默认: "pip install")
-<strong>返回值</strong> (<code>bool</code>): 执行成功返回 True</li>
+<li><strong>description</strong> (<code>str</code>): 展示给用户的操作描述 (默认: "pip install")</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 执行成功返回 True</p>
 <hr>
-<h5 id="uninstall_packagepackage_names-liststr-skip_confirm-bool-false"><code>uninstall_package(package_names: list[str], skip_confirm: bool = False)</code></h5>
+<h5 id="uninstall_packagepackage_names-liststr-skip_confirm-bool-false---bool"><code>uninstall_package(package_names: list[str], skip_confirm: bool = False) -&gt; bool</code></h5>
 <p>卸载一个或多个包，支持别名映射和确认提示</p>
 <ul>
 <li><strong>package_names</strong> (<code>List[str</code>): ] 待卸载的包名或别名列表</li>
-<li><strong>skip_confirm</strong> (<code>bool</code>): 是否跳过确认提示 (默认: False)
-<strong>返回值</strong> (<code>bool</code>): 全部卸载成功返回 True</li>
+<li><strong>skip_confirm</strong> (<code>bool</code>): 是否跳过确认提示 (默认: False)</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 全部卸载成功返回 True</p>
 <hr>
-<h5 id="upgrade_all"><code>upgrade_all()</code></h5>
+<h5 id="upgrade_all---bool"><code>upgrade_all() -&gt; bool</code></h5>
 <p>检查并升级所有有可用更新的ErisPulse包</p>
 <p><strong>返回值</strong> (<code>bool</code>): 全部升级成功返回 True</p>
 <hr>
-<h5 id="upgrade_packagepackage_names-liststr-pre-bool-false"><code>upgrade_package(package_names: list[str], pre: bool = False)</code></h5>
+<h5 id="upgrade_packagepackage_names-liststr-pre-bool-false---bool"><code>upgrade_package(package_names: list[str], pre: bool = False) -&gt; bool</code></h5>
 <p>升级指定包到最新版本</p>
 <ul>
 <li><strong>package_names</strong> (<code>List[str</code>): ] 待升级的包名或别名列表</li>
-<li><strong>pre</strong> (<code>bool</code>): 是否允许预发布版本 (默认: False)
-<strong>返回值</strong> (<code>bool</code>): 全部升级成功返回 True</li>
+<li><strong>pre</strong> (<code>bool</code>): 是否允许预发布版本 (默认: False)</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 全部升级成功返回 True</p>
 <hr>
-<h5 id="search_packagequery-str"><code>search_package(query: str)</code></h5>
+<h5 id="search_packagequery-str---dictstr-listdictstr-str"><code>search_package(query: str) -&gt; dict[str, list[dict[str, str]]]</code></h5>
 <p>在已安装和远程包中搜索匹配查询的包</p>
 <ul>
-<li><strong>query</strong> (<code>str</code>): 搜索关键词
-<strong>返回值</strong> (<code>Dict[str, List[Dict[str, str</code>): ]] 包含 installed 和 remote 匹配结果的字典</li>
+<li><strong>query</strong> (<code>str</code>): 搜索关键词</li>
 </ul>
+<p><strong>返回值</strong> (<code>Dict[str, List[Dict[str, str</code>): ]] 包含 installed 和 remote 匹配结果的字典</p>
 <hr>
-<h5 id="get_installed_version"><code>get_installed_version()</code></h5>
+<h5 id="get_installed_version---str"><code>get_installed_version() -&gt; str</code></h5>
 <p>获取已安装的ErisPulse SDK版本号</p>
 <p><strong>返回值</strong> (<code>str</code>): SDK版本号，无法获取时返回 "unknown"</p>
 <hr>
-<h5 id="_get_pypi_versions_sync"><code>_get_pypi_versions_sync()</code></h5>
+<h5 id="_get_pypi_versions_sync---listdictstr-any"><code>_get_pypi_versions_sync() -&gt; list[dict[str, Any]]</code></h5>
 <p>同步从PyPI获取ErisPulse的所有可用版本，按版本号降序排列</p>
 <p><strong>返回值</strong> (<code>List[Dict[str, Any</code>): ]] 版本信息列表，失败时返回空列表</p>
 <hr>
-<h5 id="async-get_pypi_versions"><code>async get_pypi_versions()</code></h5>
+<h5 id="async-get_pypi_versions---listdictstr-any"><code>async get_pypi_versions() -&gt; list[dict[str, Any]]</code></h5>
 <p>异步获取ErisPulse在PyPI上的所有可用版本</p>
 <p><strong>返回值</strong> (<code>List[Dict[str, Any</code>): ]] 版本信息列表，失败时返回空列表</p>
 <hr>
-<h5 id="_is_pre_releaseversion-str"><code>_is_pre_release(version: str)</code></h5>
+<h5 id="_is_pre_releaseversion-str---bool"><code>_is_pre_release(version: str) -&gt; bool</code></h5>
 <p>判断版本号是否为预发布版本</p>
 <p>与 :meth:<code>_version_key</code> 共用同一解析口径（:func:<code>ErisPulse.runtime.version.parse_version</code>）。
 当版本号含预发布段 (dev/alpha/beta/rc/c/pre) 时返回 True。
 post 版本 (1.0.post1) 与本地版本 (1.0+local) 不视为预发布版本</p>
 <ul>
-<li><strong>version</strong> (<code>str</code>): 版本号字符串
-<strong>返回值</strong> (<code>bool</code>): 是预发布版本时返回 True</li>
+<li><strong>version</strong> (<code>str</code>): 版本号字符串</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 是预发布版本时返回 True</p>
 <hr>
-<h5 id="_spawn_windows_tool_updatecmd-liststr-target_version-str-none-current_version-str"><code>_spawn_windows_tool_update(cmd: 'list[str]', target_version: 'str | None', current_version: str)</code></h5>
+<h5 id="_spawn_windows_tool_updatecmd-liststr-target_version-str-none-current_version-str---bool"><code>_spawn_windows_tool_update(cmd: 'list[str]', target_version: 'str | None', current_version: str) -&gt; bool</code></h5>
 <p>Windows 下以分离进程执行 uv tool 自更新</p>
 <p>当前 CLI 进程就运行在待替换的工具环境内，Windows 不允许删除运行中
 的 exe——更新必须等本进程退出后进行。此方法生成 PowerShell 脚本
@@ -484,23 +487,23 @@ post 版本 (1.0.post1) 与本地版本 (1.0+local) 不视为预发布版本</p>
 <ul>
 <li><strong>cmd</strong> (<code>list[str</code>): ] uv tool 更新命令</li>
 <li><strong>target_version</strong> (<code>str | None</code>): 目标版本号（None 表示最新）</li>
-<li><strong>current_version</strong> (<code>str</code>): 当前已安装版本号
-<strong>返回值</strong> (<code>bool</code>): 更新进程启动成功返回 True（结果以新窗口输出为准）</li>
+<li><strong>current_version</strong> (<code>str</code>): 当前已安装版本号</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 更新进程启动成功返回 True（结果以新窗口输出为准）</p>
 <hr>
-<h5 id="update_selftarget_version-str-none-none-force-bool-false"><code>update_self(target_version: str | None = None, force: bool = False)</code></h5>
+<h5 id="update_selftarget_version-str-none-none-force-bool-false---bool"><code>update_self(target_version: str | None = None, force: bool = False) -&gt; bool</code></h5>
 <p>更新ErisPulse SDK到指定版本或最新版本</p>
 <ul>
 <li><strong>target_version</strong> (<code>Optional[str</code>): ] 目标版本号，为空则更新到最新版本 (默认: None)</li>
-<li><strong>force</strong> (<code>bool</code>): 是否强制更新到当前已安装的目标版本 (默认: False)
-<strong>返回值</strong> (<code>bool</code>): 更新成功返回 True</li>
+<li><strong>force</strong> (<code>bool</code>): 是否强制更新到当前已安装的目标版本 (默认: False)</li>
 </ul>
+<p><strong>返回值</strong> (<code>bool</code>): 更新成功返回 True</p>
 <hr>
 
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/api-reference/auto_api/ErisPulse/CLI/utils/display.html"><small>上一篇</small><br>`ErisPulse.CLI.utils.display` 模块</a>
+        <a class="doc-pager-prev" href="/docs/api-reference/auto_api/ErisPulse/CLI/utils/interactive.html"><small>上一篇</small><br>`ErisPulse.CLI.utils.interactive` 模块</a>
         <a class="doc-pager-next" href="/docs/api-reference/auto_api/ErisPulse/CLI/utils/scaffold_text.html"><small>下一篇</small><br>`ErisPulse.CLI.utils.scaffold_text` 模块</a>
     </nav>
     </main>

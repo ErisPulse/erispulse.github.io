@@ -75,7 +75,7 @@
             <h1 id="核心模組-api">核心模組 API</h1>
 <p>本文檔提供 ErisPulse 核心模組的 API 快速參考，包含方法簽名和簡要說明。詳細用法和示例請點擊各模組的「完整文件」連結。</p>
 <h2 id="storage-模組">Storage 模組</h2>
-<p>基於 SQLite 的鍵值儲存系統，支援通用 SQL 串流查詢。</p>
+<p>基於 SQLite 的鍵值儲存系統，支援通用 SQL 串連查詢。</p>
 <h3 id="基本操作">基本操作</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
@@ -98,8 +98,8 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
 <pre><code class="language-python">sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>my_key          <span class="token comment"># 等價於 sdk.storage.get("my_key")</span>
 sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>my_key <span class="token operator">=</span> <span class="token string">"val"</span>  <span class="token comment"># 等價於 sdk.storage.set("my_key", "val")</span>
 </code></pre>
-<h3 id="sql-串流查詢">SQL 串流查詢</h3>
-<p>Storage 模組提供串流呼叫風格的通用 SQL 查詢建構器，支援自訂表的 CRUD 操作。</p>
+<h3 id="sql-串連查詢">SQL 串連查詢</h3>
+<p>Storage 模組提供串連呼叫風格的通用 SQL 查詢建構器，支援自訂表的 CRUD 操作。</p>
 <pre><code class="language-python">sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>CreateTable<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"INTEGER PRIMARY KEY AUTOINCREMENT"</span><span class="token punctuation">,</span>
     <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"TEXT NOT NULL"</span><span class="token punctuation">,</span>
@@ -109,14 +109,14 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>完整的串流查詢 API（Select/Insert/Update/Delete/Where/OrderBy/Limit、AlterTable、事務等）請參考 <a href="/docs/zh-TW/advanced/sql-builder.html">SQL 查詢建構器</a>。</p>
+<p>完整的串連查詢 API（Select/Insert/Update/Delete/Where/OrderBy/Limit、AlterTable、事務等）請參考 <a href="/docs/zh-TW/advanced/sql-builder.html">SQL 查詢建構器</a>。</p>
 </blockquote>
 <h3 id="儲存後端抽象">儲存後端抽象</h3>
 <p><code>StorageManager</code> 繼承自 <code>BaseStorage</code> 抽象基類，支援擴展其他儲存介質（Redis、MySQL 等）。</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>storage <span class="token keyword">import</span> BaseStorage<span class="token punctuation">,</span> BaseQueryBuilder
 </code></pre>
 <h3 id="異步介面">異步介面</h3>
-<p>Storage 和 Config 模組均提供異步方法（前綴 <code>a</code>），可在異步處理器中安全調用。同步方法繼續保留，無需修改現有程式碼。</p>
+<p>Storage 和 Config 模組均提供異步方法（前綴 <code>a</code>），可在異步處理器中安全呼叫。同步方法繼續保留，無需修改現有程式碼。</p>
 <pre><code class="language-python"><span class="token comment"># 異步儲存</span>
 value <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aget<span class="token punctuation">(</span><span class="token string">"key"</span><span class="token punctuation">)</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"key"</span><span class="token punctuation">,</span> <span class="token string">"value"</span><span class="token punctuation">)</span>
@@ -150,16 +150,28 @@ value <span class="token operator">=</span> <span class="token keyword">await</s
 <td>讀取配置，支援點號路徑如 <code>"MyModule.subkey"</code></td>
 </tr>
 <tr>
+<td><code>getAllConfig()</code></td>
+<td>全量配置快照（深拷貝，含未落盤的待寫值視圖）</td>
+</tr>
+<tr>
+<td><code>adelConfig(key, immediate)</code></td>
+<td>異步刪除配置鍵</td>
+</tr>
+<tr>
+<td><code>delConfig(key, immediate=False)</code></td>
+<td>刪除配置鍵（區別於置空），從文件中移除；觸發 <code>config.set</code> 事件（<code>new_value=None</code>）</td>
+</tr>
+<tr>
 <td><code>setConfig(key, value, immediate=False)</code></td>
-<td>寫入配置。<code>immediate=True</code> 時立即儲存到檔案</td>
+<td>寫入配置。<code>immediate=True</code> 時立即持久化到文件</td>
 </tr>
 <tr>
 <td><code>force_save()</code></td>
-<td>強制將記憶體中的配置寫入檔案</td>
+<td>強制將記憶體中的配置寫入文件</td>
 </tr>
 <tr>
 <td><code>reload()</code></td>
-<td>從檔案重新載入配置</td>
+<td>從文件重新載入配置</td>
 </tr>
 <tr>
 <td><code>agetConfig(key, default)</code></td>
@@ -171,7 +183,7 @@ value <span class="token operator">=</span> <span class="token keyword">await</s
 </tr>
 <tr>
 <td><code>aforce_save()</code></td>
-<td>異步強制儲存</td>
+<td>異步強制保存</td>
 </tr>
 <tr>
 <td><code>areload()</code></td>
@@ -182,11 +194,14 @@ value <span class="token operator">=</span> <span class="token keyword">await</s
 <pre><code class="language-python">config <span class="token operator">=</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>getConfig<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 value <span class="token operator">=</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>getConfig<span class="token punctuation">(</span><span class="token string">"MyModule.timeout"</span><span class="token punctuation">,</span> <span class="token number">30</span><span class="token punctuation">)</span>
 
+snapshot <span class="token operator">=</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>getAllConfig<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># 全量快照（深拷貝）</span>
+sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>delConfig<span class="token punctuation">(</span><span class="token string">"MyModule.deprecated"</span><span class="token punctuation">)</span>  <span class="token comment"># 刪除鍵（延遲寫入）</span>
+
 sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>setConfig<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"key"</span><span class="token punctuation">:</span> <span class="token string">"value"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>setConfig<span class="token punctuation">(</span><span class="token string">"MyModule.timeout"</span><span class="token punctuation">,</span> <span class="token number">60</span><span class="token punctuation">,</span> immediate<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p><code>setConfig</code> 預設採用延遲寫入（每 5 秒批量儲存），設定 <code>immediate=True</code> 可立即持久化到配置檔案。配置變更會觸發 <code>config.set</code> 生命週期事件。</p>
+<p><code>setConfig</code> 預設採用延遲寫入（每 5 秒批量保存），設定 <code>immediate=True</code> 可立即持久化到配置文件。配置變更會觸發 <code>config.set</code> 生命週期事件。<br><code>delete</code> 同樣支援延遲寫入與 <code>config.set</code> 事件（<code>new_value=None</code>），現有 <code>on_config_update</code> 監聽方零變動即可感知刪除。</p>
 </blockquote>
 <h2 id="logger-模組">Logger 模組</h2>
 <p>模組化日誌系統，基於 Rich 輸出，支援子日誌器和模組級別控制。</p>
@@ -203,19 +218,19 @@ child_logger<span class="token punctuation">.</span>info<span class="token punct
 
 child_logger<span class="token punctuation">.</span>get_child<span class="token punctuation">(</span><span class="token string">"utils"</span><span class="token punctuation">)</span>  <span class="token comment"># 支援嵌套</span>
 </code></pre>
-<h3 id="日誌等級控制">日誌等級控制</h3>
-<pre><code class="language-python">sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>set_level<span class="token punctuation">(</span><span class="token string">"DEBUG"</span><span class="token punctuation">)</span>                          <span class="token comment"># 全局等級</span>
-sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>set_module_level<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"DEBUG"</span><span class="token punctuation">)</span>       <span class="token comment"># 模組等級</span>
+<h3 id="日誌級別控制">日誌級別控制</h3>
+<pre><code class="language-python">sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>set_level<span class="token punctuation">(</span><span class="token string">"DEBUG"</span><span class="token punctuation">)</span>                          <span class="token comment"># 全局級別</span>
+sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>set_module_level<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"DEBUG"</span><span class="token punctuation">)</span>       <span class="token comment"># 模組級別</span>
 
-<span class="token comment"># 支援的等級（由低到高）：</span>
+<span class="token comment"># 支援的級別（從低到高）：</span>
 <span class="token comment"># TRACE, DEBUG, INFO, WARNING, ERROR, CRITICAL</span>
-<span class="token comment"># TRACE 為最低等級，輸出框架內部詳細調試資訊（事件分發、路由註冊等）</span>
+<span class="token comment"># TRACE 為最低級別，輸出框架內部詳細調試資訊（事件分發、路由註冊等）</span>
 sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>set_level<span class="token punctuation">(</span><span class="token string">"TRACE"</span><span class="token punctuation">)</span>                          <span class="token comment"># 開啟全部日誌</span>
 </code></pre>
 <h3 id="日誌訂閱推模式">日誌訂閱（推模式）</h3>
 <p>供 Dashboard 等模組即時接收結構化日誌，支援等級篩選和歷史補發。</p>
 <blockquote>
-<p><strong>顯式訂閱低等級日誌</strong>：訂閱器的 <code>min_level</code> 可低於全局日誌等級。此時低等級日誌<strong>僅推送到匹配的訂閱器</strong>，不會輸出到控制台，也不會寫入記憶體，從而避免污染主日誌流。</p>
+<p><strong>顯式訂閱低級別日誌</strong>：訂閱器的 <code>min_level</code> 可低於全局日誌級別。此時低級別日誌<strong>僅推送到匹配的訂閱器</strong>，不會輸出到控制台，也不會寫入記憶體，從而避免污染主日誌流。  </p>
 <pre><code class="language-python"><span class="token comment"># 全局為 INFO，仍可單獨訂閱 DEBUG 日誌</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>handler</span><span class="token punctuation">(</span><span class="token string">"debug-tracer"</span><span class="token punctuation">,</span> min_level<span class="token operator">=</span><span class="token string">"DEBUG"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">on_debug</span><span class="token punctuation">(</span>log_data<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
@@ -245,7 +260,7 @@ sdk<span class="token punctuation">.</span>logger<span class="token punctuation"
 </thead>
 <tbody><tr>
 <td><code>handler(id, *, min_level)(func)</code></td>
-<td>裝飾器/直接呼叫兩用。<code>id</code> 為空時取函數名。<code>min_level</code> 可低於全局等級（低等級日誌僅推送到匹配的訂閱器，不進控制台/記憶體）。註冊時自動補發歷史日誌</td>
+<td>裝飾器/直接呼叫兩用。<code>id</code> 為空時取函數名。<code>min_level</code> 可低於全局級別（低級別日誌僅推送訂閱器，不進控制台/記憶體）。註冊時自動補發歷史日誌</td>
 </tr>
 <tr>
 <td><code>remove_handler(id)</code></td>
@@ -300,6 +315,14 @@ sdk<span class="token punctuation">.</span>logger<span class="token punctuation"
 <td><code>platforms</code></td>
 <td>獲取所有平台名稱列表</td>
 </tr>
+<tr>
+<td><code>get_info(platform)</code></td>
+<td>適配器註冊資訊（json-safe：meta + 類名）</td>
+</tr>
+<tr>
+<td><code>get_meta(platform, resolve_i18n=True)</code></td>
+<td>適配器介紹元資訊（對齊 <code>module.get_meta</code>，支援 i18n 解析）</td>
+</tr>
 </tbody></table></div>
 <h3 id="適配器事件">適配器事件</h3>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>
@@ -319,7 +342,7 @@ sdk<span class="token punctuation">.</span>adapter<span class="token punctuation
 <blockquote>
 <p>完整的適配器管理 API 請參考 <a href="/docs/zh-TW/api-reference/adapter-system.html">適配器系統 API</a>。</p>
 </blockquote>
-<h2 id="模組">模組</h2>
+<h2 id="module-模組">Module 模組</h2>
 <p>模組管理器，管理插件的註冊、載入和卸載。</p>
 <h3 id="api-概覽-3">API 概覽</h3>
 <div class="table-wrapper"><table>
@@ -331,7 +354,7 @@ sdk<span class="token punctuation">.</span>adapter<span class="token punctuation
 </thead>
 <tbody><tr>
 <td><code>get(name)</code></td>
-<td>取得模組實例或懶加載代理（已註冊但未加載時返回代理）</td>
+<td>獲取模組實例或懶載入代理（已註冊但未載入時返回代理）</td>
 </tr>
 <tr>
 <td><code>exists(name)</code></td>
@@ -339,7 +362,7 @@ sdk<span class="token punctuation">.</span>adapter<span class="token punctuation
 </tr>
 <tr>
 <td><code>is_loaded(name)</code></td>
-<td>檢查是否已加載</td>
+<td>檢查是否已載入</td>
 </tr>
 <tr>
 <td><code>is_enabled(name)</code></td>
@@ -347,15 +370,15 @@ sdk<span class="token punctuation">.</span>adapter<span class="token punctuation
 </tr>
 <tr>
 <td><code>enable(name)</code> / <code>disable(name)</code></td>
-<td>啟用/停用模組</td>
+<td>啟用/禁用模組</td>
 </tr>
 <tr>
 <td><code>load(name)</code> / <code>unload(name)</code></td>
-<td>加載/卸載模組</td>
+<td>載入/卸載模組</td>
 </tr>
 <tr>
 <td><code>call(module, method, *args, timeout=None, **kwargs)</code></td>
-<td>跨模組呼叫目標模組的服務方法（協議化 RPC）</td>
+<td>跨模組呼叫目標模組的服務方法（協定化 RPC）</td>
 </tr>
 <tr>
 <td><code>list_registered()</code></td>
@@ -363,15 +386,15 @@ sdk<span class="token punctuation">.</span>adapter<span class="token punctuation
 </tr>
 <tr>
 <td><code>list_loaded()</code></td>
-<td>列出已加載模組</td>
+<td>列出已載入模組</td>
 </tr>
 <tr>
 <td><code>get_info(name)</code></td>
-<td>取得模組資訊</td>
+<td>獲取模組資訊</td>
 </tr>
 <tr>
 <td><code>get_status_summary()</code></td>
-<td>取得模組狀態摘要</td>
+<td>獲取模組狀態摘要</td>
 </tr>
 </tbody></table></div>
 <h3 id="屬性存取-2">屬性存取</h3>
@@ -380,7 +403,7 @@ module <span class="token operator">=</span> sdk<span class="token punctuation">
 module <span class="token operator">=</span> sdk<span class="token punctuation">.</span>ModuleName  <span class="token comment"># 等價快捷方式</span>
 </code></pre>
 <h3 id="模組間呼叫rpc">模組間呼叫（RPC）</h3>
-<pre><code class="language-python"><span class="token comment"># 協議化呼叫：類型化錯誤 / 懶模組自動喚醒 / owner 歸因 / 超時語義</span>
+<pre><code class="language-python"><span class="token comment"># 協定化呼叫：類型化錯誤 / 懶模組自動喚醒 / owner 歸因 / 超時語義</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
 </code></pre>
 <p>與服務方裸屬性存取 <code>sdk.module.Chat.get_history(...)</code> 的差異：</p>
@@ -398,7 +421,7 @@ result <span class="token operator">=</span> <span class="token keyword">await</
 <td>抛 <code>AttributeError</code></td>
 </tr>
 <tr>
-<td>懶加載模組</td>
+<td>懶載入模組</td>
 <td>自動喚醒</td>
 <td>異步初始化模組拋 RuntimeError</td>
 </tr>
@@ -413,13 +436,13 @@ result <span class="token operator">=</span> <span class="token keyword">await</
 <td>無</td>
 </tr>
 <tr>
-<td>scope 審計</td>
+<td>scope 审計</td>
 <td><code>actions.&lt;呼叫方&gt;.call</code></td>
 <td>無</td>
 </tr>
 </tbody></table></div>
 <h3 id="服務契約metaservices">服務契約（meta.services）</h3>
-<p>服務方在 <code>get_meta()</code> 的 <code>services</code> 欄位宣告對外白名單（與 <code>commands</code> 對稱），宣告後呼叫面收緊：</p>
+<p>服務方在 <code>get_meta()</code> 的 <code>services</code> 字段宣告對外白名單（與 <code>commands</code> 對稱），宣告後呼叫面收緊：</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">ChatModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token decorator annotation punctuation">@staticmethod</span>
     <span class="token keyword">def</span> <span class="token function">get_meta</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> ModuleMeta<span class="token punctuation">:</span>
@@ -428,12 +451,11 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_history</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
 <ul>
-<li><strong>預設 = 開發者無感</strong>：未宣告 <code>services</code> 時任意<strong>公開</strong>方法可被呼叫（向後相容），底線私有方法始終禁止；限制的主控制權在使用者側 scope 配置</li>
+<li><strong>缺省 = 開發者無感</strong>：未宣告 <code>services</code> 時任意<strong>公開</strong>方法可被呼叫（向後相容），底線私有方法始終禁止；限制的主控制權在使用者側 scope 配置</li>
 <li>宣告後：僅白名單內方法可呼叫，越界拋 <code>ServiceNotProvidedError</code></li>
 <li>呼叫方限制：<code>scope.set_action("CallerModule", "call", deny="Chat.get_history")</code></li>
 </ul>
-<p><strong>服務介紹（description）</strong>：<code>services</code> 支援 dict 形態為每個服務宣告介紹
-（支援純字串或 i18n 字典），供服務目錄 / AI 呼叫點描述消費：</p>
+<p><strong>服務介紹（description）</strong>：<code>services</code> 支援 dict 形態為每個服務宣告介紹<br>（支援純字串或 i18n 字典），供服務目錄 / AI 呼叫點描述消費：</p>
 <pre><code class="language-python"><span class="token keyword">return</span> ModuleMeta<span class="token punctuation">(</span>
     services<span class="token operator">=</span><span class="token punctuation">[</span>
         <span class="token string">"get_history"</span><span class="token punctuation">,</span>                              <span class="token comment"># 簡單形態：介紹自動取方法 docstring 首行</span>
@@ -446,18 +468,16 @@ result <span class="token operator">=</span> <span class="token keyword">await</
 <h3 id="服務目錄services">服務目錄（services）</h3>
 <pre><code class="language-python">sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {'Chat': [{'name': 'get_history', 'signature': '(session_id, n=20)',</span>
-<span class="token comment">#            'description': '取得會話歷史'}]}</span>
+<span class="token comment">#            'description': '獲取會話歷史'}]}</span>
 
 sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>  <span class="token comment"># 僅查詢指定模組</span>
 </code></pre>
-<p>僅列出<strong>顯式宣告</strong> <code>meta.services</code> 的模組；每個服務附方法簽名字串
-與介紹文字，為 MCP 化（呼叫點暴露給 AI）提供資料基礎。</p>
+<p>僅列出<strong>顯式宣告</strong> <code>meta.services</code> 的模組；每個服務附方法簽名字串<br>與介紹文字，為 MCP 化（呼叫點暴露給 AI）提供資料基礎。</p>
 <blockquote>
-<p>定向事件投遞屬於生命週期層：<code>lifecycle.emit(event, data, to="ModuleName")</code>，
-詳見 <a href="/docs/zh-TW/advanced/module-communication.html">模組間通訊</a>。</p>
+<p>定向事件投遞屬於生命週期層：<code>lifecycle.emit(event, data, to="ModuleName")</code>，<br>詳見 <a href="/docs/zh-TW/advanced/module-communication.html">模組間通信</a>。</p>
 </blockquote>
 <h2 id="lifecycle-模組">Lifecycle 模組</h2>
-<p>事件驅動的生命周期管理器，提供事件提交和監聽功能。</p>
+<p>事件驅動的生命週期管理器，提供事件提交和監聽功能。</p>
 <h3 id="api-概覽-4">API 概覽</h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -510,7 +530,7 @@ sdk<span class="token punctuation">.</span>module<span class="token punctuation"
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"hi"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> to<span class="token operator">=</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>完整的標準事件列表和詳細用法請參考 <a href="/docs/zh-TW/advanced/lifecycle.html">生命周期管理</a>。</p>
+<p>完整的標準事件列表和詳細用法請參考 <a href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a>。</p>
 </blockquote>
 <h2 id="router-模組">Router 模組</h2>
 <p>HTTP/WebSocket 路由管理器，基於 FastAPI + Uvicorn，支援裝飾器路由、中間件、分組、限流、CORS。</p>
@@ -554,7 +574,7 @@ ws <span class="token operator">=</span> <span class="token keyword">await</span
 </code></pre>
 <h2 id="sdk-調試">SDK 調試</h2>
 <h3 id="dump_state">dump_state()</h3>
-<p>匯出框架當前運行狀態的快照，用於調試和診斷。</p>
+<p>導出框架當前運行狀態的快照，用於調試和診斷。</p>
 <pre><code class="language-python"><span class="token keyword">import</span> json
 state <span class="token operator">=</span> sdk<span class="token punctuation">.</span>dump_state<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">print</span><span class="token punctuation">(</span>json<span class="token punctuation">.</span>dumps<span class="token punctuation">(</span>state<span class="token punctuation">,</span> indent<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">,</span> ensure_ascii<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span> default<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
@@ -577,7 +597,7 @@ state <span class="token operator">=</span> sdk<span class="token punctuation">.
 </tr>
 <tr>
 <td><code>modules</code></td>
-<td>已註冊/已啟用/已禁用/懶加載的模塊列表</td>
+<td>已註冊/已啟用/已禁用/懶載入的模組列表</td>
 </tr>
 <tr>
 <td><code>events</code></td>
@@ -589,9 +609,9 @@ state <span class="token operator">=</span> sdk<span class="token punctuation">.
 </tr>
 </tbody></table></div>
 <div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p>新增於 ErisPulse <strong>2.5.2+</strong></p>
+<p><br>新增於 ErisPulse <strong>2.5.2+</strong></p>
 </div>
-<h2 id="interaction-交互會話">Interaction 交互會話</h2>
+<h2 id="interaction-互動會話">Interaction 互動會話</h2>
 <p>管理 wait_reply 掛起等待與會話互斥租約（<code>sdk.interaction</code>）。</p>
 <h3 id="常用方法">常用方法</h3>
 <pre><code class="language-python"><span class="token comment"># 會話定時提醒：5 分鐘無回覆則提醒，使用者回覆自動取消</span>
@@ -611,34 +631,32 @@ which<span class="token punctuation">,</span> reply <span class="token operator"
 <span class="token comment"># 會話級等待：同群任何人的回覆均可命中</span>
 reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> prompt<span class="token operator">=</span><span class="token string">"誰能幫忙答一下？"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># 查詢會話當前歸屬（誰正在與該使用者交互）</span>
+<span class="token comment"># 查詢會話當前歸屬（誰正在與該使用者互動）</span>
 owner <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>get_owner_of<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
 
-<span class="token comment"># 聲明會話互斥租約（被佔用返回 None）</span>
+<span class="token comment"># 聲明會話互斥租約（被占用返回 None）</span>
 lease <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
 <span class="token keyword">if</span> lease<span class="token punctuation">:</span>
     <span class="token keyword">try</span><span class="token punctuation">:</span>
-        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 獨佔交互</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 獨佔互動</span>
     <span class="token keyword">finally</span><span class="token punctuation">:</span>
         lease<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># 上下文管理器形式（被佔用拋 SessionOccupiedError）</span>
+<span class="token comment"># 上下文管理器形式（被占用拋 SessionOccupiedError）</span>
 <span class="token keyword">with</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>hold<span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token keyword">as</span> lease<span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 
-<span class="token comment"># 掛起會話統計</span>
+<span class="token comment"># 挂起會話統計</span>
 sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment"># {'waits': 2, 'leases': 1, 'timers': 3, 'owners': {'Chat': 3}}</span>
 </code></pre>
-<p>模組卸載 / 适配器關閉時其掛起的等待與定時器自動取消（等待方立即返回 <code>None</code>），
-回覆命中時自動复查 scope 權限（使用者被拉黑 / 模組被解綁則終止等待）。</p>
+<p>模組卸載 / 適配器關閉時其掛起的等待與定時器自動取消（等待方立即返回 <code>None</code>），<br>回覆命中時自動複查 scope 權限（使用者被拉黑 / 模組被解綁則終止等待）。</p>
 <div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p>本節能力新增於 ErisPulse <strong>2.8.0+</strong></p>
+<p><br>本節能力新增於 ErisPulse <strong>2.8.0+</strong></p>
 </div>
 <h2 id="transcript-會話收件箱">Transcript 會話收件箱</h2>
-<p>每會話近期訊息流的自動記錄與查詢（<code>sdk.transcript</code>），作為 AI 對話、
-防重複發送等上下文記憶類模組的公共底座。</p>
+<p>每會話近期訊息流的自動記錄與查詢（<code>sdk.transcript</code>），作為 AI 對話、<br>防重複等上下文記憶類模組的公共底座。</p>
 <h3 id="常用方法-2">常用方法</h3>
-<pre><code class="language-python"><span class="token comment"># 便捷查詢（推薦）：當前會話最近 20 條（包含使用者與機器人，時間升序）</span>
+<pre><code class="language-python"><span class="token comment"># 便捷查詢（推薦）：當前會話最近 20 條（含使用者與機器人，時間升序）</span>
 messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>
 <span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
@@ -648,18 +666,15 @@ sdk<span class="token punctuation">.</span>transcript<span class="token punctuat
 sdk<span class="token punctuation">.</span>transcript<span class="token punctuation">.</span>get<span class="token punctuation">(</span>event<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
 sdk<span class="token punctuation">.</span>transcript<span class="token punctuation">.</span>clear<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
 </code></pre>
-<p>配置（<code>ErisPulse.transcript</code>）：<code>enabled</code>（預設開啟）、<code>max_per_session</code>（每會話上限，預設 50）、
-<code>ttl_hours</code>（全域過期時間，預設 168 小時）。資料存於獨立 SQLite 表，超出限制或過期時惰性清理。</p>
+<p>配置（<code>ErisPulse.transcript</code>）：<code>enabled</code>（預設開啟）、<code>max_per_session</code>（每會話上限，預設 50）、<br><code>ttl_hours</code>（全局過期時間，預設 168 小時）。資料存獨立 SQLite 表，超限/過期惰性清理。</p>
 <div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p>本節功能新增於 ErisPulse <strong>2.8.0+</strong>
-[!TIP]
-本功能依賴 SQLite，請確保環境已安裝 sqlite3 模組。</p>
+<p><br>本節能力新增於 ErisPulse <strong>2.8.0+</strong></p>
 </div>
 <h2 id="相關文件">相關文件</h2>
 <ul>
 <li><a href="/docs/zh-TW/api-reference/event-system.html">事件系統 API</a> - Event 模組 API</li>
 <li><a href="/docs/zh-TW/api-reference/adapter-system.html">適配器系統 API</a> - Adapter 管理 API</li>
-<li><a href="/docs/zh-TW/advanced/sql-builder.html">SQL 查詢建構器</a> - SQL 串流查詢完整文件</li>
+<li><a href="/docs/zh-TW/advanced/sql-builder.html">SQL 查詢建構器</a> - SQL 串連查詢完整文件</li>
 <li><a href="/docs/zh-TW/advanced/router.html">路由管理器</a> - 路由管理器完整文件</li>
 <li><a href="/docs/zh-TW/advanced/http-client.html">網路客戶端</a> - 網路客戶端完整文件</li>
 <li><a href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a> - 生命週期完整文件</li>

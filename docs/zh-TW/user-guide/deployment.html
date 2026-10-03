@@ -345,13 +345,25 @@
 <pre><code class="language-bash"><span class="token comment"># 拉取最新鏡像</span>
 <span class="token function">docker</span> compose pull
 
-<span class="token comment"># 重新啟動並使用新鏡像</span>
+<span class="token comment"># 重啟使用新鏡像</span>
 <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
 <h3 id="pip-方式">pip 方式</h3>
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
+<h3 id="運行時熱重載伺服器配置">運行時熱重載伺服器配置</h3>
+<p>修改監聽地址 / 端口 / SSL 證書後無需重啟進程，在任意協程中呼叫 <code>router.reload()</code>：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># 更換端口</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 熱更換證書（證書續期場景）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 缺省參數沿用當前配置</span>
+</code></pre>
+<ul>
+<li>重用同一 FastAPI 應用，模組註冊的 HTTP / WebSocket / SSE 路由全部保留</li>
+<li>先驗證新配置（證書可構建、端口可用）再切換；失敗時以舊配置恢復服務並返回 <code>False</code>，
+保證返回 <code>False</code> = 舊服務保持可用</li>
+<li>伺服器未運行時返回 <code>False</code>（首次啟動請使用 <code>sdk.router.start()</code>）</li>
+</ul>
 <h3 id="備份">備份</h3>
 <p>定期備份 <code>config/</code> 目錄：</p>
 <pre><code class="language-bash"><span class="token comment"># Docker 部署</span>

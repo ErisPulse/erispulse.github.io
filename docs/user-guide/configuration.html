@@ -386,6 +386,25 @@ ORM 的 <code>Field()</code> 管"用户产生了什么数据"（数据库表、�
 <td><code>cors.*</code> / <code>security.*</code> 变更<strong>仅告警</strong>（需重启）</td>
 </tr>
 </tbody></table></div>
+<h2 id="配置读取与删除-api">配置读取与删除 API</h2>
+<h3 id="getallconfig全量配置快照">getAllConfig：全量配置快照</h3>
+<p>替代直接读取私有 <code>_cache</code>（外部读私有属性不受版本兼容保护）：</p>
+<pre><code class="language-python">config <span class="token operator">=</span> sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>getAllConfig<span class="token punctuation">(</span><span class="token punctuation">)</span>     <span class="token comment"># 深拷贝快照，原地修改不影响框架状态</span>
+config<span class="token punctuation">[</span><span class="token string">"ErisPulse"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"server"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"port"</span><span class="token punctuation">]</span>
+</code></pre>
+<p>视图口径与 <code>getConfig</code> 一致：未落盘的 <code>setConfig</code> / <code>delete</code> 均已反映，
+与延迟刷盘后的文件内容严格一致。</p>
+<h3 id="delconfig删除配置键">delConfig：删除配置键</h3>
+<p><code>setConfig(key, None)</code> 只是置空、键仍保留在文件中；<code>delConfig</code> 会把键从文件中<strong>移除</strong>：</p>
+<pre><code class="language-python">sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>delConfig<span class="token punctuation">(</span><span class="token string">"ErisPulse.modules.status.OldModule"</span><span class="token punctuation">)</span>            <span class="token comment"># 延迟写入</span>
+sdk<span class="token punctuation">.</span>config<span class="token punctuation">.</span>delConfig<span class="token punctuation">(</span><span class="token string">"OneBot.deprecated_key"</span><span class="token punctuation">,</span> immediate<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>         <span class="token comment"># 立即落盘</span>
+</code></pre>
+<ul>
+<li>支持点分路径；键不存在时返回 <code>False</code></li>
+<li>落盘走注释保留路径，文件其余内容与顺序不受影响</li>
+<li>复用 <code>config.set</code> 事件广播（<code>new_value=None</code>）：适配器 / 模块的
+<code>on_config_update</code> 等现有监听方零改动即可感知删除</li>
+</ul>
 <h2 id="完整配置示例">完整配置示例</h2>
 <pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.server</span><span class="token punctuation">]</span>
 <span class="token key property">host</span> <span class="token punctuation">=</span> <span class="token string">"0.0.0.0"</span>

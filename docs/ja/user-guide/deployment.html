@@ -340,7 +340,7 @@
 <li>異なるポート番号を使用します：<code>ERISPULSE_PORT=8001</code></li>
 <li>異なるコンテナ名を使用します：<code>container_name: erispulse-bot2</code></li>
 </ol>
-<h2 id="更新とメンテナンス">更新とメンテナンス</h2>
+<h2 id="更新と保守">更新と保守</h2>
 <h3 id="docker-方式">Docker 方式</h3>
 <pre><code class="language-bash"><span class="token comment"># 最新のイメージを取得</span>
 <span class="token function">docker</span> compose pull
@@ -352,12 +352,26 @@
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
+<h3 id="実行時のサーバー設定のホットリロード">実行時のサーバー設定のホットリロード</h3>
+<p>監視アドレス / ポート / SSL証明書を変更した後、プロセスを再起動する必要はありません。任意のコルーチン内で <code>router.reload()</code> を呼び出してください：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># ポートを変更</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 証明書のホット交換（証明書の更新など）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 省略されたパラメータは現在の設定を引き継ぐ</span>
+</code></pre>
+<ul>
+<li>同一の FastAPI アプリケーションを再利用し、モジュール登録された HTTP / WebSocket / SSE ルートはすべて保持されます。</li>
+<li>新しい設定（証明書の構築、ポートの利用可能）を先に検証してから切り替えます。失敗した場合は、以前の設定でサービスを復元して <code>False</code> を返します。<ul>
+<li><code>False</code> が返された場合、以前のサービスは利用可能です。</li>
+</ul>
+</li>
+<li>サーバーが実行されていない場合は <code>False</code> を返します（最初の起動は <code>sdk.router.start()</code> を使用してください）。</li>
+</ul>
 <h3 id="バックアップ">バックアップ</h3>
-<p><code>config/</code> ディレクトリを定期的にバックアップしてください：</p>
+<p>定期的に <code>config/</code> ディレクトリをバックアップしてください：</p>
 <pre><code class="language-bash"><span class="token comment"># Docker 部署の場合</span>
 <span class="token function">tar</span> czf erispulse-backup-<span class="token variable"><span class="token variable">$(</span><span class="token function">date</span> +%Y%m%d<span class="token variable">)</span></span>.tar.gz config/
 
-<span class="token comment"># または Dashboard の「バックアップ」機能を使用してエクスポート</span>
+<span class="token comment"># または Dashboard で「バックアップ」機能を使用してエクスポート</span>
 </code></pre>
 
         </article>

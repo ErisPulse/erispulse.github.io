@@ -102,23 +102,23 @@ glob 全值匹配（大小写不敏感）</li>
 </blockquote>
 <hr>
 <h2 id="函数列表">函数列表</h2>
-<h3 id="_compile_regexpattern-str"><code>_compile_regex(pattern: str)</code></h3>
-<blockquote>
+<h3 id="_compile_regexpattern-str---repattern-object"><code>_compile_regex(pattern: str) -&gt; re.Pattern | object</code></h3>
 <p><strong>内部方法</strong>
 编译正则（带 LRU 缓存）。非法正则返回哨兵对象，调用方视为"不匹配"。</p>
-</blockquote>
 <ul>
-<li><strong>pattern</strong> (<code>正则源码</code>): <strong>返回值</strong> (<code>编译后的</code>): Pattern，或 <code>_INVALID_REGEX</code></li>
+<li><strong>pattern</strong>: 正则源码</li>
 </ul>
+<p><strong>返回值</strong>: 编译后的 Pattern，或 <code>_INVALID_REGEX</code></p>
 <hr>
-<h3 id="is_entry_patternentry-str"><code>is_entry_pattern(entry: str)</code></h3>
+<h3 id="is_entry_patternentry-str---bool"><code>is_entry_pattern(entry: str) -&gt; bool</code></h3>
 <p>判断条目是否包含模式语法（glob 或 re: 前缀）</p>
 <p>无模式字符的纯字符串走精确快路径。</p>
 <ul>
-<li><strong>entry</strong> (<code>匹配条目</code>): <strong>返回值</strong> (<code>True</code>): 表示是 glob / 正则条目</li>
+<li><strong>entry</strong>: 匹配条目</li>
 </ul>
+<p><strong>返回值</strong>: True 表示是 glob / 正则条目</p>
 <hr>
-<h3 id="compile_entry_matcherentry-str"><code>compile_entry_matcher(entry: str)</code></h3>
+<h3 id="compile_entry_matcherentry-str---callablestr-bool"><code>compile_entry_matcher(entry: str) -&gt; Callable[[str], bool]</code></h3>
 <p>编译单个匹配条目为判定函数</p>
 <p>三种语法：</p>
 <ul>
@@ -128,18 +128,19 @@ glob 全值匹配（大小写不敏感）</li>
 </li>
 <li><p><code>re:...</code> → 大小写不敏感正则 <code>search</code>；非法正则恒不匹配</p>
 </li>
-<li><p><strong>entry</strong> (<code>匹配条目</code>): <strong>返回值</strong> (```fn(text:`): str) -&gt; bool``</p>
+<li><p><strong>entry</strong>: 匹配条目</p>
 </li>
 </ul>
+<p><strong>返回值</strong>: <code>fn(text: str) -&gt; bool</code></p>
 <hr>
-<h3 id="compile_entry_listentries-liststr-none"><code>compile_entry_list(entries: list[str] | None)</code></h3>
+<h3 id="compile_entry_listentries-liststr-none---callablestr-bool-none"><code>compile_entry_list(entries: list[str] | None) -&gt; Callable[[str], bool] | None</code></h3>
 <p>编译条目列表为"任一命中即 True"的判定函数</p>
 <ul>
-<li><strong>entries</strong> (<code>条目列表，None</code>): / 空返回 None（表示不限制）
-<strong>返回值</strong> (```fn(text:`): str) -&gt; bool``，None 表示空列表</li>
+<li><strong>entries</strong>: 条目列表，None / 空返回 None（表示不限制）</li>
 </ul>
+<p><strong>返回值</strong>: <code>fn(text: str) -&gt; bool</code>，None 表示空列表</p>
 <hr>
-<h3 id="compile_text_matcherpattern-str-none-regex-str-none"><code>compile_text_matcher(pattern: str | None, regex: str | None)</code></h3>
+<h3 id="compile_text_matcherpattern-str-none-regex-str-none---callableany-bool-none"><code>compile_text_matcher(pattern: str | None, regex: str | None) -&gt; Callable[[Any], bool] | None</code></h3>
 <p>编译文本匹配条件函数（glob pattern 与 regex 须<strong>都</strong>命中才返回 True）</p>
 <p>供 message 装饰器 / wait_reply / adapter.on 使用：
 接收<strong>事件对象</strong>并内部提取文本，再按 pattern / regex 判定。</p>
@@ -152,26 +153,27 @@ glob 全值匹配（大小写不敏感）</li>
 </li>
 <li><p><strong>pattern</strong> (<code>glob</code>): 通配符，None 表示不校验</p>
 </li>
-<li><p><strong>regex</strong> (<code>正则源码，None</code>): 表示不校验
-<strong>返回值</strong> (<code>条件函数，均未给定时返回</code>): None</p>
+<li><p><strong>regex</strong>: 正则源码，None 表示不校验</p>
 </li>
 </ul>
+<p><strong>返回值</strong>: 条件函数，均未给定时返回 None</p>
 <hr>
-<h3 id="extract_textevent-any"><code>extract_text(event: Any)</code></h3>
+<h3 id="extract_textevent-any---str"><code>extract_text(event: Any) -&gt; str</code></h3>
 <p>提取事件对象的纯文本内容（供文本匹配使用）</p>
 <p>优先取 <code>alt_message</code>（适配器提供的纯文本回退）；否则拼接 <code>message</code>
 段中 <code>type == "text"</code> 的文本。提取失败返回空字符串。</p>
 <ul>
-<li><strong>event</strong> (<code>事件数据（dict</code>): 或 Event 包装对象）
-<strong>返回值</strong>: 消息纯文本</li>
+<li><strong>event</strong>: 事件数据（dict 或 Event 包装对象）</li>
 </ul>
+<p><strong>返回值</strong>: 消息纯文本</p>
 <hr>
-<h3 id="entry_matchesentry-str-text-str"><code>entry_matches(entry: str, text: str)</code></h3>
+<h3 id="entry_matchesentry-str-text-str---bool"><code>entry_matches(entry: str, text: str) -&gt; bool</code></h3>
 <p>单次便捷匹配（无需预编译）</p>
 <ul>
-<li><strong>entry</strong> (<code>匹配条目（精确</code>): / glob / <code>re:</code> 正则）</li>
-<li><strong>text</strong> (<code>待匹配文本</code>): <strong>返回值</strong>: 是否命中</li>
+<li><strong>entry</strong>: 匹配条目（精确 / glob / <code>re:</code> 正则）</li>
+<li><strong>text</strong>: 待匹配文本</li>
 </ul>
+<p><strong>返回值</strong>: 是否命中</p>
 <hr>
 
         </article>
