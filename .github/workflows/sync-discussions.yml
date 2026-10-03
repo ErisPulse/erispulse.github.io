@@ -1,0 +1,91 @@
+name: Sync Discussions
+
+# 定时把 ErisPulse/ErisPulse 的 Discussions 拉成静态 JSON 提交进仓库，
+# 作为官网社区页在 Worker 不可用时的兜底数据源（同源读取，无运行时依赖）。
+# 提交只在数据有变化时产生，避免空提交噪音。
+# Git 身份与推送容错模式与 build-docs.yml 一致（erispulse[bot]）。
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-discussions
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.ERISBOT_APP_ID }}
+          private-key: ${{ secrets.ERISBOT_PRIVATE_KEY }}
+
+      - name: Get bot user ID
+        id: bot-info
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          BOT_USER_ID=$(gh api "users/${APP_SLUG}%5Bbot%5D" --jq '.id')
+          echo "bot-user-id=$BOT_USER_ID" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch discussions snapshot
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: node .github/scripts/sync-discussions.js
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain assets/data/discussions.json)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes to discussions snapshot"
+          fi
+
+      - name: Configure Git identity (erispulse[bot])
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          BOT_USER_ID: ${{ steps.bot-info.outputs.bot-user-id }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${BOT_USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+
+      - name: Refresh token for commit
+        id: refresh-token
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.ERISBOT_APP_ID }}
+          private-key: ${{ secrets.ERISBOT_PRIVATE_KEY }}
+
+      - name: Commit snapshot
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.refresh-token.outputs.token }}
+        run: |
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git config --unset-all http.https://github.com/.extraheader || true
+
+          git add assets/data/discussions.json
+          git commit -m "chore(data): sync discussions snapshot" || echo "No changes to commit"
+          git pull --rebase --autostash || echo "Failed to pull remote updates, attempting direct push"
+          git push || echo "No new commits to push"

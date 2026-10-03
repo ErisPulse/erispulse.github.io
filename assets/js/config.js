@@ -178,6 +178,13 @@ export const CONFIG = {
     submitModule: "https://erisdev.com/api/submit-module",
     checkPyPI: "https://erisdev.com/api/check-pypi",
     pypiVersions: "https://erisdev.com/api/pypi-versions",
+     
+    discussions: "https://erisdev.com/api/discussions",
+    discussionCategories: "https://erisdev.com/api/discussions/categories",
+    discussionDetail: "https://erisdev.com/api/discussions/detail",
+    discussionCreate: "https://erisdev.com/api/discussions/create",
+    discussionComment: "https://erisdev.com/api/discussions/comment",
+    siteStats: "https://erisdev.com/api/stats",
   },
 
   OAUTH_PROVIDERS: {
@@ -185,7 +192,9 @@ export const CONFIG = {
       clientId: "Ov23lioo2vSXXnRcDixA",
       authUrl: "https://github.com/login/oauth/authorize",
       redirectUri: null,
-      scope: "read:user,user:email",
+       
+       
+      scope: "read:user,user:email,public_repo",
       parseUser: function (data) {
         return {
           uid: "github:" + data.id,
