@@ -1,0 +1,110 @@
+name: Build Docs Static Pages
+
+# 把文档中心全量静态化（约 1055 页）供搜索引擎收录，并预填充各入口页的
+# 爬虫内容（SPA 启动时会整体替换 slot，互不冲突）。触发链：
+#   ErisPulse 仓库发版 → auto-tag-release → repository_dispatch[docs-build] → 本工作流
+# 另支持手动补跑与每周兜底。
+#
+# Git 身份与推送模式抄自 ErisPulse auto-update-docs.yml（踩坑沉淀）：
+#   - checkout 用 persist-credentials: false，不让 checkout 把初始 GITHUB_TOKEN
+#     缓存进 .git/config 的 http.extraheader（App token 1h 过期，extraheader
+#     优先级高于 URL 内嵌认证，会导致后续刷新的 token 失效）
+#   - 提交前刷新 App token 并 git remote set-url 注入；防御性 unset extraheader
+#   - push 前先 pull --rebase --autostash，防并发推送被拒
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [docs-build]
+  schedule:
+    # 每周一 03:23 UTC 兜底：发版触发失效时文档不至于长期停滞（不需要可删）
+    - cron: '23 3 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-docs
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # 硬上限：全量 1055 页拉取+渲染防卡死耗尽 runner
+    timeout-minutes: 60
+    steps:
+      - name: Generate App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.ERISBOT_APP_ID }}
+          private-key: ${{ secrets.ERISBOT_PRIVATE_KEY }}
+
+      - name: Get bot user ID
+        id: bot-info
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          BOT_USER_ID=$(gh api "users/${APP_SLUG}%5Bbot%5D" --jq '.id')
+          echo "bot-user-id=$BOT_USER_ID" >> $GITHUB_OUTPUT
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm install --no-save marked@4.3.0 prismjs@1.29.0 linkedom
+
+      - name: Build static pages
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: node .github/scripts/build-docs.mjs
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain -- docs sitemap.xml index.html market.html community.html about.html)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes to static pages"
+          fi
+
+      - name: Configure Git identity (erispulse[bot])
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          BOT_USER_ID: ${{ steps.bot-info.outputs.bot-user-id }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${BOT_USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
+
+      - name: Refresh token for commit
+        id: refresh-token
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.ERISBOT_APP_ID }}
+          private-key: ${{ secrets.ERISBOT_PRIVATE_KEY }}
+
+      - name: Commit rebuilt pages
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.refresh-token.outputs.token }}
+        run: |
+          # 用新 token 重建远端认证，防御性清理 checkout 可能遗留的 extraheader
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git config --unset-all http.https://github.com/.extraheader || true
+
+          git add docs sitemap.xml index.html market.html community.html about.html
+          git commit -m "chore(seo): rebuild static pages" || echo "No changes to commit"
+          # 先拉远端更新再推，防并发推送被拒
+          git pull --rebase --autostash || echo "Failed to pull remote updates, attempting direct push"
+          git push || echo "No new commits to push"
