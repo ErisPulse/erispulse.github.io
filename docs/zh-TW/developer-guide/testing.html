@@ -140,8 +140,8 @@
 <h2 id="testbot-api">TestBot API</h2>
 <h3 id="分發">分發</h3>
 <pre><code class="language-python">trace <span class="token operator">=</span> <span class="token keyword">await</span> bot<span class="token punctuation">.</span>dispatch<span class="token punctuation">(</span>event<span class="token punctuation">)</span>          <span class="token comment"># 分發並等待處理器落地，返回決策鏈</span>
-<span class="token keyword">await</span> bot<span class="token punctuation">.</span>dispatch<span class="token punctuation">(</span>event<span class="token punctuation">,</span> drain<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>     <span class="token comment"># 交互首訊息：不等待（wait_reply 處理器長駐）</span>
-<span class="token keyword">await</span> bot<span class="token punctuation">.</span>send_message<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span>             <span class="token comment"># 訊息分發快捷方式</span>
+<span class="token keyword">await</span> bot<span class="token punctuation">.</span>dispatch<span class="token punctuation">(</span>event<span class="token punctuation">,</span> drain<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>     <span class="token comment"># 互動首消息：不等待（wait_reply 處理器長駐）</span>
+<span class="token keyword">await</span> bot<span class="token punctuation">.</span>send_message<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span>             <span class="token comment"># 消息分發快捷方式</span>
 <span class="token keyword">await</span> bot<span class="token punctuation">.</span>reply_as<span class="token punctuation">(</span><span class="token string">"18"</span><span class="token punctuation">,</span> user_id<span class="token operator">=</span><span class="token string">"u1"</span><span class="token punctuation">)</span>     <span class="token comment"># 模擬 wait_reply 用戶回覆（自動等 waiter 就緒）</span>
 </code></pre>
 <p><code>dispatch()</code> 在 emit 後 gather 全部在途處理器 Task，返回即處理完成——<strong>測試裡不需要 sleep</strong>。</p>
@@ -156,7 +156,7 @@ bot<span class="token punctuation">.</span>assert_not_replied<span class="token 
 bot<span class="token punctuation">.</span>assert_reply_contains<span class="token punctuation">(</span><span class="token string">"簽到成功"</span><span class="token punctuation">)</span>       <span class="token comment"># 存在包含指定文本的出站</span>
 <span class="token keyword">await</span> bot<span class="token punctuation">.</span>wait_for_reply<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">)</span>        <span class="token comment"># 等待異步回覆出現</span>
 </code></pre>
-<p><code>SentMessage</code> 字段：<code>text</code>（首個 text 段）、<code>segments</code>（完整訊息段）、
+<p><code>SentMessage</code> 字段：<code>text</code>（首個 text 段）、<code>segments</code>（完整消息段）、
 <code>target_type</code> / <code>target_id</code> / <code>bot_id</code>（發送上下文）、<code>has_modifier("at")</code> 等。</p>
 <h3 id="模組加載">模組加載</h3>
 <pre><code class="language-python"><span class="token keyword">await</span> bot<span class="token punctuation">.</span>load_module<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>   <span class="token comment"># 已註冊的模組名（需框架 sdk.init() 完成 entry-point 發現）</span>
@@ -164,28 +164,28 @@ bot<span class="token punctuation">.</span>assert_reply_contains<span class="tok
 <span class="token keyword">await</span> bot<span class="token punctuation">.</span>unload_module<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
 </code></pre>
 <p><code>on_load</code> 內註冊的命令 / 事件處理器隨模組歸屬，卸載時自動清理，可直接斷言"卸載後命令失效"。
-注意：字串形式<strong>不做 entry-point 扫描</strong>（TestBot 不初始化框架發現流程）；測試軟依賴
+注意：字串形式<strong>不做 entry-point 掃描</strong>（TestBot 不初始化框架發現流程）；測試軟依賴
 模組請直接傳類物件（或自行 <code>module.register</code> 後傳名字）。</p>
 <h3 id="依賴替換需-ep290-dev">依賴替換（需 EP&gt;=2.9.0-dev）</h3>
 <pre><code class="language-python"><span class="token keyword">with</span> bot<span class="token punctuation">.</span>patch_dependency<span class="token punctuation">(</span>get_session<span class="token punctuation">,</span> fake_session<span class="token punctuation">)</span> <span class="token keyword">as</span> mock<span class="token punctuation">:</span>
     <span class="token keyword">await</span> bot<span class="token punctuation">.</span>dispatch<span class="token punctuation">(</span>create_command_event<span class="token punctuation">(</span><span class="token string">"query"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token keyword">assert</span> mock<span class="token punctuation">.</span>called
 </code></pre>
-<p>替換的是命令註冊表中 <code>Depends(get_session)</code> 聲明引用的函數，with 退出自動還原。</p>
+<p>替換的是命令註冊表中 <code>Depends(get_session)</code> 声明引用的函數，with 退出自動還原。</p>
 <h3 id="配置覆寫">配置覆寫</h3>
 <pre><code class="language-python">bot <span class="token operator">=</span> TestBot<span class="token punctuation">(</span>prefix<span class="token operator">=</span><span class="token string">"//"</span><span class="token punctuation">,</span> config<span class="token operator">=</span><span class="token punctuation">{</span>
     <span class="token string">"ErisPulse.event.command.case_sensitive"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span>
     <span class="token string">"MyModule.api_key"</span><span class="token punctuation">:</span> <span class="token string">"test-key"</span><span class="token punctuation">,</span>     <span class="token comment"># 模組配置（self.cfg 可讀）</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<p>經配置記憶體層注入，命令前綴等隨熱更新立即生效。兩點注意：</p>
+<p>經配置內存層注入，命令前綴等隨熱更新立即生效。兩點注意：</p>
 <ol>
 <li><strong>落盤</strong>：覆寫會隨框架的延遲寫盤策略（預設約 5 秒）落到 cwd 的
-<code>config/config.toml</code>——被測專案倉庫請把 <code>config/</code> 加入 <code>.gitignore</code>；</li>
+<code>config/config.toml</code>——被測項目倉庫請把 <code>config/</code> 加入 <code>.gitignore</code>；</li>
 <li><strong>與模組運行時寫回的衝突（已知限制）</strong>：被測模組以整節寫回配置
 （<code>self.cfg = ...</code>，如訂閱列表）與這裡的點分覆寫並存時，存在 ConfigManager
 的讀寫一致性問題——模組整節讀取可能看不到覆寫值，覆寫也可能在落盤時被
-整節寫回覆蓋（已在 ErisPulse 2.9.0-dev.1 修復，2.8.x 仍受影響）。涉及
+整節寫回覆蓋（已在 ErisPulse 2.9.0-dev.2 修復，2.8.x 仍受影響）。涉及
 "運行時寫回配置"的用例，在 2.8.x 上建議在 fixture 裡以整節寫回方式重置
 相關配置節。</li>
 </ol>

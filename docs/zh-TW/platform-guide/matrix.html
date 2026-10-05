@@ -127,14 +127,30 @@
 </ul>
 <h2 id="v5-範式更新420">v5 範式更新（4.2.0）</h2>
 <ul>
-<li><strong>BaseConverter 繼承</strong>：轉換器公共欄位由框架 build_base_event 構建</li>
+<li><strong>BaseConverter 繼承</strong>：轉換器公共欄位由框架 build_base_event 建構</li>
 <li><strong>Api DSL</strong>：get_self_info/get_user_info/get_group_info/get_group_list/get_group_member_list/leave_group/delete_message(redact) + 元動作</li>
 <li><strong>消息事件補充 message_id</strong>（event_id）；消息登記表支援 delete_message</li>
 <li><strong>spawn_background 任務歸屬</strong>：同步/心跳任務改用 runtime.spawn_background</li>
 <li><strong>框架軟依賴</strong>：運行時檢測 ErisPulse&gt;=2.7.1 並提示；啟動輸出版本日誌</li>
 <li>Matrix 無原生按鈕能力，標準 keyboard 段優雅忽略（不報錯）</li>
 </ul>
-<h3 id="標準api動作示例">標準Api動作示例</h3>
+<h2 id="端到端加密430">端到端加密（4.3.0）</h2>
+<p>4.3.0 起適配器原生支援加密房間的端到端加密（基於 matrix-nio[e2e] / vodozemac）：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">Matrix_Adapter.accounts.default</span><span class="token punctuation">]</span>
+<span class="token key property">user_id</span> <span class="token punctuation">=</span> <span class="token string">"@bot:matrix.org"</span>
+<span class="token key property">password</span> <span class="token punctuation">=</span> <span class="token string">"YOUR_PASSWORD"</span>
+<span class="token key property">encryption_enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>       <span class="token comment"># 啟用（預設 false，存量部署不受影響）</span>
+<span class="token key property">trust_all_devices</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>        <span class="token comment"># 自動信任未驗證裝置（預設；false 為嚴格模式）</span>
+</code></pre>
+<ul>
+<li>加密房間訊息收發自動解密/加密，媒體端到端加密（<code>m.file.encrypted</code>）</li>
+<li><code>device_id</code> 自動解析與持久化；會話儲存於 <code>store_path</code>（預設 <code>data/matrix/&lt;帳號名&gt;</code>，<strong>請勿刪除</strong>，否則歷史訊息無法解密）</li>
+<li>事件 Mixin 新增 <code>event.is_encrypted()</code>；媒體段攜帶 <code>matrix_encrypted_file</code>（JWK），可用 <code>MatrixAdapter.decrypt_media()</code> 解密</li>
+<li>不支援交叉簽名與伺服器端密鑰備份；需要 Python &gt;= 3.10</li>
+<li>未啟用或未安裝 matrix-nio 時自動降級為明文模式</li>
+</ul>
+<p>詳細說明見 <a href="https://github.com/ErisPulse/ErisPulse-MatrixAdapter">適配器 README</a>。</p>
+<h3 id="標準-api-行動示例">標準 API 行動示例</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 matrix <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"matrix"</span><span class="token punctuation">)</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> matrix<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_self_info<span class="token punctuation">(</span><span class="token punctuation">)</span>            <span class="token comment"># /account/whoami</span>
@@ -145,9 +161,9 @@ result <span class="token operator">=</span> <span class="token keyword">await</
 <hr>
 <h3 id="已對接平台能力">已對接平台能力</h3>
 <ul>
-<li><strong>事件</strong>：消息（m.room.message：文本/圖片/文件/音視頻/回覆/編輯）、成員增減（m.room.member）、房間名稱變更等狀態事件</li>
+<li><strong>事件</strong>：訊息（m.room.message：文字/圖片/檔案/音視頻/回覆/編輯）、成員增減（m.room.member）、房間名稱變更等狀態事件</li>
 <li><strong>會話</strong>：私聊（DM 房間自動發現）/ 群組（房間）；發送支援 Text/Image/File/Voice/Video/Markdown/Raw_ob12</li>
-<li><strong>API</strong>：whoami/profile/joined_rooms/房間狀態/成員列表/leave/redact（見上方 Api DSL）</li>
+<li><strong>API</strong>：whoami/profile/joined_rooms/房間狀態/成員列表/leave/redact（見上方 API DSL）</li>
 </ul>
 <h2 id="支援的消息傳送類型">支援的消息傳送類型</h2>
 <p>所有傳送方法皆透過鏈式語法實現，例如：</p>
