@@ -129,25 +129,41 @@
 <ul>
 <li><strong>BaseConverter Inheritance</strong>: Common fields of converters are built by the framework's build_base_event</li>
 <li><strong>Api DSL</strong>: get_self_info/get_user_info/get_group_info/get_group_list/get_group_member_list/leave_group/delete_message(redact) + meta actions</li>
-<li><strong>Message Event Supplement message_id</strong> (event_id); Message registration table supports delete_message</li>
-<li><strong>spawn_background Task Ownership</strong>: Synchronous/heartbeat tasks now use runtime.spawn_background</li>
-<li><strong>Framework Soft Dependency</strong>: Runtime checks for ErisPulse&gt;=2.7.1 and provides warnings; Version logs are output on startup</li>
-<li>Matrix lacks native button capabilities, so standard keyboard segments are gracefully ignored (without errors)</li>
+<li><strong>Message Event Supplement message_id</strong> (event_id); Message registry table supports delete_message</li>
+<li><strong>spawn_background Task Ownership</strong>: Synchronous/heartbeat tasks use runtime.spawn_background</li>
+<li><strong>Framework Soft Dependency</strong>: Runtime detects ErisPulse&gt;=2.7.1 and provides a prompt; Version logs are output on startup</li>
+<li>Matrix does not have native button capabilities, the standard keyboard segment is gracefully ignored (no error reported)</li>
 </ul>
-<h3 id="standard-api-action-examples">Standard Api Action Examples</h3>
+<h2 id="end-to-end-encryption-430">End-to-End Encryption (4.3.0)</h2>
+<p>Starting from version 4.3.0, the adapter natively supports end-to-end encryption for rooms (based on matrix-nio[e2e] / vodozemac):</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">Matrix_Adapter.accounts.default</span><span class="token punctuation">]</span>
+<span class="token key property">user_id</span> <span class="token punctuation">=</span> <span class="token string">"@bot:matrix.org"</span>
+<span class="token key property">password</span> <span class="token punctuation">=</span> <span class="token string">"YOUR_PASSWORD"</span>
+<span class="token key property">encryption_enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>       <span class="token comment"># Enable (default false, existing deployments unaffected)</span>
+<span class="token key property">trust_all_devices</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>        <span class="token comment"># Automatically trust unverified devices (default; false for strict mode)</span>
+</code></pre>
+<ul>
+<li>Messages in encrypted rooms are automatically decrypted/sent encrypted, media is end-to-end encrypted (<code>m.file.encrypted</code>)</li>
+<li><code>device_id</code> is automatically parsed and persisted; session storage is located at <code>store_path</code> (default <code>data/matrix/&lt;account_name&gt;</code>, <strong>do not delete</strong>, otherwise historical messages cannot be decrypted)</li>
+<li>New event Mixin adds <code>event.is_encrypted()</code>; media segments carry <code>matrix_encrypted_file</code> (JWK), which can be decrypted using <code>MatrixAdapter.decrypt_media()</code></li>
+<li>Cross-signing and server-side key backup are not supported; requires Python &gt;= 3.10</li>
+<li>If not enabled or matrix-nio is not installed, it automatically falls back to plaintext mode</li>
+</ul>
+<p>For detailed instructions, see the <a href="https://github.com/ErisPulse/ErisPulse-MatrixAdapter">adapter README</a>.</p>
+<h3 id="standard-api-action-examples">Standard API Action Examples</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 matrix <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"matrix"</span><span class="token punctuation">)</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> matrix<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_self_info<span class="token punctuation">(</span><span class="token punctuation">)</span>            <span class="token comment"># /account/whoami</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> matrix<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_group_info<span class="token punctuation">(</span>room_id<span class="token punctuation">)</span>    <span class="token comment"># m.room.name</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> matrix<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>get_group_list<span class="token punctuation">(</span><span class="token punctuation">)</span>           <span class="token comment"># /joined_rooms</span>
-<span class="token keyword">await</span> matrix<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>delete_message<span class="token punctuation">(</span>event_id<span class="token punctuation">)</span>            <span class="token comment"># redact (registration table completes room_id)</span>
+<span class="token keyword">await</span> matrix<span class="token punctuation">.</span>Api<span class="token punctuation">.</span>delete_message<span class="token punctuation">(</span>event_id<span class="token punctuation">)</span>            <span class="token comment"># redact (room_id must be provided in the table)</span>
 </code></pre>
 <hr>
 <h3 id="supported-platform-capabilities">Supported Platform Capabilities</h3>
 <ul>
-<li><strong>Events</strong>: Message events (m.room.message: text/image/file/audio/video/reply/edit), member addition/removal (m.room.member), room name change, and other state events</li>
-<li><strong>Conversations</strong>: Direct messages (DM rooms auto-discovered) / group chats (rooms); support sending Text/Image/File/Voice/Video/Markdown/Raw_ob12</li>
-<li><strong>APIs</strong>: whoami/profile/joined_rooms/room status/member list/leave/redact (see above Api DSL)</li>
+<li><strong>Events</strong>: Messages (m.room.message: text/image/file/audio/video/reply/edit), member additions/removals (m.room.member), room name changes, and other state events</li>
+<li><strong>Conversations</strong>: Direct messages (DM rooms discovered automatically) / group chats (rooms); supports sending Text/Image/File/Voice/Video/Markdown/Raw_ob12</li>
+<li><strong>API</strong>: whoami/profile/joined_rooms/room status/member list/leave/redact (see above API DSL)</li>
 </ul>
 <h2 id="supported-message-sending-types">Supported Message Sending Types</h2>
 <p>All sending methods are implemented using a fluent interface, for example:</p>

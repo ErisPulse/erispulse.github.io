@@ -134,6 +134,22 @@
 <li><strong>框架软依赖</strong>：运行时检测 ErisPulse&gt;=2.7.1 并提示；启动输出版本日志</li>
 <li>Matrix 无原生按钮能力，标准 keyboard 段优雅忽略（不报错）</li>
 </ul>
+<h2 id="端到端加密430">端到端加密（4.3.0）</h2>
+<p>4.3.0 起适配器原生支持加密房间的端到端加密（基于 matrix-nio[e2e] / vodozemac）：</p>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">Matrix_Adapter.accounts.default</span><span class="token punctuation">]</span>
+<span class="token key property">user_id</span> <span class="token punctuation">=</span> <span class="token string">"@bot:matrix.org"</span>
+<span class="token key property">password</span> <span class="token punctuation">=</span> <span class="token string">"YOUR_PASSWORD"</span>
+<span class="token key property">encryption_enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>       <span class="token comment"># 启用（默认 false，存量部署不受影响）</span>
+<span class="token key property">trust_all_devices</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>        <span class="token comment"># 自动信任未验证设备（默认；false 为严格模式）</span>
+</code></pre>
+<ul>
+<li>加密房间消息收发自动解密/加密，媒体端到端加密（<code>m.file.encrypted</code>）</li>
+<li><code>device_id</code> 自动解析与持久化；会话存储于 <code>store_path</code>（默认 <code>data/matrix/&lt;账户名&gt;</code>，<strong>请勿删除</strong>，否则历史消息无法解密）</li>
+<li>事件 Mixin 新增 <code>event.is_encrypted()</code>；媒体段携带 <code>matrix_encrypted_file</code>（JWK），可用 <code>MatrixAdapter.decrypt_media()</code> 解密</li>
+<li>不支持交叉签名与服务器端密钥备份；需要 Python &gt;= 3.10</li>
+<li>未启用或未安装 matrix-nio 时自动降级为明文模式</li>
+</ul>
+<p>详细说明见 <a href="https://github.com/ErisPulse/ErisPulse-MatrixAdapter">适配器 README</a>。</p>
 <h3 id="标准api动作示例">标准Api动作示例</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 matrix <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"matrix"</span><span class="token punctuation">)</span>
