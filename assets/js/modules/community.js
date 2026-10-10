@@ -764,7 +764,7 @@ export const CommunityManager = (function () {
             escapeHtml(I18n.t('community.create.categoryPlaceholder')) + '</option>' +
             (state.categories || []).map(function (c) {
                 var emoji = categoryEmoji(c);
-                return '<option value="' + c.id + '">' +
+                return '<option value="' + c.slug + '">' +
                     (emoji ? escapeHtml(emoji) + ' ' : '') + escapeHtml(categoryLabel(c)) + '</option>';
             }).join('');
         // 显式置回占位项：占位 option 是 disabled 的，若不加这句 Chrome 会
