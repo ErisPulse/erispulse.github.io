@@ -200,6 +200,17 @@ export const CommunityManager = (function () {
 
     async function refreshList() {
          
+        fetch(CONFIG.API.discussionCategories)
+            .then(function (resp) { return resp.json(); })
+            .then(function (data) {
+                if (data && Array.isArray(data.categories) && data.categories.length) {
+                    state.categories = data.categories;
+                    renderFilters();
+                }
+            })
+            .catch(function () {   });
+
+         
         try {
             var resp = await fetch(CONFIG.API.discussions, { cache: 'no-cache' });
             if (!resp.ok) throw new Error('worker ' + resp.status);
@@ -270,15 +281,21 @@ export const CommunityManager = (function () {
 
     function renderFilters() {
         if (!els.filters) return;
-        var seen = {};
+
+         
         var cats = [];
-        state.list.forEach(function (d) {
-            var c = d && d.category;
-            if (c && c.slug && !seen[c.slug]) {
-                seen[c.slug] = true;
-                cats.push(c);
-            }
-        });
+        if (state.categories && state.categories.length) {
+            cats = state.categories;
+        } else {
+            var seen = {};
+            state.list.forEach(function (d) {
+                var c = d && d.category;
+                if (c && c.slug && !seen[c.slug]) {
+                    seen[c.slug] = true;
+                    cats.push(c);
+                }
+            });
+        }
 
          
         var countAll = state.list.length;
@@ -350,7 +367,11 @@ export const CommunityManager = (function () {
             els.list.innerHTML = '<div class="community-state">' +
                 '<i class="far fa-comment-dots" style="font-size:1.6rem;"></i>' +
                 '<p>' + escapeHtml(I18n.t('community.empty')) + '</p>' +
+                '<button class="btn community-btn-primary" id="community-empty-new">' +
+                '<i class="fas fa-plus"></i> ' + escapeHtml(I18n.t('community.newDiscussion')) + '</button>' +
                 '</div>';
+            var emptyNew = document.getElementById('community-empty-new');
+            if (emptyNew) emptyNew.addEventListener('click', openCreateModal);
             return;
         }
 
@@ -638,6 +659,9 @@ export const CommunityManager = (function () {
             if (!resp.ok) {
                 if (data.code === 'PERMISSION_DENIED') {
                     showReplyError(I18n.t('community.create.reauthDesc'), true);
+                } else if (data.code === 'GITHUB_ERROR' && String(data.details || '').includes('404')) {
+                     
+                    showReplyError(I18n.t('community.create.reauthDesc'), true);
                 } else {
                     showReplyError(data.error || I18n.t('community.msg.commentFailed'), false);
                 }
@@ -781,8 +805,8 @@ export const CommunityManager = (function () {
 
         var title = titleInput.value.trim();
         var body = bodyInput.value.trim();
-        var categoryId = Number(catSelect.value);
-        if (!title || !body || !categoryId) {
+        var categorySlug = catSelect.value;
+        if (!title || !body || !categorySlug) {
             showCreateError(I18n.t('community.create.missingFields'), false);
             return;
         }
@@ -801,13 +825,15 @@ export const CommunityManager = (function () {
                     provider: auth.provider,
                     title: title,
                     body: body,
-                    category_id: categoryId,
+                    category_slug: categorySlug,
                 }),
             });
             var data = await resp.json().catch(function () { return {}; });
 
             if (!resp.ok) {
                 if (data.code === 'PERMISSION_DENIED') {
+                    showCreateError(I18n.t('community.create.reauthDesc'), true);
+                } else if (data.code === 'GITHUB_ERROR' && String(data.details || '').includes('404')) {
                     showCreateError(I18n.t('community.create.reauthDesc'), true);
                 } else {
                     showCreateError(data.error || I18n.t('community.msg.createFailed'), false);
