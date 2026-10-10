@@ -29,6 +29,23 @@ export function setupHomeAnimations() {
     }
      
     highlightHeroCode();
+    updateHeroMinHeight();
+    window.addEventListener('resize', updateHeroMinHeight, { passive: true });
+    document.addEventListener('erispulse-lang-changed', updateHeroMinHeight);
+}
+
+
+
+
+
+
+function updateHeroMinHeight() {
+    var hero = document.querySelector('.hero-section');
+    var banner = document.querySelector('.ai-vibe-banner');
+    if (!hero || !banner) return;
+    var top = hero.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight) return;    
+    document.documentElement.style.setProperty('--hero-offset', Math.round(top) + 'px');
 }
 
 function highlightHeroCode() {
@@ -92,6 +109,7 @@ export function initBannerCarousel() {
         });
 
         bannerCurrentIndex = index;
+        if (typeof updateHeroMinHeight === 'function') updateHeroMinHeight();
     }
 
     function resetBannerTimer(count) {

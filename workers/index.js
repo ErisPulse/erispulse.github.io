@@ -680,10 +680,15 @@ async function handleSubmitModule(request) {
                     author: author,
                     repository: submission.repository,
                     min_sdk_version: minSdk,
-                    category: category,
                     tags: JSON.stringify(tags),
-                    i18n: JSON.stringify(i18nResult),
                     submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
+                     
+                     
+                    data: JSON.stringify({
+                        min_sdk_version: minSdk,
+                        category: category,
+                        i18n: i18nResult,
+                    }),
                 },
             }),
         });
