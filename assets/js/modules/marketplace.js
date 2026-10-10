@@ -383,7 +383,12 @@ function renderLangOptions() {
     langSelect.innerHTML = `<option value="" data-i18n="market.filter.language.any">${I18n.t('market.filter.language.any')}</option>` +
         codes.map(code => `<option value="${escapeHtml(code)}">${escapeHtml(langNativeName(code))} (${escapeHtml(code)}) · ${counter.get(code)}</option>`).join('');
     langSelect.value = activeLang;
-    toggleHidden('market-lang-select', codes.length === 0);
+
+    // 没有任何条目声明语言时，标签和下拉一起隐藏（悬空的孤立标签看起来像坏了）
+    const langEmpty = codes.length === 0;
+    const langLabel = document.getElementById('market-lang-label');
+    langSelect.classList.toggle('is-hidden', langEmpty);
+    if (langLabel) langLabel.classList.toggle('is-hidden', langEmpty);
 }
 
 /** 语言代码 → 原生语言名（Intl.DisplayNames，失败回退代码本身） */

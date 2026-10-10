@@ -185,7 +185,8 @@ export const SubmitModuleManager = (function () {
      * 仅作建议，不限制用户自行填写任何标签（中英文均可）
      */
     /** 常用语言代码建议（原生名渲染，点击追加到输入框）；语言代码自由填写不设限 */
-    var I18N_SUGGESTIONS = ['zh', 'zh-TW', 'en', 'ja', 'ko', 'de', 'fr', 'es', 'pt-BR', 'ru', 'it', 'vi'];
+    // 主线支持的语言置顶，其余常用代码随后；输入框始终自由填写任意 BCP-47 代码
+    var I18N_SUGGESTIONS = ['zh-CN', 'zh-TW', 'en', 'ja', 'ru', 'zh', 'ko', 'de', 'fr', 'es', 'pt-BR', 'it', 'vi'];
 
     function langNativeName(code) {
         try {
