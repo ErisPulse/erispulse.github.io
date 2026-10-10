@@ -680,10 +680,15 @@ async function handleSubmitModule(request) {
                     author: author,
                     repository: submission.repository,
                     min_sdk_version: minSdk,
-                    category: category,
                     tags: JSON.stringify(tags),
-                    i18n: JSON.stringify(i18nResult),
                     submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
+                    // GitHub dispatch 限制 client_payload 最多 10 个属性：
+                    // 结构化字段统一打包进 data（JSON 字符串），ModuleRepo 侧解析还原
+                    data: JSON.stringify({
+                        min_sdk_version: minSdk,
+                        category: category,
+                        i18n: i18nResult,
+                    }),
                 },
             }),
         });

@@ -29,6 +29,23 @@ export function setupHomeAnimations() {
     }
     // Hero 代码窗（产品图）独立高亮，与特性面板同一 Prism 模式
     highlightHeroCode();
+    updateHeroMinHeight();
+    window.addEventListener('resize', updateHeroMinHeight, { passive: true });
+    document.addEventListener('erispulse-lang-changed', updateHeroMinHeight);
+}
+
+/**
+ * Hero 铺满首屏：实测 hero 距视口顶部的真实距离（固定导航、banner 文字换行、
+ * 语言切换后的高度变化全都涵盖），写入 CSS 变量供 min-height 使用。
+ * banner 轮播每次切换也会调用（文案行数不同高度会变）。
+ */
+function updateHeroMinHeight() {
+    var hero = document.querySelector('.hero-section');
+    var banner = document.querySelector('.ai-vibe-banner');
+    if (!hero || !banner) return;
+    var top = hero.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight) return;   // 不在首屏视口内不校准
+    document.documentElement.style.setProperty('--hero-offset', Math.round(top) + 'px');
 }
 
 function highlightHeroCode() {
@@ -92,6 +109,7 @@ export function initBannerCarousel() {
         });
 
         bannerCurrentIndex = index;
+        if (typeof updateHeroMinHeight === 'function') updateHeroMinHeight();
     }
 
     function resetBannerTimer(count) {
