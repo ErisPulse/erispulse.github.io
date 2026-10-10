@@ -916,6 +916,35 @@ function ghApiHeaders(accessToken) {
     return h;
 }
 
+/** GitHub GraphQL 请求（写操作与分类读取必须走 GraphQL——组织讨论的 REST 写接口 404） */
+async function ghGraphQL(query, variables, accessToken) {
+    const token = accessToken || (typeof GITHUB_ACTIONS_TOKEN !== 'undefined' ? GITHUB_ACTIONS_TOKEN : '');
+    const resp = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json',
+            'User-Agent': 'ErisPulse-Worker',
+        },
+        body: JSON.stringify({ query: query, variables: variables }),
+    });
+    const json = await resp.json();
+    if (json.errors && json.errors.length) {
+        throw new Error(json.errors.map(function (e) { return e.message; }).join('; '));
+    }
+    return json.data;
+}
+
+/* 官方 6 分类兜底（GraphQL 不可用时， boards 仍能渲染全部分类） */
+const FALLBACK_CATEGORIES = [
+    { name: 'Announcements', slug: 'announcements', emoji: ':mega:' },
+    { name: 'General', slug: 'general', emoji: ':speech_balloon:' },
+    { name: 'Ideas', slug: 'ideas', emoji: ':bulb:' },
+    { name: 'Polls', slug: 'polls', emoji: ':ballot_box:' },
+    { name: 'Q&A', slug: 'q-a', emoji: ':pray:' },
+    { name: 'Show and tell', slug: 'show-and-tell', emoji: ':raised_hands:' },
+];
+
 function trimUser(u) {
     if (!u) return null;
     return { login: u.login, avatar_url: u.avatar_url, html_url: u.html_url };
@@ -1043,27 +1072,19 @@ async function handleListDiscussions(url) {
 }
 
 async function handleDiscussionCategories() {
+    // 组织讨论的分类读取必须走 GraphQL（REST categories 端点对组织讨论 404）
     try {
-        const resp = await fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}/discussions/categories`, {
-            headers: ghApiHeaders(),
-            cf: { cacheEverything: true, cacheTtl: 86400 },
-        });
-        if (!resp.ok) {
-            return jsonResponse({ error: 'Failed to fetch discussion categories' }, 502);
-        }
-        const list = await resp.json();
-        const items = (Array.isArray(list) ? list : []).map(function (c) {
-            return {
-                id: c.id,
-                name: c.name,
-                slug: c.slug,
-                emoji: c.emoji,
-                description: c.description,
-            };
+        const data = await ghGraphQL(
+            'query($owner:String!,$name:String!){ repository(owner:$owner,name:$name){ discussionCategories(first:20){ nodes{ id name slug emoji description } } } }',
+            { owner: 'ErisPulse', name: 'ErisPulse' }
+        );
+        const items = data.repository.discussionCategories.nodes.map(function (c) {
+            return { id: c.id, name: c.name, slug: c.slug, emoji: c.emoji, description: c.description };
         });
         return jsonResponse({ categories: items }, 200, { 'Cache-Control': 'public, max-age=86400' });
     } catch (error) {
-        return jsonResponse({ error: 'Categories fetch failed', message: error.message }, 500);
+        console.warn('categories GraphQL 失败，使用内置兜底:', error.message);
+        return jsonResponse({ categories: FALLBACK_CATEGORIES }, 200, { 'Cache-Control': 'public, max-age=3600' });
     }
 }
 
@@ -1129,7 +1150,7 @@ async function handleCreateDiscussion(request) {
         const provider = body.provider;
         const title = typeof body.title === 'string' ? body.title.trim() : '';
         const content = typeof body.body === 'string' ? body.body.trim() : '';
-        const categoryId = Number(body.category_id);
+        const categorySlug = typeof body.category_slug === 'string' ? body.category_slug : '';
 
         if (!accessToken || !provider) {
             return jsonResponse({ error: 'Authentication required', code: 'AUTH_FAILED' }, 401);
@@ -1143,8 +1164,8 @@ async function handleCreateDiscussion(request) {
         if (!content || content.length > 20000) {
             return jsonResponse({ error: 'Body must be between 1 and 20000 characters.' }, 400);
         }
-        if (!Number.isInteger(categoryId) || categoryId < 1) {
-            return jsonResponse({ error: 'Missing or invalid category_id' }, 400);
+        if (!categorySlug) {
+            return jsonResponse({ error: 'Missing category_slug' }, 400);
         }
 
         const verifiedUser = await verifyUser(provider, accessToken);
@@ -1157,25 +1178,53 @@ async function handleCreateDiscussion(request) {
             return jsonResponse({ error: `You can create up to ${COMMUNITY_CREATE_DAILY} discussions per day.`, code: 'RATE_LIMITED' }, 429);
         }
 
-        const resp = await fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}/discussions`, {
-            method: 'POST',
-            headers: ghApiHeaders(accessToken),
-            body: JSON.stringify({ title: title, body: content, category_id: categoryId }),
-        });
+        // 组织讨论的 REST 写接口 404 —— 走 GraphQL createDiscussion。
+        // category_slug 已在上方校验；此处换取 repository id 与 category id。
+        try {
+            const repoData = await ghGraphQL(
+                'query($owner:String!,$name:String!){ repository(owner:$owner,name:$name){ id discussionCategories(first:20){ nodes{ id slug } } } }',
+                { owner: 'ErisPulse', name: 'ErisPulse' },
+                accessToken
+            );
+            const repositoryId = repoData.repository.id;
+            const catNode = repoData.repository.discussionCategories.nodes.find(function (n) { return n.slug === categorySlug; });
+            if (!catNode) {
+                return jsonResponse({ error: 'Unknown category: ' + categorySlug }, 400);
+            }
 
-        if (!resp.ok) {
-            const details = await resp.text();
-            const denied = resp.status === 401 || resp.status === 403;
+            const out = await ghGraphQL(
+                'mutation($rid:ID!,$cid:ID!,$title:String!,$body:String!){ createDiscussion(input:{repositoryId:$rid,categoryId:$cid,title:$title,body:$body}) { discussion { number title url createdAt category { name slug emoji } } } }',
+                { rid: repositoryId, cid: catNode.id, title: title, body: content },
+                accessToken
+            );
+
+            const d = out.createDiscussion.discussion;
+            await recordCommunityAction(verifiedUser.uid, 'create');
+            return jsonResponse({
+                success: true,
+                discussion: {
+                    number: d.number,
+                    title: d.title,
+                    excerpt: '',
+                    author: { login: verifiedUser.name },
+                    category: { name: d.category.name, slug: d.category.slug, emoji: d.category.emoji },
+                    comments: 0,
+                    created_at: d.createdAt,
+                    updated_at: d.createdAt,
+                    html_url: d.url,
+                    state: 'OPEN',
+                    locked: false,
+                },
+            });
+        } catch (gErr) {
+            const msg = String(gErr.message || '');
+            const denied = /permission|unauthorized|forbidden|Must have/i.test(msg);
             return jsonResponse({
                 error: 'GitHub rejected this discussion',
                 code: denied ? 'PERMISSION_DENIED' : 'GITHUB_ERROR',
-                details: details,
+                details: msg,
             }, denied ? 403 : 502);
         }
-
-        const raw = await resp.json();
-        await recordCommunityAction(verifiedUser.uid, 'create');
-        return jsonResponse({ success: true, discussion: trimDiscussion(raw) });
     } catch (error) {
         return jsonResponse({ error: 'Create discussion failed', message: error.message }, 500);
     }
@@ -1212,25 +1261,41 @@ async function handleDiscussionComment(request) {
             return jsonResponse({ error: `You can post up to ${COMMUNITY_COMMENT_DAILY} comments per day.`, code: 'RATE_LIMITED' }, 429);
         }
 
-        const resp = await fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}/discussions/${number}/comments`, {
-            method: 'POST',
-            headers: ghApiHeaders(accessToken),
-            body: JSON.stringify({ body: content }),
-        });
+        // 组织讨论的 REST 写接口 404（读写分离：读走 REST，写必须走 GraphQL）。
+        // 先用 number 查讨论节点 ID，再 addDiscussionComment。
+        try {
+            const idData = await ghGraphQL(
+                'query($owner:String!,$name:String!,$number:Int!){ repository(owner:$owner,name:$name){ discussion(number:$number){ id } } }',
+                { owner: 'ErisPulse', name: 'ErisPulse', number: number },
+                accessToken
+            );
+            const discussionId = idData.repository.discussion.id;
 
-        if (!resp.ok) {
-            const details = await resp.text();
-            const denied = resp.status === 401 || resp.status === 403;
+            const out = await ghGraphQL(
+                'mutation($id:ID!,$body:String!){ addDiscussionComment(input:{discussionId:$id,body:$body}) { comment { id body createdAt } } }',
+                { id: discussionId, body: content },
+                accessToken
+            );
+
+            await recordCommunityAction(verifiedUser.uid, 'comment');
+            const c = out.addDiscussionComment.comment;
+            return jsonResponse({
+                success: true,
+                comment: {
+                    body: c.body,
+                    created_at: c.createdAt,
+                    author: { login: verifiedUser.name },
+                },
+            });
+        } catch (gErr) {
+            const msg = String(gErr.message || '');
+            const denied = /permission|unauthorized|forbidden|Must have/i.test(msg);
             return jsonResponse({
                 error: 'GitHub rejected this comment',
                 code: denied ? 'PERMISSION_DENIED' : 'GITHUB_ERROR',
-                details: details,
+                details: msg,
             }, denied ? 403 : 502);
         }
-
-        const raw = await resp.json();
-        await recordCommunityAction(verifiedUser.uid, 'comment');
-        return jsonResponse({ success: true, comment: trimComment(raw) });
     } catch (error) {
         return jsonResponse({ error: 'Comment failed', message: error.message }, 500);
     }

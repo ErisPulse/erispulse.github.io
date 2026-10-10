@@ -28,7 +28,7 @@ export const CommunityManager = (function () {
         fetchedAt: null,
         activeCategory: 'all',
         loadingMore: false,
-        categories: null, // 创建表单用：[{id,name,slug,emoji}]
+        categories: null, // 分类全集（版块 + 创建表单共用）
         detailCache: {}, // number -> { discussion, comments, fetchedAt }
     };
 
@@ -199,6 +199,17 @@ export const CommunityManager = (function () {
     }
 
     async function refreshList() {
+        // 全量分类（版块格子常显 6 分类用）；失败不影响列表
+        fetch(CONFIG.API.discussionCategories)
+            .then(function (resp) { return resp.json(); })
+            .then(function (data) {
+                if (data && Array.isArray(data.categories) && data.categories.length) {
+                    state.categories = data.categories;
+                    renderFilters();
+                }
+            })
+            .catch(function () { /* 版块保持列表派生 */ });
+
         // 主源：Worker 实时（边缘缓存 15 分钟）
         try {
             var resp = await fetch(CONFIG.API.discussions, { cache: 'no-cache' });
@@ -270,15 +281,21 @@ export const CommunityManager = (function () {
 
     function renderFilters() {
         if (!els.filters) return;
-        var seen = {};
+
+        // 版块全集：优先分类端点（全部 6 分类常显，含 0 条），回退列表内出现过的分类
         var cats = [];
-        state.list.forEach(function (d) {
-            var c = d && d.category;
-            if (c && c.slug && !seen[c.slug]) {
-                seen[c.slug] = true;
-                cats.push(c);
-            }
-        });
+        if (state.categories && state.categories.length) {
+            cats = state.categories;
+        } else {
+            var seen = {};
+            state.list.forEach(function (d) {
+                var c = d && d.category;
+                if (c && c.slug && !seen[c.slug]) {
+                    seen[c.slug] = true;
+                    cats.push(c);
+                }
+            });
+        }
 
         // 论坛版块格子：全部 + 各分类（emoji 大图标 + 本地化名 + 数量），点击即筛选
         var countAll = state.list.length;
@@ -350,7 +367,11 @@ export const CommunityManager = (function () {
             els.list.innerHTML = '<div class="community-state">' +
                 '<i class="far fa-comment-dots" style="font-size:1.6rem;"></i>' +
                 '<p>' + escapeHtml(I18n.t('community.empty')) + '</p>' +
+                '<button class="btn community-btn-primary" id="community-empty-new">' +
+                '<i class="fas fa-plus"></i> ' + escapeHtml(I18n.t('community.newDiscussion')) + '</button>' +
                 '</div>';
+            var emptyNew = document.getElementById('community-empty-new');
+            if (emptyNew) emptyNew.addEventListener('click', openCreateModal);
             return;
         }
 
@@ -638,6 +659,9 @@ export const CommunityManager = (function () {
             if (!resp.ok) {
                 if (data.code === 'PERMISSION_DENIED') {
                     showReplyError(I18n.t('community.create.reauthDesc'), true);
+                } else if (data.code === 'GITHUB_ERROR' && String(data.details || '').includes('404')) {
+                    // GitHub 对缺 Discussions 权限的 token 返回 404 Not Found（而非 403）
+                    showReplyError(I18n.t('community.create.reauthDesc'), true);
                 } else {
                     showReplyError(data.error || I18n.t('community.msg.commentFailed'), false);
                 }
@@ -781,8 +805,8 @@ export const CommunityManager = (function () {
 
         var title = titleInput.value.trim();
         var body = bodyInput.value.trim();
-        var categoryId = Number(catSelect.value);
-        if (!title || !body || !categoryId) {
+        var categorySlug = catSelect.value;
+        if (!title || !body || !categorySlug) {
             showCreateError(I18n.t('community.create.missingFields'), false);
             return;
         }
@@ -801,13 +825,15 @@ export const CommunityManager = (function () {
                     provider: auth.provider,
                     title: title,
                     body: body,
-                    category_id: categoryId,
+                    category_slug: categorySlug,
                 }),
             });
             var data = await resp.json().catch(function () { return {}; });
 
             if (!resp.ok) {
                 if (data.code === 'PERMISSION_DENIED') {
+                    showCreateError(I18n.t('community.create.reauthDesc'), true);
+                } else if (data.code === 'GITHUB_ERROR' && String(data.details || '').includes('404')) {
                     showCreateError(I18n.t('community.create.reauthDesc'), true);
                 } else {
                     showCreateError(data.error || I18n.t('community.msg.createFailed'), false);
