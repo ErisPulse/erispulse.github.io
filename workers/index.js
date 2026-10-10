@@ -35,6 +35,37 @@ function validateTags(tags) {
     return null;
 }
 
+// 界面语言：BCP-47 风格代码（zh / zh-TW / pt-BR），小写归一，最多 12 个
+const LANG_CODE_RE = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i;
+const I18N_MAX = 12;
+
+function validateI18n(langs) {
+    if (langs === undefined || langs === null || langs === '') return [];
+    if (typeof langs === 'string') {
+        try { langs = JSON.parse(langs); } catch (e) {
+            return { error: 'Invalid i18n payload.' };
+        }
+    }
+    if (!Array.isArray(langs)) {
+        return { error: 'Invalid i18n payload.' };
+    }
+    const out = [];
+    for (const lang of langs) {
+        if (typeof lang !== 'string') continue;
+        const code = lang.trim().replace(/\s+/g, '-');
+        if (!code) continue;
+        if (!LANG_CODE_RE.test(code)) {
+            return { error: `Invalid language code: "${lang}". Expected BCP-47 style like zh, zh-TW or pt-BR.` };
+        }
+        const lowered = code.toLowerCase();
+        if (!out.includes(lowered)) out.push(lowered);
+    }
+    if (out.length > I18N_MAX) {
+        return { error: `Too many languages. Maximum is ${I18N_MAX}.` };
+    }
+    return out;
+}
+
 function validateVersion(version) {
     if (version && !VERSION_RE.test(version)) {
         return 'Invalid version format. Expected x.x.x (release) or x.x.x-dev.N / -alpha.N (pre-release).';
@@ -600,6 +631,11 @@ async function handleSubmitModule(request) {
         }
         const category = Number(submission.category);
 
+        const i18nResult = validateI18n(submission.i18n);
+        if (i18nResult.error) {
+            return jsonResponse({ error: i18nResult.error }, 400);
+        }
+
         if (!REPO_URL_RE.test(submission.repository)) {
             return jsonResponse({ error: 'Invalid repository URL. Only GitHub and Codeberg URLs are allowed.' }, 400);
         }
@@ -646,6 +682,7 @@ async function handleSubmitModule(request) {
                     min_sdk_version: minSdk,
                     category: category,
                     tags: JSON.stringify(tags),
+                    i18n: JSON.stringify(i18nResult),
                     submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
                 },
             }),
@@ -698,6 +735,7 @@ async function handleMyModules(request) {
                         min_sdk_version: info.min_sdk_version || '',
                         category: info.category || 0,
                         tags: info.tags || [],
+                        i18n: info.i18n || [],
                     });
                 }
             }
@@ -761,6 +799,16 @@ async function handleManageModule(request) {
                 return jsonResponse({ error: tagError }, 400);
             }
 
+            // 界面语言：undefined = 不改动；提供则校验（非法代码直接拒绝）
+            let editI18n;
+            if (editData.i18n !== undefined && editData.i18n !== null && editData.i18n !== '') {
+                const i18nResult = validateI18n(editData.i18n);
+                if (i18nResult.error) {
+                    return jsonResponse({ error: i18nResult.error }, 400);
+                }
+                editI18n = i18nResult;
+            }
+
             const editVersion = editData.version || '';
             const versionError = validateVersion(editVersion);
             if (versionError) {
@@ -804,6 +852,7 @@ async function handleManageModule(request) {
                         // 标签未提交时不写进 edit_data：仓库侧据此判定「不改动」，
                         // 避免旧版前端因缺字段而把已有标签清空
                         ...(editData.tags === undefined ? {} : { tags: JSON.stringify(editTags) }),
+                        ...(editI18n === undefined ? {} : { i18n: JSON.stringify(editI18n) }),
                         category: editCategory,
                         version: pypiResult.exists ? pypiResult.version : (editVersion || '0.0.0'),
                         submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
