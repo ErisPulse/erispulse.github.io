@@ -383,7 +383,12 @@ function renderLangOptions() {
     langSelect.innerHTML = `<option value="" data-i18n="market.filter.language.any">${I18n.t('market.filter.language.any')}</option>` +
         codes.map(code => `<option value="${escapeHtml(code)}">${escapeHtml(langNativeName(code))} (${escapeHtml(code)}) · ${counter.get(code)}</option>`).join('');
     langSelect.value = activeLang;
-    toggleHidden('market-lang-select', codes.length === 0);
+
+     
+    const langEmpty = codes.length === 0;
+    const langLabel = document.getElementById('market-lang-label');
+    langSelect.classList.toggle('is-hidden', langEmpty);
+    if (langLabel) langLabel.classList.toggle('is-hidden', langEmpty);
 }
 
  

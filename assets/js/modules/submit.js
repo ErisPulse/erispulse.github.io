@@ -185,7 +185,8 @@ export const SubmitModuleManager = (function () {
 
 
      
-    var I18N_SUGGESTIONS = ['zh', 'zh-TW', 'en', 'ja', 'ko', 'de', 'fr', 'es', 'pt-BR', 'ru', 'it', 'vi'];
+     
+    var I18N_SUGGESTIONS = ['zh-CN', 'zh-TW', 'en', 'ja', 'ru', 'zh', 'ko', 'de', 'fr', 'es', 'pt-BR', 'it', 'vi'];
 
     function langNativeName(code) {
         try {
