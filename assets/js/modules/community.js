@@ -760,14 +760,16 @@ export const CommunityManager = (function () {
         }
 
         var current = select.value;
-        select.innerHTML = '<option value="" disabled selected>' +
+        select.innerHTML = '<option value="">' +
             escapeHtml(I18n.t('community.create.categoryPlaceholder')) + '</option>' +
             (state.categories || []).map(function (c) {
                 var emoji = categoryEmoji(c);
                 return '<option value="' + c.id + '">' +
                     (emoji ? escapeHtml(emoji) + ' ' : '') + escapeHtml(categoryLabel(c)) + '</option>';
             }).join('');
-        if (current) select.value = current;
+         
+         
+        select.value = current || '';
     }
 
     function showCreateError(message, needsReauth) {
