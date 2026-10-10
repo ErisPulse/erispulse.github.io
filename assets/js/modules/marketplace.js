@@ -51,6 +51,7 @@ let activeTags = new Set();
 let sdkCeiling = '';         
 let sdkVersionOptions = getCachedSdkVersions();   
 let sortMode = 'default';
+let activeLang = '';         
 let tagsExpanded = false;
 let allTags = [];            
 let allCategories = [];      
@@ -149,6 +150,14 @@ export function setupMarketplace() {
         });
     }
 
+    const langSelect = document.getElementById('market-lang-select');
+    if (langSelect) {
+        langSelect.addEventListener('change', function () {
+            activeLang = this.value;
+            renderModules();
+        });
+    }
+
     const resetBtn = document.getElementById('market-filter-reset');
     if (resetBtn) {
         resetBtn.addEventListener('click', resetFilters);
@@ -191,6 +200,7 @@ function resetFilters() {
     sortMode = 'default';
     searchQuery = '';
     tagsExpanded = false;
+    activeLang = '';
 
     const searchInput = document.getElementById('module-search');
     if (searchInput) searchInput.value = '';
@@ -344,6 +354,48 @@ function buildFilterUI() {
 
     renderTags();
     renderCategories();
+
+    renderLangOptions();
+}
+
+
+
+
+
+function renderLangOptions() {
+    const langSelect = document.getElementById('market-lang-select');
+    if (!langSelect) return;
+
+    const counter = new Map();
+    collectAll().forEach(pkg => {
+        if (pkg.hidden || !Array.isArray(pkg.i18n)) return;
+        pkg.i18n.forEach(code => {
+            if (typeof code !== 'string' || !code) return;
+            const key = code.toLowerCase();
+            counter.set(key, (counter.get(key) || 0) + 1);
+        });
+    });
+
+    const codes = [...counter.keys()].sort();
+     
+    if (activeLang && !counter.has(activeLang)) activeLang = '';
+
+    langSelect.innerHTML = `<option value="" data-i18n="market.filter.language.any">${I18n.t('market.filter.language.any')}</option>` +
+        codes.map(code => `<option value="${escapeHtml(code)}">${escapeHtml(langNativeName(code))} (${escapeHtml(code)}) · ${counter.get(code)}</option>`).join('');
+    langSelect.value = activeLang;
+    toggleHidden('market-lang-select', codes.length === 0);
+}
+
+ 
+const _langNameCache = new Map();
+function langNativeName(code) {
+    if (_langNameCache.has(code)) return _langNameCache.get(code);
+    let name = code;
+    try {
+        name = new Intl.DisplayNames([code], { type: 'language' }).of(code) || code;
+    } catch (e) {   }
+    _langNameCache.set(code, name);
+    return name;
 }
 
 
@@ -498,6 +550,7 @@ function cardHtml(pkg, index) {
             </div>
             <p class="module-desc">${escapeHtml(pkg.description)}</p>
             ${cardTagsHtml(pkg.tags)}
+            ${cardI18nHtml(pkg.i18n)}
             <div class="module-footer">
                 <div class="module-footer-info">
                     <div class="module-author">${escapeHtml(pkg.author)}</div>
@@ -526,6 +579,18 @@ function cardHtml(pkg, index) {
 
 
 
+
+
+
+
+
+
+function cardI18nHtml(langs) {
+    if (!Array.isArray(langs) || langs.length === 0) return '';
+    const shown = langs.slice(0, 4).map(code => `<span class="module-lang">${escapeHtml(langNativeName(code))}</span>`).join('');
+    const rest = langs.length > 4 ? `<span class="module-lang module-lang-more">+${langs.length - 4}</span>` : '';
+    return `<div class="module-i18n"><i class="fas fa-language" title="${escapeHtml(I18n.t('market.i18n'))}"></i>${shown}${rest}</div>`;
+}
 
 function cardTagsHtml(tags) {
     const overflow = tags.length > CARD_TAG_LIMIT;
@@ -591,6 +656,12 @@ function applyFilters() {
      
     if (activeTags.size > 0) {
         packages = packages.filter(pkg => pkg.tags.some(tag => activeTags.has(tag)));
+    }
+
+     
+    if (activeLang) {
+        packages = packages.filter(pkg => Array.isArray(pkg.i18n) &&
+            pkg.i18n.some(code => typeof code === 'string' && code.toLowerCase() === activeLang));
     }
 
      
@@ -838,6 +909,13 @@ export function showInstallModal(packageName) {
         <h4 style="margin-top: 1.5rem;">${I18n.t('modal.tags')}</h4>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             ${pkg.tags.map(tag => `<span class="module-tag">${escapeHtml(tag)}</span>`).join('')}
+        </div>
+        ` : ''}
+
+        ${Array.isArray(pkg.i18n) && pkg.i18n.length > 0 ? `
+        <h4 style="margin-top: 1.5rem;">${I18n.t('market.i18n')}</h4>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            ${pkg.i18n.map(code => `<span class="module-tag">${escapeHtml(langNativeName(code))} (${escapeHtml(code)})</span>`).join('')}
         </div>
         ` : ''}
 

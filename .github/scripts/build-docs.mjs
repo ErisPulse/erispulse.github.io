@@ -561,6 +561,7 @@ async function prefillEntryPages() {
                             </div>
                         </div>
                         <p class="module-desc">${escapeHtml(p.description || '')}</p>
+                        ${Array.isArray(p.i18n) && p.i18n.length ? `<div class="module-i18n"><i class="fas fa-language"></i>${p.i18n.slice(0, 4).map((c) => `<span class="module-lang">${escapeHtml(c)}</span>`).join('')}</div>` : ''}
                         <div class="module-footer">
                             <div class="module-footer-info"><div class="module-author">${escapeHtml(p.author || '')}</div></div>
                         </div>

@@ -98,6 +98,14 @@ export const SubmitModuleManager = (function () {
                 if (chip) appendSuggestedTag(chip.getAttribute('data-suggest-tag'));
             });
         }
+
+        var i18nSuggestions = document.getElementById('submit-i18n-suggestions');
+        if (i18nSuggestions) {
+            i18nSuggestions.addEventListener('click', function (e) {
+                var chip = e.target.closest('[data-suggest-i18n]');
+                if (chip) appendSuggestedI18n(chip.getAttribute('data-suggest-i18n'));
+            });
+        }
     }
 
     function setupFormSubmission() {
@@ -175,6 +183,53 @@ export const SubmitModuleManager = (function () {
     
 
 
+
+     
+    var I18N_SUGGESTIONS = ['zh', 'zh-TW', 'en', 'ja', 'ko', 'de', 'fr', 'es', 'pt-BR', 'ru', 'it', 'vi'];
+
+    function langNativeName(code) {
+        try {
+            return new Intl.DisplayNames([code], { type: 'language' }).of(code) || code;
+        } catch (e) {
+            return code;
+        }
+    }
+
+    function renderI18nSuggestions() {
+        var box = document.getElementById('submit-i18n-suggestions');
+        if (!box) return;
+        box.innerHTML = I18N_SUGGESTIONS.map(function (code) {
+            return '<button type="button" class="filter-tag" data-suggest-i18n="' + code + '">' +
+                langNativeName(code) + ' <small>(' + code + ')</small></button>';
+        }).join('');
+    }
+
+    function appendSuggestedI18n(code) {
+        var input = document.getElementById('submit-i18n');
+        if (!input || !code) return;
+        var current = input.value.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+        var exists = current.some(function (t) { return t.toLowerCase() === code.toLowerCase(); });
+        if (!exists) current.push(code);
+        input.value = current.join(', ');
+    }
+
+     
+    function collectI18nInput() {
+        var input = document.getElementById('submit-i18n');
+        if (!input) return [];
+        var seen = {};
+        var out = [];
+        input.value.split(',').forEach(function (t) {
+            var code = t.trim().replace(/\s+/g, '-');
+            if (!code) return;
+            var key = code.toLowerCase();
+            if (!/^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i.test(key)) return;    
+            if (seen[key]) return;
+            seen[key] = true;
+            out.push(key);
+        });
+        return out.slice(0, 12);
+    }
 
     function renderTagSuggestions() {
         var box = document.getElementById('submit-tag-suggestions');
@@ -254,6 +309,7 @@ export const SubmitModuleManager = (function () {
         I18n.applyTranslations();
         renderCategoryOptions();
         renderTagSuggestions();
+        renderI18nSuggestions();
          
         loadMinSdkOptions();
 
@@ -302,6 +358,7 @@ export const SubmitModuleManager = (function () {
             category: Number(document.getElementById('submit-category').value) || 0,
              
             tags: document.getElementById('submit-tags').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean),
+            i18n: collectI18nInput(),
             access_token: auth ? auth.accessToken : '',
             oauth_provider: auth ? auth.provider || '' : ''
         };
@@ -368,6 +425,7 @@ export const SubmitModuleManager = (function () {
                             min_sdk_version: formData.min_sdk_version,
                             category: formData.category,
                             tags: formData.tags,
+                            i18n: formData.i18n,
                         }
                     })
                 });
@@ -495,6 +553,8 @@ export const SubmitModuleManager = (function () {
         loadMinSdkOptions();
         document.getElementById('submit-category').value = mod.category ? String(mod.category) : '';
         document.getElementById('submit-tags').value = (mod.tags || []).join(',');
+        var i18nInput = document.getElementById('submit-i18n');
+        if (i18nInput) i18nInput.value = (mod.i18n || []).join(', ');
 
         var submitBtn = document.getElementById('submit-confirm-btn');
         submitBtn.innerHTML = '<i class="fas fa-save"></i> <span>' + I18n.t('manage.saveEdit') + '</span>';
