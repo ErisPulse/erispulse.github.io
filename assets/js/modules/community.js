@@ -760,14 +760,16 @@ export const CommunityManager = (function () {
         }
 
         var current = select.value;
-        select.innerHTML = '<option value="" disabled selected>' +
+        select.innerHTML = '<option value="">' +
             escapeHtml(I18n.t('community.create.categoryPlaceholder')) + '</option>' +
             (state.categories || []).map(function (c) {
                 var emoji = categoryEmoji(c);
                 return '<option value="' + c.id + '">' +
                     (emoji ? escapeHtml(emoji) + ' ' : '') + escapeHtml(categoryLabel(c)) + '</option>';
             }).join('');
-        if (current) select.value = current;
+        // 显式置回占位项：占位 option 是 disabled 的，若不加这句 Chrome 会
+        // 显示第一个可用分类但 value 仍为空串——看起来选好了、提交却报未选择
+        select.value = current || '';
     }
 
     function showCreateError(message, needsReauth) {
