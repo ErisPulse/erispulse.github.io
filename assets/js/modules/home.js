@@ -35,17 +35,14 @@ export function setupHomeAnimations() {
 }
 
 /**
- * Hero 铺满首屏：实测 hero 距视口顶部的真实距离（固定导航、banner 文字换行、
- * 语言切换后的高度变化全都涵盖），写入 CSS 变量供 min-height 使用。
- * banner 轮播每次切换也会调用（文案行数不同高度会变）。
+ * Hero 铺满首屏：实测 banner 高度（文案换行、轮播换片、语言切换都会影响），
+ * 写入 --banner-h 供 min-height 使用；首页不可见时保留上次测量值。
  */
 function updateHeroMinHeight() {
-    var hero = document.querySelector('.hero-section');
     var banner = document.querySelector('.ai-vibe-banner');
-    if (!hero || !banner) return;
-    var top = hero.getBoundingClientRect().top;
-    if (top < 0 || top > window.innerHeight) return;   // 不在首屏视口内不校准
-    document.documentElement.style.setProperty('--hero-offset', Math.round(top) + 'px');
+    if (!banner) return;
+    if (!banner.offsetHeight) return;   // 首页隐藏（其它视图）时不校准
+    document.documentElement.style.setProperty('--banner-h', Math.round(banner.offsetHeight) + 'px');
 }
 
 function highlightHeroCode() {

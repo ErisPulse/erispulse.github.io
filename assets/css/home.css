@@ -6,9 +6,9 @@
     overflow: hidden;
     background: rgb(var(--hero-bg-rgb));
     padding: 4.5rem 1.5rem;
-    /* --hero-offset 由 home.js 实测校准（导航 + banner 文字换行高度都涵盖），
-       缺省值仅是 JS 未跑时的兜底 */
-    min-height: calc(100dvh - var(--hero-offset, 100px));
+    /* 铺满首屏：100dvh - 固定导航(65) - banner 实测高（home.js 写入 --banner-h，
+       随轮播换片/换行/语言切换重测）；缺省 42px 仅为 JS 未跑时兜底 */
+    min-height: calc(100dvh - 65px - var(--banner-h, 42px));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -42,23 +42,12 @@
     background: radial-gradient(closest-side, rgba(249, 157, 203, 0.13), transparent);
 }
 
-/* 内容层：交互元素可点 */
+/* 内容层：margin:auto 垂直居中（溢出时自动退化为顶对齐），交互元素可点 */
 .hero-content {
     position: relative;
     z-index: 2;
     max-width: 860px;
-    /* margin:auto 的垂直居中在内容溢出时自动退化为顶对齐，不会把 logo 顶出屏幕 */
     margin: auto;
-    pointer-events: none;
-    animation: heroFadeIn 1s ease-out;
-}
-
-/* 内容层：交互元素可点，其余让位给滚动 */
-.hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 860px;
-    margin: 0 auto;
     pointer-events: none;
     animation: heroFadeIn 1s ease-out;
 }
@@ -1474,12 +1463,10 @@
 }
 
 @media (max-width: 768px) {
+    /* banner 回归文档流：绝对定位悬浮会盖住 logo，且 hero 铺满计算会差一条 banner 高度。
+       （--banner-h 由 home.js 实测，min-height 据此精确铺满首屏） */
     .ai-vibe-banner {
-        position: absolute;
-        top: 65px;
-        left: 0;
-        right: 0;
-        z-index: 5;
+        position: static;
         padding: 0.45rem 0.8rem;
     }
 
