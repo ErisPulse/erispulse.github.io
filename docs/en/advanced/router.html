@@ -75,40 +75,40 @@
             <h1 id="router-manager">Router Manager</h1>
 <p>The ErisPulse Router Manager provides unified HTTP and WebSocket routing management, supporting multi-adapter route registration and lifecycle management. The underlying layer is encapsulated through an abstraction layer (currently FastAPI + Uvicorn).</p>
 <h2 id="overview">Overview</h2>
-<p>The main features of the routing manager:</p>
+<p>The main functions of the Router Manager are:</p>
 <ul>
-<li><strong>Decorator Routes</strong>: Support for quick registration with <code>@http</code> / <code>@get</code> / <code>@post</code> / <code>@put</code> / <code>@delete</code> / <code>@ws</code> decorators</li>
-<li><strong>Automatic Injection</strong>: Route handlers do not require importing FastAPI types; the framework automatically injects abstract objects</li>
-<li><strong>Route Grouping</strong>: Support for <code>RouteGroup</code> with prefix and version number</li>
-<li><strong>Route Middleware</strong>: Support for request interception with glob pattern matching</li>
+<li><strong>Decorator Routes</strong>: Support <code>@http</code> / <code>@get</code> / <code>@post</code> / <code>@put</code> / <code>@delete</code> / <code>@ws</code> decorators for quick registration</li>
+<li><strong>Automatic Injection</strong>: Route handlers do not need to import FastAPI types; the framework automatically injects abstract objects</li>
+<li><strong>Route Grouping</strong>: Support <code>RouteGroup</code> with prefix and version number</li>
+<li><strong>Route Middleware</strong>: Support request interception with glob pattern matching</li>
 <li><strong>Rate Limiting</strong>: Built-in sliding window rate limiting</li>
-<li><strong>CORS Support</strong>: One-click enablement of cross-origin resource sharing</li>
-<li><strong>Security Headers</strong>: Automatic addition of security response headers</li>
+<li><strong>CORS Support</strong>: One-click enable Cross-Origin Resource Sharing</li>
+<li><strong>Security Headers</strong>: Automatically add security response headers</li>
 <li><strong>Automatic Documentation</strong>: Interactive documentation based on OpenAPI</li>
 <li><strong>WebSocket Support</strong>: Complete WebSocket connection management, custom authentication, and lifecycle hooks</li>
 <li><strong>Lifecycle Integration</strong>: Deep integration with the ErisPulse lifecycle system</li>
-<li><strong>SSL/TLS Support</strong>: Support for HTTPS and WSS secure connections</li>
-<li><strong>Home Entry Point</strong>: Support for registering quick entry buttons for modules at the root route <code>/</code>, with internationalization support</li>
+<li><strong>SSL/TLS Support</strong>: Support HTTPS and WSS secure connections</li>
+<li><strong>Home Page Entry</strong>: Support modules to register quick entry buttons on the root route <code>/</code>, supporting internationalization</li>
 </ul>
 <h2 id="abstract-types">Abstract Types</h2>
-<p>ErisPulse provides server-side abstract types, allowing modules to avoid direct dependencies on FastAPI:</p>
+<p>ErisPulse provides server-side abstract types, allowing modules to avoid direct dependency on FastAPI:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Abstract Type</th>
-<th>FastAPI Equivalent</th>
+<th>FastAPI Correspondence</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>HttpRequest</code></td>
 <td><code>fastapi.Request</code></td>
-<td>HTTP request wrapper, fully compatible interface</td>
+<td>HTTP request encapsulation, fully compatible interface</td>
 </tr>
 <tr>
 <td><code>WebSocketConnection</code></td>
 <td><code>fastapi.WebSocket</code></td>
-<td>WebSocket connection wrapper, with additional lifecycle hooks</td>
+<td>WebSocket connection encapsulation, additional lifecycle hooks provided</td>
 </tr>
 <tr>
 <td><code>WebSocketDisconnect</code></td>
@@ -117,46 +117,81 @@
 </tr>
 </tbody></table></div>
 <blockquote>
-<p><code>WebSocketConnection</code> inherits from <code>WebSocketConnectionBase</code> and shares the same send/receive/iter/close interface with the client-side WebSocket (<code>ClientWebSocket</code>). Business logic code can be reused between client and server WebSocket connections.</p>
-<p>The underlying native FastAPI object can be accessed via the <code>.raw</code> attribute. Code that directly uses FastAPI types is fully compatible as well.</p>
+<p><code>WebSocketConnection</code> inherits from <code>WebSocketConnectionBase</code>, sharing the same send/receive/iter/close interface with the client-side WebSocket (<code>ClientWebSocket</code>). The same business logic code can be used for both client and server side.</p>
+<p>The underlying FastAPI native object can be accessed via the <code>.raw</code> attribute. Code using native FastAPI types is also fully compatible.</p>
 </blockquote>
-<h2 id="decorator-based-routing-recommended">Decorator-based Routing (Recommended)</h2>
-<h3 id="http-decorators">HTTP Decorators</h3>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> router
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/info"</span><span class="token punctuation">)</span>
+<h2 id="decorator-routes-recommended">Decorator Routes (Recommended)</h2>
+<h3 id="registration-forms-single-parameter-recommended-and-two-parameter">Registration Forms: Single-Parameter (Recommended) and Two-Parameter</h3>
+<p>Decorator routes support two forms; <strong>single-parameter is recommended</strong>—consistent with command/event triggers, with automatic namespace assignment to the current module:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> router
+
+<span class="token comment"># Single-parameter (recommended): automatically assigned to module_name/hello → actual path /my_module/hello</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"/hello"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"ok"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
+
+<span class="token comment"># Single-parameter WebSocket: @ws("chat") → /my_module/chat</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"chat"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">chat</span><span class="token punctuation">(</span>ws<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+<span class="token comment"># Two-parameter: explicitly specify module name (same rule, used when registering across modules/tool code)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"other_module"</span><span class="token punctuation">,</span> <span class="token string">"/info"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_info</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"method"</span><span class="token punctuation">:</span> request<span class="token punctuation">.</span>method<span class="token punctuation">,</span> <span class="token string">"path"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">}</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>Single-parameter form requires registration within the module/adapter <strong>loading context</strong> (the framework has injected the namespace); calling without a context will throw a <code>ValueError</code> and prompt to explicitly pass the module name.</p>
+</div>
+<h3 id="http-decorators">HTTP Decorators</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> router<span class="token punctuation">,</span> HttpRequest
 
-<span class="token comment"># You can also explicitly annotate abstract types</span>
-<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> HttpRequest
-
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/data"</span><span class="token punctuation">)</span>
+<span class="token comment"># Also can explicitly annotate abstract types</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"/data"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">post_data</span><span class="token punctuation">(</span>request<span class="token punctuation">:</span> HttpRequest<span class="token punctuation">)</span><span class="token punctuation">:</span>
     data <span class="token operator">=</span> <span class="token keyword">await</span> request<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"received"</span><span class="token punctuation">:</span> data<span class="token punctuation">}</span>
 
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>put</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>put</span><span class="token punctuation">(</span><span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">update_data</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"updated"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
 
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>delete</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>delete</span><span class="token punctuation">(</span><span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">delete_data</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"deleted"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
 </code></pre>
 <blockquote>
-<p><strong>Automatic Injection Rule</strong>: When the first parameter of a handler is named <code>request</code> or <code>req</code> and has no FastAPI type annotation, the framework automatically injects <code>HttpRequest</code>. Handlers with no parameters or non-request parameter names are unaffected.</p>
+<p><strong>Automatic Injection Rule</strong>: When the handler's first parameter is named <code>request</code> or <code>req</code> and has no FastAPI type annotation, the framework automatically injects <code>HttpRequest</code>. Handlers without parameters or with non-request parameter names are unaffected.</p>
 </blockquote>
-<h3 id="websocket-decorators">WebSocket Decorators</h3>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> WebSocketConnection<span class="token punctuation">,</span> WebSocketDisconnect
+<h4 id="response-return-convention-210">Response Return Convention (2.10+)</h4>
+<p>Handler return values support <strong>tuple convention</strong> (recommended writing style, explicitly controlling status code), while dict/str/Response remain unchanged:</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"/login"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">login</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> check_token<span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># (body, status_code) → 401 JSON</span>
+        <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"error"</span><span class="token punctuation">:</span> <span class="token string">"unauthorized"</span><span class="token punctuation">,</span> <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">"token invalid"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">401</span>
+    <span class="token comment"># (body, status_code, headers) can also include response headers</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"X-Request-Cost"</span><span class="token punctuation">:</span> <span class="token string">"12ms"</span><span class="token punctuation">}</span>
 
-<span class="token comment"># Basic WebSocket</span>
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token comment"># Or use the respond() helper function (message automatically merged into response body)</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> respond
+
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"/me"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">me</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> respond<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> status_code<span class="token operator">=</span><span class="token number">200</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"ok"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>Path/query parameters can be directly annotated using FastAPI native annotations (<code>item_id: int</code>, <code>page: int = 1</code>), and middleware is covered in the <a href="#route-middleware">Route Middleware</a> section.</p>
+<h3 id="websocket-decorators">WebSocket Decorators</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> WebSocketConnection<span class="token punctuation">,</span> WebSocketDisconnect
+
+<span class="token comment"># Basic WebSocket (single-parameter form)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"ws"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">websocket_handler</span><span class="token punctuation">(</span>ws<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>msg<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
 <span class="token comment"># WebSocket with lifecycle hooks</span>
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/ws/chat"</span><span class="token punctuation">)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"/ws/chat"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">chat</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token decorator annotation punctuation">@ws<span class="token punctuation">.</span>on_disconnect</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_disconnect</span><span class="token punctuation">(</span>ws<span class="token punctuation">,</span> reason<span class="token operator">=</span><span class="token string">"unknown"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -174,16 +209,21 @@
     token <span class="token operator">=</span> ws<span class="token punctuation">.</span>query_params<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"token"</span><span class="token punctuation">)</span>
     <span class="token keyword">return</span> token <span class="token operator">==</span> <span class="token string">"secret"</span>
 
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/secure_ws"</span><span class="token punctuation">,</span> auth_handler<span class="token operator">=</span>ws_auth<span class="token punctuation">)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"secure_ws"</span><span class="token punctuation">,</span> auth_handler<span class="token operator">=</span>ws_auth<span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">secure_ws_handler</span><span class="token punctuation">(</span>ws<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
         data <span class="token operator">=</span> <span class="token keyword">await</span> ws<span class="token punctuation">.</span>receive_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
         <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p><strong>Note</strong>: WebSocket handlers and authentication handlers also support automatic injection. You can obtain <code>WebSocketConnection</code> without parameter annotations. You can also pass in the native object by annotating with <code>fastapi.WebSocket</code>, but abstract types are recommended.</p>
+<p><strong>Note</strong>: WebSocket handlers and authentication handlers also support automatic injection. No parameter annotation is needed to obtain a <code>WebSocketConnection</code>. Passing the native object via <code>fastapi.WebSocket</code> is also possible, but the abstract type is recommended.</p>
 </blockquote>
-<h2 id="traditional-registration-methods">Traditional Registration Methods</h2>
+<h3 id="automatic-connection-registration-connection-pool-210">Automatic Connection Registration (Connection Pool, 2.10+)</h3>
+<p>Connections established via <code>@ws</code> / <code>@sse</code> are <strong>automatically registered</strong> into the framework connection pool by default (<code>track=False</code> disables this):
+Within the handler, <code>ws.id</code> / <code>ws.join_group(...)</code> are available, and any module can
+<code>connections.list(namespace=...)</code> to view connections in this module and broadcast to groups.
+See <a href="/docs/en/advanced/connections.html">Connection Pool and Broadcasting</a>.</p>
+<h2 id="traditional-registration-method">Traditional Registration Method</h2>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello_handler</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">"Hello World"</span><span class="token punctuation">}</span>
 
@@ -195,7 +235,7 @@ router<span class="token punctuation">.</span>register_http_route<span class="to
     methods<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"GET"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 
-<span class="token comment"># With rate limiting and documentation</span>
+<span class="token comment"># With rate limiting and documentation information</span>
 router<span class="token punctuation">.</span>register_http_route<span class="token punctuation">(</span>
     module_name<span class="token operator">=</span><span class="token string">"my_module"</span><span class="token punctuation">,</span>
     path<span class="token operator">=</span><span class="token string">"/api/data"</span><span class="token punctuation">,</span>
@@ -220,7 +260,7 @@ router<span class="token punctuation">.</span>register_websocket<span class="tok
     handler<span class="token operator">=</span>websocket_handler<span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 
-<span class="token comment"># With authentication (recommended)</span>
+<span class="token comment"># Registration with authentication (recommended)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">auth_handler</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">bool</span><span class="token punctuation">:</span>
     token <span class="token operator">=</span> ws<span class="token punctuation">.</span>query_params<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"token"</span><span class="token punctuation">)</span>
     <span class="token keyword">return</span> token <span class="token operator">==</span> <span class="token string">"secret"</span>
@@ -258,7 +298,7 @@ router<span class="token punctuation">.</span>register_websocket<span class="tok
 </tr>
 <tr>
 <td><code>auth_handler</code></td>
-<td>Authentication function, returns <code>False</code> to automatically close the connection</td>
+<td>Authentication function, returning <code>False</code> will automatically close the connection</td>
 <td><code>None</code></td>
 </tr>
 <tr>
@@ -268,20 +308,20 @@ router<span class="token punctuation">.</span>register_websocket<span class="tok
 </tr>
 </tbody></table></div>
 <blockquote>
-<p><strong>Recommendation</strong>: Use <code>auth_handler</code> for connection confirmation instead of setting <code>auto_accept=False</code>. Only set <code>auto_accept=False</code> if you need full control over the connection process.</p>
+<p><strong>Recommendation</strong>: Use <code>auth_handler</code> for connection confirmation, rather than disabling <code>auto_accept</code>. Only set <code>auto_accept=False</code> if you need complete control over the connection flow.</p>
 </blockquote>
 <h2 id="websocket-lifecycle-hooks">WebSocket Lifecycle Hooks</h2>
-<p><code>WebSocketConnection</code> provides callback registration for disconnection and errors, eliminating the need for manual try/catch:</p>
+<p><code>WebSocketConnection</code> provides callback registration for disconnection and errors, without manual try/catch:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> WebSocketConnection
 
 <span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">my_ws</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token comment"># Register using decorator</span>
+    <span class="token comment"># Decorator-style registration</span>
     <span class="token decorator annotation punctuation">@ws<span class="token punctuation">.</span>on_disconnect</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_close</span><span class="token punctuation">(</span>ws<span class="token punctuation">,</span> reason<span class="token operator">=</span><span class="token string">"unknown"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Disconnect reason: </span><span class="token interpolation"><span class="token punctuation">{</span>reason<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Disconnection reason: </span><span class="token interpolation"><span class="token punctuation">{</span>reason<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-    <span class="token comment"># Alternatively, register directly</span>
+    <span class="token comment"># Can also be called directly</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_err</span><span class="token punctuation">(</span>ws<span class="token punctuation">,</span> error<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Error: </span><span class="token interpolation"><span class="token punctuation">{</span>error<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
     ws<span class="token punctuation">.</span>on_error<span class="token punctuation">(</span>on_err<span class="token punctuation">)</span>
@@ -290,7 +330,7 @@ router<span class="token punctuation">.</span>register_websocket<span class="tok
     <span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>msg<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
-<h2 id="route-groups">Route Groups</h2>
+<h2 id="route-grouping">Route Grouping</h2>
 <pre><code class="language-python"><span class="token comment"># Create a route group with a prefix</span>
 group <span class="token operator">=</span> router<span class="token punctuation">.</span>group<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> prefix<span class="token operator">=</span><span class="token string">"/v1"</span><span class="token punctuation">)</span>
 
@@ -305,7 +345,7 @@ group <span class="token operator">=</span> router<span class="token punctuation
 <span class="token comment"># Actual path: /my_module/v1/users</span>
 </code></pre>
 <h2 id="route-middleware">Route Middleware</h2>
-<p>Middleware supports glob pattern matching for paths:</p>
+<p>Middleware supports glob pattern matching paths:</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>middleware</span><span class="token punctuation">(</span><span class="token string">"/my_module/*"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">auth_middleware</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> call_next<span class="token punctuation">)</span><span class="token punctuation">:</span>
     token <span class="token operator">=</span> request<span class="token punctuation">.</span>headers<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"Authorization"</span><span class="token punctuation">)</span>
@@ -318,13 +358,13 @@ group <span class="token operator">=</span> router<span class="token punctuation
     <span class="token keyword">return</span> <span class="token keyword">await</span> call_next<span class="token punctuation">(</span>request<span class="token punctuation">)</span>
 </code></pre>
 <h2 id="request-correlation-id-x-request-id">Request Correlation ID (X-Request-ID)</h2>
-<p>Starting from version 2.7.0, each HTTP request carries a <code>X-Request-ID</code> correlation ID, which is used for log and distributed tracing correlation:</p>
+<p>Starting from version 2.7.0, each HTTP request carries an <code>X-Request-ID</code> correlation ID, used for logging / distributed tracing:</p>
 <ul>
-<li><strong>Generation Rule</strong>: The client-provided <code>X-Request-ID</code> header is prioritized (in distributed tracing scenarios); otherwise, a UUID is generated automatically.</li>
-<li><strong>Response Header</strong>: The response will include a <code>X-Request-ID</code>, which helps the client match requests with logs.</li>
-<li><strong>Lifecycle Events</strong>: The <code>server.request</code> and <code>server.response</code> event data now include a <code>request_id</code> field.</li>
+<li><strong>Generation Rule</strong>: Prioritize using the <code>X-Request-ID</code> request header passed from the client (for distributed tracing scenarios); otherwise, generate a UUID</li>
+<li><strong>Response Header</strong>: The response will write back the <code>X-Request-ID</code>, making it convenient for the client to correlate requests with logs</li>
+<li><strong>Lifecycle Events</strong>: The <code>server.request</code> and <code>server.response</code> event data will add a <code>request_id</code> field</li>
 </ul>
-<pre><code class="language-python"><span class="token comment"># Listen for request events in the module and correlate requests and responses by request_id</span>
+<pre><code class="language-python"><span class="token comment"># Listen for request events in the module, and correlate requests-responses by request_id</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.request"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_request</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'request_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">] </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'method'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'path'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
@@ -333,11 +373,11 @@ group <span class="token operator">=</span> router<span class="token punctuation
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_response</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[</span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'request_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">] -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'status_code'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
-<p>Clients can customize the ID to facilitate cross-service tracing:</p>
+<p>Clients can customize the ID for cross-service tracing:</p>
 <pre><code class="language-bash"><span class="token function">curl</span> <span class="token parameter variable">-H</span> <span class="token string">"X-Request-ID: my-trace-id"</span> http://localhost:8080/my_module/health
 </code></pre>
 <h2 id="rate-limiting">Rate Limiting</h2>
-<p>Rate limiting for routes using the sliding window algorithm:</p>
+<p>Use a sliding window algorithm to limit route access:</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/limited"</span><span class="token punctuation">,</span> rate_limit<span class="token operator">=</span><span class="token string">"10/minute"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">limited_endpoint</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"ok"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
@@ -346,7 +386,7 @@ group <span class="token operator">=</span> router<span class="token punctuation
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">submit_data</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"submitted"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
 </code></pre>
-<p>Rate limiting format: <code>{count}/{time window}</code>, for example <code>10/minute</code>, <code>100/hour</code>.</p>
+<p>Rate limiting format: <code>{count}/{time window}</code>, such as <code>10/minute</code>, <code>100/hour</code>.</p>
 <h2 id="cors-configuration">CORS Configuration</h2>
 <pre><code class="language-python">router<span class="token punctuation">.</span>setup_cors<span class="token punctuation">(</span>
     allow_origins<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"https://example.com"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
@@ -363,31 +403,34 @@ group <span class="token operator">=</span> router<span class="token punctuation
 <h2 id="security-headers">Security Headers</h2>
 <pre><code class="language-python">router<span class="token punctuation">.</span>setup_security_headers<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
-<p>Automatically adds security headers such as <code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>, and <code>X-XSS-Protection</code>.</p>
-<p>It can also be configured via <code>config.toml</code>:</p>
+<p>Automatically add security headers such as <code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>, and <code>X-XSS-Protection</code>.</p>
+<p>These can also be configured via <code>config.toml</code>:</p>
 <pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">router.security</span><span class="token punctuation">]</span>
 <span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
 </code></pre>
 <h2 id="automatic-documentation">Automatic Documentation</h2>
-<p>Router enables OpenAPI interactive documentation by default:</p>
+<p>The Router automatically enables OpenAPI interactive documentation:</p>
 <pre><code class="language-python"><span class="token comment"># Disable documentation</span>
 router<span class="token punctuation">.</span>disable_docs<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
 <span class="token comment"># Customize documentation information</span>
 router<span class="token punctuation">.</span>set_docs_info<span class="token punctuation">(</span>
     title<span class="token operator">=</span><span class="token string">"My API"</span><span class="token punctuation">,</span>
-    description<span class="token operator">=</span><span class="token string">"API documentation"</span><span class="token punctuation">,</span>
+    description<span class="token operator">=</span><span class="token string">"API Documentation"</span><span class="token punctuation">,</span>
     version<span class="token operator">=</span><span class="token string">"1.0.0"</span>
 <span class="token punctuation">)</span>
 </code></pre>
 <h2 id="path-handling">Path Handling</h2>
 <p>Route paths are automatically prefixed with the module name to avoid conflicts:</p>
-<pre><code class="language-python"><span class="token comment"># Register the path "/api" to the module "my_module"</span>
+<pre><code class="language-python"><span class="token comment"># Register path "/api" to module "my_module"</span>
 <span class="token comment"># The actual accessible path is "/my_module/api"</span>
 router<span class="token punctuation">.</span>register_http_route<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/api"</span><span class="token punctuation">,</span> handler<span class="token punctuation">)</span>
 </code></pre>
+<div class="markdown-alert markdown-alert-warning"><p class="markdown-alert-title"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i>Warning</p>
+<p>Route paths (including the module name prefix) are <strong>case-sensitive</strong>. The case of the module name used during registration determines the case of the actual path: if the module name is <code>Test</code> and <code>/api</code> is registered, the actual path is <code>/Test/api</code>. Accessing <code>/test/api</code> will return a 404.</p>
+</div>
 <h2 id="system-routes">System Routes</h2>
-<p>The routing manager automatically provides the following system routes:</p>
+<p>The Router Manager automatically provides the following system routes:</p>
 <h3 id="health-check">Health Check</h3>
 <pre><code>GET /health
 # Returns:
@@ -397,26 +440,26 @@ router<span class="token punctuation">.</span>register_http_route<span class="to
 <pre><code>GET /
 # Returns ErisPulse brand page
 </code></pre>
-<p>The root route <code>/</code> displays the ErisPulse brand page, automatically detects the availability of the Dashboard and adds an entry button.</p>
-<h2 id="home-entry">Home Entry</h2>
-<p>The router manager allows external modules to register quick-access entry buttons on the root route <code>/</code>, making it convenient for users to quickly access the management pages of various modules.</p>
-<h3 id="registering-an-entry">Registering an Entry</h3>
+<p>The root route <code>/</code> displays the ErisPulse brand page, automatically detecting Dashboard availability and adding entry buttons.</p>
+<h2 id="home-page-entry">Home Page Entry</h2>
+<p>The Router Manager allows external modules to register quick entry buttons on the root route <code>/</code>, making it convenient for users to access the management pages of various modules.</p>
+<h3 id="register-entry">Register Entry</h3>
 <pre><code class="language-python"><span class="token comment"># Simple registration</span>
 router<span class="token punctuation">.</span>register_home_entry<span class="token punctuation">(</span>
-    name<span class="token operator">=</span><span class="token string">"My Dashboard"</span><span class="token punctuation">,</span>
+    name<span class="token operator">=</span><span class="token string">"My Panel"</span><span class="token punctuation">,</span>
     url<span class="token operator">=</span><span class="token string">"/mymodule/admin"</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 
-<span class="token comment"># Registration with an icon (SVG)</span>
+<span class="token comment"># Registration with icon (SVG)</span>
 router<span class="token punctuation">.</span>register_home_entry<span class="token punctuation">(</span>
-    name<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">,</span>
+    name<span class="token operator">=</span><span class="token string">"Console"</span><span class="token punctuation">,</span>
     url<span class="token operator">=</span><span class="token string">"/console"</span><span class="token punctuation">,</span>
     icon_svg<span class="token operator">=</span><span class="token string">'&lt;svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"&gt;&lt;path d="M4 17l6-6-6-6"/&gt;&lt;path d="M12 19h8"/&gt;&lt;/svg&gt;'</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 
-<span class="token comment"># Registration with internationalization support (project i18n dictionary format)</span>
+<span class="token comment"># Internationalization support (project i18n dictionary format)</span>
 router<span class="token punctuation">.</span>register_home_entry<span class="token punctuation">(</span>
-    name<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"mymodule.home.entry"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"My Dashboard"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    name<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"mymodule.home.entry"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"My Panel"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
     url<span class="token operator">=</span><span class="token string">"/mymodule/admin"</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 </code></pre>
@@ -433,7 +476,7 @@ router<span class="token punctuation">.</span>register_home_entry<span class="to
 <tbody><tr>
 <td><code>name</code></td>
 <td><code>str</code> / <code>dict</code></td>
-<td>Button display text; when passing a dictionary <code>{"i18n": "key", "default": "text"}</code>, internationalization is used</td>
+<td>Button display text; if a dictionary <code>{"i18n": "key", "default": "text"}</code> is passed, internationalization is used</td>
 <td>Yes</td>
 </tr>
 <tr>
@@ -449,14 +492,14 @@ router<span class="token punctuation">.</span>register_home_entry<span class="to
 <td>No</td>
 </tr>
 </tbody></table></div>
-<h3 id="automatic-dashboard-registration">Automatic Dashboard Registration</h3>
-<p>When <code>sdk.Dashboard</code> is detected as available, the router manager automatically adds a Dashboard button as the first entry in the list, eliminating the need for manual registration.</p>
+<h3 id="dashboard-auto-registration">Dashboard Auto-Registration</h3>
+<p>When the <code>sdk.Dashboard</code> is detected as available, the Router Manager automatically adds a Dashboard button at the beginning of the entry list, without requiring manual registration.</p>
 <h2 id="lifecycle-integration">Lifecycle Integration</h2>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> lifecycle
 
 <span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.start"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_server_start</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Server has started: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'base_url'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Server started: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'base_url'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
 <span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"server.stop"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_server_stop</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -464,17 +507,17 @@ router<span class="token punctuation">.</span>register_home_entry<span class="to
 </code></pre>
 <h2 id="best-practices">Best Practices</h2>
 <ol>
-<li><strong>Prefer abstract types</strong>: Use <code>HttpRequest</code> / <code>WebSocketConnection</code> instead of <code>fastapi.Request</code> / <code>fastapi.WebSocket</code> to avoid hard dependencies.</li>
-<li><strong>Leverage automatic injection</strong>: Name the first parameter of a handler <code>request</code> or <code>req</code> to automatically receive an <code>HttpRequest</code> without any type annotation.</li>
-<li><strong>Explicitly pass module_name</strong>: The first parameter of a decorator must be the module name and cannot be omitted.</li>
-<li><strong>Use route grouping</strong>: Organize multiple routes from the same module using <code>group()</code>.</li>
-<li><strong>Security considerations</strong>: Implement authentication mechanisms and security headers for sensitive operations.</li>
-<li><strong>Apply rate limiting appropriately</strong>: Set rate limits for high-frequency endpoints.</li>
-<li><strong>Use lifecycle hooks</strong>: Handle WebSocket exceptions using <code>@ws.on_disconnect</code> / <code>@ws.on_error</code> to avoid manual try/catch blocks.</li>
+<li><strong>Prefer Abstract Types</strong>: Use <code>HttpRequest</code> / <code>WebSocketConnection</code> instead of <code>fastapi.Request</code> / <code>fastapi.WebSocket</code> to avoid hard dependencies</li>
+<li><strong>Use Automatic Injection</strong>: Name the first parameter of the handler <code>request</code> or <code>req</code> without any type annotation to obtain <code>HttpRequest</code></li>
+<li><strong>Explicitly Pass module_name</strong>: The first parameter of the decorator must be the module name, not omitted</li>
+<li><strong>Use Route Grouping</strong>: Use <code>group()</code> to organize multiple routes within the same module</li>
+<li><strong>Security Consideration</strong>: Implement authentication mechanisms and security headers for sensitive operations</li>
+<li><strong>Reasonable Rate Limiting</strong>: Set rate limits for high-frequency interfaces</li>
+<li><strong>Use Lifecycle Hooks</strong>: Use <code>@ws.on_disconnect</code> / <code>@ws.on_error</code> to handle WebSocket exceptions, avoiding manual try/catch</li>
 </ol>
 <h2 id="related-documentation">Related Documentation</h2>
 <ul>
-<li><a href="/docs/en/advanced/http-client.html">HTTP Client</a> - Use the built-in HTTP client to send requests</li>
+<li><a href="/docs/en/advanced/http-client.html">HTTP Client</a> - Using the built-in HTTP client to send requests</li>
 <li><a href="/docs/en/developer-guide/modules/getting-started.html">Module Development Guide</a> - Learn about module route registration</li>
 <li><a href="/docs/en/developer-guide/modules/best-practices.html">Best Practices</a> - Routing usage recommendations</li>
 </ul>

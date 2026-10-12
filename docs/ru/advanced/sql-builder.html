@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SQL 查询构建器 - ErisPulse 文档中心</title>
-    <meta name="description" content="Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным стилем вызова, поддерживающий создание, запрос, обновление и уда..." />
+    <meta name="description" content="Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным вызовом стилей, поддерживающий создание, запрос, обновление и уд..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/sql-builder.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/sql-builder.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/sql-builder.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/sql-builder.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/sql-builder.html" />
     <meta property="og:title" content="SQL 查询构建器 - ErisPulse 文档中心" />
-    <meta property="og:description" content="Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным стилем вызова, поддерживающий создание, запрос, обновление и уда..." />
+    <meta property="og:description" content="Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным вызовом стилей, поддерживающий создание, запрос, обновление и уд..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/sql-builder.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"SQL 查询构建器","description":"Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным стилем вызова, поддерживающий создание, запрос, обновление и уда...","url":"https://www.erisdev.com/docs/ru/advanced/sql-builder.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"SQL 查询构建器","description":"Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным вызовом стилей, поддерживающий создание, запрос, обновление и уд...","url":"https://www.erisdev.com/docs/ru/advanced/sql-builder.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,27 +73,27 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="sql-查询构建器">SQL 查询构建器</h1>
-<p>Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным стилем вызова, поддерживающий создание, запрос, обновление и удаление пользовательских таблиц.</p>
+<p>Модуль Storage в ErisPulse предоставляет универсальный SQL-конструктор запросов с цепочечным вызовом стилей, поддерживающий создание, запрос, обновление и удаление пользовательских таблиц.</p>
 <h2 id="архитектурное-проектирование">Архитектурное проектирование</h2>
 <pre><code>Bases/storage.py                    Core/storage.py
 ┌─────────────────────┐             ┌──────────────────────────┐
 │  BaseStorage (ABC)  │◄────────────│  StorageManager          │
-│  BaseQueryBuilder   │             │  (реализация SQLite)     │
-│    (ABC)            │             │                          │
+│  BaseQueryBuilder   │             │  (backend dispatch:      │
+│    (ABC)            │             │   sqlite/mysql/postgres) │
 └─────────────────────┘             │  SQLiteQueryBuilder      │
                                     │  AlterTableBuilder       │
                                     └──────────────────────────┘
 </code></pre>
 <ul>
-<li><code>BaseStorage</code> / <code>BaseQueryBuilder</code> — абстрактные базовые классы, определяющие единый интерфейс и поддерживающие расширение на другие хранилища (Redis, MySQL и т.д.)</li>
-<li><code>StorageManager</code> — текущая конкретная реализация SQLite, полностью обратно совместима</li>
+<li><code>BaseStorage</code> / <code>BaseQueryBuilder</code> — абстрактные базовые классы, определяющие единый интерфейс; фреймворк включает реализации SQLite / MySQL / PostgreSQL (возможно расширение пользовательских бэкендов, см. <a href="/docs/ru/advanced/storage-backends.html">Backend хранения</a>)</li>
+<li><code>StorageManager</code> по конфигурации <code>ErisPulse.storage.backend</code> перенаправляет конкретный бэкенд, по умолчанию SQLite, полностью обратно совместим</li>
 </ul>
 <h2 id="импорт">Импорт</h2>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 <span class="token comment"># или</span>
 <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> storage
 
-<span class="token comment"># ABC базовые классы (для аннотации типов или пользовательской реализации)</span>
+<span class="token comment"># ABC базовые классы (для типизации или пользовательских реализаций)</span>
 <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>storage <span class="token keyword">import</span> BaseStorage<span class="token punctuation">,</span> BaseQueryBuilder
 </code></pre>
 <h2 id="управление-таблицами">Управление таблицами</h2>
@@ -127,10 +127,10 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
 </code></pre>
 <h2 id="цепочечный-запрос">Цепочечный запрос</h2>
 <h3 id="вставка-данных">Вставка данных</h3>
-<pre><code class="language-python"><span class="token comment"># Вставка одной строки (словарь)</span>
+<pre><code class="language-python"><span class="token comment"># Вставка одной строки (передать словарь)</span>
 sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Insert<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">30</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Массовая вставка (список словарей)</span>
+<span class="token comment"># Массовая вставка (передать список словарей)</span>
 sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>InsertMulti<span class="token punctuation">(</span><span class="token punctuation">[</span>
     <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Bob"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">25</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"Charlie"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">:</span> <span class="token number">35</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
@@ -139,24 +139,24 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
 </code></pre>
 <h3 id="запрос-данных">Запрос данных</h3>
 <blockquote>
-<p><strong>Важно</strong>: <code>Select()</code> возвращает <code>list[tuple]</code> (список кортежей), а не словарь. Вам нужно использовать индексацию по порядку столбцов.</p>
+<p><strong>Важно</strong>: <code>Select()</code> возвращает <code>list[tuple]</code> (список кортежей), а не словарь. Вам нужно использовать индекс по порядку столбцов.</p>
 </blockquote>
 <pre><code class="language-python"><span class="token comment"># Запрос всех столбцов</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># rows: [(1, "Alice", 30), (2, "Bob", 25), ...]</span>
 
-<span class="token comment"># Запрос определённых столбцов</span>
+<span class="token comment"># Запрос определенных столбцов</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># rows: [("Alice", 30), ("Bob", 25), ...]</span>
 
-<span class="token comment"># Доступ по индексу</span>
+<span class="token comment"># Получение значения по индексу</span>
 <span class="token keyword">for</span> row <span class="token keyword">in</span> rows<span class="token punctuation">:</span>
     name <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>   <span class="token comment"># "Alice"</span>
     age <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>    <span class="token comment"># 30</span>
 </code></pre>
 <h4 id="преобразование-кортежа-в-словарь">Преобразование кортежа в словарь</h4>
-<p>Рекомендуется использовать <code>ToDict()</code> в цепочке, чтобы результат SELECT автоматически возвращался в виде словаря (имя столбца → значение):</p>
-<pre><code class="language-python"><span class="token comment"># ToDict в цепочке: результат — list[dict], имена столбцов автоматически берутся из метаданных запроса (SELECT * также поддерживается)</span>
+<p>Рекомендуется использовать <code>ToDict()</code> в цепочке, результат SELECT автоматически возвращается в виде словаря (имя столбца → значение):</p>
+<pre><code class="language-python"><span class="token comment"># ToDict цепочка: результат list[dict], имена столбцов автоматически извлекаются из метаданных запроса (SELECT * также поддерживается)</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ToDict<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># rows: [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}, ...]</span>
 
@@ -171,9 +171,9 @@ row <span class="token operator">=</span> sdk<span class="token punctuation">.</
 <span class="token comment"># row: {"name": "Alice", "age": 30} или None</span>
 </code></pre>
 <blockquote>
-<p><code>ToDict()</code> — это метка в цепочке (возвращает self): цепочка без вызова ToDict сохраняет поведение list[tuple], полностью обратно совместима; <code>copy()</code> сохраняет этот флаг.</p>
+<p><code>ToDict()</code> — это метка цепочки (возвращает self): цепочка без вызова ToDict сохраняет поведение <code>list[tuple]</code>, полностью обратно совместима; <code>copy()</code> сохраняет этот флаг.</p>
 </blockquote>
-<p>Ручной способ zip (эквивалент ToDict, подходит для случаев, когда нельзя изменить цепочку):</p>
+<p>Ручной способ zip (эквивалент ToDict, подходит для ситуаций, где нельзя изменить цепочку):</p>
 <pre><code class="language-python">columns <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"id"</span><span class="token punctuation">,</span> <span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">]</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token operator">*</span>columns<span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
@@ -190,14 +190,14 @@ records <span class="token operator">=</span> <span class="token punctuation">[<
     <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>ExecuteOne<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># row — tuple или None</span>
+<span class="token comment"># row — это tuple или None</span>
 <span class="token keyword">if</span> row <span class="token keyword">is</span> <span class="token keyword">not</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
     name <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  <span class="token comment"># "Alice"</span>
     age <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>   <span class="token comment"># 30</span>
 </code></pre>
 <h3 id="условия-фильтрации">Условия фильтрации</h3>
 <blockquote>
-<p><code>Where(condition, *params)</code> поддерживает передачу нескольких параметров, соответствующих нескольким знакам <code>?</code>.</p>
+<p><code>Where(condition, *params)</code> поддерживает передачу нескольких параметров, соответствующих нескольким знакам вопроса <code>?</code>.</p>
 </blockquote>
 <pre><code class="language-python"><span class="token comment"># Одно условие (один знак вопроса, один параметр)</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
@@ -209,19 +209,19 @@ rows <span class="token operator">=</span> sdk<span class="token punctuation">.<
     <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">,</span> <span class="token number">40</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Несколько вызовов Where (AND соединение)</span>
+<span class="token comment"># Несколько вызовов Where (связь AND)</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">40</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="сортировка-пагинация">Сортировка, пагинация</h3>
-<pre><code class="language-python"><span class="token comment"># По возрастанию</span>
+<pre><code class="language-python"><span class="token comment"># Сортировка по возрастанию</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>OrderBy<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># По убыванию</span>
+<span class="token comment"># Сортировка по убыванию</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>OrderBy<span class="token punctuation">(</span><span class="token string">"age"</span><span class="token punctuation">,</span> desc<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span> \
     <span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -255,8 +255,8 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
 <span class="token comment"># Полное удаление</span>
 sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Delete<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
-<h3 id="подсчёт-и-проверка-существования">Подсчёт и проверка существования</h3>
-<pre><code class="language-python"><span class="token comment"># Подсчёт</span>
+<h3 id="подсчет-и-проверка-существования">Подсчет и проверка существования</h3>
+<pre><code class="language-python"><span class="token comment"># Подсчет</span>
 count <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Count<span class="token punctuation">(</span><span class="token punctuation">)</span>
 count <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Count<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
@@ -264,13 +264,13 @@ count <span class="token operator">=</span> sdk<span class="token punctuation">.
 exists <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Exists<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <h2 id="повторное-использование-условий-запроса">Повторное использование условий запроса</h2>
-<p>Используйте <code>copy()</code> для глубокого копирования конструктора и повторного использования базовых условий:</p>
+<p>Использование <code>copy()</code> для глубокого копирования конструктора, повторное использование базовых условий:</p>
 <pre><code class="language-python">base <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">)</span>
 
 <span class="token comment"># Запрос на основе одинаковых условий</span>
 rows <span class="token operator">=</span> base<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>OrderBy<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Limit<span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Подсчёт на основе одинаковых условий</span>
+<span class="token comment"># Подсчет на основе одинаковых условий</span>
 count <span class="token operator">=</span> base<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Count<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
 <span class="token comment"># Проверка существования на основе одинаковых условий</span>
@@ -280,7 +280,7 @@ exists <span class="token operator">=</span> base<span class="token punctuation"
 <pre><code class="language-python">builder <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span>
 builder<span class="token punctuation">.</span>clear<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Перестроение запроса</span>
+<span class="token comment"># Переопределение запроса</span>
 builder<span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span>
 rows <span class="token operator">=</span> builder<span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
@@ -298,10 +298,10 @@ rows <span class="token operator">=</span> builder<span class="token punctuation
         <span class="token keyword">raise</span> Exception<span class="token punctuation">(</span><span class="token string">"force rollback"</span><span class="token punctuation">)</span>
 <span class="token keyword">except</span> Exception<span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
-<span class="token comment"># Запись Alice по-прежнему существует</span>
+<span class="token comment"># Запись Alice все еще существует</span>
 </code></pre>
-<h2 id="асинхронный-оригинальный-api">Асинхронный оригинальный API</h2>
-<p>Начиная с версии 2.8.0, слой хранилища использует асинхронный интерфейс как основной, все методы, завершающие запрос, имеют соответствующие асинхронные версии с префиксом <code>a</code>, рекомендуется использовать в асинхронных обработчиках (чтобы избежать кратковременного блокирования цикла событий синхронной совместимостью):</p>
+<h2 id="асинхронный-нативный-api">Асинхронный нативный API</h2>
+<p>Начиная с версии 2.8.0, слой хранения использует асинхронный нативный интерфейс, все методы, завершающие цепочку, имеют соответствующие асинхронные версии с префиксом <code>a</code>, рекомендуется использовать в асинхронных обработчиках (избегать кратковременного блокирования цикла событий синхронным совместимым слоем):</p>
 <pre><code class="language-python"><span class="token comment"># Асинхронная транзакция</span>
 <span class="token keyword">async</span> <span class="token keyword">with</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>atransaction<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>aset<span class="token punctuation">(</span><span class="token string">"key1"</span><span class="token punctuation">,</span> <span class="token string">"value1"</span><span class="token punctuation">)</span>
@@ -321,8 +321,8 @@ keys <span class="token operator">=</span> <span class="token keyword">await</sp
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>Синхронный (совместимость)</th>
-<th>Асинхронный оригинальный</th>
+<th>Синхронный (совместимый слой)</th>
+<th>Асинхронный нативный</th>
 </tr>
 </thead>
 <tbody><tr>
@@ -362,12 +362,12 @@ keys <span class="token operator">=</span> <span class="token keyword">await</sp
 <tbody><tr>
 <td><code>Select().Execute()</code></td>
 <td><code>list[tuple]</code></td>
-<td>Список кортежей, отсортированных по порядку столбцов</td>
+<td>Список кортежей, упорядоченных по столбцам</td>
 </tr>
 <tr>
 <td><code>Select().ExecuteOne()</code></td>
 <td><code>tuple | None</code></td>
-<td>Одна строка в виде кортежа или None</td>
+<td>Одна строка кортежа или None</td>
 </tr>
 <tr>
 <td><code>Insert().Execute()</code></td>
@@ -387,7 +387,7 @@ keys <span class="token operator">=</span> <span class="token keyword">await</sp
 <tr>
 <td><code>Delete().Execute()</code></td>
 <td><code>int</code></td>
-<td>Количество удалённых строк</td>
+<td>Количество затронутых строк</td>
 </tr>
 <tr>
 <td><code>Count()</code></td>
@@ -397,23 +397,23 @@ keys <span class="token operator">=</span> <span class="token keyword">await</sp
 <tr>
 <td><code>Exists()</code></td>
 <td><code>bool</code></td>
-<td>Существует ли запись</td>
+<td>Существует ли</td>
 </tr>
 </tbody></table></div>
 <h3 id="пример-обработки-возвращаемых-значений">Пример обработки возвращаемых значений</h3>
-<pre><code class="language-python"><span class="token comment"># Select возвращает кортежи, доступ по индексу</span>
+<pre><code class="language-python"><span class="token comment"># Select возвращает кортежи, получаем значения по индексу</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
-first_name <span class="token operator">=</span> rows<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  <span class="token comment"># Первая строка, первый столбец name</span>
-first_age <span class="token operator">=</span> rows<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>   <span class="token comment"># Первая строка, второй столбец age</span>
+first_name <span class="token operator">=</span> rows<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>  <span class="token comment"># Первый столбец первой строки name</span>
+first_age <span class="token operator">=</span> rows<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span>   <span class="token comment"># Второй столбец первой строки age</span>
 
-<span class="token comment"># Рекомендуется: использовать список имён столбцов + zip для преобразования в словарь, код становится более читаемым</span>
+<span class="token comment"># Рекомендуется: использовать список имен столбцов + zip для преобразования в словарь, код более читаем</span>
 cols <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"age"</span><span class="token punctuation">]</span>
 rows <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token operator">*</span>cols<span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">for</span> row <span class="token keyword">in</span> rows<span class="token punctuation">:</span>
     d <span class="token operator">=</span> <span class="token builtin">dict</span><span class="token punctuation">(</span><span class="token builtin">zip</span><span class="token punctuation">(</span>cols<span class="token punctuation">,</span> row<span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span>d<span class="token punctuation">[</span><span class="token string">"name"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> d<span class="token punctuation">[</span><span class="token string">"age"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 
-<span class="token comment"># ExecuteOne возвращает одну строку в виде кортежа или None</span>
+<span class="token comment"># ExecuteOne возвращает одну строку кортежа или None</span>
 row <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Select<span class="token punctuation">(</span><span class="token string">"name"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"id = ?"</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span>ExecuteOne<span class="token punctuation">(</span><span class="token punctuation">)</span>
 name <span class="token operator">=</span> row<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token keyword">if</span> row <span class="token keyword">else</span> <span class="token boolean">None</span>
 
@@ -421,8 +421,8 @@ name <span class="token operator">=</span> row<span class="token punctuation">[<
 affected <span class="token operator">=</span> sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Delete<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Удалено </span><span class="token interpolation"><span class="token punctuation">{</span>affected<span class="token punctuation">}</span></span><span class="token string"> записей"</span></span><span class="token punctuation">)</span>
 </code></pre>
-<h2 id="параметризованные-запросы">Параметризованные запросы</h2>
-<p>Все параметры WHERE используют знак <code>?</code> как заполнитель, параметры передаются как последующие аргументы в <code>Where()</code> (а <strong>не</strong> как кортеж или список):</p>
+<h2 id="параметризованный-запрос">Параметризованный запрос</h2>
+<p>Все параметры WHERE используют знак вопроса <code>?</code> в качестве заполнителя, параметры передаются как последующие аргументы в <code>Where()</code> (а не как кортеж или список):</p>
 <pre><code class="language-python"><span class="token comment"># Правильно ✓ — несколько параметров передаются по отдельности</span>
 sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND name = ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
@@ -431,14 +431,14 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
 
 <span class="token comment"># Неправильно ✗ — не передавайте кортеж</span>
 sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND name = ?"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token number">18</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token comment"># Это приведёт к тому, что весь кортеж будет использован как значение первого заполнителя</span>
+<span class="token comment"># Это приведет к передаче всего кортежа как значения первого заполнителя</span>
 
-<span class="token comment"># Неправильно ✗ — существует риск SQL-инъекций</span>
+<span class="token comment"># Неправильно ✗ — существует риск SQL-инъекции</span>
 sdk<span class="token punctuation">.</span>storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"users"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"name = '</span><span class="token interpolation"><span class="token punctuation">{</span>user_input<span class="token punctuation">}</span></span><span class="token string">'"</span></span><span class="token punctuation">)</span><span class="token punctuation">.</span>Execute<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="правила-передачи-параметров-where">Правила передачи параметров Where</h3>
 <pre><code class="language-python"><span class="token comment"># Where(condition: str, *params: Any)</span>
-<span class="token comment"># params — переменное количество аргументов, передаётся по отдельности</span>
+<span class="token comment"># params — переменное количество параметров, передается по отдельности</span>
 
 <span class="token comment"># Один параметр</span>
 <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name = ?"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">)</span>
@@ -446,14 +446,14 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
 <span class="token comment"># Несколько параметров</span>
 <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"age &gt; ? AND age &lt; ?"</span><span class="token punctuation">,</span> <span class="token number">18</span><span class="token punctuation">,</span> <span class="token number">60</span><span class="token punctuation">)</span>
 
-<span class="token comment"># LIKE-запрос</span>
+<span class="token comment"># Запрос LIKE</span>
 <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name LIKE ?"</span><span class="token punctuation">,</span> <span class="token string">"A%"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># IN-запрос (требуется ручная генерация заполнителей)</span>
+<span class="token comment"># Запрос IN (необходимо вручную создать заполнители)</span>
 <span class="token punctuation">.</span>Where<span class="token punctuation">(</span><span class="token string">"name IN (?, ?, ?)"</span><span class="token punctuation">,</span> <span class="token string">"Alice"</span><span class="token punctuation">,</span> <span class="token string">"Bob"</span><span class="token punctuation">,</span> <span class="token string">"Charlie"</span><span class="token punctuation">)</span>
 </code></pre>
-<h2 id="пользовательский-бэкенд-хранилища">Пользовательский бэкенд хранилища</h2>
-<p>Начиная с версии 2.8.0, абстрактный слой использует <strong>асинхронные методы как основной контракт</strong>: наследуйте <code>BaseStorage</code> и реализуйте асинхронные абстрактные методы, синхронные <code>get/set/Execute</code> и т.д. предоставляются автоматически базовым классом:</p>
+<h2 id="пользовательский-бэкенд-хранения">Пользовательский бэкенд хранения</h2>
+<p>Начиная с версии 2.8.0, абстрактный слой использует <strong>асинхронные методы в качестве нативного контракта</strong>: наследуйте <code>BaseStorage</code> и реализуйте асинхронные абстрактные методы, синхронные <code>get/set/Execute</code> и т.д. предоставляются базовым классом автоматически:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>storage <span class="token keyword">import</span> BaseStorage<span class="token punctuation">,</span> BaseQueryBuilder
 
 <span class="token keyword">class</span> <span class="token class-name">MyQueryBuilder</span><span class="token punctuation">(</span>BaseQueryBuilder<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -478,19 +478,19 @@ sdk<span class="token punctuation">.</span>storage<span class="token punctuation
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">aset</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 
-    <span class="token comment"># Реализация других асинхронных абстрактных методов и хуков транзакций ...</span>
+    <span class="token comment"># Реализация других асинхронных абстрактных методов и hook транзакций ...</span>
     <span class="token keyword">def</span> <span class="token function">Table</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> table_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">return</span> MyQueryBuilder<span class="token punctuation">(</span>self<span class="token punctuation">,</span> table_name<span class="token punctuation">)</span>
 </code></pre>
 <div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
-<p>Если вы не хотите реализовывать маршрутизацию транзакций по подключению (<code>conn</code> ключевой параметр), оставьте атрибут класса <code>_SUPPORTS_CONN_ROUTING = False</code> (по умолчанию), транзакционные функции всё равно будут доступны (ограничение изоляции). Для чисто SQL-бэкендов можно напрямую наследовать <code>Core/Bases/sql_base.py</code> классы <code>SQLStorageBase</code> + <code>SQLQueryBuilder</code>, достаточно лишь предоставить управление подключениями и исполнительную воронку для диалекта, подробнее см. в <a href="/docs/ru/advanced/storage-backends.html">Backend хранилища</a>.</p>
+<p>Если вы не хотите реализовывать маршрутизацию соединений транзакций (ключевой параметр <code>conn</code>), оставьте атрибут класса <code>_SUPPORTS_CONN_ROUTING = False</code> (по умолчанию), функции транзакций все еще доступны (ограничена изоляция). Для чисто SQL-бэкендов можно напрямую наследовать <code>Core/Bases/sql_base.py</code> классы <code>SQLStorageBase</code> + <code>SQLQueryBuilder</code>, нужно только предоставить управление соединениями и диалект выполнения, подробнее см. <a href="/docs/ru/advanced/storage-backends.html">Backend хранения</a>.</p>
 </div>
 <h2 id="связанные-документы">Связанные документы</h2>
 <ul>
-<li><a href="/docs/ru/advanced/storage-backends.html">Backend хранилища</a> — выбор и настройка бэкендов sqlite / mysql / postgres</li>
+<li><a href="/docs/ru/advanced/storage-backends.html">Backend хранения</a> — выбор и настройка бэкендов sqlite / mysql / postgres</li>
 <li><a href="/docs/ru/api-reference/core-modules.html">API основных модулей</a> — полный API модуля Storage</li>
-<li><a href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">API базовых классов хранилища</a> — абстрактные интерфейсы BaseStorage/BaseQueryBuilder</li>
-<li><a href="/docs/ru/advanced/message-builder.html">MessageBuilder</a> — справочник по стилю цепочечных вызовов MessageBuilder</li>
+<li><a href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">API базовых классов хранения</a> — абстрактные интерфейсы BaseStorage/BaseQueryBuilder</li>
+<li><a href="/docs/ru/advanced/message-builder.html">MessageBuilder</a> — примеры цепочечного вызова MessageBuilder</li>
 </ul>
 
         </article>

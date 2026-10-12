@@ -121,42 +121,79 @@
 <p>透過 <code>.raw</code> 屬性可存取底層 FastAPI 原生物件。直接使用 FastAPI 類型的程式碼也完全相容。</p>
 </blockquote>
 <h2 id="裝飾器路由推薦">裝飾器路由（推薦）</h2>
-<h3 id="http-裝飾器">HTTP 裝飾器</h3>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> router
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/info"</span><span class="token punctuation">)</span>
+<h3 id="註冊形態單參推薦與雙參">註冊形態：單參（推薦）與雙參</h3>
+<p>裝飾器路由支援兩種形態，<strong>推薦單參</strong>——與命令 / 事件觸發器一致，命名空間自動歸屬當前模組：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> router
+
+<span class="token comment"># 單參（推薦）：自動歸屬 模組名/hello → 實際路徑 /my_module/hello</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"/hello"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"ok"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
+
+<span class="token comment"># 單參 WebSocket：@ws("chat") → /my_module/chat</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"chat"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">chat</span><span class="token punctuation">(</span>ws<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+
+<span class="token comment"># 雙參：明確指定模組名（規則不變，跨模組/工具程式碼註冊時使用）</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"other_module"</span><span class="token punctuation">,</span> <span class="token string">"/info"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_info</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"method"</span><span class="token punctuation">:</span> request<span class="token punctuation">.</span>method<span class="token punctuation">,</span> <span class="token string">"path"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">}</span>
+</code></pre>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>單參形態要求在模組/適配器<strong>載入上下文</strong>中註冊（載入期框架已注入歸屬）；
+在無歸屬上下文處呼叫會拋 <code>ValueError</code> 並提示明確傳入模組名。</p>
+</div>
+<h3 id="http-裝飾器">HTTP 裝飾器</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> router<span class="token punctuation">,</span> HttpRequest
 
-<span class="token comment"># 也可顯式標註抽象類型</span>
-<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> HttpRequest
-
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/data"</span><span class="token punctuation">)</span>
+<span class="token comment"># 也可明確標註抽象類型</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"/data"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">post_data</span><span class="token punctuation">(</span>request<span class="token punctuation">:</span> HttpRequest<span class="token punctuation">)</span><span class="token punctuation">:</span>
     data <span class="token operator">=</span> <span class="token keyword">await</span> request<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"received"</span><span class="token punctuation">:</span> data<span class="token punctuation">}</span>
 
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>put</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>put</span><span class="token punctuation">(</span><span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">update_data</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"updated"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
 
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>delete</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>delete</span><span class="token punctuation">(</span><span class="token string">"/data/{item_id}"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">delete_data</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"deleted"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span>
 </code></pre>
 <blockquote>
-<p><strong>自動注入規則</strong>：當處理器第一個參數名為 <code>request</code> 或 <code>req</code> 且無 FastAPI 類型註解時，框架會自動注入 <code>HttpRequest</code>。無參數或非請求參數名的處理器不受影響。</p>
+<p><strong>自動注入規則</strong>：當處理器第一個參數名為 <code>request</code> 或 <code>req</code> 且無 FastAPI 類型註解時，框架自動注入 <code>HttpRequest</code>。無參數或非請求參數名的處理器不受影響。</p>
 </blockquote>
-<h3 id="websocket-裝飾器">WebSocket 裝飾器</h3>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> WebSocketConnection<span class="token punctuation">,</span> WebSocketDisconnect
+<h4 id="回應返回約定210">回應返回約定（2.10+）</h4>
+<p>處理器回傳值支援<strong>元組約定</strong>（推薦寫法，明確控制狀態碼），dict/str/Response 照舊：</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"/login"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">login</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> check_token<span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># (body, status_code) → 401 JSON</span>
+        <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"error"</span><span class="token punctuation">:</span> <span class="token string">"unauthorized"</span><span class="token punctuation">,</span> <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">"token 無效"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">401</span>
+    <span class="token comment"># (body, status_code, headers) 還可帶回應頭</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token number">200</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"X-Request-Cost"</span><span class="token punctuation">:</span> <span class="token string">"12ms"</span><span class="token punctuation">}</span>
 
-<span class="token comment"># 基本 WebSocket</span>
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token comment"># 或使用 respond() 幫助函數（message 自動合併進回應體）</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> respond
+
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>get</span><span class="token punctuation">(</span><span class="token string">"/me"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">me</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> respond<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> status_code<span class="token operator">=</span><span class="token number">200</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"ok"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>路徑 / 查詢參數直接用 FastAPI 原生註解即可（<code>item_id: int</code>、<code>page: int = 1</code>），
+中間件見<a href="#%E8%B7%AF%E7%94%B1%E4%B8%AD%E9%96%93%E4%BB%B6">路由中間件</a>一節。</p>
+<h3 id="websocket-裝飾器">WebSocket 裝飾器</h3>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> WebSocketConnection<span class="token punctuation">,</span> WebSocketDisconnect
+
+<span class="token comment"># 基本 WebSocket（單參形態）</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"ws"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">websocket_handler</span><span class="token punctuation">(</span>ws<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>msg<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># 帶生命週期鈎子的 WebSocket</span>
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/ws/chat"</span><span class="token punctuation">)</span>
+<span class="token comment"># 帶生命週期鉤子的 WebSocket</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"/ws/chat"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">chat</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token decorator annotation punctuation">@ws<span class="token punctuation">.</span>on_disconnect</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_disconnect</span><span class="token punctuation">(</span>ws<span class="token punctuation">,</span> reason<span class="token operator">=</span><span class="token string">"unknown"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -174,7 +211,7 @@
     token <span class="token operator">=</span> ws<span class="token punctuation">.</span>query_params<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"token"</span><span class="token punctuation">)</span>
     <span class="token keyword">return</span> token <span class="token operator">==</span> <span class="token string">"secret"</span>
 
-<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/secure_ws"</span><span class="token punctuation">,</span> auth_handler<span class="token operator">=</span>ws_auth<span class="token punctuation">)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"secure_ws"</span><span class="token punctuation">,</span> auth_handler<span class="token operator">=</span>ws_auth<span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">secure_ws_handler</span><span class="token punctuation">(</span>ws<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
         data <span class="token operator">=</span> <span class="token keyword">await</span> ws<span class="token punctuation">.</span>receive_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -183,6 +220,11 @@
 <blockquote>
 <p><strong>注意</strong>：WebSocket 處理器和認證處理器也支援自動注入。無需參數註解即可獲得 <code>WebSocketConnection</code>。標註 <code>fastapi.WebSocket</code> 也可傳入原生物件，但推薦使用抽象類型。</p>
 </blockquote>
+<h3 id="連接自動登記連接池210">連接自動登記（連接池，2.10+）</h3>
+<p><code>@ws</code> / <code>@sse</code> 建立的連接<strong>預設自動登記</strong>進框架連接池（<code>track=False</code> 可關閉）：
+handler 內 <code>ws.id</code> / <code>ws.join_group(...)</code> 可用，任意模組可
+<code>connections.list(namespace=...)</code> 查看本模組連接、向分組廣播。
+詳見<a href="/docs/zh-TW/advanced/connections.html">連接池與廣播</a>。</p>
 <h2 id="傳統註冊方式">傳統註冊方式</h2>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello_handler</span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token string">"Hello World"</span><span class="token punctuation">}</span>
@@ -386,6 +428,9 @@ router<span class="token punctuation">.</span>set_docs_info<span class="token pu
 <span class="token comment"># 實際可存取的路徑為 "/my_module/api"</span>
 router<span class="token punctuation">.</span>register_http_route<span class="token punctuation">(</span><span class="token string">"my_module"</span><span class="token punctuation">,</span> <span class="token string">"/api"</span><span class="token punctuation">,</span> handler<span class="token punctuation">)</span>
 </code></pre>
+<div class="markdown-alert markdown-alert-warning"><p class="markdown-alert-title"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i>Warning</p>
+<p>路由路徑（包含模組名前綴）<strong>區分大小寫</strong>。註冊時的模組名稱大小寫會反映在實際路徑上：當模組名稱為 <code>Test</code> 時，註冊 <code>/api</code> 的實際路徑是 <code>/Test/api</code>，若存取 <code>/test/api</code> 則會回傳 404。</p>
+</div>
 <h2 id="系統路由">系統路由</h2>
 <p>路由管理器自動提供以下系統路由：</p>
 <h3 id="健康檢查">健康檢查</h3>

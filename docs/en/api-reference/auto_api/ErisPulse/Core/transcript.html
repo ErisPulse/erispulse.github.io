@@ -79,10 +79,16 @@
 <p>提供每会话近期消息流的统一记录与查询，作为上下文记忆类模块
 （AI 对话、防复读、行为分析等）的公共底座：</p>
 <ul>
-<li><strong>入站</strong>：消息事件进入分发管线时自动记录（role="user"）；</li>
-<li><strong>出站</strong>：机器人发送的文本类消息经 <code>message.sent</code> 钩子自动记录（role="bot"）；</li>
-<li><strong>存储</strong>：独立 SQLite 表（经 storage），每会话条数上限 + 全局 TTL 自动清理；</li>
-<li><strong>查询</strong>：<code>event.history(n)</code> 或 <code>sdk.transcript.get(event, n)</code>。</li>
+<li><p><strong>入站</strong>：消息事件进入分发管线时自动记录（role="user"）；</p>
+</li>
+<li><p><strong>出站</strong>：机器人发送的文本类消息经 <code>message.sent</code> 钩子自动记录（role="bot"）；</p>
+</li>
+<li><p><strong>存储</strong>：独立 SQLite 表（经 storage），写入走内存缓冲 + 后台批量落盘</p>
+<p>（默认每 1 秒或满 64 条一事务提交），查询自动合并未落盘的缓冲行；
+每会话条数上限 + 全局 TTL 自动清理；</p>
+</li>
+<li><p><strong>查询</strong>：<code>event.history(n)</code> 或 <code>sdk.transcript.get(event, n)</code>。</p>
+</li>
 </ul>
 <blockquote>
 <p><strong>提示</strong>
@@ -92,7 +98,11 @@ enabled = true          # 是否启用（关闭后停止写入，历史仍可查
 max_per_session = 50    # 每会话保留的最大条数
 ttl_hours = 168         # 全局过期时间（小时），过期记录惰性清理
 </code></pre>
-<p>使用方式:</p>
+<p>持久性说明：追加先进内存缓冲，由后台任务批量落盘（延迟至多
+<code>TRANSCRIPT_FLUSH_INTERVAL_SECS</code> 秒）；正常退出（<code>sdk.uninit</code> / 进程
+atexit）会强制刷盘。进程被硬崩溃 / 强杀时，最近一批未落盘记录（约 1 秒内）
+可能丢失。
+使用方式:</p>
 <pre><code>from ErisPulse.Core import transcript
 
 # 查询当前会话最近 20 条消息（含用户与机器人）
@@ -107,12 +117,60 @@ for m in messages:
 <p>会话收件箱管理器</p>
 <p>以 <code>platform:detail_type:target_id</code> 为会话键记录消息流，
 存储于独立 SQLite 表，支持条数上限与 TTL 双重保留策略。</p>
+<p>写入路径为"内存缓冲 + 后台批量落盘"：<code>append</code> 仅入队（微秒级，
+不阻塞分发热路径），后台任务按条数 / 时间阈值批量事务提交；
+查询接口自动合并未落盘的缓冲行（同进程读你的写）。</p>
 <h4 id="方法列表">方法列表</h4>
 <h5 id="_config---dictstr-any"><code>_config() -&gt; dict[str, Any]</code></h5>
-<p><strong>内部方法</strong> 读取 transcript 配置节</p>
+<p><strong>内部方法</strong> 读取 transcript 配置节（轻量缓存，配置事件失效）</p>
+<hr>
+<h5 id="_invalidate_config_cachedata-any-none---none"><code>_invalidate_config_cache(data: Any = None) -&gt; None</code></h5>
+<p><strong>内部方法</strong> transcript 相关配置写入 / 配置重载时失效缓存</p>
+<hr>
+<h5 id="_ensure_hooks---none"><code>_ensure_hooks() -&gt; None</code></h5>
+<p><strong>内部方法</strong> 惰性注册配置失效监听与退出刷盘（各一次）</p>
+<hr>
+<h5 id="_flush_on_exit---none"><code>_flush_on_exit() -&gt; None</code></h5>
+<p><strong>内部方法</strong>
+进程退出兜底：同步刷掉未落盘缓冲（镜像 config._flush_on_exit）</p>
+<p>以看门狗线程限时执行——解释器收尾阶段存储同步桥的后台线程可能已
+无法调度（自由线程构建下尤其如此），在 atexit 里直接走同步桥会
+永久阻塞、令进程退出挂死；超时即放弃（至多丢一批缓冲），保证
+退出必然完成。缓冲为空时刷盘立即返回，无任何开销。</p>
 <hr>
 <h5 id="enabled---boolproperty"><code>enabled -&gt; bool</code>（property）</h5>
 <p>是否启用自动记录（ErisPulse.transcript.enabled）</p>
+<hr>
+<h5 id="set_retention-max_per_session-int-none-none-ttl_hours-float-none-none---none"><code>set_retention(*, max_per_session: int | None = None, ttl_hours: float | None = None) -&gt; None</code></h5>
+<p>运行时覆盖保留策略（优先于 <code>ErisPulse.transcript.*</code> 配置）</p>
+<p>覆盖仅驻内存、重启后失效（恢复配置值）。调大 / 关闭限制前请确认知悉：
+<code>transcript</code> 表会随消息量无限增长——磁盘写满、查询变慢，且把历史
+整段载入内存的下游消费者（对话恢复 / 面板全量拉取）内存压力上升；
+写缓冲有硬上限不受影响。详见 docs advanced/transcript.md 风险专节。</p>
+<ul>
+<li><strong>max_per_session</strong> (<code>int | None</code>): 单会话保留条数；0 = 关闭该策略</li>
+<li><strong>ttl_hours</strong> (<code>float | None</code>): 全局保留时长（小时）；0 = 关闭该策略</li>
+</ul>
+<p><strong>异常</strong>: <code>ValueError</code> - 传入负数时</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">transcript<span class="token punctuation">.</span>set_retention<span class="token punctuation">(</span>max_per_session<span class="token operator">=</span><span class="token number">500</span><span class="token punctuation">,</span> ttl_hours<span class="token operator">=</span><span class="token number">24</span> <span class="token operator">*</span> <span class="token number">30</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="get_retention---dictstr-any"><code>get_retention() -&gt; dict[str, Any]</code></h5>
+<p>查询当前生效的保留策略</p>
+<p><strong>返回值</strong> (<code>dict</code>): 含 <code>max_per_session</code> / <code>ttl_hours</code> 生效值与</p>
+<pre><code>     ``overridden``（被运行时覆盖的键列表）
+</code></pre>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">transcript<span class="token punctuation">.</span>get_retention<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span><span class="token string">'max_per_session'</span><span class="token punctuation">:</span> <span class="token number">500</span><span class="token punctuation">,</span> <span class="token string">'ttl_hours'</span><span class="token punctuation">:</span> <span class="token number">168.0</span><span class="token punctuation">,</span> <span class="token string">'overridden'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'max_per_session'</span><span class="token punctuation">]</span><span class="token punctuation">}</span>
+</code></pre>
+<hr>
+<h5 id="reset_retention---none"><code>reset_retention() -&gt; None</code></h5>
+<p>清除运行时覆盖，恢复按 <code>ErisPulse.transcript.*</code> 配置生效</p>
+<hr>
+<h5 id="_effective_retention---tupleint-float"><code>_effective_retention() -&gt; tuple[int, float]</code></h5>
+<p><strong>内部方法</strong> 生效保留策略：运行时覆盖优先，否则读配置</p>
 <hr>
 <h5 id="session_key_from_eventevent-any---strstaticmethod"><code>session_key_from_event(event: Any) -&gt; str</code>（staticmethod）</h5>
 <p>从事件推导会话键（platform:detail_type:target_id）</p>
@@ -129,14 +187,53 @@ for m in messages:
 <h5 id="_ensure_table---bool"><code>_ensure_table() -&gt; bool</code></h5>
 <p><strong>内部方法</strong> 惰性建表（含旧表 sender 列迁移）</p>
 <hr>
+<h5 id="async-_aensure_table---bool"><code>async _aensure_table() -&gt; bool</code></h5>
+<p><strong>内部方法</strong> 惰性建表（异步路径，flusher 使用）</p>
+<hr>
 <h5 id="_migrate_add_sender---none"><code>_migrate_add_sender() -&gt; None</code></h5>
 <p><strong>内部方法</strong> 旧表缺 sender 列时自动补列（2.8.0 新增）</p>
 <hr>
+<h5 id="async-_amigrate_add_sender---none"><code>async _amigrate_add_sender() -&gt; None</code></h5>
+<p><strong>内部方法</strong> 异步路径的 sender 列迁移探测（列缺失时回退同步 ALTER）</p>
+<hr>
 <h5 id="_retentionsession_key-str-max_per_session-int-ttl_hours-float---none"><code>_retention(session_key: str, max_per_session: int, ttl_hours: float) -&gt; None</code></h5>
-<p><strong>内部方法</strong> 保留策略：每会话条数上限 + 全局 TTL（惰性触发）</p>
+<p><strong>内部方法</strong> 保留策略：每会话条数上限 + 全局 TTL（惰性触发，覆盖库与内存缓冲）</p>
+<hr>
+<h5 id="_ensure_flusher---none"><code>_ensure_flusher() -&gt; None</code></h5>
+<p><strong>内部方法</strong> 首次在事件循环内追加时启动后台刷盘任务</p>
+<hr>
+<h5 id="async-_flush_loop---none"><code>async _flush_loop() -&gt; None</code></h5>
+<p><strong>内部方法</strong> 周期刷盘循环：按时间阈值批量提交，积压时连续排空</p>
+<hr>
+<h5 id="_take_batch---listdictstr-any"><code>_take_batch() -&gt; list[dict[str, Any]]</code></h5>
+<p><strong>内部方法</strong> 从缓冲头部取一批待落盘行</p>
+<hr>
+<h5 id="async-_flush_async---bool"><code>async _flush_async() -&gt; bool</code></h5>
+<p><strong>内部方法</strong> 异步批量落盘一批缓冲行（单事务原子提交）</p>
+<p><strong>返回值</strong>: 是否成功（失败时批次已回插缓冲头部，等待下轮重试）</p>
+<hr>
+<h5 id="_requeuerows-listdictstr-any---none"><code>_requeue(rows: list[dict[str, Any]]) -&gt; None</code></h5>
+<p><strong>内部方法</strong> 落盘失败 / 被取消时把批次回插缓冲头部（保证不丢）</p>
+<hr>
+<h5 id="async-aflush---int"><code>async aflush() -&gt; int</code></h5>
+<p>异步刷掉当前全部未落盘缓冲（框架卸载时调用）</p>
+<p><strong>返回值</strong>: 实际落盘的记录数</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token keyword">await</span> transcript<span class="token punctuation">.</span>aflush<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="flush---int"><code>flush() -&gt; int</code></h5>
+<p>同步刷掉当前全部未落盘缓冲（进程退出兜底 / 手动调用）</p>
+<p><strong>返回值</strong>: 实际落盘的记录数</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">transcript<span class="token punctuation">.</span>flush<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
 <hr>
 <h5 id="appendsession-any-role-str-text-str-event_id-str-sender-str---bool"><code>append(session: Any, role: str, text: str, event_id: str = '', sender: str = '') -&gt; bool</code></h5>
 <p>记录一条消息到会话收件箱</p>
+<p>仅入内存缓冲即返回（微秒级，不阻塞分发热路径）；由后台任务批量
+落盘（延迟至多 <code>TRANSCRIPT_FLUSH_INTERVAL_SECS</code> 秒），查询接口
+会自动合并未落盘的缓冲行。</p>
 <ul>
 <li><strong>session</strong>: 事件数据（Event / dict，自动推导会话键）或会话键字符串</li>
 <li><strong>role</strong>: 消息角色（"user" / "bot"）</li>
@@ -144,13 +241,23 @@ for m in messages:
 <li><strong>event_id</strong>: 关联的事件 ID（可选）</li>
 <li><strong>sender</strong>: 发送者标识（user_id，可选，回放时还原消息来源）</li>
 </ul>
-<p><strong>返回值</strong>: 是否写入成功（未启用时返回 False）</p>
+<p><strong>返回值</strong>: 是否接受（未启用时返回 False；缓冲超限时淘汰最旧行）</p>
 <p><strong>示例</strong>:</p>
 <pre><code class="language-python">transcript<span class="token punctuation">.</span>append<span class="token punctuation">(</span>event<span class="token punctuation">,</span> <span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"你好"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
+<h5 id="_mergedrows-listdictstr-any-session_key-str-none-none-event_id-str-none-none-since_ts-float-none-none-limit-int---listdictstr-any"><code>_merged(rows: list[dict[str, Any]], *, session_key: str | None = None, event_id: str | None = None, since_ts: float | None = None, limit: int) -&gt; list[dict[str, Any]]</code></h5>
+<p><strong>内部方法</strong> 合并数据库行与未落盘缓冲行（read-your-writes）</p>
+<ul>
+<li><strong>rows</strong>: 数据库查询结果（任意顺序）</li>
+<li><strong>session_key</strong>: 会话键过滤（None 不过滤）</li>
+<li><strong>event_id</strong>: 链路 ID 过滤（None 不过滤）</li>
+<li><strong>since_ts</strong>: 时间下界过滤（None 不过滤）</li>
+<li><strong>limit</strong>: 返回最新 <code>limit</code> 条（时间升序输出）</li>
+</ul>
+<hr>
 <h5 id="getsession-any-n-int-20---listdictstr-any"><code>get(session: Any, n: int = 20) -&gt; list[dict[str, Any]]</code></h5>
-<p>查询会话近期消息（按时间升序）</p>
+<p>查询会话近期消息（按时间升序，含未落盘的缓冲行）</p>
 <ul>
 <li><strong>session</strong>: 事件数据或会话键字符串</li>
 <li><strong>n</strong>: 返回的最大条数</li>
@@ -163,9 +270,10 @@ for m in messages:
 </code></pre>
 <hr>
 <h5 id="recentseconds-float-limit-int-200---listdictstr-any"><code>recent(seconds: float, limit: int = 200) -&gt; list[dict[str, Any]]</code></h5>
-<p>查询全部会话中最近一段时间内的消息（跨会话，按时间升序）</p>
+<p>查询全部会话中最近一段时间内的消息（跨会话，按时间升序，含未落盘缓冲行）</p>
 <p>冷启动回放（<code>get_load_strategy(replay=...)</code>）的数据源；
-每条记录额外携带 <code>session_key</code>，用于还原消息来源会话。</p>
+每条记录额外携带 <code>session_key</code>，用于还原消息来源会话。
+窗口内记录超过 <code>limit</code> 时返回最新的 <code>limit</code> 条。</p>
 <ul>
 <li><strong>seconds</strong>: 回溯时长（秒）</li>
 <li><strong>limit</strong>: 最大返回条数（防止模块冷启动被打爆）</li>
@@ -176,7 +284,7 @@ for m in messages:
 </code></pre>
 <hr>
 <h5 id="clearsession-any---int"><code>clear(session: Any) -&gt; int</code></h5>
-<p>清空指定会话的收件箱</p>
+<p>清空指定会话的收件箱（同时清除未落盘缓冲中的该会话记录）</p>
 <ul>
 <li><strong>session</strong>: 事件数据或会话键字符串</li>
 </ul>
@@ -194,7 +302,7 @@ for m in messages:
 <p><strong>内部方法</strong> message.sent 钩子：记录机器人出站文本</p>
 <hr>
 <h5 id="get_by_tracetrace_id-str-limit-int-20---listdictstr-any"><code>get_by_trace(trace_id: str, limit: int = 20) -&gt; 'list[dict[str, Any]]'</code></h5>
-<p>按链路 ID 查询出站记录（影子模块 diff 对齐用，方向十一）</p>
+<p>按链路 ID 查询出站记录（影子模块 diff 对齐用，方向十一，含未落盘缓冲行）</p>
 <ul>
 <li><strong>trace_id</strong>: 事件链路 ID（事件 <code>id</code>）</li>
 <li><strong>limit</strong>: 返回的最大条数</li>

@@ -103,13 +103,26 @@ resp <span class="token operator">=</span> <span class="token keyword">await</sp
 data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="websocket-连接">WebSocket 连接</h3>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> client   <span class="token comment"># 2.10+ 根导入（ErisPulse.Core.client 深路径仍兼容）</span>
 
 ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
 
 <span class="token keyword">async</span> <span class="token keyword">for</span> text <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
+<h4 id="出站连接自动入池210">出站连接自动入池（2.10+）</h4>
+<p><code>ws_connect</code> 建立的连接<strong>默认自动登记</strong>进框架连接池（<code>track=False</code> 可关闭）：
+可被 <code>connections.list(owner=...)</code> 查看、向其广播；连接关闭 / 远端断开自动注销；
+<strong>模块卸载 / 适配器停止时框架统一关闭</strong>其名下全部出站连接，杜绝泄漏。</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> client<span class="token punctuation">,</span> connections
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>ws<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span> ws<span class="token punctuation">.</span>owner<span class="token punctuation">)</span>   <span class="token comment"># 已登记：连接 id 与归属</span>
+
+<span class="token comment"># owner 上下文不可用（如工具线程回调）时显式指定归属，卸载才能自动回收：</span>
+ws2 <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws2"</span><span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>详见<a href="/docs/advanced/connections.html">连接池与广播</a>。</p>
 <h2 id="httpresponse">HttpResponse</h2>
 <p>所有请求方法返回 <code>HttpResponse</code> 对象：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client

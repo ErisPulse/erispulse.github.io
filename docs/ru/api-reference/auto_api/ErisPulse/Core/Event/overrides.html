@@ -138,6 +138,9 @@ acl    allow / deny      命令用户黑白名单（command 专属，按命令�
 </blockquote>
 <hr>
 <h2 id="函数列表">函数列表</h2>
+<h3 id="_invalidate_cond_cache---none"><code>_invalidate_cond_cache() -&gt; None</code></h3>
+<p><strong>内部方法</strong> 清空 condition_for 编译缓存</p>
+<hr>
 <h3 id="_record_runtime_ownerpath-str-persist-bool---none"><code>_record_runtime_owner(path: str, persist: bool) -&gt; None</code></h3>
 <p><strong>内部方法</strong> 记录（persist=False）或清除（persist=True）路径的调用方归属</p>
 <hr>
@@ -165,9 +168,12 @@ acl    allow / deny      命令用户黑白名单（command 专属，按命令�
 <h3 id="_persist_sectionsection_key-str-value---none"><code>_persist_section(section_key: str, value) -&gt; None</code></h3>
 <p><strong>内部方法</strong> 持久化单个覆写分区，并以内存快照重放（写后立读）</p>
 <hr>
-<h3 id="condition_forevent_type-str-owner-str"><code>condition_for(event_type: str, owner: str)</code></h3>
+<h3 id="condition_forevent_type-str-owner-str---callableany-bool-none"><code>condition_for(event_type: str, owner: str) -&gt; 'Callable[[Any], bool] | None'</code></h3>
 <p><strong>内部方法</strong>
 获取某事件类型下某模块的覆写过滤条件（detail_types 白名单 + pattern/regex 文本条件）</p>
+<p>结果按 <code>(event_type, owner)</code> 缓存（含"无覆写 → None"），<code>_sections</code>
+的任何变更都会使缓存失效；热路径上每事件每模块处理器都会调用本函数，
+缓存避免重复编译 matcher 闭包。</p>
 <ul>
 <li><strong>event_type</strong>: 事件类型（message / notice / request / meta）</li>
 <li><strong>owner</strong>: 模块名</li>

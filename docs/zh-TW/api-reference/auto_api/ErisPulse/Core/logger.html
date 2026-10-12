@@ -145,11 +145,13 @@ plain 日志文件，会破坏"一行一记录"的日志纪律，并导致按行
 </ol>
 </blockquote>
 <h4 id="方法列表-2">方法列表</h4>
-<h5 id="handlerhandler_id-str-min_level-str-trace"><code>handler(handler_id: str = '', *, min_level: str = 'TRACE')</code></h5>
+<h5 id="handlerhandler_id-str-min_level-str-trace-owner-str-none-none"><code>handler(handler_id: str = '', *, min_level: str = 'TRACE', owner: str | None = None)</code></h5>
 <p>日志订阅装饰器</p>
 <p>订阅器的 <code>min_level</code> 可低于全局日志级别，从而显式订阅 DEBUG / TRACE
 等低级别日志。此时低级别日志仅推送给匹配的订阅器，不会输出到控制台，
 也不会写入内存（历史补发仍受全局 <code>memory_limit</code> 限制）。</p>
+<p>订阅在注册时归属到当前 owner（模块名/平台名），模块卸载时由框架
+统一注销；也可用 <code>owner</code> 参数显式指定。</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>handler</span><span class="token punctuation">(</span><span class="token string">"dashboard"</span><span class="token punctuation">,</span> min_level<span class="token operator">=</span><span class="token string">"INFO"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">on_log</span><span class="token punctuation">(</span>log_data<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
@@ -162,9 +164,10 @@ plain 日志文件，会破坏"一行一记录"的日志纪律，并导致按行
 <ul>
 <li><strong>handler_id</strong>: 订阅器唯一标识，为空时使用函数名</li>
 <li><strong>min_level</strong>: 最低日志级别</li>
+<li><strong>owner</strong>: 显式指定归属者；缺省时从当前 owner 上下文捕获</li>
 </ul>
 <hr>
-<h5 id="_register_handlerhandler_id-str-callback-callabledict-none-min_level-str---none"><code>_register_handler(handler_id: str, callback: Callable[[dict], None], min_level: str) -&gt; None</code></h5>
+<h5 id="_register_handlerhandler_id-str-callback-callabledict-none-min_level-str-owner-str-none-none---none"><code>_register_handler(handler_id: str, callback: Callable[[dict], None], min_level: str, *, owner: str | None = None) -&gt; None</code></h5>
 <p><strong>内部方法</strong>
 内部注册逻辑</p>
 <hr>
@@ -174,6 +177,16 @@ plain 日志文件，会破坏"一行一记录"的日志纪律，并导致按行
 <li><strong>handler_id</strong>: 注册时使用的标识</li>
 </ul>
 <p><strong>返回值</strong> (<code>bool</code>): 是否成功移除</p>
+<hr>
+<h5 id="unregister_by_ownerowner-str---int"><code>unregister_by_owner(owner: str) -&gt; int</code></h5>
+<p>注销指定归属者的全部日志订阅器</p>
+<p>模块卸载 / 适配器关闭链经归属权门面（<code>ownership.reclaim_sync</code>）
+自动调用；订阅回调通常持有模块实例，不注销会导致已卸载模块
+无法被 GC 且持续接收全量日志。</p>
+<ul>
+<li><strong>owner</strong>: 归属者（模块名 / 平台名）</li>
+</ul>
+<p><strong>返回值</strong> (<code>int</code>): 注销的订阅器数量</p>
 <hr>
 <h5 id="_notify_handlerslevel_name-str-level_const-int-module-str-msg-str---none"><code>_notify_handlers(level_name: str, level_const: int, module: str, msg: str) -&gt; None</code></h5>
 <p><strong>内部方法</strong>
@@ -373,6 +386,20 @@ logger<span class="token punctuation">.</span>set_json_format<span class="token 
 <h5 id="_on_config_updated_data-dict---none"><code>_on_config_updated(_data: dict) -&gt; None</code></h5>
 <p>配置变更回调：仅在 logger 段实际变化时重新应用配置</p>
 <hr>
+<h5 id="should_loglevel_const-int---bool"><code>should_log(level_const: int) -&gt; bool</code></h5>
+<p>快速判断指定级别当前是否会产生任何输出</p>
+<p>与 :meth:<code>_log</code> 的判定保持同一语义（屏蔽集合 / 全局级别 / 模块覆盖 /
+订阅器）。供热路径在构造日志文本前作守卫：返回 False 时调用方应跳过
+字符串格式化与 i18n 翻译等昂贵前置工作，直接不记录。</p>
+<ul>
+<li><strong>level_const</strong>: 日志级别常量（如 <code>TRACE</code> / <code>EVENT</code>）</li>
+</ul>
+<p><strong>返回值</strong>: True 表示可能输出（调用方正常记录）；False 表示必然静默</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token keyword">if</span> logger<span class="token punctuation">.</span>should_log<span class="token punctuation">(</span>EVENT<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    logger<span class="token punctuation">.</span>event<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"recv </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>  <span class="token comment"># 仅在会输出时才格式化</span>
+</code></pre>
+<hr>
 <h5 id="_loglevel_name-str-level_const-int-msg-args-kwargs"><code>_log(level_name: str, level_const: int, msg, *args, **kwargs)</code></h5>
 <p>内部日志方法，统一处理日志记录流程</p>
 <ul>
@@ -508,6 +535,15 @@ logger<span class="token punctuation">.</span>mymodule<span class="token punctua
 <li><strong>parent_logger</strong>: 父日志记录器实例</li>
 <li><strong>name</strong>: 子日志记录器名称</li>
 </ul>
+<hr>
+<h5 id="should_loglevel_const-int---bool-2"><code>should_log(level_const: int) -&gt; bool</code></h5>
+<p>快速判断该子记录器指定级别当前是否会产生任何输出</p>
+<p>语义与 :meth:<code>Logger.should_log</code> 一致（屏蔽集合 / 订阅器 / 模块有效级别），
+供热路径在构造日志文本前作守卫。</p>
+<ul>
+<li><strong>level_const</strong>: 日志级别常量（如 <code>TRACE</code> / <code>EVENT</code>）</li>
+</ul>
+<p><strong>返回值</strong>: True 表示可能输出（调用方正常记录）；False 表示必然静默</p>
 <hr>
 <h5 id="_loglevel_name-str-level_const-int-msg-args-kwargs-2"><code>_log(level_name: str, level_const: int, msg, *args, **kwargs)</code></h5>
 <p>内部日志方法</p>

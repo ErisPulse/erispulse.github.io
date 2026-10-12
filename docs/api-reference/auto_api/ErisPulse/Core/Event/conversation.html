@@ -90,7 +90,7 @@
 <hr>
 <h2 id="函数列表">函数列表</h2>
 <h3 id="_consume_task_exceptiontask-asynciotask---none"><code>_consume_task_exception(task: 'asyncio.Task') -&gt; None</code></h3>
-<p><strong>内部方法</strong> 消费后台检查点任务的异常（防未检索告警）</p>
+<p><strong>内部方法</strong> 消费后台检查点任务的异常（防未检索告警）并留痕</p>
 <hr>
 <h3 id="async-_rollback_receiptsreceipts-listdictstr-str---none"><code>async _rollback_receipts(receipts: list[dict[str, str]]) -&gt; None</code></h3>
 <p><strong>内部方法</strong>
@@ -102,10 +102,20 @@
 </ul>
 <hr>
 <h3 id="_start_checkpoint_gc"><code>_start_checkpoint_gc()</code></h3>
-<p><strong>内部方法</strong> 惰性启动过期检查点周期清理（仅启动一次，失败静默）</p>
+<p><strong>内部方法</strong> 惰性启动过期检查点周期清理（仅启动一次；无运行中事件循环时静默跳过，下次触发重试）</p>
 <hr>
 <h3 id="async-_checkpoint_gc_loop"><code>async _checkpoint_gc_loop()</code></h3>
 <p><strong>内部方法</strong> 周期清理循环（CONVERSATION_CHECKPOINT_GC_INTERVAL_SECS 间隔）</p>
+<hr>
+<h3 id="unregister_resume_handlers_by_ownerowner-str---int"><code>unregister_resume_handlers_by_owner(owner: str) -&gt; int</code></h3>
+<p>注销指定归属者注册的全部对话恢复工厂</p>
+<p>模块卸载 / 适配器关闭链经归属权门面（<code>ownership.reclaim_sync</code>）
+自动调用；不注销会导致已卸载模块的工厂仍被重启恢复流程调用
+（行为错误 + 类对象泄漏）。</p>
+<ul>
+<li><strong>owner</strong>: 归属者（模块名 / 平台名）</li>
+</ul>
+<p><strong>返回值</strong> (<code>int</code>): 注销的工厂数量</p>
 <hr>
 <h2 id="类列表">类列表</h2>
 <h3 id="class-_messagetx"><code>class _MessageTx</code></h3>
@@ -337,6 +347,8 @@ conv<span class="token punctuation">.</span>start<span class="token punctuation"
 <p>框架在重启后收到该会话的首条消息时，若存在有效检查点，
 会调用已注册的工厂重建 Conversation（模块需在工厂内重新注册所有分支），
 随后自动 <code>goto</code> 到存档分支继续对话。</p>
+<p>工厂在注册时归属到当前 owner（模块名/平台名），模块卸载时由框架
+统一注销，避免已卸载模块的工厂仍被恢复流程调用。</p>
 <ul>
 <li><strong>platform</strong>: 仅匹配指定平台的事件；None 表示匹配所有平台</li>
 </ul>

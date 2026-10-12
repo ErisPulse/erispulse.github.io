@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Пул соединений и трансляция - ErisPulse 文档中心</title>
+    <meta name="description" content="Соединения (WebSocket-сервера / SSE / WebSocket-клиентские исходящие) в ErisPulse являются первоклассными ресурсами на уровне фреймворка: при установке соеди..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/connections.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/connections.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/connections.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/connections.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/connections.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/connections.html" />
+    <meta property="og:title" content="Пул соединений и трансляция - ErisPulse 文档中心" />
+    <meta property="og:description" content="Соединения (WebSocket-сервера / SSE / WebSocket-клиентские исходящие) в ErisPulse являются первоклассными ресурсами на уровне фреймворка: при установке соеди..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/connections.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Пул соединений и трансляция","description":"Соединения (WebSocket-сервера / SSE / WebSocket-клиентские исходящие) в ErisPulse являются первоклассными ресурсами на уровне фреймворка: при установке соеди...","url":"https://www.erisdev.com/docs/ru/advanced/connections.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> Продвинутые темы
+        <span class="doc-crumb-sep">/</span> <span>Пул соединений и трансляция</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/connections.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/connections.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/connections.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/connections.html">日本語</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ru/advanced/connections.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/connections.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="пул-соединений-и-трансляция">Пул соединений и трансляция</h1>
+<p>Соединения (WebSocket-сервера / SSE / WebSocket-клиентские исходящие) в ErisPulse являются <strong>первоклассными ресурсами на уровне фреймворка</strong>:
+при установке соединения автоматически регистрируются в единой таблице, поддерживают трансляцию, подписку на бизнес-группы и передачу/повторное использование между модулями,
+при выгрузке модуля автоматически закрываются и освобождаются фреймворком — бизнес-логика больше не должна создавать <code>_ws_clients</code> коллекции, и не будет утечек из-за забытого удаления.</p>
+<blockquote>
+<p>Примеры в документации используют <strong>рекомендуемый синтаксис корневого импорта</strong> (рекомендуется с версии 2.10+):
+<code>from ErisPulse import connections, router, client, WebSocketConnection</code></p>
+</blockquote>
+<h2 id="обзор">Обзор</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections<span class="token punctuation">,</span> router<span class="token punctuation">,</span> WebSocketConnection
+
+<span class="token comment"># Сервер: соединение автоматически регистрируется, handler добавляет в бизнес-группу</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ws<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>            <span class="token comment"># Название группы полностью определяется бизнес-логикой</span>
+    <span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                             <span class="token comment"># При разрыве соединения фреймворк автоматически отменяет регистрацию и очищает группу</span>
+
+<span class="token comment"># В любом месте: трансляция в группу (возвращает подробности успеха/неудачи)</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"notify"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token keyword">not</span> result<span class="token punctuation">.</span>ok<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                                 <span class="token comment"># result.failed: {id соединения: исключение}</span>
+</code></pre>
+<p>Три вида соединений объединяются в единую таблицу регистрации:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>kind</th>
+<th>Источник</th>
+<th>Владелец owner</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server</code></td>
+<td><code>@router.ws(...)</code> / <code>register_websocket(...)</code></td>
+<td>Модуль, зарегистрировавший маршрут</td>
+<td>При разрыве автоматически отменяется регистрация</td>
+</tr>
+<tr>
+<td><code>sse</code></td>
+<td><code>@router.sse(...)</code> / <code>register_sse(...)</code></td>
+<td>Модуль, зарегистрировавший маршрут</td>
+<td>Трансляция через <code>sse.send()</code></td>
+</tr>
+<tr>
+<td><code>client</code></td>
+<td><code>await client.ws_connect(url)</code></td>
+<td>Текущий модуль (или явно указанный <code>owner=</code>)</td>
+<td>При закрытии/разрыве удалённой стороны автоматически отменяется регистрация; при остановке адаптера фреймворк закрывает все соединения</td>
+</tr>
+</tbody></table></div>
+<p>Для отключения автоматической регистрации: передайте <code>track=False</code> в маршрут или при исходящем соединении, старый код будет работать без изменений.</p>
+<h2 id="просмотр-пула-соединений">Просмотр пула соединений</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections
+
+<span class="token comment"># Просмотр пула соединений модуля ("Сколько активных соединений сейчас у модуля?")</span>
+conns <span class="token operator">=</span> connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>
+<span class="token keyword">for</span> conn <span class="token keyword">in</span> conns<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>conn<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span> conn<span class="token punctuation">.</span>kind<span class="token punctuation">,</span> conn<span class="token punctuation">.</span>groups<span class="token punctuation">,</span> conn<span class="token punctuation">.</span>meta<span class="token punctuation">)</span>
+
+<span class="token comment"># Фильтрация по другим параметрам (все условия AND)</span>
+connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">,</span> kind<span class="token operator">=</span><span class="token string">"client"</span><span class="token punctuation">)</span>
+connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>group<span class="token operator">=</span><span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Общая статистика (подсчёт по всем измерениям)</span>
+stats <span class="token operator">=</span> connections<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {'total': 5, 'by_kind': {...}, 'by_namespace': {...}, 'by_owner': {...}, 'groups': {...}}</span>
+
+<span class="token comment"># Подсчёт аудита принадлежности (модуль ownership также доступен)</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> ownership
+ownership<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>   <span class="token comment"># {'connections': 3, ...}</span>
+</code></pre>
+<p>У каждого соединения можно получить идентификационную информацию: <code>conn.id</code> (вроде <code>Dashboard:1a2b3c4d</code>), <code>conn.namespace</code>, <code>conn.owner</code>, <code>conn.kind</code>, <code>conn.groups</code>, <code>conn.meta</code> (свободный словарь бизнес-логики).</p>
+<h2 id="трансляция-и-подписка">Трансляция и подписка</h2>
+<h3 id="группы-модель-подписки">Группы (модель подписки)</h3>
+<p>Группы — это <strong>плоские строки</strong>, их именование полностью определяется бизнес-логикой (комнаты / арендаторы / темы...),
+вложенные уровни выражаются соглашениями в именах (например <code>tenant:acme/room:1</code>), фреймворк не ограничивает формат.</p>
+<p>Операции возможны в двух направлениях:</p>
+<pre><code class="language-python"><span class="token comment"># Направление 1: соединение активно присоединяется/отключается (внутри handler)</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ws<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>        <span class="token comment"># Эквивалентно connections.assign(ws.id, "room:1")</span>
+    ws<span class="token punctuation">.</span>leave_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Направление 2: управление пассивно распределяет (внутри маршрута / других модулях)</span>
+connections<span class="token punctuation">.</span>assign<span class="token punctuation">(</span>conn_id<span class="token punctuation">,</span> <span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>
+connections<span class="token punctuation">.</span>dismiss<span class="token punctuation">(</span>conn_id<span class="token punctuation">,</span> <span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>   <span class="token comment"># Без указания группы = выход из всех групп</span>
+</code></pre>
+<p>При разрыве соединения автоматически выходят из всех групп, бизнес-логика не должна очищать.</p>
+<h3 id="трансляция">Трансляция</h3>
+<pre><code class="language-python">result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span>
+    data<span class="token punctuation">,</span>                       <span class="token comment"># Для WS используется send_json; для SSE — send (автоматическая сериализация JSON)</span>
+    namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">,</span>      <span class="token comment"># Фильтр по пространству имён</span>
+    group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">,</span>             <span class="token comment"># Фильтр по группе</span>
+    kind<span class="token operator">=</span><span class="token string">"sse"</span><span class="token punctuation">,</span>                 <span class="token comment"># Фильтр по типу соединения</span>
+    owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">,</span>          <span class="token comment"># Фильтр по владельцу</span>
+    ids<span class="token operator">=</span><span class="token punctuation">{</span>conn_id<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>         <span class="token comment"># Явное указание кандидатов (фильтры всё ещё действуют)</span>
+    exclude<span class="token operator">=</span><span class="token punctuation">{</span>conn_id<span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># Исключение некоторых соединений</span>
+    timeout<span class="token operator">=</span><span class="token number">10.0</span><span class="token punctuation">,</span>               <span class="token comment"># Таймаут отправки на одно соединение (не общий)</span>
+    concurrency<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">,</span>             <span class="token comment"># Максимальное количество одновременных отправок</span>
+    raise_on_error<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>       <span class="token comment"># При True выбрасывается первое исключение при неудаче</span>
+<span class="token punctuation">)</span>
+result<span class="token punctuation">.</span>total      <span class="token comment"># Общее количество целевых соединений (исключая предварительно)</span>
+result<span class="token punctuation">.</span>sent       <span class="token comment"># Список успешно отправленных соединений</span>
+result<span class="token punctuation">.</span>failed     <span class="token comment"># {id соединения: исключение} (таймаут/разрыв/ошибка отправки)</span>
+result<span class="token punctuation">.</span>excluded   <span class="token comment"># Исключённые соединения</span>
+result<span class="token punctuation">.</span>ok         <span class="token comment"># Успешна ли отправка всем</span>
+</code></pre>
+<p>Фильтры между собой работают по правилу <strong>AND</strong>; неудача одного соединения не влияет на другие; соединения из <code>ids</code>, которых уже не существует, учитываются в <code>failed</code> (чтобы бизнес-логика знала полную картину).</p>
+<h3 id="события-жизненного-цикла">События жизненного цикла</h3>
+<p>При регистрации/удалении соединения/изменении групп генерируются стандартные события жизненного цикла, которые могут подписываться Dashboard и другие, для отображения в реальном времени:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> lifecycle
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.registered"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_registered</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.unregistered"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unregistered</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.group.joined"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_joined</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.group.left"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_left</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<h2 id="передача-повторное-использование-между-модулями">Передача / повторное использование между модулями</h2>
+<p>Соединение является зарегистрированным ресурсом фреймворка, любой модуль может получить его по ID и <strong>повторно использовать</strong> —
+не нужно создавать новое соединение, и не нужно знать, кто его создал:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections
+
+conn <span class="token operator">=</span> connections<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"Dashboard:1a2b3c4d"</span><span class="token punctuation">)</span>   <span class="token comment"># Если не существует/разорвано выбрасывается ConnectionNotFoundError</span>
+<span class="token keyword">await</span> conn<span class="token punctuation">.</span>send_json<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"ping"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">)</span>              <span class="token comment"># Любой модуль может отправить</span>
+conn<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"someone-elses-room"</span><span class="token punctuation">)</span>          <span class="token comment"># Также может участвовать в группах</span>
+</code></pre>
+<p><strong>Принадлежность и права закрытия</strong>:</p>
+<ul>
+<li>Владелец модуль, создавший соединение, имеет исключительное право закрытия. При вызове <code>close()</code> из не владельца выбрасывается <code>ConnectionPermissionError</code> (импорт <code>from ErisPulse import ConnectionPermissionError</code>);</li>
+<li>Операции отправки и присоединения доступны для всех модулей, не требуют авторизации;</li>
+<li>При выгрузке модуля / остановке адаптера фреймворк <strong>закрывает и отменяет регистрацию</strong> всех его соединений (серверных и исходящих), ссылки на уже полученные соединения при отправке получат результат неудачи, подписка на событие <code>connection.unregistered</code> позволит отслеживать;</li>
+<li>Внутренний путь освобождения фреймворка использует <code>close(force=True)</code> для обхода проверки.</li>
+</ul>
+<blockquote>
+<p>Объяснение: проверка прав закрытия зависит от контекста владельца во время выполнения (например <code>owner_scope</code> / событийная диспетчеризация / <code>spawn_background</code> и т.д. автоматически передают). Вызовы без контекста принадлежности (старый код без контекста) разрешаются, чтобы не нарушить работу; новые вызовы в контексте владельца будут защищены.</p>
+</blockquote>
+<h2 id="исходящие-соединения-клиентская-сторона">Исходящие соединения (клиентская сторона)</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> client
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+ws<span class="token punctuation">.</span><span class="token builtin">id</span>          <span class="token comment"># Уже зарегистрирован, доступен для поиска/трансляции через connections</span>
+ws<span class="token punctuation">.</span>owner       <span class="token comment"># Текущий модуль (при недоступности контекста владельца рекомендуется явно указать)</span>
+
+<span class="token comment"># При недоступности контекста владельца (например, в обратном вызове из потока инструментов) явно указать, чтобы при выгрузке могло автоматически освободиться:</span>
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>При активном разрыве удалённой стороны, локальном <code>close()</code> или выгрузке модуля автоматически отменяется регистрация; с момента выгрузки старые способы создания и управления соединениями без регистрации и очистки устарели.</p>
+<h2 id="передача-между-потоками">Передача между потоками</h2>
+<p>Для доступа к соединению из подпотока (трансляция / отправка / закрытие) используйте стандартные средства фреймворка для возврата в главный цикл, <strong>не используйте вручную <code>run_coroutine_threadsafe</code></strong>:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> run_main_loop<span class="token punctuation">,</span> spawn_later<span class="token punctuation">,</span> spawn_thread
+
+<span class="token comment"># Блокирующий вызов из подпотока:</span>
+run_main_loop<span class="token punctuation">(</span>connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"tick"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Фоновый поток + задержанная задача (принадлежность владельца, автоматически отменяется при выгрузке):</span>
+<span class="token keyword">def</span> <span class="token function">push_tick</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"tick"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+spawn_later<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">,</span> push_tick<span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="семантика-выгрузки-и-очистки">Семантика выгрузки и очистки</h2>
+<p>Цепочка возврата принадлежности при выгрузке модуля / остановке адаптера последовательно: отмена фоновых задач и таймеров принадлежащих владельцу → <strong>закрытие и отмена регистрации принадлежащих соединений</strong> → вызов хука on_cleanup → отмена регистрации маршрутов/обработчиков и других ресурсов. Подробнее см. <a href="/docs/ru/advanced/ownership.html">Система принадлежности (owner)</a>.</p>
+<div class="markdown-alert markdown-alert-warning"><p class="markdown-alert-title"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i>Warning</p>
+<p>Начиная с версии 2.10, выгрузка модуля приводит к закрытию его зарегистрированных WS/SSE/исходящих соединений. Компоненты, зависящие от "сохранения соединений после выгрузки" (например, старая версия Dashboard-отправки), должны быть осведомлены — это ожидаемое поведение для предотвращения утечек соединений.</p>
+</div>
+<h2 id="справочник-api">Справочник API</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>API</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>connections.get(id)</code></td>
+<td>Получение соединения (вход между модулями), выбрасывает <code>ConnectionNotFoundError</code> при отсутствии</td>
+</tr>
+<tr>
+<td><code>connections.list(namespace=, owner=, group=, kind=)</code></td>
+<td>Фильтрация и поиск списка соединений</td>
+</tr>
+<tr>
+<td><code>connections.stats(namespace=, owner=)</code></td>
+<td>Подсчёт статистики по измерениям</td>
+</tr>
+<tr>
+<td><code>connections.assign(id, *groups)</code> / <code>dismiss(id, *groups)</code></td>
+<td>Добавление/удаление групп со стороны управления</td>
+</tr>
+<tr>
+<td><code>await connections.broadcast(data, ...)</code></td>
+<td>Трансляция, возвращает <code>BroadcastResult</code></td>
+</tr>
+<tr>
+<td><code>await connections.close(id, force=False)</code></td>
+<td>Закрытие и отмена регистрации (с проверкой прав)</td>
+</tr>
+<tr>
+<td><code>await connections.close_owner(owner)</code></td>
+<td>Закрытие и отмена регистрации всех соединений владельца (вызывается в цепочке выгрузки)</td>
+</tr>
+<tr>
+<td><code>conn.join_group(*groups)</code> / <code>conn.leave_group(*groups)</code></td>
+<td>Присоединение/выход из групп со стороны соединения</td>
+</tr>
+<tr>
+<td><code>conn.send_json / send_text / iter_text / ...</code></td>
+<td>Отправка и приём (интерфейсы сервера/клиента одинаковы)</td>
+</tr>
+<tr>
+<td><code>conn.meta</code></td>
+<td>Словарь бизнес-метаданных</td>
+</tr>
+<tr>
+<td><code>conn.close(force=False)</code></td>
+<td>Закрытие (не владелец выбрасывает <code>ConnectionPermissionError</code>)</td>
+</tr>
+</tbody></table></div>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ru/advanced/errors.html"><small>Previous</small><br>Система исключений и руководство по обработке</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/startup.html"><small>Next</small><br>Процесс запуска и ручное управление</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>
