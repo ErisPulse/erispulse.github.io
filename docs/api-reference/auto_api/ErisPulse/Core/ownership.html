@@ -100,6 +100,10 @@ owner 名下的全部资源（模块卸载 / 禁用 / 失败回滚共用的回�
 </ol>
 </blockquote>
 <hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="_log_reclaim_failurestep-str-error-exception---none"><code>_log_reclaim_failure(step: str, error: Exception) -&gt; None</code></h3>
+<p><strong>内部方法</strong> 回收步骤失败留痕（单步失败不阻断其余回收，但必须可观测）</p>
+<hr>
 <h2 id="类列表">类列表</h2>
 <h3 id="class-ownershipmanager"><code>class OwnershipManager</code></h3>
 <p>归属权管理器（单例）</p>
@@ -149,17 +153,18 @@ owner 名下的全部资源（模块卸载 / 禁用 / 失败回滚共用的回�
 </code></pre>
 <hr>
 <h5 id="async-reclaim_tasksowner-str---dictstr-int"><code>async reclaim_tasks(owner: str) -&gt; 'dict[str, int]'</code></h5>
-<p>注销 owner 的进行中工作：归属后台任务取消 + 外部清理钩子触发</p>
+<p>注销 owner 的进行中工作：归属后台任务取消 + 归属连接关闭 + 外部清理钩子触发</p>
 <ul>
 <li><strong>owner</strong> (<code>owner</code>): 名</li>
 </ul>
-<p><strong>返回值</strong>: {"tasks_cancelled": int, "cleanups_run": int}</p>
+<p><strong>返回值</strong>: {"tasks_cancelled": int, "connections_closed": int, "cleanups_run": int}</p>
 <hr>
 <h5 id="reclaim_syncowner-str---dictstr-int"><code>reclaim_sync(owner: str) -&gt; 'dict[str, int]'</code></h5>
 <p>注销 owner 的全部注册类资源（同步版，不含任务取消）</p>
 <p>涵盖：i18n 翻译域、路由（命名空间 + owner 兜底）、适配器事件处理器、
 自定义会话类型、平台事件方法注入、事件覆写、scope 覆写、命令与
-四类事件处理器、交互会话等待、主人身份源、生命周期钩子。
+四类事件处理器、交互会话等待、主人身份源、生命周期钩子、
+日志订阅（logger.handler）、对话恢复工厂（resume handler）。
 每步独立容错，单步失败不阻断后续回收。</p>
 <ul>
 <li><strong>owner</strong> (<code>owner</code>): 名（模块名或适配器平台名）</li>

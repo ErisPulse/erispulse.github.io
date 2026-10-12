@@ -82,27 +82,34 @@
 {!--&lt; /tips &gt;!--}</li>
 </ol>
 <h2 id="エラーの概要">エラーの概要</h2>
-<pre><code class="language-text">ErisPulseError                      # すべてのフレームワークエラーの基底クラス
+<pre><code class="language-text">ErisPulseError                      # フレームワーク全体のエラーの基底クラス
 ├── ClientError                     # HTTP/WS クライアントリクエストエラーの基底クラス（Core/client）
-│   ├── ClientConnectionError       # 接続層エラー：DNS 解析失敗、接続拒否、ネットワーク到達不可
+│   ├── ClientConnectionError       # 接続層エラー：DNS 解析失敗、接続拒否、ネットワーク到達不能
 │   ├── ClientTimeoutError          # リクエストタイムアウト
-│   └── HTTPStatusError             # HTTP ステータスコードエラー（4xx/5xx および raise_for_status）
+│   └── HTTPStatusError             # HTTP ステータスコードエラー（4xx/5xx で raise_for_status が発動した場合）
 ├── WebSocketError                  # WebSocket エラーの基底クラス（Core/client の WS 接続）
 │   └── WebSocketDisconnect         # WebSocket 接続切断（サーバー/クライアント共通）
+├── ConnectionRegistryError         # 接続レジストリエラーの基底クラス（Core/connections、2.10+）
+│   ├── ConnectionNotFoundError     # 接続が存在しない/既に切断・登録解除（connections.get/close）
+│   └── ConnectionPermissionError   # 作成者以外が他人の接続を閉じようとした（閉じる権限は作成者に所属）
 ├── StorageError                    # ストレージエラーの基底クラス（Core/storage）
-│   └── StorageUnreachableError     # ストレージバックエンドに到達不可（プール作成のリトライ回数超過：データベース到達不可/認証情報エラー）
+│   └── StorageUnreachableError     # ストレージバックエンドが到達不能（プール作成のリトライが尽きた：データベース到達不能/認証情報エラー）
 ├── InteractionError                # 交互会話エラーの基底クラス（Core/Event/interaction）
-│   ├── InteractionCancelled        # 保留中の待機/リースがキャンセルされた（wait_reply 上層で None を返す）
-│   └── SessionOccupiedError        # セッションの排他リースが占有されている（hold() で取得失敗）
+│   ├── InteractionCancelled        # 待機中のリクエスト/リースがキャンセルされた（wait_reply が上層で None を返すように転換）
+│   └── SessionOccupiedError        # 会話の排他リースが占有されている（hold() で取得に失敗）
 ├── ModuleError                     # モジュールシステムエラーの基底クラス（Core/module）
 │   └── ModuleCallError             # モジュール間呼び出しエラーの基底クラス
-│       ├── ModuleNotAvailableError # 対象モジュールが登録されていない/有効化されていない/初期化失敗（遅延読み込みアクセス含む）
-│       ├── ServiceNotProvidedError # 対象モジュールが該当サービスを宣言していない（meta.services ホワイトリスト外）
+│       ├── ModuleNotAvailableError # 対象モジュールが登録されていない/有効化されていない/初期化失敗（遅延読み込みアクセスも含む）
+│       ├── ServiceNotProvidedError # 対象モジュールがそのサービスを宣言していない（meta.services のホワイトリスト外）
 │       └── ModuleCallTimeoutError  # 呼び出されたメソッドの実行がタイムアウト（デフォルト 30s）
-└── StrictModeError                 # 厳格モードの致命的違反（起動プロセスを中止、loaders/strict）
+├── ShadowError                     # シャドウモジュールエラーの基底クラス（Core/shadow）
+│   ├── ShadowStateError            # 状態が満たされない：対象がロードされていない/既にアクティブなシャドウがある/シャドウがバインドされていない（start/dismiss）
+│   ├── ShadowSourceError           # シャドウソースが利用できない：パスが存在しない/ローダーが欠落している/ロードに失敗（start）
+│   └── ShadowPromoteError          # 転正に失敗：シャドウが登録されていない/ロードされていない/ローダーにスナップショットがない/再ロードに失敗（promote）
+└── StrictModeError                 # 严格モードの致命的な違反（起動プロセスを中止、loaders/strict）
 </code></pre>
 <h2 id="構造化属性">構造化属性</h2>
-<p>例外がキャプチャされた後、メッセージテキストを解析せずに構造化された属性にアクセスできます：</p>
+<p>例外が捕捉された後、メッセージテキストを解析することなく構造化属性を読み取ることができます：</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -111,32 +118,40 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><code>ClientError</code>（およびそのサブクラス）</td>
-<td><code>.url</code> 要求のURL、<code>.method</code> 要求メソッド、<code>.attempts</code> 試行回数（リトライが失敗した場合）</td>
+<td><code>ClientError</code>（およびその子クラス）</td>
+<td><code>.url</code> リクエストのURL、<code>.method</code> リクエストメソッド、<code>.attempts</code> 既に試行した回数（リトライが尽きた場合）</td>
 </tr>
 <tr>
 <td><code>HTTPStatusError</code></td>
-<td><code>.status</code> ステータスコード、<code>.message</code> 応答メッセージ</td>
+<td><code>.status</code> ステータスコード、<code>.message</code> レスポンスメッセージ</td>
 </tr>
 <tr>
 <td><code>WebSocketDisconnect</code></td>
-<td><code>.code</code> 閉じるコード、<code>.reason</code> 閉じる理由</td>
+<td><code>.code</code> 閉じられたコード、<code>.reason</code> 閉じられた理由</td>
+</tr>
+<tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>.connection_id</code> 検索された接続ID</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td><code>.connection_id</code> 対象の接続ID、<code>.owner</code> 接続の所有者</td>
 </tr>
 <tr>
 <td><code>StorageUnreachableError</code></td>
-<td><code>.backend</code> バックエンド名（sqlite/mysql/postgres）、<code>.cooldown</code> クールダウン秒数</td>
+<td><code>.backend</code> バックエンド名（sqlite/mysql/postgres）、<code>.cooldown</code> コoldown秒数</td>
 </tr>
 <tr>
-<td><code>ModuleCallError</code>（およびそのサブクラス）</td>
-<td><code>.module</code> 目標モジュール名、<code>.method</code> 目標メソッド名</td>
+<td><code>ModuleCallError</code>（およびその子クラス）</td>
+<td><code>.module</code> 対象のモジュール名、<code>.method</code> 対象のメソッド名</td>
 </tr>
 <tr>
 <td><code>ModuleCallTimeoutError</code></td>
-<td><code>.module/.method</code> を継承、さらに <code>.timeout</code> タイムアウト期限（秒）</td>
+<td><code>.module/.method</code> を継承、さらに <code>.timeout</code> タイムアウトの制限時間（秒）</td>
 </tr>
 <tr>
 <td><code>InteractionCancelled</code></td>
-<td><code>.reason</code> 取消理由、<code>.wait_key</code> セッションキー</td>
+<td><code>.reason</code> キャンセルの理由、<code>.wait_key</code> セッションキー</td>
 </tr>
 <tr>
 <td><code>SessionOccupiedError</code></td>
@@ -152,15 +167,15 @@
 <span class="token keyword">try</span><span class="token punctuation">:</span>
     resp <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>post<span class="token punctuation">(</span>url<span class="token punctuation">,</span> json<span class="token operator">=</span>payload<span class="token punctuation">)</span>
 <span class="token keyword">except</span> ClientError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
-    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"要求失敗 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>method<span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>url<span class="token punctuation">}</span></span><span class="token string">、合計 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>attempts<span class="token punctuation">}</span></span><span class="token string"> 回試行: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"リクエスト失敗 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>method<span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>url<span class="token punctuation">}</span></span><span class="token string">、合計 </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>attempts<span class="token punctuation">}</span></span><span class="token string"> 回試行: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
-<h2 id="各種例外の説明と発生場所">各種例外の説明と発生場所</h2>
+<h2 id="各エラーの説明と発生位置">各エラーの説明と発生位置</h2>
 <h3 id="client-系列-coreclientpy-corebasesclientpy">Client 系列 — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
-<p><code>sdk.client</code> / HTTP クライアントと WebSocket クライアントがリクエストを発行する際に送出されます：</p>
+<p><code>sdk.client</code> / HTTP クライアントと WebSocket クライアントがリクエストを発行する際に送出される：</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>例外</th>
+<th>エラー</th>
 <th>発生位置</th>
 <th>代表的なシナリオ</th>
 </tr>
@@ -168,12 +183,12 @@
 <tbody><tr>
 <td><code>ClientError</code></td>
 <td>リクエストラッパー層</td>
-<td>その他のクライアントエラー（aiohttp の低層エラーは変換済み）</td>
+<td>他のクライアントエラー（aiohttp の低層エラーは変換済み）</td>
 </tr>
 <tr>
 <td><code>ClientConnectionError</code></td>
 <td>接続確立段階</td>
-<td>対象サービスに到達できない、DNS 失敗、接続拒否</td>
+<td>目標サービスに到達できない、DNS 失敗、接続拒否</td>
 </tr>
 <tr>
 <td><code>ClientTimeoutError</code></td>
@@ -197,7 +212,7 @@
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>例外</th>
+<th>エラー</th>
 <th>発生位置</th>
 <th>代表的なシナリオ</th>
 </tr>
@@ -205,19 +220,39 @@
 <tbody><tr>
 <td><code>WebSocketError</code></td>
 <td>WS 受信/送信メソッド</td>
-<td>接続が閉じられている、予期しないメッセージタイプを受け取った、WS の低層エラー</td>
+<td>接続が閉じられている、想定外のメッセージタイプを受け取った、低層 WS エラー</td>
 </tr>
 <tr>
 <td><code>WebSocketDisconnect</code></td>
 <td>WS 受信/送信メソッド</td>
-<td>対向が正常に接続を切断した（フレームワークが自動的に再接続する）</td>
+<td>対向側が正常に接続を切断した（フレームワークが自動的に再接続する）</td>
+</tr>
+</tbody></table></div>
+<h3 id="接続登録表系列-coreconnectionspy210">接続登録表系列 — <code>Core/connections.py</code>（2.10+）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>エラー</th>
+<th>発生位置</th>
+<th>代表的なシナリオ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>connections.get</code> / <code>assign</code> / <code>dismiss</code> / <code>close</code></td>
+<td>接続 ID が存在しない、または既に切断・解除済み</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td><code>conn.close()</code> をオーナー以外が呼び出す</td>
+<td>モジュール間で他人の接続を閉じる（送信とグループ分けは制限されない）</td>
 </tr>
 </tbody></table></div>
 <h3 id="storage-系列-corestorage-corebasessql_basepy">Storage 系列 — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>例外</th>
+<th>エラー</th>
 <th>発生位置</th>
 <th>代表的なシナリオ</th>
 </tr>
@@ -225,24 +260,28 @@
 <tbody><tr>
 <td><code>StorageError</code></td>
 <td>ストレージ層</td>
-<td>ストレージ関連の例外の基底クラス</td>
+<td>ストレージ関連エラーの基底クラス</td>
 </tr>
 <tr>
 <td><code>StorageUnreachableError</code></td>
-<td>プール構築段階</td>
-<td>データベースに到達できない / 認証情報が間違っている / ネットワーク隔離、リトライが尽きる</td>
+<td>プール作成段階</td>
+<td>データベースに到達できない、認証情報の誤り、ネットワーク隔離、再試行が尽きた</td>
 </tr>
 </tbody></table></div>
 <blockquote>
-<p><strong>ストレージ操作の失敗の意味</strong>：KV とクエリ操作は<strong>デフォルトでは例外を送出しない</strong>——失敗した場合、ERROR ログを記録し、<code>False</code> / <code>None</code> / <code>default</code> を返す（フレームワークの実行を接続の問題で阻害しない）。したがって、業務コードでは通常 <code>StorageUnreachableError</code> をキャッチすることは<strong>ない</strong>（主にストレージの低層操作やカスタムバックエンドに使用される）。接続状態を実行時に感知するには、ライフサイクルイベント <code>storage.unreachable</code> / <code>storage.recovered</code> をサブスクライブする（<a href="/docs/ja/advanced/lifecycle.html#%E3%82%B9%E3%83%88%E3%83%AC%E3%83%BC%E3%82%B8%E6%8E%A5%E7%B6%9A%E7%8A%B6%E6%85%8B">ライフサイクルイベント</a>を参照）。
-接続失敗の挙動は<a href="/docs/ja/advanced/storage-backends.html#%E6%8E%A5%E7%B6%9A%E5%A4%B1%E6%95%97%E3%81%AE%E6%8C%99%E5%8B%95">ストレージバックエンド → 接続失敗の挙動</a>を参照。</p>
+<p><strong>ストレージ操作の失敗の意味</strong>：KV とクエリ操作は<strong>デフォルトでは送出しない</strong>——失敗時は ERROR ログを記録し、
+<code>False</code> / <code>None</code> / <code>default</code> を返す（フレームワークの実行を接続問題で妨げないため）。したがって、業務コードは通常
+<strong><code>StorageUnreachableError</code> をキャッチしない</strong>（ストレージの低層操作やカスタムバックエンドで使用される）。 
+実行時における接続状態の感知は、ライフサイクルイベント <code>storage.unreachable</code> / <code>storage.recovered</code>
+（<a href="/docs/ja/advanced/lifecycle.html#%E3%82%B9%E3%83%88%E3%83%AC%E3%83%BC%E3%82%B8%E6%8E%A5%E7%B6%9A%E7%8A%B6%E6%85%8B">ライフサイクルイベント</a>を参照）をサブスクライブすること。</p>
+<p>接続失敗の挙動は<a href="/docs/ja/advanced/storage-backends.html#%E6%8E%A5%E7%B6%9A%E5%A4%B1%E6%95%97%E3%81%AE%E6%8C%99%E5%8B%95">ストレージバックエンド → 接続失敗の挙動</a>を参照。</p>
 </blockquote>
 <h3 id="interaction-coreeventinteractionpy">Interaction — <code>Core/Event/interaction.py</code></h3>
-<p><code>wait_reply</code> / セッションのリース / アラートタイマ関連：</p>
+<p><code>wait_reply</code> / セッションのリース / アラートタイマー関連：</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>例外</th>
+<th>エラー</th>
 <th>発生位置</th>
 <th>代表的なシナリオ</th>
 </tr>
@@ -250,25 +289,25 @@
 <tbody><tr>
 <td><code>InteractionError</code></td>
 <td>インタラクションセッション層</td>
-<td>インタラクションセッションの例外の基底クラス</td>
+<td>インタラクションセッションのエラーの基底クラス</td>
 </tr>
 <tr>
 <td><code>InteractionCancelled</code></td>
 <td>待機がキャンセルされたとき</td>
-<td>待機中の future に設定された（待機側がキャッチして <code>.reason</code> を取得可能）</td>
+<td>待機中の future に設定され、待機側がキャッチして <code>.reason</code> を取得可能</td>
 </tr>
 <tr>
 <td><code>SessionOccupiedError</code></td>
-<td><code>hold()</code> リース取得失敗</td>
-<td>セッションが他のオーナーによって占有されている（<code>.owner</code> から占有者を確認可能）</td>
+<td><code>hold()</code> のリース取得が失敗したとき</td>
+<td>セッションが他のオーナーによって占有されている（<code>.owner</code> で占有者を確認可能）</td>
 </tr>
 </tbody></table></div>
-<p>キャンセルされた待機（モジュールのアンロード / プラットフォームのシャットダウン / 同一セッションで新しい待機が上書き）の際、<code>wait_reply</code> は例外を送出せず、**<code>None</code> を返す**（<code>InteractionCancelled</code> は内部で変換される）。キャンセルの原因を区別する必要がある場合、直接キャッチする。</p>
+<p>キャンセルされた待機（モジュールのアンロード / プラットフォームの終了 / 同一セッションの新しい待機が置き換え）の際、<code>wait_reply</code> は <strong><code>None</code> を返す</strong> ことで例外を送出しない（<code>InteractionCancelled</code> は内部で変換される）；キャンセルの原因を区別したい場合は、直接キャッチする。</p>
 <h3 id="module-系列-coremodulepysdkmodulecall">Module 系列 — <code>Core/module.py</code>（<code>sdk.module.call</code>）</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>例外</th>
+<th>エラー</th>
 <th>発生位置</th>
 <th>代表的なシナリオ</th>
 </tr>
@@ -276,27 +315,27 @@
 <tbody><tr>
 <td><code>ModuleError</code></td>
 <td>モジュールシステム</td>
-<td>モジュールシステムの例外の基底クラス</td>
+<td>モジュールシステムのエラーの基底クラス</td>
 </tr>
 <tr>
 <td><code>ModuleCallError</code></td>
 <td><code>module.call()</code></td>
-<td>モジュール間呼び出しの例外の基底クラス</td>
+<td>モジュール間呼び出しのエラーの基底クラス</td>
 </tr>
 <tr>
 <td><code>ModuleNotAvailableError</code></td>
-<td><code>module.call()</code> / ラジーロード属性アクセス</td>
-<td>目標が登録されていない / 有効化されていない / 初期化に失敗</td>
+<td><code>module.call()</code> / ラグジュアリー属性アクセス</td>
+<td>目標が登録されていない / 有効化されていない / 初期化に失敗した</td>
 </tr>
 <tr>
 <td><code>ServiceNotProvidedError</code></td>
 <td><code>module.call()</code></td>
-<td>目標の <code>meta.services</code> ホワイトリストにそのメソッドが宣言されていない</td>
+<td>目標の <code>meta.services</code> ホワイトリストに該当メソッドが宣言されていない</td>
 </tr>
 <tr>
 <td><code>ModuleCallTimeoutError</code></td>
 <td><code>module.call()</code></td>
-<td>被呼び出しのコルーチンがタイムアウト時間（デフォルト 30s）を超えた</td>
+<td>呼び出されたコルーチンがタイムアウト時間（デフォルト 30s）を超えた</td>
 </tr>
 </tbody></table></div>
 <p>「目標モジュールが利用できない」は、異なるアクセス経路での例外の種類：</p>
@@ -304,7 +343,7 @@
 <thead>
 <tr>
 <th>アクセス経路</th>
-<th>例外</th>
+<th>エラー</th>
 </tr>
 </thead>
 <tbody><tr>
@@ -312,7 +351,7 @@
 <td><code>ModuleNotAvailableError</code>（型付き）</td>
 </tr>
 <tr>
-<td><code>sdk.module.X.attr</code>（ラジーロード属性アクセス、初期化失敗後）</td>
+<td><code>sdk.module.X.attr</code>（ラグジュアリー属性アクセス、初期化失敗後）</td>
 <td><code>ModuleNotAvailableError</code></td>
 </tr>
 <tr>
@@ -327,11 +366,44 @@
 <span class="token keyword">except</span> ModuleNotAvailableError<span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目標モジュールが存在しない / 有効化されていない</span>
 <span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
-    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目標モジュールがそのサービスを提供していない</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目標モジュールが該当サービスを提供していない</span>
 </code></pre>
+<h3 id="shadow-系列-coreshadowpy影子モジュール">Shadow 系列 — <code>Core/shadow.py</code>（影子モジュール）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>エラー</th>
+<th>発生位置</th>
+<th>代表的なシナリオ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ShadowError</code></td>
+<td>影子モジュールメカニズム</td>
+<td>影子エラーの基底クラス（すべての影エラーを一括でキャッチ）</td>
+</tr>
+<tr>
+<td><code>ShadowStateError</code></td>
+<td><code>shadow_start()</code> / <code>dismiss_shadow()</code></td>
+<td>目標がロードされていない / 既にアクティブな影がある / 影がバインドされていない</td>
+</tr>
+<tr>
+<td><code>ShadowSourceError</code></td>
+<td><code>shadow_start()</code></td>
+<td>ソースパスが存在しない / プラグインローダーが不足 / ソースにロード可能なクラスがない / 装載に失敗</td>
+</tr>
+<tr>
+<td><code>ShadowPromoteError</code></td>
+<td><code>promote_shadow()</code></td>
+<td>影が登録されていない / 未ロード / ローダーがスナップショットをサポートしていない / 転正後の再ロードに失敗</td>
+</tr>
+</tbody></table></div>
 <h3 id="フレームワーク内部のパラメータ検証valueerror">フレームワーク内部のパラメータ検証（ValueError）</h3>
-<p>ストレージクエリビルダーのパラメータ検証（空の列タイプ、<code>Insert</code> が dict でない、安全でない列タイプなど）は標準の <code>ValueError</code> を送出する——これは<strong>開発時のコードエラー</strong>であり、通常の業務コードではキャッチすべきではなく、呼び出しを修正すべきである。</p>
-<p>アダプタの標準動作が失敗しても<strong>例外は送出しない</strong>：<code>retcode</code> を持つレスポンス辞書を返す（プロトコルの意味、例えば <code>retcode=10002</code> は動作が実装されていないことを示す）——これは client 層の「失敗時に <code>ClientError</code> を送出する」のと並行するエラーチャンネルであるため、アダプタの開発時には両方を同時に処理する必要がある。</p>
+<p>ストレージクエリビルダーのパラメータ検証（空の列タイプ、<code>Insert</code> が dict でない、安全でない列タイプなど）は標準の
+<code>ValueError</code> を送出する——これは<strong>開発時のコーディングエラー</strong>であり、通常の業務コードではキャッチせず、呼び出しを修正すべきである。</p>
+<p>アダプターの標準アクションが失敗しても<strong>エラーは送出しない</strong>：<code>retcode</code> を持つレスポンス辞書を返す（プロトコルの意味、例えば
+<code>retcode=10002</code> はアクションが実装されていないことを示す）——これは client 層の「失敗時は <code>ClientError</code> を送出する」
+とは並行するエラーチャネルであり、アダプター開発時には両方を処理する必要がある。</p>
 <h2 id="エラーのキャプチャに関する提案">エラーのキャプチャに関する提案</h2>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># 基底クラスは Core から集約的にエクスポートされています</span>
 
@@ -352,7 +424,7 @@
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/ja/advanced/storage-backends.html"><small>Previous</small><br>ストレージバックエンド</a>
-        <a class="doc-pager-next" href="/docs/ja/advanced/startup.html"><small>Next</small><br>スタートフローと手動制御</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/connections.html"><small>Next</small><br>接続プールとブロードキャスト</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

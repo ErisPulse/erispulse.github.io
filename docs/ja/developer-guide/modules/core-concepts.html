@@ -259,8 +259,8 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 <span class="token comment"># }</span>
 </code></pre>
 <h2 id="設定管理">設定管理</h2>
-<h3 id="宣言的な設定推奨">宣言的な設定（推奨）</h3>
-<p>v2.5.2 以降、モジュールは <code>ConfigClass</code> を使って設定クラスを宣言し、アダプターと同じ設定 Schema システムを使用できます。設定は <code>self.cfg</code> でリアルタイムに読み取ることができ、変更後は即座に反映されます：</p>
+<h3 id="宣言的設定推奨">宣言的設定（推奨）</h3>
+<p>v2.5.2 以降、モジュールは <code>ConfigClass</code> を使って設定クラスを宣言し、アダプタと同じ設定 Schema システムを使用できます。設定は <code>self.cfg</code> でリアルタイムに読み取り、変更後は即座に反映されます：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
 <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
 <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig
@@ -302,15 +302,18 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
         api_key <span class="token operator">=</span> cfg<span class="token punctuation">.</span>api_key
         timeout <span class="token operator">=</span> cfg<span class="token punctuation">.</span>timeout
 </code></pre>
-<p><code>BaseConfig</code> は、アダプター、モジュール、外部プロジェクトなど、あらゆる場面で使用できる汎用的な設定基底クラスです。設定フィールドは i18n 多言語説明をサポートしています（詳しくは [i18n ドキュメント](../../advanced/i18n.md#配置字段多语言）を参照）。</p>
-<p>設定 Schema システムは（v2.8.0+、[アダプター core-concepts](../adapters/core-concepts.md#metadata-约定）を参照）以下の機能もサポートしています：</p>
+<p><code>BaseConfig</code> は、アダプタ、モジュール、外部プロジェクトなど、あらゆる場面で使用できる汎用的な設定基底クラスです。設定フィールドは i18n 多言語説明をサポートしています（詳細は <a href="/docs/ja/advanced/i18n.html#%E9%85%8D%E7%BD%AE%E5%AD%97%E6%AE%B5%E5%A4%9A%E8%AF%AD%E8%A8%80">i18n ドキュメント</a> を参照）。</p>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p><br>モジュール（アダプタを含む）のロード、アンロード、起動、停止などのライフサイクルは、フレームワークが一括して管理します（<code>module manager</code> / <code>scope</code> がクエリとコントロール API を提供）。<code>ConfigClass</code> は業務パラメータのみを保持すべきであり、モジュールは内部で「自分自身が起動するかどうか」を判断するロジックを再嵌套してはいけません。</p>
+</div>
+<p>設定 Schema システムはさらに（v2.8.0+、<a href="/docs/ja/developer-guide/adapters/core-concepts.html#metadata-%E7%BA%A6%E5%AE%9A">アダプタ core-concepts</a> を参照）：</p>
 <ul>
-<li><strong>docstring から自動生成されたフィールド説明</strong>：<code>metadata</code> の <code>description</code> が宣言されていない場合、docstring の <code>:ivar フィールド: 説明</code> または <code>Attributes:</code> 部分から自動的に説明を抽出します。</li>
-<li><strong>ネストされた dataclass 設定</strong>：フィールドの型がネストされた dataclass の場合、schema/テンプレート/検証が再帰的に処理され、WebUI ではネストされたグループとしてレンダリングされます。</li>
-<li><strong><code>example</code> フィールド（永続化されない）</strong>：<code>metadata={"example": True}</code> のフィールドは <code>config.toml</code> に書き込まれず、<code>config.full.example</code> に記録されます（複雑で頻繁に触れない高度な設定項目に適しています）。ユーザーが手動で設定した場合は通常通り永続化されます。</li>
+<li><strong>docstring から自動生成されたフィールド説明</strong>：<code>metadata</code> の <code>description</code> を宣言していない場合、docstring の <code>:ivar フィールド名: 説明</code> または <code>Attributes:</code> 段から代替として抽出されます。</li>
+<li><strong>ネストされた dataclass 設定</strong>：フィールドの型がネストされた dataclass の場合、schema/テンプレート/検証は再帰的に処理され、WebUI ではネストされたグループとしてレンダリングされます。</li>
+<li><strong><code>example</code> は保存しないフィールド</strong>：<code>metadata={"example": True}</code> のフィールドは <code>config.toml</code> に書き込まれず、<code>config.full.example</code> に記録されます（複雑で頻繁に触れない高度な設定項目に適しています）。ユーザーが手動で設定した場合は通常通り永続化されます。</li>
 </ul>
 <h3 id="宣言的翻訳キーv270">宣言的翻訳キー（v2.7.0+）</h3>
-<p>v2.7.0 以降、モジュールは <code>ConfigClass</code> を宣言するのと同じように、<code>I18nClass</code> というネストされたクラスを使って翻訳キーを一括で宣言できます。フレームワークはロード時に<strong>自動的に</strong>宣言されたすべての翻訳キーを登録し、<code>i18n.register()</code> を手動で呼び出す必要がなく、設定テンプレート生成よりも早い段階で登録されます。これにより、設定の説明で参照される i18n キーが利用可能になります。</p>
+<p>v2.7.0 以降、モジュールは <code>ConfigClass</code> を宣言するのと同じように、<code>I18nClass</code> というネストされたクラスを使って翻訳キーを一括して宣言できます。フレームワークはロード時に<strong>自動的に</strong>すべての宣言された翻訳キーを登録し、手動で <code>i18n.register()</code> を呼び出す必要はありません。登録のタイミングは設定テンプレート生成よりも早いため、設定説明で参照される i18n キーが利用可能であることを保証します。</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig<span class="token punctuation">,</span> BaseI18n<span class="token punctuation">,</span> I18nKey
 
 <span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -326,9 +329,9 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 
     <span class="token comment"># 翻訳キー集合クラス（オプション）</span>
     <span class="token keyword">class</span> <span class="token class-name">I18nClass</span><span class="token punctuation">(</span>BaseI18n<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token comment"># 属性名が自動的に完全なキー経路：&lt;モジュール名&gt;.&lt;属性名&gt; に結合されます</span>
+        <span class="token comment"># 属性名が自動的に完全なキー パス：&lt;モジュール名&gt;.&lt;属性名&gt; に結合されます</span>
         welcome_msg<span class="token punctuation">:</span> I18nKey <span class="token operator">=</span> I18nKey<span class="token punctuation">(</span>
-            default<span class="token operator">=</span><span class="token string">"Welcome Message"</span><span class="token punctuation">,</span>   <span class="token comment"># 言語に依存しないデフォルト</span>
+            default<span class="token operator">=</span><span class="token string">"Welcome Message"</span><span class="token punctuation">,</span>   <span class="token comment"># 言語に依存しない代替</span>
             zh_CN<span class="token operator">=</span><span class="token string">"欢迎消息"</span><span class="token punctuation">,</span>
             zh_TW<span class="token operator">=</span><span class="token string">"歡迎訊息"</span><span class="token punctuation">,</span>
             en<span class="token operator">=</span><span class="token string">"Welcome Message"</span><span class="token punctuation">,</span>
@@ -344,10 +347,10 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
             ru<span class="token operator">=</span><span class="token string">"Привет, {name}!"</span><span class="token punctuation">,</span>
         <span class="token punctuation">)</span>
 </code></pre>
-<p>詳細は <a href="/docs/ja/advanced/i18n.html#%E6%8E%A8%E8%8D%90%E5%86%99%E6%B3%95%E9%80%9A%E8%BF%87-i18nclass-%E5%A3%B0%E6%98%8E%E7%BF%BB%E8%AF%91%E9%94%AE-v270">i18n 推奨の書き方</a>を参照してください。</p>
-<h3 id="手動で設定を読み取る非推奨">手動で設定を読み取る（非推奨）</h3>
+<p>詳細は <a href="/docs/ja/advanced/i18n.html#%E6%8E%A8%E8%8D%90%E5%86%99%E6%B3%95%E9%80%9A%E8%BF%87-i18nclass-%E5%A3%B0%E6%98%8E%E7%BF%BB%E8%AF%91%E9%94%AE-v270">i18n 推奨書き方</a> を参照してください。</p>
+<h3 id="手動設定読み取り廃止">手動設定読み取り（廃止）</h3>
 <blockquote>
-<p><strong>非推奨</strong>：宣言的設定（<a href="#%E5%A3%B0%E6%98%8E%E5%BC%8F%E9%85%8D%E7%BD%AE%E6%8E%A8%E8%8D%90">宣言式設定</a>）と <code>self.cfg</code> を使用してリアルタイムに読み取ることを推奨します。</p>
+<p><strong>廃止</strong>：宣言的設定 (<a href="#%E5%A3%B0%E6%98%8E%E5%BC%8F%E9%85%8D%E7%BD%AE%E6%8E%A8%E8%8D%90">声明式配置推荐</a>) と <code>self.cfg</code> による実時読み取りを使用してください。</p>
 </blockquote>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sdk<span class="token punctuation">)</span><span class="token punctuation">:</span>

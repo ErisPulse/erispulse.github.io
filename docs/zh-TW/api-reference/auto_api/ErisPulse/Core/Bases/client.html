@@ -163,9 +163,13 @@ data <span class="token operator">=</span> <span class="token keyword">await</sp
         <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>msg<span class="token punctuation">.</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="方法列表-2">方法列表</h4>
-<h5 id="__init__ws"><code>__init__(ws)</code></h5>
+<h5 id="__init__ws-connection_id-str-namespace-str-owner-str-kind-str-client"><code>__init__(ws, *, connection_id: str = '', namespace: str = '', owner: str = '', kind: str = 'client')</code></h5>
 <ul>
 <li><strong>ws</strong> (<code>object</code>): 底层框架 WebSocket 对象</li>
+<li><strong>connection_id</strong> (<code>str</code>): 连接池分配的连接 id（未登记时为空串）</li>
+<li><strong>namespace</strong> (<code>str</code>): 服务端路由命名空间（客户端出站连接为空）</li>
+<li><strong>owner</strong> (<code>str</code>): 归属 owner（模块名 / 平台名），拥有关闭权</li>
+<li><strong>kind</strong> (<code>str</code>): 连接种类（默认 "client"）</li>
 </ul>
 <hr>
 <h5 id="closed---boolproperty"><code>closed -&gt; bool</code>（property）</h5>
@@ -225,12 +229,14 @@ ws <span class="token operator">=</span> <span class="token keyword">await</span
 </ul>
 <p><strong>返回值</strong> (<code>BaseHttpResponse</code>): 响应对象</p>
 <hr>
-<h5 id="async-ws_connecturl-str-headers-dictstr-str-none-none-heartbeat-float-none-none-kwargs---baseclientwebsocket"><code>async ws_connect(url: str, *, headers: dict[str, str] | None = None, heartbeat: float | None = None, **kwargs) -&gt; BaseClientWebSocket</code></h5>
+<h5 id="async-ws_connecturl-str-headers-dictstr-str-none-none-heartbeat-float-none-none-track-bool-true-owner-str-none-none-kwargs---baseclientwebsocket"><code>async ws_connect(url: str, *, headers: dict[str, str] | None = None, heartbeat: float | None = None, track: bool = True, owner: str | None = None, **kwargs) -&gt; BaseClientWebSocket</code></h5>
 <p>建立 WebSocket 连接</p>
 <ul>
 <li><strong>url</strong>: str WebSocket 服务器 URL</li>
 <li><strong>headers</strong> (<code>dict[str, str] | None</code>): 额外请求头 (可选)</li>
 <li><strong>heartbeat</strong> (<code>float | None</code>): 心跳间隔秒数 (可选)</li>
+<li><strong>track</strong> (<code>bool</code>): 是否登记进连接池 (默认: True)</li>
+<li><strong>owner</strong> (<code>str | None</code>): 连接归属者 (默认: 当前 owner 上下文)</li>
 <li><strong>kwargs</strong>: 传递给底层 WS 连接的额外参数</li>
 </ul>
 <p><strong>返回值</strong>: BaseClientWebSocket WebSocket 连接对象</p>

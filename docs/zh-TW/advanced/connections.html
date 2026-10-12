@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>連接池與廣播 - ErisPulse 文档中心</title>
+    <meta name="description" content="連接（服務端 WebSocket / SSE / 客戶端出站 WebSocket）在 ErisPulse 中是框架級一等資源： 隨著連接建立自動登記進統一註冊表，支援廣播、業務分組訂閱與跨模組傳遞/複用， 模組卸載時由框架自動關閉回收——業務不再自建 _ws_clients 集合，也不會因忘記清理而造成記憶體洩漏..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/connections.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/connections.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/connections.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/connections.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/connections.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/connections.html" />
+    <meta property="og:title" content="連接池與廣播 - ErisPulse 文档中心" />
+    <meta property="og:description" content="連接（服務端 WebSocket / SSE / 客戶端出站 WebSocket）在 ErisPulse 中是框架級一等資源： 隨著連接建立自動登記進統一註冊表，支援廣播、業務分組訂閱與跨模組傳遞/複用， 模組卸載時由框架自動關閉回收——業務不再自建 _ws_clients 集合，也不會因忘記清理而造成記憶體洩漏..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/connections.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"連接池與廣播","description":"連接（服務端 WebSocket / SSE / 客戶端出站 WebSocket）在 ErisPulse 中是框架級一等資源： 隨著連接建立自動登記進統一註冊表，支援廣播、業務分組訂閱與跨模組傳遞/複用， 模組卸載時由框架自動關閉回收——業務不再自建 _ws_clients 集合，也不會因忘記清理而造成記憶體洩漏...","url":"https://www.erisdev.com/docs/zh-TW/advanced/connections.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 進階主題
+        <span class="doc-crumb-sep">/</span> <span>連接池與廣播</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/connections.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/connections.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/connections.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/connections.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/connections.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/connections.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="連接池與廣播">連接池與廣播</h1>
+<p>連接（服務端 WebSocket / SSE / 客戶端出站 WebSocket）在 ErisPulse 中是<strong>框架級一等資源</strong>：
+隨著連接建立自動登記進統一註冊表，支援廣播、業務分組訂閱與跨模組傳遞/複用，
+模組卸載時由框架自動關閉回收——業務不再自建 <code>_ws_clients</code> 集合，也不會因忘記清理而造成記憶體洩漏。</p>
+<blockquote>
+<p>本文文件範例均為<strong>根導入</strong>寫法（2.10+ 推薦）：
+<code>from ErisPulse import connections, router, client, WebSocketConnection</code></p>
+</blockquote>
+<h2 id="概述">概述</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections<span class="token punctuation">,</span> router<span class="token punctuation">,</span> WebSocketConnection
+
+<span class="token comment"># 服務端：連接自動登記，handler 內加入業務分組</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ws<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>            <span class="token comment"># 分組命名完全由業務約定</span>
+    <span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                             <span class="token comment"># 斷開時框架自動註銷、清理分組</span>
+
+<span class="token comment"># 任意位置：向分組廣播（返回成功失敗明細）</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"notify"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token keyword">not</span> result<span class="token punctuation">.</span>ok<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                                 <span class="token comment"># result.failed: {連接id: 異常}</span>
+</code></pre>
+<p>三種連接統一進入註冊表：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>kind</th>
+<th>來源</th>
+<th>歸屬 owner</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server</code></td>
+<td><code>@router.ws(...)</code> / <code>register_websocket(...)</code></td>
+<td>註冊路由的模組名</td>
+<td>斷開自動註銷</td>
+</tr>
+<tr>
+<td><code>sse</code></td>
+<td><code>@router.sse(...)</code> / <code>register_sse(...)</code></td>
+<td>註冊路由的模組名</td>
+<td>廣播走 <code>sse.send()</code></td>
+</tr>
+<tr>
+<td><code>client</code></td>
+<td><code>await client.ws_connect(url)</code></td>
+<td>當前模組（或顯式 <code>owner=</code>）</td>
+<td>關閉/遠端斷開自動註銷；適配器停止時框架統一關閉</td>
+</tr>
+</tbody></table></div>
+<p>不想要自動登記時：路由傳 <code>track=False</code>，出站連接傳 <code>track=False</code>，舊代碼行為完全不變。</p>
+<h2 id="查看連接池">查看連接池</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections
+
+<span class="token comment"># 查看某模組的連接池（「某模組現在有幾條活連接」）</span>
+conns <span class="token operator">=</span> connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>
+<span class="token keyword">for</span> conn <span class="token keyword">in</span> conns<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>conn<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span> conn<span class="token punctuation">.</span>kind<span class="token punctuation">,</span> conn<span class="token punctuation">.</span>groups<span class="token punctuation">,</span> conn<span class="token punctuation">.</span>meta<span class="token punctuation">)</span>
+
+<span class="token comment"># 按其它維度過濾（各條件 AND）</span>
+connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">,</span> kind<span class="token operator">=</span><span class="token string">"client"</span><span class="token punctuation">)</span>
+connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>group<span class="token operator">=</span><span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 全局統計（各維度計數）</span>
+stats <span class="token operator">=</span> connections<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {'total': 5, 'by_kind': {...}, 'by_namespace': {...}, 'by_owner': {...}, 'groups': {...}}</span>
+
+<span class="token comment"># 歸屬權審計計數（ownership 面門同樣可見）</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> ownership
+ownership<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>   <span class="token comment"># {'connections': 3, ...}</span>
+</code></pre>
+<p>每條連接可讀的身份資訊：<code>conn.id</code>（形如 <code>Dashboard:1a2b3c4d</code>）、<code>conn.namespace</code>、
+<code>conn.owner</code>、<code>conn.kind</code>、<code>conn.groups</code>、<code>conn.meta</code>（業務自由字典）。</p>
+<h2 id="廣播與訂閱">廣播與訂閱</h2>
+<h3 id="分組訂閱模型">分組（訂閱模型）</h3>
+<p>分組是<strong>扁平字串</strong>，命名完全由業務約定（房間 / 租戶 / 主題……），
+嵌套層級用命名約定表達（如 <code>tenant:acme/room:1</code>），框架不約束格式。</p>
+<p>兩個方向都可以操作：</p>
+<pre><code class="language-python"><span class="token comment"># 方向一：連接端主動加入/退出（handler 內）</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ws<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>        <span class="token comment"># 等價 connections.assign(ws.id, "room:1")</span>
+    ws<span class="token punctuation">.</span>leave_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 方向二：管理端被動分配（路由端 / 其它模組）</span>
+connections<span class="token punctuation">.</span>assign<span class="token punctuation">(</span>conn_id<span class="token punctuation">,</span> <span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>
+connections<span class="token punctuation">.</span>dismiss<span class="token punctuation">(</span>conn_id<span class="token punctuation">,</span> <span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>   <span class="token comment"># 不傳分組名 = 退出全部分組</span>
+</code></pre>
+<p>連接斷開時自動退出全部分組，無需業務清理。</p>
+<h3 id="廣播">廣播</h3>
+<pre><code class="language-python">result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span>
+    data<span class="token punctuation">,</span>                       <span class="token comment"># WS 走 send_json；SSE 走 send（自動 JSON 序列化）</span>
+    namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">,</span>      <span class="token comment"># 按命名空間過濾</span>
+    group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">,</span>             <span class="token comment"># 按分組過濾</span>
+    kind<span class="token operator">=</span><span class="token string">"sse"</span><span class="token punctuation">,</span>                 <span class="token comment"># 按連接種類過濾</span>
+    owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">,</span>          <span class="token comment"># 按歸屬過濾</span>
+    ids<span class="token operator">=</span><span class="token punctuation">{</span>conn_id<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>         <span class="token comment"># 明確指定候選集（過濾條件仍生效）</span>
+    exclude<span class="token operator">=</span><span class="token punctuation">{</span>conn_id<span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># 排除某些連接</span>
+    timeout<span class="token operator">=</span><span class="token number">10.0</span><span class="token punctuation">,</span>               <span class="token comment"># 單條連接發送超時（非總時長）</span>
+    concurrency<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">,</span>             <span class="token comment"># 並發發送上限</span>
+    raise_on_error<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>       <span class="token comment"># True 時有失敗項則拋出首個異常</span>
+<span class="token punctuation">)</span>
+result<span class="token punctuation">.</span>total      <span class="token comment"># 目標連接總數（排除前）</span>
+result<span class="token punctuation">.</span>sent       <span class="token comment"># 成功的連接 id 列表</span>
+result<span class="token punctuation">.</span>failed     <span class="token comment"># {連接 id: 異常物件}（超時/已斷開/發送失敗）</span>
+result<span class="token punctuation">.</span>excluded   <span class="token comment"># 被排除的連接 id</span>
+result<span class="token punctuation">.</span>ok         <span class="token comment"># 是否全部傳達</span>
+</code></pre>
+<p>過濾條件之間是 <strong>AND</strong>；單條失敗不會影響其它連接；<code>ids</code> 中已不存在的連接會計入
+<code>failed</code>（讓業務知道全貌）。</p>
+<h3 id="生命週期事件">生命週期事件</h3>
+<p>連接登記/註銷/分組變化會發射標準生命週期事件，Dashboard 等可訂閱做即時呈現：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> lifecycle
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.registered"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_registered</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.unregistered"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unregistered</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.group.joined"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_joined</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.group.left"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_left</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<h2 id="跨模組傳遞-復用">跨模組傳遞 / 復用</h2>
+<p>連接是框架登記的資源，任何模組都可以透過連接 id 拿到它並<strong>復用</strong>——<br>不需要自己再建立一條，也不需要知道連接是誰建立的：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections
+
+conn <span class="token operator">=</span> connections<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"Dashboard:1a2b3c4d"</span><span class="token punctuation">)</span>   <span class="token comment"># 不存在 / 已斷開拋 ConnectionNotFoundError</span>
+<span class="token keyword">await</span> conn<span class="token punctuation">.</span>send_json<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"ping"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">)</span>              <span class="token comment"># 任何模組都可發送</span>
+conn<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"someone-elses-room"</span><span class="token punctuation">)</span>          <span class="token comment"># 也可參與分組</span>
+</code></pre>
+<p><strong>歸屬與關閉權</strong>：</p>
+<ul>
+<li>連接的 <code>owner</code>（建立它的模組）獨佔關閉權。非 owner 調用 <code>close()</code> 拋<br><code>ConnectionPermissionError</code>（<code>from ErisPulse import ConnectionPermissionError</code>）；</li>
+<li>發送與分組操作對所有模組開放，不需要授權；</li>
+<li>owner 模組卸載 / 适配器停止時，框架<strong>統一關閉並註銷</strong>其名下全部連接<br>（服務器端 + 出站），已拿到的引用再發送會得到失敗結果，監聽<br><code>connection.unregistered</code> 事件可感知；</li>
+<li>框架內部回收路徑用 <code>close(force=True)</code> 繞過校驗。</li>
+</ul>
+<blockquote>
+<p>歸因說明：關閉權校驗依賴運行時 owner 上下文（<code>owner_scope</code> / 事件分發 /<br><code>spawn_background</code> 等自動攜帶）。上下文不可歸因的呼叫（未歸因的老程式碼）會放行，<br>保證 0 破壞；新程式碼在 owner 上下文中呼叫即受保護。</p>
+</blockquote>
+<h2 id="出站連接client-側">出站連接（Client 側）</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> client
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+ws<span class="token punctuation">.</span><span class="token builtin">id</span>          <span class="token comment"># 已登記，可被 connections 查詢/廣播</span>
+ws<span class="token punctuation">.</span>owner       <span class="token comment"># 當前模組（owner 上下文不可用時建議顯式傳）</span>
+
+<span class="token comment"># owner 上下文不可用（如工具線程回調）時顯式指定，卸載才能自動回收：</span>
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>遠端主動斷開、本地 <code>close()</code> 都會自動註銷登記；模組卸載時框架關閉其名下
+全部出站連接。等舊代碼裸建連接各自管理、忘記清理導致泄漏的日子到此為止。</p>
+<h2 id="跨執行緒投遞">跨執行緒投遞</h2>
+<p>從子執行緒觸發連線（廣播 / 推送 / 關閉）時，使用框架標準工具投遞回主迴圈，<br>**不要手寫 <code>run_coroutine_threadsafe</code>**：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> run_main_loop<span class="token punctuation">,</span> spawn_later<span class="token punctuation">,</span> spawn_thread
+
+<span class="token comment"># 子執行緒阻塞取得結果：</span>
+run_main_loop<span class="token punctuation">(</span>connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"tick"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 後台執行緒 + 延遲任務（owner 歸屬，卸載自動取消）：</span>
+<span class="token keyword">def</span> <span class="token function">push_tick</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"tick"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+spawn_later<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">,</span> push_tick<span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="卸載與清理語意">卸載與清理語意</h2>
+<p>模組卸載 / 适配器停止的歸屬權回收鏈會依序：取消歸屬背景任務與定時器 →<br><strong>關閉並註銷歸屬連接</strong> → 觸發 on_cleanup 鈎子 → 註銷路由/處理器等註冊類資源。<br>詳見 <a href="/docs/zh-TW/advanced/ownership.html">歸屬權（owner）系統</a>。</p>
+<div class="markdown-alert markdown-alert-warning"><p class="markdown-alert-title"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i>Warning</p>
+<p><br>從 2.10 開始，模組卸載時會關閉其名下登記的 WS/SSE/出站連接。依賴「卸載後連接仍存活」的<br>下游組件（如舊版 Dashboard 推送）需知悉——這是杜絕連接泄漏的預期行為。</p>
+</div>
+<h2 id="api-一覽">API 一覽</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>API</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>connections.get(id)</code></td>
+<td>取得連接（跨模組入口），不存在則拋出 <code>ConnectionNotFoundError</code></td>
+</tr>
+<tr>
+<td><code>connections.list(namespace=, owner=, group=, kind=)</code></td>
+<td>過濾查詢連接列表</td>
+</tr>
+<tr>
+<td><code>connections.stats(namespace=, owner=)</code></td>
+<td>各維度計數統計</td>
+</tr>
+<tr>
+<td><code>connections.assign(id, *groups)</code> / <code>dismiss(id, *groups)</code></td>
+<td>管理端加入/移出分組</td>
+</tr>
+<tr>
+<td><code>await connections.broadcast(data, ...)</code></td>
+<td>廣播，返回 <code>BroadcastResult</code></td>
+</tr>
+<tr>
+<td><code>await connections.close(id, force=False)</code></td>
+<td>關閉並註銷（權限驗證）</td>
+</tr>
+<tr>
+<td><code>await connections.close_owner(owner)</code></td>
+<td>關閉註銷某 owner 名下全部連接（框架卸載鏈調用）</td>
+</tr>
+<tr>
+<td><code>conn.join_group(*groups)</code> / <code>conn.leave_group(*groups)</code></td>
+<td>連接端分組</td>
+</tr>
+<tr>
+<td><code>conn.send_json / send_text / iter_text / ...</code></td>
+<td>收發（服務端/客戶端介面一致）</td>
+</tr>
+<tr>
+<td><code>conn.meta</code></td>
+<td>業務元數據字典</td>
+</tr>
+<tr>
+<td><code>conn.close(force=False)</code></td>
+<td>關閉（非 owner 拋出 <code>ConnectionPermissionError</code>）</td>
+</tr>
+</tbody></table></div>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/errors.html"><small>Previous</small><br>錯誤體系與捕獲指南</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/startup.html"><small>Next</small><br>啟動流程與手動控制</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

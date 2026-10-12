@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ErisPulse.Core.connections 模块 - ErisPulse 文档中心</title>
+    <meta name="description" content="把&quot;连接&quot;从模块私有物升级为框架级一等资源：服务端 WS/SSE 连接随路由 自动登记（namespace 维度），客户端出站 WS 连接随 client.ws_connect 自动登记（owner 维度）。支持广播（按命名空间 / 分组 / id 过滤的集合推送）、 业务分组订阅（房间 / 租户 / 主题，命名..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/connections.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/connections.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/connections.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/connections.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/connections.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/connections.html" />
+    <meta property="og:title" content="ErisPulse.Core.connections 模块 - ErisPulse 文档中心" />
+    <meta property="og:description" content="把&quot;连接&quot;从模块私有物升级为框架级一等资源：服务端 WS/SSE 连接随路由 自动登记（namespace 维度），客户端出站 WS 连接随 client.ws_connect 自动登记（owner 维度）。支持广播（按命名空间 / 分组 / id 过滤的集合推送）、 业务分组订阅（房间 / 租户 / 主题，命名..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/connections.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.Core.connections 模块","description":"把\"连接\"从模块私有物升级为框架级一等资源：服务端 WS/SSE 连接随路由 自动登记（namespace 维度），客户端出站 WS 连接随 client.ws_connect 自动登记（owner 维度）。支持广播（按命名空间 / 分组 / id 过滤的集合推送）、 业务分组订阅（房间 / 租户 / 主题，命名...","url":"https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/connections.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">文档</a>
+        <span class="doc-crumb-sep">/</span> API <span class="doc-crumb-sep">/</span> 核心模块
+        <span class="doc-crumb-sep">/</span> <span>ErisPulse.Core.connections 模块</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link current" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/Core/connections.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/Core/connections.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/connections.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/Core/connections.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/Core/connections.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/api-reference/auto_api/ErisPulse/Core/connections.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="erispulsecoreconnections-模块"><code>ErisPulse.Core.connections</code> 模块</h1>
+<hr>
+<h2 id="模块概述">模块概述</h2>
+<p>ErisPulse 连接注册表（连接池）</p>
+<p>把"连接"从模块私有物升级为框架级一等资源：服务端 WS/SSE 连接随路由
+自动登记（namespace 维度），客户端出站 WS 连接随 <code>client.ws_connect</code>
+自动登记（owner 维度）。支持广播（按命名空间 / 分组 / id 过滤的集合推送）、
+业务分组订阅（房间 / 租户 / 主题，命名完全由业务约定）与跨模块连接传递
+（共享同一连接对象，关闭权归创建者 owner）。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li>服务端 <code>@router.ws(...)</code> handler 拿到的连接已自动登记，<code>ws.id</code> 可查</li>
+<li><code>connections.list(namespace=...)</code> 查看某模块的连接池；<code>stats()</code> 看全局</li>
+<li><code>connections.broadcast(data, group=...)</code> 向分组广播并返回成败明细</li>
+<li>跨模块 <code>connections.get(id)</code> 拿连接后可发送 / 分组，但 <code>close</code> 仅 owner 可调</li>
+<li>模块卸载时框架自动关闭并注销其名下全部连接（server/client/sse）</li>
+<li>从子线程调用本模块异步 API 请经 <code>ErisPulse.run_main_loop</code> 投递</li>
+</ol>
+</blockquote>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token comment"># handler 内加入分组；任意位置向分组广播</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ws<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+    <span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"echo"</span><span class="token punctuation">:</span> msg<span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h2 id="类列表">类列表</h2>
+<h3 id="class-broadcastresult"><code>class BroadcastResult</code></h3>
+<p>广播结果</p>
+<p>:attribute total: 目标连接总数（排除前，含 id 指定但已不存在的连接）
+:attribute sent: 发送成功的连接 id 列表
+:attribute failed: 发送失败的 {连接 id: 异常对象}（含超时与已断开）
+:attribute excluded: 被 <code>exclude</code> 参数排除的连接 id 列表</p>
+<h4 id="方法列表">方法列表</h4>
+<h5 id="ok---boolproperty"><code>ok -&gt; bool</code>（property）</h5>
+<p>是否全部送达</p>
+<p><strong>返回值</strong> (<code>bool</code>): 无失败项时为 True</p>
+<hr>
+<h3 id="class-connectionmanager"><code>class ConnectionManager</code></h3>
+<p>连接注册表管理器</p>
+<p>维护框架级连接集合（服务端 WS / SSE / 客户端出站 WS）与业务分组索引。
+连接的登记 / 注销由框架在路由与客户端连接生命周期处自动完成；
+业务侧主要使用查询（<code>list</code> / <code>stats</code> / <code>get</code>）、分组
+（<code>assign</code> / <code>dismiss</code>）与广播（<code>broadcast</code>）。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ol>
+<li>归属与关闭权：连接 owner 拥有关闭权，其他模块仅可发送与分组</li>
+<li>分组命名完全由业务约定，连接断开时自动退出全部分组</li>
+<li>广播永不改变连接归属；跨模块点对点操作请用 <code>get</code></li>
+</ol>
+</blockquote>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">conns <span class="token operator">=</span> connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"notify"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>
+result<span class="token punctuation">.</span>ok
+<span class="token boolean">True</span>
+</code></pre>
+<h4 id="方法列表-2">方法列表</h4>
+<h5 id="registerconn-any-namespace-str-owner-str-none-none-kind-str-meta-dictstr-any-none-none---str"><code>register(conn: Any, *, namespace: str = '', owner: str | None = None, kind: str = '', meta: dict[str, Any] | None = None) -&gt; str</code></h5>
+<p>登记连接并分配连接 id</p>
+<p><strong>内部方法</strong>
+由 router（服务端 WS/SSE）与 client（出站 WS）在连接建立时自动调用；
+owner 缺省时从运行时上下文捕获（current_owner &gt; current_caller）。</p>
+<ul>
+<li><strong>conn</strong>: 连接对象（需具备 id/owner/kind 等身份混入字段）</li>
+<li><strong>namespace</strong> (<code>str</code>): 服务端路由命名空间（客户端连接留空）</li>
+<li><strong>owner</strong> (<code>str</code>): 归属 owner（模块名 / 平台名），缺省时取当前上下文</li>
+<li><strong>kind</strong> (<code>str</code>): 连接种类（"server" / "client" / "sse"），缺省时读 conn.kind</li>
+<li><strong>meta</strong> (<code>dict | None</code>): 初始业务元数据</li>
+</ul>
+<p><strong>返回值</strong> (<code>str</code>): 分配的连接 id</p>
+<hr>
+<h5 id="unregisterconn-any---bool"><code>unregister(conn: Any) -&gt; bool</code></h5>
+<p>注销连接（不主动关闭底层连接）</p>
+<p>连接断开 / 关闭后由框架自动调用；清除全部分组与索引。
+幂等：未登记的连接返回 False。</p>
+<p><strong>内部方法</strong>
+由 router 断开路径、client 连接关闭与 SseEmitter.close 自动调用。</p>
+<ul>
+<li><strong>conn</strong>: 连接对象或连接 id</li>
+</ul>
+<p><strong>返回值</strong> (<code>bool</code>): 是否实际注销</p>
+<hr>
+<h5 id="getconnection_id-str---any"><code>get(connection_id: str) -&gt; Any</code></h5>
+<p>按连接 id 获取连接（跨模块传递 / 复用的入口）</p>
+<p>返回连接本体：任何模块都可 <code>send_json</code> / 分组操作；
+<code>close</code> 仅连接 owner 可调（上下文不可归因时放行）。</p>
+<ul>
+<li><strong>connection_id</strong> (<code>str</code>): 连接 id</li>
+</ul>
+<p><strong>返回值</strong>: 连接对象（WebSocketConnection / ClientWebSocket / SseEmitter）</p>
+<p><strong>异常</strong>: <code>ConnectionNotFoundError</code> - 连接不存在或已断开注销</p>
+<hr>
+<h5 id="list-namespace-str-none-none-owner-str-none-none-group-str-none-none-kind-str-none-none---listany"><code>list(*, namespace: str | None = None, owner: str | None = None, group: str | None = None, kind: str | None = None) -&gt; list[Any]</code></h5>
+<p>查询连接集合（各过滤条件之间为 AND）</p>
+<ul>
+<li><strong>namespace</strong> (<code>str | None</code>): 按服务端命名空间过滤（即"查看某模块连接池"）</li>
+<li><strong>owner</strong> (<code>str | None</code>): 按归属 owner 过滤</li>
+<li><strong>group</strong> (<code>str | None</code>): 按业务分组过滤</li>
+<li><strong>kind</strong> (<code>str | None</code>): 按连接种类过滤（"server" / "client" / "sse"）</li>
+</ul>
+<p><strong>返回值</strong> (<code>list</code>): 连接对象快照列表</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="stats-namespace-str-none-none-owner-str-none-none---dictstr-any"><code>stats(*, namespace: str | None = None, owner: str | None = None) -&gt; dict[str, Any]</code></h5>
+<p>连接池统计（各维度计数）</p>
+<ul>
+<li><strong>namespace</strong> (<code>str | None</code>): 先按命名空间过滤再统计</li>
+<li><strong>owner</strong> (<code>str | None</code>): 先按归属过滤再统计</li>
+</ul>
+<p><strong>返回值</strong> (<code>dict</code>): 含 total / by_kind / by_namespace / by_owner / groups</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">connections<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span><span class="token string">'total'</span><span class="token punctuation">:</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token string">'by_kind'</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">'server'</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">'sse'</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span>
+</code></pre>
+<hr>
+<h5 id="counts---dictstr-int"><code>counts() -&gt; dict[str, int]</code></h5>
+<p><strong>内部方法</strong>
+供 ownership.counts() 审计的登记簿计数</p>
+<hr>
+<h5 id="assignconnection_id-str-groups-str---none"><code>assign(connection_id: str, *groups: str) -&gt; None</code></h5>
+<p>将连接加入业务分组（管理侧被动分配）</p>
+<p>与连接侧 <code>conn.join_group(...)</code> 等价；分组命名完全由业务约定。
+连接断开时自动退出全部分组。</p>
+<ul>
+<li><strong>connection_id</strong> (<code>str</code>): 连接 id</li>
+<li><strong>groups</strong> (<code>str</code>): 一个或多个分组名</li>
+</ul>
+<p><strong>异常</strong>: <code>ConnectionNotFoundError</code> - 连接不存在或已断开</p>
+<hr>
+<h5 id="dismissconnection_id-str-groups-str---none"><code>dismiss(connection_id: str, *groups: str) -&gt; None</code></h5>
+<p>将连接移出业务分组</p>
+<ul>
+<li><strong>connection_id</strong> (<code>str</code>): 连接 id</li>
+<li><strong>groups</strong> (<code>str</code>): 一个或多个分组名；不传则退出全部分组</li>
+</ul>
+<p><strong>异常</strong>: <code>ConnectionNotFoundError</code> - 连接不存在或已断开</p>
+<hr>
+<h5 id="async-broadcastdata-any-namespace-str-none-none-owner-str-none-none-group-str-none-none-kind-str-none-none-ids-liststr-setstr-tuplestr-none-none-exclude-liststr-setstr-tuplestr-none-none-timeout-float-default_broadcast_timeout_secs-concurrency-int-default_broadcast_concurrency-raise_on_error-bool-false---broadcastresult"><code>async broadcast(data: Any, *, namespace: str | None = None, owner: str | None = None, group: str | None = None, kind: str | None = None, ids: list[str] | set[str] | tuple[str, ...] | None = None, exclude: list[str] | set[str] | tuple[str, ...] | None = None, timeout: float = DEFAULT_BROADCAST_TIMEOUT_SECS, concurrency: int = DEFAULT_BROADCAST_CONCURRENCY, raise_on_error: bool = False) -&gt; BroadcastResult</code></h5>
+<p>向过滤出的连接集合广播消息</p>
+<p>目标集合 = 各过滤条件（namespace / owner / group / kind）的交集；
+传入 <code>ids</code> 时以其为候选基准（过滤条件仍生效），<code>exclude</code> 最后剔除。
+每条连接独立计时（<code>timeout</code> 为单条超时而非总时长），单条失败不影响
+其他连接；WS 连接走 <code>send_json</code>，SSE 连接走 <code>send</code>。</p>
+<ul>
+<li><strong>data</strong> (<code>Any</code>): 广播数据（SSE 连接上非 str 数据自动 JSON 序列化）</li>
+<li><strong>namespace</strong> (<code>str | None</code>): 按服务端命名空间过滤</li>
+<li><strong>owner</strong> (<code>str | None</code>): 按归属 owner 过滤</li>
+<li><strong>group</strong> (<code>str | None</code>): 按业务分组过滤</li>
+<li><strong>kind</strong> (<code>str | None</code>): 按连接种类过滤</li>
+<li><strong>ids</strong>: 候选连接 id 集合（缺省为过滤条件命中的全部连接）</li>
+<li><strong>exclude</strong>: 需要排除的连接 id 集合</li>
+<li><strong>timeout</strong> (<code>float</code>): 单条连接的发送超时秒数 (默认: 10.0)</li>
+<li><strong>concurrency</strong> (<code>int</code>): 最大并发发送数 (默认: 64)</li>
+<li><strong>raise_on_error</strong> (<code>bool</code>): 存在失败项时在全部发送完成后抛出首个异常</li>
+</ul>
+<p><strong>返回值</strong> (<code>BroadcastResult</code>): 成败明细</p>
+<p><strong>异常</strong>: <code>Exception</code> - raise_on_error=True 且存在失败项时抛出首个错误</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span>
+    <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"kick"</span><span class="token punctuation">,</span> <span class="token string">"reason"</span><span class="token punctuation">:</span> <span class="token string">"full"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">,</span> exclude<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"room:1:ab12cd34"</span><span class="token punctuation">}</span>
+<span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token keyword">not</span> result<span class="token punctuation">.</span>ok<span class="token punctuation">:</span>
+    logger<span class="token punctuation">.</span>warning<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"广播部分失败: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">.</span>failed<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h5 id="async-closeconnection_id-str-force-bool-false---bool"><code>async close(connection_id: str, *, force: bool = False) -&gt; bool</code></h5>
+<p>关闭并注销指定连接</p>
+<ul>
+<li><strong>connection_id</strong> (<code>str</code>): 连接 id</li>
+<li><strong>force</strong> (<code>bool</code>): 跳过归属权限校验（框架回收路径使用）</li>
+</ul>
+<p><strong>返回值</strong> (<code>bool</code>): 连接是否存在（存在则已发起关闭）</p>
+<p><strong>异常</strong>: <code>ConnectionPermissionError</code> - 非 owner 关闭且未 force 时</p>
+<hr>
+<h5 id="async-close_ownerowner-str---int"><code>async close_owner(owner: str) -&gt; int</code></h5>
+<p>关闭并注销指定 owner 名下的全部连接</p>
+<p>模块卸载 / 适配器关闭链由框架自动调用：服务端 WS/SSE 与客户端出站
+连接一并回收（server 连接的 owner 即其注册模块名）。</p>
+<ul>
+<li><strong>owner</strong>: 归属者（模块名 / 平台名）</li>
+</ul>
+<p><strong>返回值</strong> (<code>int</code>): 发起关闭的连接数</p>
+<hr>
+<h5 id="clear-kind-str-none-none---int"><code>clear(*, kind: str | None = None) -&gt; int</code></h5>
+<p>注销登记（不关闭底层连接）</p>
+<p>服务器停止 / 管理器重置时由框架调用：连接随底层服务终止，
+仅需清空登记簿防止悬挂条目。</p>
+<p><strong>内部方法</strong></p>
+<ul>
+<li><strong>kind</strong> (<code>str | None</code>): 仅注销指定种类（如 "server"）；None 清空全部</li>
+</ul>
+<p><strong>返回值</strong> (<code>int</code>): 注销的连接数</p>
+<hr>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/api-reference/auto_api/ErisPulse/Core/config.html"><small>上一篇</small><br>`ErisPulse.Core.config` 模块</a>
+        <a class="doc-pager-next" href="/docs/api-reference/auto_api/ErisPulse/Core/constants.html"><small>下一篇</small><br>`ErisPulse.Core.constants` 模块</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>
