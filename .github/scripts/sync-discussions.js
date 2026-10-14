@@ -66,12 +66,20 @@ async function main() {
         if (list.length < PER_PAGE) break;
     }
 
+     
+     
+     
+    const newestUpdate = all.reduce(
+        (acc, d) => (d && d.updated_at && d.updated_at > acc ? d.updated_at : acc),
+        ''
+    );
+
     const out = {
         discussions: all.map(trimDiscussion),
         page: 1,
         per_page: PER_PAGE,
         last_page: 1,
-        generated_at: new Date().toISOString(),
+        generated_at: newestUpdate || new Date().toISOString(),
         source: 'actions-sync',
     };
 
