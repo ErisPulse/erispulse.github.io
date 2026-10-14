@@ -66,12 +66,20 @@ async function main() {
         if (list.length < PER_PAGE) break;
     }
 
+    // 确定性时间戳：取最新一条讨论的 updated_at（而非运行时刻）。
+    // 否则每次运行必然产生 diff，workflow 的「无变动不提交」守卫永远拦不住。
+    // 前端仅用它做数据新鲜度判断，语义上「数据截至最新讨论更新时间」更准确。
+    const newestUpdate = all.reduce(
+        (acc, d) => (d && d.updated_at && d.updated_at > acc ? d.updated_at : acc),
+        ''
+    );
+
     const out = {
         discussions: all.map(trimDiscussion),
         page: 1,
         per_page: PER_PAGE,
         last_page: 1,
-        generated_at: new Date().toISOString(),
+        generated_at: newestUpdate || new Date().toISOString(),
         source: 'actions-sync',
     };
 
