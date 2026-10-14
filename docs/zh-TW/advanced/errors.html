@@ -84,21 +84,28 @@
 <h2 id="異常總覽">異常總覽</h2>
 <pre><code class="language-text">ErisPulseError                      # 所有框架異常的基類
 ├── ClientError                     # HTTP/WS 客戶端請求異常基類（Core/client）
-│   ├── ClientConnectionError       # 連接層錯誤：DNS 解析失敗、連接被拒、網路不可達
+│   ├── ClientConnectionError       # 連接層錯誤：DNS 解析失敗、連接被拒絕、網路不可達
 │   ├── ClientTimeoutError          # 請求超時
 │   └── HTTPStatusError             # HTTP 狀態碼錯誤（如 4xx/5xx 且 raise_for_status）
 ├── WebSocketError                  # WebSocket 異常基類（Core/client 的 WS 連接）
 │   └── WebSocketDisconnect         # WebSocket 斷開連接（服務端/客戶端通用）
+├── ConnectionRegistryError         # 連接註冊表異常基類（Core/connections，2.10+）
+│   ├── ConnectionNotFoundError     # 連接不存在/已斷開註銷（connections.get/close）
+│   └── ConnectionPermissionError   # 非 owner 關閉他人連接（關閉權歸創建者）
 ├── StorageError                    # 存儲異常基類（Core/storage）
 │   └── StorageUnreachableError     # 存儲後端不可達（建池重試耗盡：資料庫不可達/憑證錯誤）
 ├── InteractionError                # 交互會話異常基類（Core/Event/interaction）
 │   ├── InteractionCancelled        # 掛起的等待/租約被取消（wait_reply 上層轉為返回 None）
 │   └── SessionOccupiedError        # 會話互斥租約被佔用（hold() 獲取失敗）
-├── ModuleError                     # 模塊系統異常基類（Core/module）
-│   └── ModuleCallError             # 模塊間調用異常基類
+├── ModuleError                     # 模組系統異常基類（Core/module）
+│   └── ModuleCallError             # 模組間呼叫異常基類
 │       ├── ModuleNotAvailableError # 目標模組未註冊/未啟用/初始化失敗（含懶加載訪問）
 │       ├── ServiceNotProvidedError # 目標模組未聲明該服務（meta.services 白名單外）
 │       └── ModuleCallTimeoutError  # 被調方法執行超時（預設 30s）
+├── ShadowError                     # 影子模組異常基類（Core/shadow）
+│   ├── ShadowStateError            # 狀態不滿足：目標未加載/已有活躍影子/未綁定影子（start/dismiss）
+│   ├── ShadowSourceError           # 影子源不可用：路徑不存在/加載器缺失/裝載失敗（start）
+│   └── ShadowPromoteError          # 轉正失敗：影子未註冊/未加載/加載器無快照/重載失敗（promote）
 └── StrictModeError                 # 嚴格模式致命違規（中止啟動流程，loaders/strict）
 </code></pre>
 <h2 id="結構化屬性">結構化屬性</h2>
@@ -123,6 +130,14 @@
 <td><code>.code</code> 關閉碼、<code>.reason</code> 關閉原因</td>
 </tr>
 <tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>.connection_id</code> 查找的連線 id</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td><code>.connection_id</code> 目標連線 id、<code>.owner</code> 連線歸屬 owner</td>
+</tr>
+<tr>
 <td><code>StorageUnreachableError</code></td>
 <td><code>.backend</code> 後端名（sqlite/mysql/postgres）、<code>.cooldown</code> 冷卻秒數</td>
 </tr>
@@ -140,7 +155,7 @@
 </tr>
 <tr>
 <td><code>SessionOccupiedError</code></td>
-<td><code>.wait_key</code> 會話鍵、<code>.owner</code> 佔用者</td>
+<td><code>.wait_key</code> 會話鍵、<code>.owner</code> 占用者</td>
 </tr>
 <tr>
 <td><code>StrictModeError</code></td>
@@ -183,7 +198,7 @@
 <tr>
 <td><code>HTTPStatusError</code></td>
 <td><code>raise_for_status()</code></td>
-<td>响應狀態碼為 4xx/5xx</td>
+<td>回應狀態碼為 4xx/5xx</td>
 </tr>
 </tbody></table></div>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientTimeoutError
@@ -213,6 +228,26 @@
 <td>對端正常斷開連接（框架會自動重連）</td>
 </tr>
 </tbody></table></div>
+<h3 id="連接註冊表系列-coreconnectionspy210">連接註冊表系列 — <code>Core/connections.py</code>（2.10+）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>異常</th>
+<th>發生位置</th>
+<th>典型場景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>connections.get</code> / <code>assign</code> / <code>dismiss</code> / <code>close</code></td>
+<td>連接 id 不存在或已斷開註銷</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td>非 owner 調用 <code>conn.close()</code></td>
+<td>跨模組關閉他人連接（發送與分組不受限）</td>
+</tr>
+</tbody></table></div>
 <h3 id="storage-系列-corestorage-corebasessql_basepy">Storage 系列 — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -230,16 +265,16 @@
 <tr>
 <td><code>StorageUnreachableError</code></td>
 <td>建池階段</td>
-<td>數據庫不可達 / 憑證錯誤 / 網路隔離，重試耗盡</td>
+<td>資料庫不可達 / 憑證錯誤 / 網路隔離，重試耗盡</td>
 </tr>
 </tbody></table></div>
 <blockquote>
-<p><strong>存儲操作的失敗語義</strong>：KV 與查詢操作<strong>預設不拋出</strong>——失敗時記錄 ERROR 日誌並
-返回 <code>False</code> / <code>None</code> / <code>default</code>（避免連接問題阻塞框架運行）。因此業務程式碼通常
-<strong>不會</strong>捕獲到 <code>StorageUnreachableError</code>（它主要供直接操作存儲底層或自訂後端使用）。
+<p><strong>儲存操作的失敗語義</strong>：KV 與查詢操作<strong>預設不拋出</strong>——失敗時記錄 ERROR 日誌並
+回傳 <code>False</code> / <code>None</code> / <code>default</code>（避免連接問題阻塞框架運行）。因此業務程式碼通常
+<strong>不會</strong>捕獲到 <code>StorageUnreachableError</code>（它主要供直接操作儲存底層或自訂後端使用）。
 運行時感知連接狀態請訂閱生命週期事件 <code>storage.unreachable</code> / <code>storage.recovered</code>
-（詳見<a href="/docs/zh-TW/advanced/lifecycle.html#%E5%AD%98%E5%84%B2%E9%80%A3%E6%8E%A5%E7%8B%80%E6%85%8B">生命週期事件</a>）。
-連接失敗行為詳見<a href="/docs/zh-TW/advanced/storage-backends.html#%E9%80%A3%E6%8E%A5%E5%A4%B1%E6%95%97%E8%A1%8C%E7%82%BA">存儲後端 → 連接失敗行為</a>。</p>
+（詳見<a href="/docs/zh-TW/advanced/lifecycle.html#%E5%84%B2%E5%AD%98%E9%80%A3%E6%8E%A5%E7%8B%80%E6%85%8B">lifecycle.md#儲存連接狀態</a>）。</p>
+<p>連接失敗行為詳見<a href="/docs/zh-TW/advanced/storage-backends.html#%E9%80%A3%E6%8E%A5%E5%A4%B1%E6%95%97%E8%A1%8C%E7%82%BA">儲存後端 → 連接失敗行為</a>。</p>
 </blockquote>
 <h3 id="interaction-coreeventinteractionpy">Interaction — <code>Core/Event/interaction.py</code></h3>
 <p><code>wait_reply</code> / 會話租約 / 提醒定時器相關：</p>
@@ -267,7 +302,7 @@
 <td>會話已被其他 owner 占用（<code>.owner</code> 可查占用者）</td>
 </tr>
 </tbody></table></div>
-<p>等待被取消（模組卸載 / 平台關閉 / 同會話新等待取代）時，<code>wait_reply</code> <strong>返回 <code>None</code></strong>
+<p>等待被取消（模組卸載 / 平台關閉 / 同會話新等待取代）時，<code>wait_reply</code> <strong>回傳 <code>None</code></strong>
 而不拋出異常（<code>InteractionCancelled</code> 在內部被轉換）；需要區分取消原因時才直接捕獲它。</p>
 <h3 id="module-系列-coremodulepysdkmodulecall">Module 系列 — <code>Core/module.py</code>（<code>sdk.module.call</code>）</h3>
 <div class="table-wrapper"><table>
@@ -301,7 +336,7 @@
 <tr>
 <td><code>ModuleCallTimeoutError</code></td>
 <td><code>module.call()</code></td>
-<td>被調協程超過超時時間（預設 30s）</td>
+<td>被呼叫協程超過超時時間（預設 30s）</td>
 </tr>
 </tbody></table></div>
 <p>"目標模組不可用"在不同存取路徑下的異常類型：</p>
@@ -334,10 +369,40 @@
 <span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目標模組未提供該服務</span>
 </code></pre>
+<h3 id="shadow-系列-coreshadowpy影子模組">Shadow 系列 — <code>Core/shadow.py</code>（影子模組）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>異常</th>
+<th>發生位置</th>
+<th>典型場景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ShadowError</code></td>
+<td>影子模組機制</td>
+<td>影子異常基類（統一捕獲所有影子錯誤）</td>
+</tr>
+<tr>
+<td><code>ShadowStateError</code></td>
+<td><code>shadow_start()</code> / <code>dismiss_shadow()</code></td>
+<td>目標未加載 / 已有活躍影子 / 未綁定影子</td>
+</tr>
+<tr>
+<td><code>ShadowSourceError</code></td>
+<td><code>shadow_start()</code></td>
+<td>源路徑不存在 / 插件加載器缺失 / 源無可加載類 / 裝載失敗</td>
+</tr>
+<tr>
+<td><code>ShadowPromoteError</code></td>
+<td><code>promote_shadow()</code></td>
+<td>影子未註冊 / 未加載 / 加載器不支援快照 / 轉正重載失敗</td>
+</tr>
+</tbody></table></div>
 <h3 id="框架內部參數校驗valueerror">框架內部參數校驗（ValueError）</h3>
-<p>存儲查詢建構器的參數校驗（空欄位類型、<code>Insert</code> 非 dict、不安全欄位類型等）拋標準
+<p>儲存查詢建構器的參數校驗（空欄位類型、<code>Insert</code> 非 dict、不安全欄位類型等）拋標準
 <code>ValueError</code>——這類屬於<strong>開發期編碼錯誤</strong>，正常業務程式碼不應捕獲，而應修正呼叫。</p>
-<p>適配器標準動作失敗<strong>不拋異常</strong>：返回帶 <code>retcode</code> 的響應字典（協定語義，如
+<p>適配器標準動作失敗<strong>不拋異常</strong>：回傳帶 <code>retcode</code> 的回應字典（協定語義，如
 <code>retcode=10002</code> 表示動作未實現）——與 client 層"失敗拋 <code>ClientError</code>"是兩條平行
 的錯誤通道，適配器開發時需同時處理。</p>
 <h2 id="捕獲建議">捕獲建議</h2>
@@ -364,7 +429,7 @@
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/zh-TW/advanced/storage-backends.html"><small>Previous</small><br>存儲後端</a>
-        <a class="doc-pager-next" href="/docs/zh-TW/advanced/startup.html"><small>Next</small><br>啟動流程與手動控制</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/connections.html"><small>Next</small><br>連接池與廣播</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

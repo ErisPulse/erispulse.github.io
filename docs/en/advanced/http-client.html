@@ -103,13 +103,26 @@ resp <span class="token operator">=</span> <span class="token keyword">await</sp
 data <span class="token operator">=</span> <span class="token keyword">await</span> resp<span class="token punctuation">.</span>json<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="websocket-connection">WebSocket Connection</h3>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> client   <span class="token comment"># 2.10+ root import (ErisPulse.Core.client deep path is still compatible)</span>
 
 ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
 
 <span class="token keyword">async</span> <span class="token keyword">for</span> text <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
+<h4 id="outbound-connections-automatically-pool-210">Outbound Connections Automatically Pool (2.10+)</h4>
+<p>Connections established by <code>ws_connect</code> are <strong>automatically registered</strong> into the framework connection pool by default (set <code>track=False</code> to disable):
+They can be viewed by <code>connections.list(owner=...)</code>, broadcasted to, and automatically unregistered when closed or disconnected remotely;
+<strong>When the module is unloaded or the adapter stops, the framework will close all outbound connections under its name uniformly</strong>, preventing leaks.</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> client<span class="token punctuation">,</span> connections
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>ws<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span> ws<span class="token punctuation">.</span>owner<span class="token punctuation">)</span>   <span class="token comment"># Already registered: connection id and owner</span>
+
+<span class="token comment"># When the owner context is unavailable (e.g., in a utility thread callback), explicitly specify the owner so it can be automatically recycled during unloading:</span>
+ws2 <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws2"</span><span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>See <a href="/docs/en/advanced/connections.html">Connection Pool and Broadcasting</a>.</p>
 <h2 id="httpresponse">HttpResponse</h2>
 <p>All request methods return an <code>HttpResponse</code> object:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> client

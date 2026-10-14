@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Система исключений и руководство по обработке - ErisPulse 文档中心</title>
-    <meta name="description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преоб..." />
+    <meta name="description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймво..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/errors.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
     <meta property="og:title" content="Система исключений и руководство по обработке - ErisPulse 文档中心" />
-    <meta property="og:description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преоб..." />
+    <meta property="og:description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймво..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/errors.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система исключений и руководство по обработке","description":"Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преоб...","url":"https://www.erisdev.com/docs/ru/advanced/errors.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система исключений и руководство по обработке","description":"Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймво...","url":"https://www.erisdev.com/docs/ru/advanced/errors.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,66 +73,81 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="система-исключений-и-руководство-по-обработке">Система исключений и руководство по обработке</h1>
-<p>Все пользовательские исключения ErisPulse наследуются от <code>ErisPulseError</code>, а исключения底层 библиотек (например, aiohttp, aiomysql и др.) перехватываются и преобразуются во внутренние исключения ErisPulse — код бизнес-логики <strong>не должен зависеть от типов исключений底层 библиотек</strong>.</p>
+<p>Все пользовательские исключения ErisPulse наследуются от <code>ErisPulseError</code>, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймворка и преобразованы в соответствующие исключения ErisPulse — код бизнес-логики <strong>не должен зависеть от типов исключений底层-библиотек</strong>.</p>
 <p>{!--&lt; tips &gt;!--}</p>
 <ol>
 <li>Для широкого перехвата: перехватите <code>ErisPulseError</code> (базовый класс всех исключений фреймворка)</li>
-<li>Для точного обработки: перехватите по модулю (например, <code>ModuleCallTimeoutError</code>, <code>StorageUnreachableError</code>)</li>
-<li>Операции с хранилищем по умолчанию не вызывают исключения: при сбое записывается в лог и возвращается <code>False / None / default</code>; изменение состояния подключения подписывается на события <code>storage.unreachable</code> / <code>storage.recovered</code>
+<li>Для точной обработки: перехватите по модулям (например, <code>ModuleCallTimeoutError</code>, <code>StorageUnreachableError</code>)</li>
+<li>Операции хранения по умолчанию не выбрасывают исключения: при сбое записывается в лог и возвращается <code>False / None / default</code>; подписывайтесь на события <code>storage.unreachable</code> / <code>storage.recovered</code> для отслеживания изменения состояния подключения
 {!--&lt; /tips &gt;!--}</li>
 </ol>
 <h2 id="обзор-исключений">Обзор исключений</h2>
 <pre><code class="language-text">ErisPulseError                      # Базовый класс всех исключений фреймворка
-├── ClientError                     # Базовый класс исключений HTTP/WS клиентов (Core/client)
-│   ├── ClientConnectionError       # Ошибки на уровне соединения: неудача DNS, отказ в соединении, недоступность сети
+├── ClientError                     # Базовый класс исключений HTTP/WS клиента (Core/client)
+│   ├── ClientConnectionError       # Ошибка на уровне соединения: неудача разрешения DNS, отказ в подключении, недоступность сети
 │   ├── ClientTimeoutError          # Ошибка таймаута запроса
-│   └── HTTPStatusError             # Ошибки HTTP статус-кода (например, 4xx/5xx и raise_for_status)
-├── WebSocketError                  # Базовый класс исключений WebSocket (WS соединения в Core/client)
-│   └── WebSocketDisconnect         # Отключение WebSocket (общее для сервера и клиента)
+│   └── HTTPStatusError             # Ошибка HTTP статус-кода (например, 4xx/5xx и raise_for_status)
+├── WebSocketError                  # Базовый класс исключений WebSocket (WebSocket соединение в Core/client)
+│   └── WebSocketDisconnect         # Отключение WebSocket (общее для сервера/клиента)
+├── ConnectionRegistryError         # Базовый класс исключений реестра соединений (Core/connections, 2.10+)
+│   ├── ConnectionNotFoundError     # Соединение не существует/было отключено и отменено (connections.get/close)
+│   └── ConnectionPermissionError   # Закрытие чужого соединения без прав (закрытие доступно только создателю)
 ├── StorageError                    # Базовый класс исключений хранилища (Core/storage)
-│   └── StorageUnreachableError     # Недостижимость хранилища (исчерпаны попытки подключения: недоступна база данных, ошибка учетных данных)
-├── InteractionError                # Базовый класс исключений взаимодействия (Core/Event/interaction)
-│   ├── InteractionCancelled        # Отмена ожидания/аренды (wait_reply возвращает None)
-│   └── SessionOccupiedError        # Исключение занятости сессии (hold() не удалось получить аренду)
-├── ModuleError                     # Базовый класс исключений модуля (Core/module)
+│   └── StorageUnreachableError     # Недоступен бэкенд хранилища (исчерпаны попытки подключения: недоступна база данных/ошибка учетных данных)
+├── InteractionError                # Базовый класс исключений интерактивной сессии (Core/Event/interaction)
+│   ├── InteractionCancelled        # Приостановленное ожидание/аренда отменена (wait_reply возвращает None)
+│   └── SessionOccupiedError        # Исключительная аренда сессии занята (hold() не удалось получить)
+├── ModuleError                     # Базовый класс исключений модульной системы (Core/module)
 │   └── ModuleCallError             # Базовый класс исключений вызова модуля
-│       ├── ModuleNotAvailableError # Целевой модуль не зарегистрирован/не включен/инициализация не удалась (включая ленивую загрузку)
-│       ├── ServiceNotProvidedError # Целевой модуль не объявил эту службу (не в белом списке meta.services)
-│       └── ModuleCallTimeoutError  # Выполнение вызываемого метода превысило таймаут (по умолчанию 30 сек.)
+│       ├── ModuleNotAvailableError # Целевой модуль не зарегистрирован/не активен/инициализация не удалась (включая ленивую загрузку)
+│       ├── ServiceNotProvidedError # Целевой модуль не объявил эту услугу (не в белом списке meta.services)
+│       └── ModuleCallTimeoutError  # Выполнение вызываемого метода превысило таймаут (по умолчанию 30s)
+├── ShadowError                     # Базовый класс исключений теневого модуля (Core/shadow)
+│   ├── ShadowStateError            # Недопустимое состояние: целевой модуль не загружен/уже есть активный теневой модуль/не привязан теневой модуль (start/dismiss)
+│   ├── ShadowSourceError           # Источник теневого модуля недоступен: путь не существует/отсутствует загрузчик/ошибка загрузки (start)
+│   └── ShadowPromoteError          # Ошибка повышения: теневой модуль не зарегистрирован/не загружен/загрузчик не имеет снимка/ошибка перезагрузки (promote)
 └── StrictModeError                 # Критическое нарушение строгого режима (прерывает процесс запуска, loaders/strict)
 </code></pre>
-<h2 id="структурированные-атрибуты">Структурированные атрибуты</h2>
-<p>После перехвата исключения можно получить структурированные атрибуты (без разбора текста сообщения):</p>
+<h2 id="структурированные-свойства">Структурированные свойства</h2>
+<p>После перехвата исключения можно получить структурированные свойства (без необходимости разбора текста сообщения):</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Исключение</th>
-<th>Атрибуты</th>
+<th>Свойства</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>ClientError</code> (включая подклассы)</td>
-<td><code>.url</code> URL запроса, <code>.method</code> метод запроса, <code>.attempts</code> количество попыток (когда исчерпаны попытки повтора)</td>
+<td><code>ClientError</code> (с подклассами)</td>
+<td><code>.url</code> URL запроса, <code>.method</code> метод запроса, <code>.attempts</code> количество попыток (когда исчерпаны повторные попытки)</td>
 </tr>
 <tr>
 <td><code>HTTPStatusError</code></td>
-<td><code>.status</code> код статуса, <code>.message</code> сообщение ответа</td>
+<td><code>.status</code> код состояния, <code>.message</code> сообщение ответа</td>
 </tr>
 <tr>
 <td><code>WebSocketDisconnect</code></td>
 <td><code>.code</code> код закрытия, <code>.reason</code> причина закрытия</td>
 </tr>
 <tr>
-<td><code>StorageUnreachableError</code></td>
-<td><code>.backend</code> имя хранилища (sqlite/mysql/postgres), <code>.cooldown</code> время охлаждения в секундах</td>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>.connection_id</code> идентификатор подключения</td>
 </tr>
 <tr>
-<td><code>ModuleCallError</code> (включая подклассы)</td>
-<td><code>.module</code> имя модуля, <code>.method</code> имя метода</td>
+<td><code>ConnectionPermissionError</code></td>
+<td><code>.connection_id</code> идентификатор целевого подключения, <code>.owner</code> владелец подключения</td>
+</tr>
+<tr>
+<td><code>StorageUnreachableError</code></td>
+<td><code>.backend</code> имя бэкенда (sqlite/mysql/postgres), <code>.cooldown</code> время охлаждения в секундах</td>
+</tr>
+<tr>
+<td><code>ModuleCallError</code> (с подклассами)</td>
+<td><code>.module</code> имя целевого модуля, <code>.method</code> имя целевого метода</td>
 </tr>
 <tr>
 <td><code>ModuleCallTimeoutError</code></td>
-<td>Наследует <code>.module/.method</code>, также <code>.timeout</code> лимит таймаута (сек.)</td>
+<td>Наследует <code>.module/.method</code>, также есть <code>.timeout</code> лимит времени ожидания (секунды)</td>
 </tr>
 <tr>
 <td><code>InteractionCancelled</code></td>
@@ -155,8 +170,8 @@
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Запрос не удался </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>method<span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>url<span class="token punctuation">}</span></span><span class="token string">, всего попыток </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">.</span>attempts<span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <h2 id="описание-исключений-и-места-их-возникновения">Описание исключений и места их возникновения</h2>
-<h3 id="клиентские-исключения-coreclientpy-corebasesclientpy">Клиентские исключения — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
-<p>Исключения возникают при отправке запросов через <code>sdk.client</code> / HTTP клиент и WebSocket клиент:</p>
+<h3 id="серия-исключений-client-coreclientpy-corebasesclientpy">Серия исключений Client — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
+<p>Исключения <code>sdk.client</code> / HTTP-клиента и WebSocket-клиента при发起 запросов:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -167,23 +182,23 @@
 </thead>
 <tbody><tr>
 <td><code>ClientError</code></td>
-<td>Уровень обертки запросов</td>
-<td>Другие ошибки клиента (исключения底层 aiohttp уже преобразованы)</td>
+<td>Уровень обёртки запросов</td>
+<td>Другие клиентские ошибки (низкоуровневые aiohttp-исключения уже преобразованы)</td>
 </tr>
 <tr>
 <td><code>ClientConnectionError</code></td>
 <td>Этап установки соединения</td>
-<td>Целевой сервис недоступен, DNS неудачен, соединение отклонено</td>
+<td>Целевой сервис недоступен, DNS-ошибка, соединение отклонено</td>
 </tr>
 <tr>
 <td><code>ClientTimeoutError</code></td>
 <td>Этап выполнения запроса</td>
-<td>Время запроса превышено</td>
+<td>Превышение времени ожидания запроса</td>
 </tr>
 <tr>
 <td><code>HTTPStatusError</code></td>
 <td><code>raise_for_status()</code></td>
-<td>Код статуса ответа 4xx/5xx</td>
+<td>Код состояния ответа 4xx/5xx</td>
 </tr>
 </tbody></table></div>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ClientTimeoutError
@@ -193,7 +208,7 @@
 <span class="token keyword">except</span> ClientTimeoutError<span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
-<h3 id="websocket-исключения-coreclientpy-методы-send-receive">WebSocket исключения — <code>Core/client.py</code> (методы <code>send</code> / <code>receive</code>)</h3>
+<h3 id="серия-исключений-websocket-coreclientpy-send-receive">Серия исключений WebSocket — <code>Core/client.py</code> (<code>send</code> / <code>receive</code>)</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -204,16 +219,36 @@
 </thead>
 <tbody><tr>
 <td><code>WebSocketError</code></td>
-<td>Методы отправки/приема WebSocket</td>
-<td>Соединение закрыто, получено неожиданное сообщение,底层 WebSocket исключения</td>
+<td>Методы WS-приёма/передачи</td>
+<td>Соединение закрыто, получено неожиданное сообщение, низкоуровневые WS-исключения</td>
 </tr>
 <tr>
 <td><code>WebSocketDisconnect</code></td>
-<td>Методы отправки/приема WebSocket</td>
-<td>Удаленный узел нормально закрыл соединение (фреймворк автоматически переподключится)</td>
+<td>Методы WS-приёма/передачи</td>
+<td>Удалённая сторона корректно разорвала соединение (фреймворк автоматически переподключится)</td>
 </tr>
 </tbody></table></div>
-<h3 id="исключения-хранилища-corestorage-corebasessql_basepy">Исключения хранилища — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
+<h3 id="серия-исключений-регистрации-соединений-coreconnectionspy-210">Серия исключений регистрации соединений — <code>Core/connections.py</code> (2.10+)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Место возникновения</th>
+<th>Типичные сценарии</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>connections.get</code> / <code>assign</code> / <code>dismiss</code> / <code>close</code></td>
+<td>Идентификатор соединения не существует или уже отключён</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td>Некорректный вызов <code>conn.close()</code></td>
+<td>Переключение модулей при закрытии чужого соединения (отправка и группы не ограничены)</td>
+</tr>
+</tbody></table></div>
+<h3 id="серия-исключений-storage-corestorage-corebasessql_basepy">Серия исключений Storage — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -224,21 +259,21 @@
 </thead>
 <tbody><tr>
 <td><code>StorageError</code></td>
-<td>Уровень хранилища</td>
-<td>Базовый класс исключений хранилища</td>
+<td>Уровень хранения</td>
+<td>Базовый класс исключений, связанных с хранением</td>
 </tr>
 <tr>
 <td><code>StorageUnreachableError</code></td>
 <td>Этап создания пула</td>
-<td>База данных недоступна / ошибка учетных данных / сетевая изоляция, исчерпаны попытки повтора</td>
+<td>База данных недоступна / неверные учетные данные / сетевая изоляция, исчерпаны попытки повтора</td>
 </tr>
 </tbody></table></div>
 <blockquote>
-<p><strong>Поведение при сбое операций с хранилищем</strong>: операции KV и запросов <strong>по умолчанию не вызывают исключений</strong> — при сбое записывается в лог уровня ERROR и возвращается <code>False</code> / <code>None</code> / <code>default</code> (чтобы избежать блокировки работы фреймворка). Следовательно, код бизнес-логики обычно <strong>не перехватывает</strong> <code>StorageUnreachableError</code> (исключение предназначено для прямого доступа к底层 хранилищу или пользовательских backends). Для отслеживания состояния подключения во время выполнения подписывайтесь на события жизненного цикла <code>storage.unreachable</code> / <code>storage.recovered</code> (см. <a href="/docs/ru/advanced/lifecycle.html#%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5-%D0%BF%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D1%8F-%D1%85%D1%80%D0%B0%D0%BD%D0%B8%D0%BB%D0%B8%D1%89%D0%B0">События жизненного цикла</a>).</p>
+<p><strong>Семантика неудачных операций хранения</strong>: Операции KV и запросов по умолчанию <strong>не выбрасывают</strong> исключений — в случае неудачи запись в лог ERROR и возврат <code>False</code> / <code>None</code> / <code>default</code> (чтобы избежать блокировки работы фреймворка из-за проблем с соединением). Следовательно, бизнес-код обычно <strong>не</strong> перехватывает <code>StorageUnreachableError</code> (он в основном используется для прямого взаимодействия с底层存储 или пользовательских backends). Для получения информации о состоянии соединения во время выполнения следует подписываться на события жизненного цикла <code>storage.unreachable</code> / <code>storage.recovered</code> (см. <a href="/docs/ru/advanced/lifecycle.html#%D0%A1%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5_%D1%81%D0%BE%D0%B5%D0%B4%D0%B8%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F_%D1%85%D1%80%D0%B0%D0%BD%D0%B8%D0%BB%D0%B8%D1%89%D0%B0">События жизненного цикла</a>).</p>
 </blockquote>
-<p>Поведение при сбое подключения см. <a href="/docs/ru/advanced/storage-backends.html#%D0%BF%D0%BE%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D1%80%D0%B8-%D1%81%D0%B1%D0%BE%D0%B5-%D0%BF%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D1%8F">Backends хранилища → Поведение при сбое подключения</a>.</p>
-<h3 id="исключения-взаимодействия-coreeventinteractionpy">Исключения взаимодействия — <code>Core/Event/interaction.py</code></h3>
-<p>Связанные с <code>wait_reply</code> / арендой сессии / таймером напоминаний:</p>
+<p>Поведение при неудачном подключении описано в разделе <a href="/docs/ru/advanced/storage-backends.html#%D0%9F%D0%BE%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5_%D0%BF%D1%80%D0%B8_%D0%BD%D0%B5%D1%83%D0%B4%D0%B0%D1%87%D0%BD%D0%BE%D0%BC_%D0%BF%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%D0%B8%D0%B8">Backend хранения → Поведение при неудачном подключении</a>.</p>
+<h3 id="взаимодействие-coreeventinteractionpy">Взаимодействие — <code>Core/Event/interaction.py</code></h3>
+<p><code>wait_reply</code> / сеанс аренды / таймер напоминания:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -249,22 +284,22 @@
 </thead>
 <tbody><tr>
 <td><code>InteractionError</code></td>
-<td>Уровень взаимодействия</td>
-<td>Базовый класс исключений взаимодействия</td>
+<td>Уровень взаимодействия сессии</td>
+<td>Базовый класс исключений сессии взаимодействия</td>
 </tr>
 <tr>
 <td><code>InteractionCancelled</code></td>
 <td>При отмене ожидания</td>
-<td>Устанавливается на future ожидания (ожидающий код может перехватить и получить <code>.reason</code>)</td>
+<td>Установлено на ожидаемом future (ожидание может перехватить и получить <code>.reason</code>)</td>
 </tr>
 <tr>
 <td><code>SessionOccupiedError</code></td>
 <td>При неудачной аренде <code>hold()</code></td>
-<td>Сессия уже занята другим <code>owner</code> (<code>.owner</code> содержит владельца)</td>
+<td>Сеанс уже занят другим владельцем (<code>.owner</code> позволяет узнать владельца)</td>
 </tr>
 </tbody></table></div>
-<p>При отмене ожидания (отключение модуля / завершение платформы / новое ожидание в той же сессии) <code>wait_reply</code> <strong>возвращает <code>None</code></strong>, а не вызывает исключение (внутри <code>InteractionCancelled</code> преобразуется); при необходимости различить причину отмены перехватывайте это исключение напрямую.</p>
-<h3 id="исключения-модулей-coremodulepy-sdkmodulecall">Исключения модулей — <code>Core/module.py</code> (<code>sdk.module.call</code>)</h3>
+<p>При отмене ожидания (выгрузка модуля / закрытие платформы / новое ожидание в той же сессии заменяет предыдущее), <code>wait_reply</code> <strong>возвращает <code>None</code></strong> вместо выброса исключения (<code>InteractionCancelled</code> внутренне преобразуется); для различения причин отмены следует перехватывать его напрямую.</p>
+<h3 id="серия-исключений-module-coremodulepy-sdkmodulecall">Серия исключений Module — <code>Core/module.py</code> (<code>sdk.module.call</code>)</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -276,7 +311,7 @@
 <tbody><tr>
 <td><code>ModuleError</code></td>
 <td>Система модулей</td>
-<td>Базовый класс исключений модулей</td>
+<td>Базовый класс исключений системы модулей</td>
 </tr>
 <tr>
 <td><code>ModuleCallError</code></td>
@@ -286,20 +321,20 @@
 <tr>
 <td><code>ModuleNotAvailableError</code></td>
 <td><code>module.call()</code> / ленивое получение атрибута</td>
-<td>Целевой модуль не зарегистрирован / не включен / инициализация не удалась</td>
+<td>Целевой модуль не зарегистрирован / не включён / инициализация не удалась</td>
 </tr>
 <tr>
 <td><code>ServiceNotProvidedError</code></td>
 <td><code>module.call()</code></td>
-<td>Целевой <code>meta.services</code> не объявил этот метод</td>
+<td>Метод не объявлен в белом списке <code>meta.services</code> целевого модуля</td>
 </tr>
 <tr>
 <td><code>ModuleCallTimeoutError</code></td>
 <td><code>module.call()</code></td>
-<td>Вызываемый корутина превысила лимит таймаута (по умолчанию 30 сек.)</td>
+<td>Вызываемая корутина превысила время ожидания (по умолчанию 30 сек.)</td>
 </tr>
 </tbody></table></div>
-<p>"Целевой модуль недоступен" в разных путях доступа:</p>
+<p>"Целевой модуль недоступен" в зависимости от пути доступа:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -316,8 +351,8 @@
 <td><code>ModuleNotAvailableError</code></td>
 </tr>
 <tr>
-<td><code>sdk.module.X</code> (при попытке доступа к неактивированному модулю)</td>
-<td><code>AttributeError</code> (Python-семантика атрибута, <code>hasattr</code> зависит от этой семантики)</td>
+<td><code>sdk.module.X</code> (при обращении к неактивированному модулю)</td>
+<td><code>AttributeError</code> (стандартное поведение Python, <code>hasattr</code> зависит от этой семантики)</td>
 </tr>
 </tbody></table></div>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases<span class="token punctuation">.</span>errors <span class="token keyword">import</span> ModuleNotAvailableError<span class="token punctuation">,</span> ServiceNotProvidedError
@@ -325,15 +360,45 @@
 <span class="token keyword">try</span><span class="token punctuation">:</span>
     history <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
 <span class="token keyword">except</span> ModuleNotAvailableError<span class="token punctuation">:</span>
-    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Целевой модуль не существует / не включен</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Целевой модуль не существует / не включён</span>
 <span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
-    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Целевой модуль не предоставляет эту службу</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Целевой модуль не предоставляет этот сервис</span>
 </code></pre>
-<h3 id="проверка-параметров-фреймворка-valueerror">Проверка параметров фреймворка (ValueError)</h3>
-<p>Проверка параметров построителя запросов хранилища (пустой тип столбца, <code>Insert</code> не dict, небезопасный тип столбца и т.д.) вызывает стандартный <code>ValueError</code> — такие исключения относятся к <strong>ошибкам в коде на этапе разработки</strong>, и обычный бизнес-код не должен их перехватывать, а должен исправлять вызов.</p>
-<p>Неудача стандартных действий адаптера <strong>не вызывает исключений</strong>: возвращается словарь с кодом ответа (протокольная семантика, например, <code>retcode=10002</code> означает, что действие не реализовано) — это параллельный канал ошибок, отличный от канала исключений <code>ClientError</code> в клиентском слое; при разработке адаптера необходимо обрабатывать оба канала.</p>
+<h3 id="серия-исключений-shadow-coreshadowpy-тенированные-модули">Серия исключений Shadow — <code>Core/shadow.py</code> (тенированные модули)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Исключение</th>
+<th>Место возникновения</th>
+<th>Типичные сценарии</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ShadowError</code></td>
+<td>Механизм тенирования</td>
+<td>Базовый класс исключений тенирования (общий перехват всех ошибок теней)</td>
+</tr>
+<tr>
+<td><code>ShadowStateError</code></td>
+<td><code>shadow_start()</code> / <code>dismiss_shadow()</code></td>
+<td>Цель не загружена / уже активная тень / тень не привязана</td>
+</tr>
+<tr>
+<td><code>ShadowSourceError</code></td>
+<td><code>shadow_start()</code></td>
+<td>Исходный путь не существует / отсутствует загрузчик плагинов / класс для загрузки отсутствует / загрузка не удалась</td>
+</tr>
+<tr>
+<td><code>ShadowPromoteError</code></td>
+<td><code>promote_shadow()</code></td>
+<td>Тень не зарегистрирована / не загружена / загрузчик не поддерживает снапшоты / неудачная перезагрузка при повышении</td>
+</tr>
+</tbody></table></div>
+<h3 id="внутренняя-проверка-параметров-фреймворка-valueerror">Внутренняя проверка параметров фреймворка (ValueError)</h3>
+<p>Проверка параметров строителя запросов к хранилищу (пустой тип столбца, <code>Insert</code> не dict, небезопасный тип столбца и т.д.) выбрасывает стандартный <code>ValueError</code> — такие ошибки относятся к <strong>ошибкам программирования на этапе разработки</strong>, нормальный бизнес-код не должен перехватывать их, а должен исправлять вызов.</p>
+<p>Неудача стандартных действий адаптера <strong>не выбрасывает исключений</strong>: возвращается словарь ответа с <code>retcode</code> (семантика протокола, например, <code>retcode=10002</code> означает, что действие не реализовано) — это параллельный канал ошибок по сравнению с <code>ClientError</code> на уровне клиента. При разработке адаптера необходимо обрабатывать оба канала.</p>
 <h2 id="рекомендации-по-перехвату">Рекомендации по перехвату</h2>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># Базовый класс экспортируется из Core</span>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># Базовый класс экспортируется через Core</span>
 
 <span class="token keyword">try</span><span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
@@ -341,18 +406,18 @@
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Общий перехват: все пользовательские исключения фреймворка</span>
 </code></pre>
 <ul>
-<li>При разработке модулей: перехватывайте по необходимости (см. таблицу выше), в самом внешнем блоке можно использовать <code>ErisPulseError</code> для общего перехвата</li>
-<li>Все исключения экспортируются из <code>ErisPulse.Core</code> (включая <code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code>), также можно импортировать из <code>ErisPulse.Core.Bases.errors</code></li>
+<li>При разработке модулей: перехватывайте по необходимости (см. таблицу выше), в самом внешнем уровне можно использовать <code>ErisPulseError</code> для общего перехвата</li>
+<li>Все исключения экспортируются через <code>ErisPulse.Core</code> (включая <code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code>), также можно импортировать из <code>ErisPulse.Core.Bases.errors</code></li>
 <li>Полное определение см. в <code>src/ErisPulse/Core/Bases/errors.py</code></li>
 </ul>
 <h2 id="скрытие-шума-при-завершении">Скрытие шума при завершении</h2>
-<p>Долгоживущие процессы при завершении (или отмене фоновых циклов) часто генерируют множество бесполезных сообщений от интерпретатора типа <code>Task was destroyed but it is pending!</code>. Фреймворк включает <strong>скрытие подобного шума</strong>: в 2-секундном окне одинаковые сообщения понижаются до уровня TRACE и объединяются с подсчетом, выводится только один раз, с суффиксом «(еще N одинаковых сообщений было скрыто)». Это преднамеренное уменьшение шума — появление суффикса скрытия не означает, что фреймворк "проглотил" реальные исключения, бизнес-исключения (вышеуказанные) выводятся полностью.</p>
+<p>В процессах, работающих долго, при завершении (или отмене фонового цикла) цикл событий часто выводит множество бесполезных сообщений вроде <code>Task was destroyed but it is pending!</code>, что вызывает шум. Фреймворк встроен с <strong>подавлением подобного шума</strong>: сообщения одного типа в 2-секундном окне понижаются до уровня TRACE и объединяются с подсчётом, выводится только один раз, в конце добавляется суффикс «(ещё N подобных сообщений было скрыто)». Это сознательное снижение шума — появление суффикса означает, что фреймворк не скрыл настоящих исключений, все бизнес-исключения (указанные в таблице выше) выводятся полностью и без скрытия.</p>
 
         </article>
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/ru/advanced/storage-backends.html"><small>Previous</small><br>Хранилище</a>
-        <a class="doc-pager-next" href="/docs/ru/advanced/startup.html"><small>Next</small><br>Процесс запуска и ручное управление</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/connections.html"><small>Next</small><br>Пул соединений и трансляция</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

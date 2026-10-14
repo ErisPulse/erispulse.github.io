@@ -289,17 +289,21 @@ lease <span class="token operator">=</span> sdk<span class="token punctuation">.
 </code></pre>
 <p>リースは <code>renew(ttl)</code> で延長が可能；TTL は惰性で期限切れになります。期限切れのリースは、次回アクセス時に自動的にクリーンアップされます。</p>
 <p><code>Conversation.resume()</code> が会話を再開する際、フレームワークは自動的にリースを取得します（<a href="/docs/ja/advanced/conversation.html">Conversation 多輪対話</a>の「復帰即接続」を参照）——復帰した会話は天然にセッションを保持し、他のモジュールが挿入されることはありません。</p>
-<h2 id="セッションの受信箱eventhistory">セッションの受信箱：event.history</h2>
-<p>各セッションの最近のメッセージの流れを統一的に記録します（ユーザーとロボット両方）。AI のコンテキスト、重複防止、行動分析などのモジュールの<strong>共有事実ベース</strong>として使用されます。各モジュールは個別に履歴を保存する必要がありません。</p>
-<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># 最近の 20 件、時間順に昇順</span>
+<h2 id="会話受信箱eventhistory">会話受信箱：event.history</h2>
+<blockquote>
+<p>保持戦略（7日間 / 条数上限）および実行時のオーバーライド API、リスク、監査については<a href="/docs/ja/advanced/transcript.html">会話受信箱</a>のトピックを参照してください。</p>
+</blockquote>
+<p>各会話における最近のメッセージの統一された記録（ユーザーとロボットの両方）は、AIコンテキスト、重複防止、行動分析などのモジュールにとって<strong>共有される事実の基盤</strong>として機能します。これにより、各モジュールが個別に履歴を保存する必要がなくなります。</p>
+<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># 現在の会話における最近20件のメッセージ、時系列昇順</span>
 <span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># role: "user" / "bot"</span>
 </code></pre>
 <ul>
-<li>自動記録：入力メッセージ（role=user）+ ロボットの出力テキスト（role=bot）</li>
-<li>ストレージ：個別の SQLite テーブル、制限戦略 = 各セッションの上限（デフォルト 50）+ グローバルの TTL（デフォルト 7 日）</li>
+<li>自動記録：入力メッセージ（role=user） + ロボットからの出力テキスト（role=bot）</li>
+<li>ストレージ：独立した SQLite テーブルを使用し、保持戦略は各会話の上限（デフォルトは50）とグローバルなTTL（デフォルトは7日間）に基づきます。</li>
+<li>書き込み方法：メモリバッファ + バックグラウンドでのバッチ書き込み（最大1秒の遅延）。クエリインターフェースは、まだ書き込まれていないバッファ行を自動的に結合します。同じプロセス内では「読み込みは書き込みを反映します」。通常の終了（<code>sdk.uninit</code> / プロセス終了）時には自動的にバッファをフラッシュします。<strong>ハードクラッシュや強制終了時には、直近約1秒の記録が失われる可能性があります</strong>：この基盤は最近のコンテキストのキャッシュとして位置付けられており、監査用の永続化には適していません。</li>
 <li>設定：<code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
-<li>マネージャー API：<code>sdk.transcript.append() / get() / clear()</code></li>
+<li>マネージャー API：<code>sdk.transcript.append() / get() / clear()</code>、<code>aflush()</code> / <code>flush()</code> 手動でフラッシュ</li>
 </ul>
 <h2 id="メッセージトランザクションmessage_tx">メッセージトランザクション：message_tx</h2>
 <p>トランザクション内のすべての出力メッセージは自動的に記帳されます。<strong>例外が発生した場合、逆順に自動的に既に送信されたメッセージを撤回</strong>します（アダプターが <code>delete_message</code> を実装していない場合はスキップされますが、帳簿は正常に記録されます）。</p>

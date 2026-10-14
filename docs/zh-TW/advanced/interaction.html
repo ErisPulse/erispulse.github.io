@@ -304,17 +304,21 @@ lease <span class="token operator">=</span> sdk<span class="token punctuation">.
 <a href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a>的「恢復即接管」）——
 恢復的對話天然持有會話，其他模組不會插入。</p>
 <h2 id="會話收件箱eventhistory">會話收件箱：event.history</h2>
+<blockquote>
+<p>保留策略（7 天 / 條數上限）與執行時覆蓋 API、風險與審計請參閱<a href="/docs/zh-TW/advanced/transcript.html">會話收件箱</a>專題。</p>
+</blockquote>
 <p>每會話近期訊息流的統一記錄（使用者 + 機器人雙方），作為 AI 上下文、
-防重複回覆、行為分析類模組的<strong>共享事實底座</strong>——各模組不再各自儲存歷史。</p>
+防重複發送、行為分析類模組的<strong>共享事實底座</strong>——各模組不再各自儲存歷史。</p>
 <pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># 當前會話最近 20 條，時間升序</span>
 <span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># role: "user" / "bot"</span>
 </code></pre>
 <ul>
 <li>自動記錄：入站訊息（role=user）+ 機器人出站文字（role=bot）</li>
-<li>儲存：獨立 SQLite 表，保留策略 = 每會話上限（預設 50）+ 全域 TTL（預設 7 天）</li>
+<li>儲存：獨立 SQLite 表，保留策略 = 每會話上限（預設 50）+ 全局 TTL（預設 7 天）</li>
+<li>寫入方式：記憶體緩衝 + 後台批量落盤（延遲最多 1 秒），查詢介面自動合併未落盤的緩衝行——同進程「讀你的寫」不受影響；正常退出（<code>sdk.uninit</code> / 進程退出）自動刷盤。<strong>硬體崩潰 / 強制終止時最近約 1 秒的記錄可能遺失</strong>：該底座定位為近期上下文快取，不適合作為審計級的永久儲存</li>
 <li>配置：<code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
-<li>管理器 API：<code>sdk.transcript.append() / get() / clear()</code></li>
+<li>管理器 API：<code>sdk.transcript.append() / get() / clear()</code>，<code>aflush()</code> / <code>flush()</code> 手動刷盤</li>
 </ul>
 <h2 id="消息事務message_tx">消息事務：message_tx</h2>
 <p>事務內的所有出站發送自動記帳；<strong>異常退出時逆序自動撤回</strong>已發送的訊息<br>（適配器未實作 <code>delete_message</code> 時跳過，帳本仍正常記錄）。</p>

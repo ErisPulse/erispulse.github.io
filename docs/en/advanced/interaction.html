@@ -74,21 +74,21 @@
         <article class="markdown-content" id="docs-content">
             <h1 id="interactive-session-system">Interactive Session System</h1>
 <div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p><br>This chapter requires ErisPulse <strong>2.8.0+</strong>.</p>
+<p>This chapter requires ErisPulse <strong>2.8.0+</strong>.</p>
 </div>
 <p>ErisPulse has made "continuous interaction with users" into a framework-level infrastructure: from a single <code>wait_reply</code>, to scheduled reminders, multi-path waiting, session mutual exclusion, and restart recovery, all are scheduled by a unified <strong>Interactive Session Manager</strong> (<code>Core/Event/interaction.py</code>, <code>sdk.interaction</code>).</p>
 <p>{!--&lt; tips &gt;!--}
-Each capability covered in this document comes with its own <strong>ownership (owner)</strong>: interaction waiting, leases, and timers all record the module name at registration time. When a module is unloaded or an adapter is closed, the framework automatically cleans up and immediately notifies the waiting party, rather than waiting for a timeout. This is an extension of the ownership system in the interaction dimension (see <a href="/docs/en/advanced/ownership.html">Ownership System</a>).
+Each capability covered in this article comes with a <strong>owner</strong> (owner): interaction waiting, lease, and timers all record the module name at registration time. When the module is unloaded or the adapter is closed, the framework automatically cleans up and the waiting party immediately receives a notification instead of waiting for a timeout — this is an extension of the ownership system in the interactive dimension (see <a href="/docs/en/advanced/ownership.html">Ownership System</a>).
 {!--&lt; /tips &gt;!--}</p>
 <h2 id="waiting-for-reply-wait_reply">Waiting for Reply: wait_reply</h2>
-<p><code>wait_reply</code> is the cornerstone of interactive sessions—suspending the current coroutine and waiting for a reply from the target user in the next message.</p>
+<p><code>wait_reply</code> is the cornerstone of interactive sessions — it suspends the current coroutine and waits for the target user to "reply" in the next message.</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
 
 <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ask"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ask_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>prompt<span class="token operator">=</span><span class="token string">"Please enter your name:"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
     <span class="token keyword">if</span> reply <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
-        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Timeout."</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Timed out"</span><span class="token punctuation">)</span>
         <span class="token keyword">return</span>
     <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Hello, </span><span class="token interpolation"><span class="token punctuation">{</span>reply<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">!"</span></span><span class="token punctuation">)</span>
 </code></pre>
@@ -103,7 +103,7 @@ Each capability covered in this document comes with its own <strong>ownership (o
 </thead>
 <tbody><tr>
 <td><code>prompt</code></td>
-<td>The prompt message sent before suspending</td>
+<td>The prompt message sent before suspension</td>
 <td>None</td>
 </tr>
 <tr>
@@ -113,27 +113,27 @@ Each capability covered in this document comes with its own <strong>ownership (o
 </tr>
 <tr>
 <td><code>pattern</code></td>
-<td>Glob filter (<code>*</code> / <code>?</code> / <code>[seq]</code>), continue waiting if not matched</td>
+<td>Glob filter (<code>*</code> / <code>?</code> / <code>[seq]</code>), continues waiting if not matched</td>
 <td>None</td>
 </tr>
 <tr>
 <td><code>regex</code></td>
-<td>Regular expression filter (must match if both pattern and regex are given), continue waiting if not matched</td>
+<td>Regex filter (must match both pattern and regex if both are given), continues waiting if not matched</td>
 <td>None</td>
 </tr>
 <tr>
 <td><code>validator</code></td>
-<td>Validation function (receives Event, returns bool), continue waiting if failed</td>
+<td>Validation function (receives Event, returns bool), continues waiting if failed</td>
 <td>None</td>
 </tr>
 <tr>
 <td><code>callback</code></td>
-<td>Callback when a reply is received (alternative to value-returning style)</td>
+<td>Callback when reply is received (alternative to return-value style)</td>
 <td>None</td>
 </tr>
 <tr>
 <td><code>method</code></td>
-<td>Method for sending the prompt</td>
+<td>Method to send the prompt</td>
 <td>"Text"</td>
 </tr>
 <tr>
@@ -145,11 +145,11 @@ Each capability covered in this document comes with its own <strong>ownership (o
 <pre><code class="language-python"><span class="token comment"># Only accepts numeric amounts, otherwise continues waiting</span>
 reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span><span class="token string">"Please enter the amount:"</span><span class="token punctuation">,</span> regex<span class="token operator">=</span><span class="token string">r"\d+\s*元"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Session-level waiting: for group collaboration, any group member's reply can match</span>
+<span class="token comment"># Session-level waiting: group collaboration scenario, any group member's reply can match</span>
 reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> prompt<span class="token operator">=</span><span class="token string">"Which expert can help answer?"</span><span class="token punctuation">)</span>
 </code></pre>
-<h3 id="when-will-waiting-be-cancelled">When Will Waiting Be Cancelled</h3>
-<p>Waiting is no longer "only waiting for timeout"—the following conditions will cause waiting to <strong>terminate immediately</strong> (<code>wait_reply</code> returns <code>None</code>), rather than letting the caller wait until timeout:</p>
+<h3 id="when-will-the-waiting-be-cancelled">When Will the Waiting Be Cancelled</h3>
+<p>Waiting is no longer "only waiting for timeout" — the following conditions will <strong>immediately terminate</strong> the waiting (returning <code>None</code> from <code>wait_reply</code>), instead of letting the caller wait until timeout:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -159,9 +159,9 @@ reply <span class="token operator">=</span> <span class="token keyword">await</s
 </tr>
 </thead>
 <tbody><tr>
-<td>Module owner is unloaded / disabled</td>
+<td>The owning module is unloaded / disabled</td>
 <td><code>owner_unload</code></td>
-<td>Ownership cleanup: whoever registered the waiting, when they disappear, it is reclaimed together</td>
+<td>Ownership cleanup: whoever registered the waiting, when it disappears, it is reclaimed together</td>
 </tr>
 <tr>
 <td>Adapter is stopped / restarted</td>
@@ -169,51 +169,51 @@ reply <span class="token operator">=</span> <span class="token keyword">await</s
 <td>All waiting suspended on this platform is cancelled</td>
 </tr>
 <tr>
-<td>Same session is replaced by new waiting / lease</td>
+<td>New waiting / lease replaces in the same session</td>
 <td><code>conflict</code></td>
 <td>See "Session Arbitration" below</td>
 </tr>
 <tr>
-<td>Replier is blacklisted / owner module is unbound</td>
+<td>The reply sender is blacklisted / owner module is unbound</td>
 <td><code>revoked</code></td>
-<td>Permission review for reply match: scope identity dimension + module dimension</td>
+<td>Permission review for reply matching: scope identity dimension + module dimension</td>
 </tr>
 <tr>
-<td>User reply matches</td>
+<td>Reply is received</td>
 <td>—</td>
-<td>Normal path, returns reply event</td>
+<td>Normal path, returns the reply event</td>
 </tr>
 </tbody></table></div>
-<p>The underlying exception is <code>InteractionCancelled</code> (part of the <code>InteractionError</code> exception hierarchy), and <code>wait_reply</code> has converted it to return <code>None</code>. Callers who need the reason can directly use the low-level API <code>sdk.interaction.register()</code>.</p>
+<p>The underlying exception is <code>InteractionCancelled</code> (under the <code>InteractionError</code> exception hierarchy), and <code>wait_reply</code> has converted it to return <code>None</code>. Callers who need the reason can directly use the low-level API <code>sdk.interaction.register()</code>.</p>
 <h3 id="complete-matching-chain-for-reply">Complete Matching Chain for Reply</h3>
-<p>When a reply message arrives, the interaction manager executes the following sequence of checks (executed before command matching, ensuring conversation continuity— even if the message has been claimed by another high-priority handler, the suspended conversation can still complete):</p>
-<pre><code>Session key match (exact user dimension → session-level fallback)
-  → pattern / regex text filtering (continue waiting if not matched)
-  → validator check (continue waiting if failed)
-  → permission review (scope identity dimension + owner module dimension, terminate if failed)
-  → wake up waiting party + claim event (mark_processed)
+<p>When a reply message arrives, the interactive manager executes the following sequence of determinations (executed before command matching, prioritizing conversation continuity — even if the message has been claimed by a higher-priority handler, the suspended conversation can still complete):</p>
+<pre><code>Session key match (precise user dimension → session-level fallback)
+  → pattern / regex text filtering (continues waiting if not matched)
+  → validator validation (continues waiting if failed)
+  → permission review (scope identity dimension + module dimension, fails then terminates waiting)
+  → wake up the waiting party + claim event (mark_processed)
 </code></pre>
 <h2 id="session-timers-remind-escalate">Session Timers: remind / escalate</h2>
-<p>Transform "timeout" from a return value into a composable primitive. Timers are attached to interactive sessions and are automatically cancelled when the module is unloaded or the adapter is stopped. The maximum number of active reminds per session is 5.</p>
+<p>Turn "timeout" from a return value into a composable primitive. Timers are attached to interactive sessions and are automatically cancelled when the module is unloaded or the adapter is stopped. The single session active remind limit is 5.</p>
 <h3 id="remind-remind-if-no-reply">remind: Remind if No Reply</h3>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ticket"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ticket_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"The ticket has been submitted. You will be notified here with the result."</span><span class="token punctuation">)</span>
-    <span class="token comment"># Remind gently after 5 minutes if no reply; any reply from the user will automatically cancel it</span>
-    event<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">,</span> <span class="token string">"Still there? We will notify you as soon as there is a result."</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"The ticket has been submitted, the processing result will be notified here."</span><span class="token punctuation">)</span>
+    <span class="token comment"># If there is no reply within 5 minutes, gently remind once; any reply from the user will automatically cancel it</span>
+    event<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">,</span> <span class="token string">"Are you still there? The result will be notified to you as soon as possible."</span><span class="token punctuation">)</span>
     reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">3600</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
 <ul>
-<li><code>event.remind(delay, text=None, *, callback=None)</code>: Sends <code>text</code> (or executes <code>callback(event)</code>, supports synchronous / asynchronous) to the current session when the timer expires. <strong>Mandatory validation</strong>: <code>text</code> and <code>callback</code> must be chosen exclusively (if neither is provided, <code>ValueError</code> is raised).</li>
-<li>Returns a <code>Reminder</code> handle: <code>reminder.cancel()</code> to manually cancel, <code>reminder.expired</code> to query status.</li>
-<li>Automatically cancelled when the user replies in the session—this is the semantic of "reminder": reminders only appear when the user is silent.</li>
-<li>Also available within <code>Conversation</code>: <code>conv.remind(120, "Still considering?")</code></li>
+<li><code>event.remind(delay, text=None, *, callback=None)</code>: Sends <code>text</code> (or executes <code>callback(event)</code>, supports synchronous / asynchronous) to the current session after <code>delay</code> expires. <strong>Mandatory validation</strong>: <code>text</code> and <code>callback</code> must be chosen exclusively (if neither is given, <code>ValueError</code> is thrown)</li>
+<li>Returns a <code>Reminder</code> handle: <code>reminder.cancel()</code> to manually cancel, <code>reminder.expired</code> to query status</li>
+<li>Automatically cancels after the user replies in this session — this is the semantics of "reminder": reminders only appear when the user is silent</li>
+<li>Also available within <code>Conversation</code>: <code>conv.remind(120, "Are you still considering?")</code></li>
 </ul>
-<h3 id="escalate-guaranteed-delivery-at-a-certain-time">escalate: Guaranteed Delivery at a Certain Time</h3>
+<h3 id="escalate-guaranteed-delivery-at-a-point-in-time">escalate: Guaranteed Delivery at a Point in Time</h3>
 <pre><code class="language-python">event<span class="token punctuation">.</span>escalate<span class="token punctuation">(</span><span class="token number">1800</span><span class="token punctuation">,</span> <span class="token keyword">lambda</span> e<span class="token punctuation">:</span> notify_master<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Ticket not processed for 30 minutes: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>get_command_args<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
-<p>The only difference from <code>remind</code>: <strong>not cancelled by user reply</strong>—escalation actions (notifying the owner, transferring to human support) are a "guaranteed timeout" promise, cancelled only by manual <code>cancel()</code> / module unload / adapter stop.</p>
+<p>The only difference from <code>remind</code>: <strong>not cancelled by user reply</strong> — escalation actions (notifying the master, transferring to human) are a "guaranteed delivery" promise, cancelled only by manual <code>cancel()</code> / module unload / adapter stop.</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -224,57 +224,57 @@ reply <span class="token operator">=</span> <span class="token keyword">await</s
 </thead>
 <tbody><tr>
 <td>Behavior on expiration</td>
-<td>Send text / execute callback</td>
-<td>Execute callback</td>
+<td>Sends text / executes callback</td>
+<td>Executes callback</td>
 </tr>
 <tr>
 <td>User reply</td>
-<td><strong>Automatically cancelled</strong></td>
+<td><strong>Automatically cancels</strong></td>
 <td>Unaffected</td>
 </tr>
 <tr>
 <td>Ownership cleanup (unload / stop platform)</td>
-<td>Cancelled</td>
-<td>Cancelled</td>
+<td>Cancels</td>
+<td>Cancels</td>
 </tr>
 <tr>
-<td>Maximum per session</td>
+<td>Single session limit</td>
 <td>5</td>
-<td>Unlimited (cleaned up by ownership cleanup)</td>
+<td>Unlimited (ownership cleanup as fallback)</td>
 </tr>
 </tbody></table></div>
 <h2 id="multi-path-waiting-expect-select">Multi-path Waiting: expect + select</h2>
-<p>Simultaneously suspends multiple expectations, <strong>first come, first served</strong>—typical scenarios: waiting for admin approval while also waiting for user withdrawal, or multi-person collaborative voting.</p>
+<p>Suspends multiple expectations simultaneously, <strong>first-come, first-served</strong> — typical scenarios: waiting for administrator approval while waiting for user withdrawal, or multi-person collaborative voting.</p>
 <pre><code class="language-python">which<span class="token punctuation">,</span> reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>select<span class="token punctuation">(</span>
     event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"Agree*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10001"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"Reject*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10002"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>validator<span class="token operator">=</span><span class="token keyword">lambda</span> e<span class="token punctuation">:</span> e<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"Suspended"</span><span class="token punctuation">,</span> session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>validator<span class="token operator">=</span><span class="token keyword">lambda</span> e<span class="token punctuation">:</span> e<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"Suspend"</span><span class="token punctuation">,</span> session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     timeout<span class="token operator">=</span><span class="token number">60</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 <span class="token keyword">if</span> which <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"No approval result received within 60 seconds."</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"No approval result received within 60 seconds"</span><span class="token punctuation">)</span>
 <span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Approved."</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Approved"</span><span class="token punctuation">)</span>
 <span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Rejected."</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Rejected"</span><span class="token punctuation">)</span>
 </code></pre>
 <ul>
-<li><code>event.expect(...)</code> constructs an <strong>expectation description</strong> (does not register any waiting): supports <code>pattern</code> / <code>regex</code> / <code>validator</code> / <code>user</code> (limits the replier) / <code>session</code> (anyone can reply).</li>
-<li><code>event.select(*expectations, timeout=60)</code>: Registers uniformly → returns <code>(index, reply event)</code> as soon as any match is found → unmet expectations are automatically cancelled; returns <code>(None, None)</code> if all timeout. <strong>Mandatory validation</strong>: at least one expectation must be provided, otherwise <code>ValueError</code> is raised.</li>
-<li>The matched event is claimed by the framework (<code>mark_processed</code>), and will not be consumed again by other handlers.</li>
+<li><code>event.expect(...)</code> constructs an <strong>expectation description</strong> (does not register any waiting): supports <code>pattern</code> / <code>regex</code> / <code>validator</code> / <code>user</code> (limits the replier) / <code>session</code> (anyone can reply)</li>
+<li><code>event.select(*expectations, timeout=60)</code>: Registers uniformly → returns <code>(index, reply event)</code> on first match → unmet expectations are automatically cancelled; all timeouts return <code>(None, None)</code>. <strong>Mandatory validation</strong>: at least one expectation must be passed, otherwise <code>ValueError</code> is thrown</li>
+<li>The matched event has been claimed by the framework (<code>mark_processed</code>), and will not be consumed repeatedly by other processors</li>
 </ul>
 <p>{!--&lt; tips &gt;!--}
-Compared to manually orchestrating with <code>asyncio.wait</code> in multithreading: unmet expectations are automatically cleaned up, matched events are automatically claimed, and permission review and ownership cleanup are all effective—no need to manage any Future yourself.
+Compared to manually orchestrating <code>select</code> with multi-threading <code>asyncio.wait</code>: unmet expectations are automatically cleaned up, matched events are automatically claimed, permission review and ownership cleanup all take effect — no need to manage any Future yourself.
 {!--&lt; /tips &gt;!--}</p>
 <h2 id="session-mutual-exclusion-acquire-hold-get_owner_of">Session Mutual Exclusion: acquire / hold / get_owner_of</h2>
-<p>Ownership moves from "resources" to "sessions"—"which module is currently occupying this session" becomes a first-class query.</p>
-<pre><code class="language-python"><span class="token comment"># Query: Who is currently interacting with this session? (Returns None if idle)</span>
+<p>Ownership moves from "resources" to "sessions" — "who is currently occupying this user" becomes a first-class query.</p>
+<pre><code class="language-python"><span class="token comment"># Query: who is currently interacting with this session? (Returns None if idle)</span>
 owner <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>get_owner_of<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
 <span class="token keyword">if</span> owner <span class="token keyword">and</span> owner <span class="token operator">!=</span> <span class="token string">"MyModule"</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span>  <span class="token comment"># Another module is already in conversation, avoid interruption</span>
 
 <span class="token comment"># Mutual exclusion lease: exclusive session (deny policy, returns None if occupied)</span>
-lease <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span>event<span class="token punctuation">)</span>          <span class="token comment"># Default TTL is 1 hour, can pass ttl=</span>
+lease <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span>event<span class="token punctuation">)</span>          <span class="token comment"># Default TTL 1 hour, ttl= can be passed</span>
 <span class="token keyword">if</span> lease <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span>  <span class="token comment"># Already occupied</span>
 <span class="token keyword">try</span><span class="token punctuation">:</span>
@@ -282,52 +282,56 @@ lease <span class="token operator">=</span> sdk<span class="token punctuation">.
 <span class="token keyword">finally</span><span class="token punctuation">:</span>
     lease<span class="token punctuation">.</span>release<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
-<p>Context manager form (throws <code>SessionOccupiedError</code> if acquisition fails):</p>
+<p>Context manager form (throws <code>SessionOccupiedError</code> on failure):</p>
 <pre><code class="language-python"><span class="token keyword">with</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>hold<span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token keyword">as</span> lease<span class="token punctuation">:</span>
-    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Lease is automatically released on exit</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Automatically released on exit</span>
 </code></pre>
-<p>Leases support <code>renew(ttl)</code> for renewal; TTL is lazily expired—expired leases are automatically cleaned up on next access.</p>
-<p>When <code>Conversation.resume()</code> restores a conversation, the framework automatically acquires the lease (see "Resumption as Takeover" in <a href="/docs/en/advanced/conversation.html">Conversation Multi-turn Dialogue</a>)—the resumed conversation naturally holds the session, and other modules cannot intervene.</p>
+<p>Leases support <code>renew(ttl)</code> renewal; TTL is lazily expired — expired leases are automatically cleaned up on next access.</p>
+<p><code>Conversation.resume()</code> automatically acquires leases when resuming conversations (see <a href="/docs/en/advanced/conversation.html">Conversation Multi-turn Dialogue</a>'s "Resume Takes Over") — resumed conversations naturally hold the session, and other modules cannot intervene.</p>
 <h2 id="session-inbox-eventhistory">Session Inbox: event.history</h2>
-<p>A unified record of recent message streams for each session (including both user and bot messages), serving as a shared factual foundation for AI context, anti-repetition, and behavioral analysis modules—modules no longer need to store history individually.</p>
-<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># The last 20 messages in the current session, in ascending time order</span>
+<blockquote>
+<p>Retention policies (7 days / maximum number of entries) and runtime override APIs, risks, and audits are covered in the <a href="/docs/en/advanced/transcript.html">Session Inbox</a> topic.</p>
+</blockquote>
+<p>A unified record of recent message streams per session (both user and bot), serving as a <strong>shared factual base</strong> for AI contexts, anti-spam, and behavior analysis modules — modules no longer store history individually.</p>
+<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># Recent 20 entries of current session, ascending by time</span>
 <span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># role: "user" / "bot"</span>
 </code></pre>
 <ul>
 <li>Automatic recording: inbound messages (role=user) + bot outbound text (role=bot)</li>
-<li>Storage: independent SQLite table, retention policy = per session limit (default 50) + global TTL (default 7 days)</li>
+<li>Storage: separate SQLite table, retention policy = per-session limit (default 50) + global TTL (default 7 days)</li>
+<li>Writing method: memory buffer + background batch persistence (delay up to 1 second), query interface automatically combines un-persisted buffer rows — "read your write" within the same process is unaffected; normal exit (<code>sdk.uninit</code> / process exit) automatically flushes to disk. <strong>Hard crash / forced kill may lose recent records for about 1 second</strong>: this base is positioned as a recent context cache, not suitable for audit-level persistence</li>
 <li>Configuration: <code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
-<li>Manager API: <code>sdk.transcript.append() / get() / clear()</code></li>
+<li>Manager API: <code>sdk.transcript.append() / get() / clear()</code>, <code>aflush()</code> / <code>flush()</code> to manually flush</li>
 </ul>
 <h2 id="message-transaction-message_tx">Message Transaction: message_tx</h2>
-<p>All outbound messages within a transaction are automatically logged; <strong>on abnormal exit, previously sent messages are automatically recalled in reverse order</strong> (skipped if the adapter does not implement <code>delete_message</code>, but the ledger is still recorded normally).</p>
+<p>All outbound sends within a transaction are automatically recorded; <strong>on abnormal exit, previously sent messages are automatically withdrawn in reverse order</strong> (skipped if adapter does not implement <code>delete_message</code>, but the ledger is still recorded normally).</p>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">with</span> event<span class="token punctuation">.</span>message_tx<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Processing, please wait"</span><span class="token punctuation">)</span>
-    result <span class="token operator">=</span> <span class="token keyword">await</span> do_something<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># If an exception is thrown here →</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Completed: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>   <span class="token comment"># The previous "processing" message is automatically recalled</span>
+    result <span class="token operator">=</span> <span class="token keyword">await</span> do_something<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># Exception thrown here →</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Completed: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>   <span class="token comment"># The previous "processing" is automatically withdrawn</span>
 </code></pre>
-<p>Outbound messages sent outside a transaction are not logged (zero overhead); <code>get_send_receipts()</code> can view receipts of messages already sent in the current transaction.</p>
+<p>Sends outside a transaction are not recorded (zero overhead); <code>get_send_receipts()</code> can view receipts of messages already sent in the current transaction.</p>
 <h2 id="trace-id">Trace ID</h2>
-<p>Each inbound event automatically receives a trace ID (reusing `event["id"], generated if missing), which is carried through:</p>
+<p>Each inbound event automatically receives a trace ID (reusing `event["id"], generates if missing), which is carried through:</p>
 <ul>
 <li>Handler context (<code>get_current_trace_id()</code> to read)</li>
-<li>Outbound sending (<code>[Send]</code> log line appends <code>[trace:...]</code>, <code>message.sending/sent</code> hooks have <code>trace_id</code> field)</li>
+<li>Outbound sends (<code>[Send]</code> log line appends <code>[trace:...]</code>, <code>message.sending/sent</code> hooks have <code>trace_id</code> field)</li>
 <li>Lifecycle hook data (dict automatically adds <code>_trace_id</code>)</li>
 <li>Directed events (<code>lifecycle.emit(..., to=...)</code>) and message transaction receipts</li>
 </ul>
-<p>When a message is processed by multiple modules, the entire chain can be connected using the same ID (logging / slow query / audit).</p>
+<p>When a message is processed by multiple modules in succession, the entire chain can be linked with the same ID (for logging / slow query / audit).</p>
 <h2 id="relationship-with-other-systems">Relationship with Other Systems</h2>
 <ul>
-<li><strong>Ownership</strong>: Waiting / leases / timers all record owner, and are reclaimed on unload (see <a href="/docs/en/advanced/ownership.html">Ownership System</a>)</li>
-<li><strong>Scope</strong>: Reply matching checks identity + module dimension; cross-module calls audit the outbound dimension (see <a href="/docs/en/advanced/scope.html">Scope</a>)</li>
-<li><strong>Conversation</strong>: Multi-turn dialogue is a state machine on top of interactive sessions (see <a href="/docs/en/advanced/conversation.html">Conversation</a>), and its waiting also enjoys all cancellation / review / ownership semantics described in this page.</li>
+<li><strong>Ownership</strong>: Waiting / lease / timers all record owner, and are reclaimed on unload (see <a href="/docs/en/advanced/ownership.html">Ownership System</a>)</li>
+<li><strong>Scope</strong>: Reply matching reviews identity + module dimension; cross-module calls audit exit dimension (see <a href="/docs/en/advanced/scope.html">Scope</a>)</li>
+<li><strong>Conversation</strong>: Multi-turn dialogue is a branch state machine above interactive sessions (see <a href="/docs/en/advanced/conversation.html">Conversation</a>), and its waiting enjoys all cancellation / review / ownership semantics described on this page</li>
 </ul>
 <h2 id="related-documentation">Related Documentation</h2>
 <ul>
 <li><a href="/docs/en/advanced/conversation.html">Conversation Multi-turn Dialogue</a> - Branch state machine, automatic checkpoints, and restart recovery</li>
-<li><a href="/docs/en/advanced/ownership.html">Ownership (owner) System</a> - Overview and design boundaries of ownership cleanup</li>
-<li><a href="/docs/en/advanced/scope.html">Scope (scope)</a> - Configuration of permission review and outbound audit</li>
+<li><a href="/docs/en/advanced/ownership.html">Ownership (owner) System</a> - Full view and design boundaries of ownership cleanup</li>
+<li><a href="/docs/en/advanced/scope.html">Scope (scope)</a> - Configuration method for permission review and exit audit</li>
 <li><a href="/docs/en/advanced/module-communication.html">Module-to-Module Communication</a> - Cross-module calls and directed events</li>
 </ul>
 

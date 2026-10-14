@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>會話收件箱（Transcript） - ErisPulse 文档中心</title>
+    <meta name="description" content="會話收件箱會自動記錄機器人收發的訊息（依會話鍵 platform:detail_type:target_id 組織）， 為對話恢復（event.history）、影子模組 diff、冷啟動回放等提供歷史資料。 本文檔說明它的儲存模型、保留策略旋鈕各保護什麼，以及執行時覆蓋 API 與放開限制的真實代價。" />
+    <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/transcript.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/transcript.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/transcript.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/transcript.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/transcript.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/transcript.html" />
+    <meta property="og:title" content="會話收件箱（Transcript） - ErisPulse 文档中心" />
+    <meta property="og:description" content="會話收件箱會自動記錄機器人收發的訊息（依會話鍵 platform:detail_type:target_id 組織）， 為對話恢復（event.history）、影子模組 diff、冷啟動回放等提供歷史資料。 本文檔說明它的儲存模型、保留策略旋鈕各保護什麼，以及執行時覆蓋 API 與放開限制的真實代價。" />
+    <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/transcript.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"會話收件箱（Transcript）","description":"會話收件箱會自動記錄機器人收發的訊息（依會話鍵 platform:detail_type:target_id 組織）， 為對話恢復（event.history）、影子模組 diff、冷啟動回放等提供歷史資料。 本文檔說明它的儲存模型、保留策略旋鈕各保護什麼，以及執行時覆蓋 API 與放開限制的真實代價。","url":"https://www.erisdev.com/docs/zh-TW/advanced/transcript.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 進階主題
+        <span class="doc-crumb-sep">/</span> <span>會話收件箱（Transcript）</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/transcript.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/transcript.html">English</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/transcript.html">繁體中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/transcript.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/transcript.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/transcript.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="會話收件箱transcript">會話收件箱（Transcript）</h1>
+<p>會話收件箱會自動記錄機器人收發的訊息（依會話鍵 <code>platform:detail_type:target_id</code> 組織），
+為對話恢復（<code>event.history</code>）、影子模組 diff、冷啟動回放等提供歷史資料。
+本文檔說明它的<strong>儲存模型、保留策略旋鈕各保護什麼</strong>，以及執行時覆蓋 API 與放開限制的真實代價。</p>
+<blockquote>
+<p>改限制前請先讀完「風險與審計」一節——每個旋鈕都有它存在的理由。</p>
+</blockquote>
+<h2 id="工作原理">工作原理</h2>
+<pre><code>訊息 ──append()──▶ 寫緩衝（記憶體 deque，硬上限 4096 行）
+                        │  每 1 秒批量落盤（單批 ≤64 行，單事務）
+                        ▼
+              storage 後端的 transcript 表（預設 sqlite）
+                        │  每 ~32 條追加惰性觸發一次保留清理
+                        ▼
+              ┌─ 按會話 FIFO 裁剪（max_per_session，預設 50 條）
+              └─ 全局 TTL 刪除（ttl_hours，預設 168 = 7 天）
+</code></pre>
+<p>三個層級的保護，各自防的是不同的風險：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>旋鈕</th>
+<th>預設值</th>
+<th>保護什麼</th>
+<th>關閉（=0）的後果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>寫緩衝上限</td>
+<td>4096 行（常量，不可調）</td>
+<td><strong>記憶體</strong>：儲存不可用期間的積壓不撐爆 RAM</td>
+<td>不可關閉——這是記憶體防線</td>
+</tr>
+<tr>
+<td>單條文字截斷</td>
+<td>2000 字符（常量，不可調）</td>
+<td>單條訊息的記憶體/磁碟佔用</td>
+<td>不可關閉</td>
+</tr>
+<tr>
+<td><code>max_per_session</code></td>
+<td>50 條/會話</td>
+<td><strong>磁碟增長</strong>：單會話歷史無限堆積</td>
+<td>該會話歷史無限增長</td>
+</tr>
+<tr>
+<td><code>ttl_hours</code></td>
+<td>168（7 天）</td>
+<td><strong>磁碟增長</strong>：全部會話的長期堆積</td>
+<td><code>transcript</code> 表無限增長</td>
+</tr>
+</tbody></table></div>
+<p>關鍵認知：<strong>寫緩衝有硬上限，所以放開保留策略不會直接撐爆記憶體</strong>；
+真正的風險在儲存層與下游消費者（見下節）。</p>
+<h2 id="配置">配置</h2>
+<pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.transcript</span><span class="token punctuation">]</span>
+<span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>          <span class="token comment"># 是否自動記錄</span>
+<span class="token key property">max_per_session</span> <span class="token punctuation">=</span> <span class="token number">50</span>    <span class="token comment"># 單會話保留條數（0 = 關閉該會話裁剪）</span>
+<span class="token key property">ttl_hours</span> <span class="token punctuation">=</span> <span class="token number">168.0</span>       <span class="token comment"># 全局保留時長（小時，0 = 永不清理）</span>
+</code></pre>
+<p>環境變數覆蓋同樣生效：<code>ERISPULSE_TRANSCRIPT_MAX_PER_SESSION</code>、<code>ERISPULSE_TRANSCRIPT_TTL_HOURS</code>。<br>配置變更熱生效（寫緩衝落盤節奏內，最多延遲 ~1 秒）。</p>
+<h2 id="運行時覆蓋-api">運行時覆蓋 API</h2>
+<p>需要在運行中動態調整（例如臨時為某個場景延長保留）時：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> transcript
+
+<span class="token comment"># 覆蓋（優先於配置；僅駐記憶體，重啟後恢復配置值）</span>
+transcript<span class="token punctuation">.</span>set_retention<span class="token punctuation">(</span>max_per_session<span class="token operator">=</span><span class="token number">500</span><span class="token punctuation">,</span> ttl_hours<span class="token operator">=</span><span class="token number">24</span> <span class="token operator">*</span> <span class="token number">30</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 查詢生效值與來源</span>
+transcript<span class="token punctuation">.</span>get_retention<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {'max_per_session': 500, 'ttl_hours': 720.0, 'overridden': ['max_per_session', 'ttl_hours']}</span>
+
+<span class="token comment"># 恢復按配置生效</span>
+transcript<span class="token punctuation">.</span>reset_retention<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>傳入 <code>0</code> = 關閉對應策略（會打 warning 日誌留痕）；負數拋 <code>ValueError</code>；</li>
+<li>覆蓋在下次保留清理時生效（懶惰，最多延遲 ~32 條追加的節奏）；</li>
+<li><code>transcript</code> 單例可從根包導入，也可 <code>sdk.transcript</code>。</li>
+</ul>
+<h2 id="風險與審計解除限制前必讀">風險與審計：解除限制前必讀</h2>
+<p>關閉 <code>max_per_session</code> / <code>ttl_hours</code>（或大幅調大）後，<code>transcript</code> 表會隨著訊息量 <strong>無限增長</strong>。後果鏈如下：</p>
+<ol>
+<li><strong>磁碟空間耗盡</strong>——sqlite 單一檔案持續膨脹，磁碟耗盡後框架儲存層將不可用；</li>
+<li><strong>查詢效能退化</strong>——<code>get()</code> / <code>recent()</code> / <code>get_by_trace()</code> 的掃描成本會隨著表增長而增加；</li>
+<li><strong>下游記憶體壓力（OOM 的真正來源）</strong>——將歷史整段載入記憶體的消費者（對話恢復帶歷史、面板全量拉取、你的業務程式碼 <code>get(session, n)</code> 取大量 n）會隨著表增長吃掉記憶體，在極端情況下會觸發 OOM kill。</li>
+</ol>
+<p><strong>解除限制前請自問三件事</strong>：要多久的歷史？要多大？誰來清理？<br>如果答案依賴「永遠不刪除」，正確做法通常是外置歸檔（定期把舊資料搬到專用資料庫），而不是讓收件箱無限保留。</p>
+<p>審計手段（定期檢查表規模）：</p>
+<pre><code class="language-python"><span class="token comment"># 經 ORM/SQL 建構器查行數與體積（以 sqlite 為例）</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> storage
+
+row <span class="token operator">=</span> storage<span class="token punctuation">.</span>Table<span class="token punctuation">(</span><span class="token string">"transcript"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>raw_sql<span class="token punctuation">(</span><span class="token string">"SELECT COUNT(*) AS n FROM transcript"</span><span class="token punctuation">)</span>
+</code></pre>
+<pre><code class="language-sql">-- 直接對 sqlite 檔案查詢（表體積）
+SELECT COUNT(*) FROM transcript;
+</code></pre>
+<p>收到 <code>保留策略已被關閉</code> 的 warning 日誌 = 有人以 0 關閉了策略，請確認是自己的操作。</p>
+<h2 id="與其它機制的邊界">與其它機制的邊界</h2>
+<ul>
+<li><strong>交互會話定時器 / wait_reply</strong>：見 <a href="/docs/zh-TW/advanced/interaction.html">交互會話系統</a>，與收件箱無關；</li>
+<li><strong>對話恢復的歷史帶回</strong>：<code>resume(with_history=N)</code> 從收件箱取最近 N 條——
+收件箱被裁剪後能帶回的歷史隨之變少（調大 <code>max_per_session</code> 可延長可恢復窗口）；</li>
+<li><strong>影子模組 diff</strong>：依賴 <code>get_by_trace</code> 鏈路查詢，TTL 過短的收件箱會縮短可 diff 窗口。</li>
+</ul>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/startup.html"><small>Previous</small><br>啟動流程與手動控制</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/ecosystem/README.html"><small>Next</small><br>生態模組</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

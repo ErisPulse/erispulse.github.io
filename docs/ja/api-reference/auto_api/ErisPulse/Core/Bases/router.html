@@ -90,6 +90,28 @@
 </ol>
 </blockquote>
 <hr>
+<h2 id="函数列表">函数列表</h2>
+<h3 id="responddata-any-none-status_code-int-200-message-str-none-none-headers-dictstr-str-none-none"><code>respond(data: Any = None, *, status_code: int = 200, message: str | None = None, headers: dict[str, str] | None = None)</code></h3>
+<p>构造 JSON 响应（HTTP 路由推荐返回方式）</p>
+<p>与"元组返回约定"配套的帮助函数：handler 直接返回 <code>respond(...)</code>
+或返回 <code>(body, status_code)</code> 元组均可在 FastAPI 层得到正确响应。
+<code>message</code> 会合并进响应体：data 为 dict 时浅拷贝后写入 <code>message</code> 键，
+其余情况构造 <code>{"message": ...}</code>。</p>
+<ul>
+<li><strong>data</strong> (<code>Any</code>): 响应体数据（dict 原样作为响应体；None 且无 message 时为空对象）</li>
+<li><strong>status_code</strong>: int HTTP 状态码 (默认: 200)</li>
+<li><strong>message</strong> (<code>str | None</code>): 附加的业务消息，写入响应体 <code>message</code> 键</li>
+<li><strong>headers</strong> (<code>dict[str, str] | None</code>): 额外响应头</li>
+</ul>
+<p><strong>返回值</strong> (<code>JSONResponse</code>): 可直接作为 handler 返回值</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>post</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/login"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">login</span><span class="token punctuation">(</span>request<span class="token punctuation">:</span> HttpRequest<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token keyword">not</span> valid<span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> respond<span class="token punctuation">(</span>message<span class="token operator">=</span><span class="token string">"unauthorized"</span><span class="token punctuation">,</span> status_code<span class="token operator">=</span><span class="token number">401</span><span class="token punctuation">)</span>
+    <span class="token keyword">return</span> respond<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> message<span class="token operator">=</span><span class="token string">"ok"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
 <h2 id="类列表">类列表</h2>
 <h3 id="class-httprequest"><code>class HttpRequest</code></h3>
 <p>HTTP 请求抽象封装</p>
@@ -229,9 +251,13 @@
         <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>msg<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="方法列表-2">方法列表</h4>
-<h5 id="__init__websocket"><code>__init__(websocket)</code></h5>
+<h5 id="__init__websocket-connection_id-str-namespace-str-owner-str-kind-str-server"><code>__init__(websocket, *, connection_id: str = '', namespace: str = '', owner: str = '', kind: str = 'server')</code></h5>
 <ul>
 <li><strong>websocket</strong> (<code>object</code>): 底层框架 WebSocket 对象 (fastapi.WebSocket)</li>
+<li><strong>connection_id</strong> (<code>str</code>): 连接池分配的连接 id（未登记时为空串）</li>
+<li><strong>namespace</strong> (<code>str</code>): 服务端路由命名空间</li>
+<li><strong>owner</strong> (<code>str</code>): 归属 owner（模块名 / 平台名）</li>
+<li><strong>kind</strong> (<code>str</code>): 连接种类（默认 "server"）</li>
 </ul>
 <hr>
 <h5 id="base_urlproperty-2"><code>base_url</code>（property）</h5>
@@ -281,8 +307,8 @@
 <li><strong>headers</strong>: Iterable[tuple[bytes, bytes]] | None 额外响应头 (可选)</li>
 </ul>
 <hr>
-<h5 id="async-closecode-int-1000-reason-str-none-none---none"><code>async close(code: int = 1000, reason: str | None = None) -&gt; None</code></h5>
-<p>关闭 WebSocket 连接</p>
+<h5 id="async-_closecode-int-1000-reason-str-none-none---none"><code>async _close(code: int = 1000, reason: str | None = None) -&gt; None</code></h5>
+<p>实际关闭动作（权限校验见基类 close）</p>
 <ul>
 <li><strong>code</strong> (<code>int</code>): 关闭码 (默认: 1000)</li>
 <li><strong>reason</strong> (<code>str | None</code>): 关闭原因 (可选)</li>
@@ -334,34 +360,40 @@
 </ul>
 <p><strong>内部方法</strong></p>
 <hr>
-<h3 id="class-sseemitter"><code>class SseEmitter</code></h3>
+<h3 id="class-sseemitter_connectionidentity"><code>class SseEmitter(_ConnectionIdentity)</code></h3>
 <p>SSE (Server-Sent Events) 事件发送器 — 服务器无关的 SSE 协议实现</p>
 <p>封装 SSE 协议的格式化细节，通过回调函数与服务器层解耦。
 无论底层是 FastAPI、aiohttp 还是其他 HTTP 框架，只需提供
 <code>on_send</code> 和 <code>on_close</code> 回调即可使用。</p>
-<p>自动生成事件 ID，支持自定义事件类型和重试间隔。</p>
+<p>自动生成事件 ID，支持自定义事件类型和重试间隔。
+连接经连接池登记后可被广播 / 分组 / 跨模块查看
+（kind 为 <code>"sse"</code>，<code>send</code> 即广播的目标方法）。</p>
 <blockquote>
 <p><strong>提示</strong></p>
 <ol>
 <li>由框架自动创建，模块开发者只需在 handler 中接收 sse 参数</li>
 <li><code>send()</code> 方法自动处理 JSON 序列化（非 str 数据转为 JSON）</li>
 <li>通过 <code>request</code> 属性可访问客户端请求（query params、headers 等）</li>
-<li>调用 <code>close()</code> 优雅关闭连接</li>
+<li>调用 <code>close()</code> 优雅关闭连接（默认校验归属权限）</li>
 </ol>
 </blockquote>
 <p><strong>示例</strong>:</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>sse</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/events"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">event_stream</span><span class="token punctuation">(</span>sse<span class="token punctuation">:</span> SseEmitter<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    sse<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"dashboard"</span><span class="token punctuation">)</span>
     <span class="token keyword">while</span> <span class="token boolean">True</span><span class="token punctuation">:</span>
         <span class="token keyword">await</span> sse<span class="token punctuation">.</span>send<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"msg"</span><span class="token punctuation">:</span> <span class="token string">"hello"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> event<span class="token operator">=</span><span class="token string">"update"</span><span class="token punctuation">)</span>
         <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="方法列表-3">方法列表</h4>
-<h5 id="__init__on_send-on_close-none-request-none"><code>__init__(on_send, on_close = None, request = None)</code></h5>
+<h5 id="__init__on_send-on_close-none-request-none-connection_id-str-namespace-str-owner-str-"><code>__init__(on_send, on_close = None, request = None, *, connection_id: str = '', namespace: str = '', owner: str = '')</code></h5>
 <ul>
 <li><strong>on_send</strong>: 回调函数，接收格式化后的 SSE 文本并发送到底层传输层</li>
 <li><strong>on_close</strong>: 可选回调函数，连接关闭时调用</li>
 <li><strong>request</strong>: 可选，底层 HTTP 请求对象</li>
+<li><strong>connection_id</strong> (<code>str</code>): 连接池分配的连接 id（未登记时为空串）</li>
+<li><strong>namespace</strong> (<code>str</code>): 服务端路由命名空间</li>
+<li><strong>owner</strong> (<code>str</code>): 归属 owner（模块名 / 平台名）</li>
 </ul>
 <hr>
 <h5 id="requestproperty"><code>request</code>（property）</h5>
@@ -404,9 +436,16 @@
 <span class="token keyword">await</span> sse<span class="token punctuation">.</span>send<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"error"</span><span class="token punctuation">:</span> <span class="token string">"boom"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> event<span class="token operator">=</span><span class="token string">"error"</span><span class="token punctuation">,</span> <span class="token builtin">id</span><span class="token operator">=</span><span class="token string">"err-1"</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="async-close---none-2"><code>async close() -&gt; None</code></h5>
-<p>关闭 SSE 连接</p>
-<p>安全方法，可多次调用。第一次调用时触发 <code>on_close</code> 回调。</p>
+<h5 id="async-close-force-bool-false---none"><code>async close(*, force: bool = False) -&gt; None</code></h5>
+<p>关闭 SSE 连接（默认校验归属权限）</p>
+<p>非 owner 模块关闭他人连接时抛出
+:class:<code>~ErisPulse.Core.Bases.errors.ConnectionPermissionError</code>；
+运行时上下文为空（框架内部路径 / 未归因代码）时放行。
+安全方法，可多次调用。第一次调用时触发 <code>on_close</code> 回调。</p>
+<ul>
+<li><strong>force</strong> (<code>bool</code>): 跳过权限校验（框架内部回收路径使用）</li>
+</ul>
+<p><strong>异常</strong>: <code>ConnectionPermissionError</code> - 跨 owner 关闭且未 force 时</p>
 <hr>
 
         </article>
