@@ -125,6 +125,12 @@ dict / list / tuple / set 递归处理；类对象（<code>type</code>）取
 脏队列的读路径会对值做深拷贝，标记必须在此过程中保持单例身份，
 供 <code>is</code> 判别。</p>
 <p><strong>内部方法</strong></p>
+<h3 id="class-_flushhandle"><code>class _FlushHandle</code></h3>
+<p><strong>内部方法</strong>
+<code>_write_timer</code> 兼容句柄</p>
+<p>延迟刷盘已由常驻 <code>config-watcher</code> 线程按 <code>_flush_deadline</code> 调度；
+本句柄仅为既有测试与退出路径保留 <code>_write_timer</code> 属性语义
+（"存在即有未落盘写入"），<code>cancel()</code> 为幂等空操作。</p>
 <h3 id="class-configmanager"><code>class ConfigManager</code></h3>
 <p>ConfigManager 类提供相关功能。</p>
 <h4 id="方法列表">方法列表</h4>
@@ -139,6 +145,9 @@ dict / list / tuple / set 递归处理；类对象（<code>type</code>）取
 <p>当用户手动编辑 <code>config.toml</code> 时，后台线程检测到 mtime 变化后
 自动重载缓存并发射 <code>config.updated</code> 生命周期事件。</p>
 <p><strong>内部方法</strong></p>
+<hr>
+<h5 id="_register_watcher_shutdownmanager-configmanager---noneclassmethod"><code>_register_watcher_shutdown(manager: 'ConfigManager') -&gt; None</code>（classmethod）</h5>
+<p><strong>内部方法</strong> 注册解释器关停时的 watcher 统一停止钩子（幂等）</p>
 <hr>
 <h5 id="_watch_config_file---none"><code>_watch_config_file() -&gt; None</code></h5>
 <p>记录配置文件的当前 mtime，用于后续检测外部修改</p>
@@ -278,6 +287,11 @@ POSIX 下额外 fsync 配置目录，尽力保证断电后替换结果不回退�
 <hr>
 <h5 id="_schedule_write---none"><code>_schedule_write() -&gt; None</code></h5>
 <p>安排延迟写入</p>
+<p>真实调度由常驻 <code>config-watcher</code> 线程承担（按 <code>_flush_deadline</code>
+睡到到期后刷盘），避免每次写入创建/取消 <code>threading.Timer</code>
+带来的线程创建开销（高频 setConfig 的热点）。
+<code>_write_timer</code> 保留为兼容句柄：既有测试与退出路径依赖其
+存在性与 <code>cancel()</code> 方法，语义为"存在即有未落盘写入"。</p>
 <p><strong>内部方法</strong></p>
 <hr>
 <h5 id="_check_cache_validity---none"><code>_check_cache_validity() -&gt; None</code></h5>
@@ -464,7 +478,7 @@ reload 时，未持久化的配置项会被丢弃，并重新从配置文件中�
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/client.html"><small>Previous</small><br>`ErisPulse.Core.client` 模块</a>
-        <a class="doc-pager-next" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/constants.html"><small>Next</small><br>`ErisPulse.Core.constants` 模块</a>
+        <a class="doc-pager-next" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/connections.html"><small>Next</small><br>`ErisPulse.Core.connections` 模块</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

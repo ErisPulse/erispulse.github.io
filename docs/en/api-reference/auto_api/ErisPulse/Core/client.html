@@ -192,6 +192,10 @@ data <span class="token operator">=</span> <span class="token keyword">await</sp
 <p>转换 aiohttp WSMessage 为 ErisPulse WSMessage</p>
 <p><strong>内部方法</strong></p>
 <hr>
+<h5 id="_note_closed---none"><code>_note_closed() -&gt; None</code></h5>
+<p><strong>内部方法</strong>
+远端断开感知：aiohttp 被动关闭不会经 close()，在接收路径同步注销登记</p>
+<hr>
 <h5 id="async-receive---wsmessage"><code>async receive() -&gt; WSMessage</code></h5>
 <p>接收原始消息</p>
 <p><strong>返回值</strong> (<code>WSMessage</code>): 消息对象</p>
@@ -216,8 +220,8 @@ data <span class="token operator">=</span> <span class="token keyword">await</sp
 <p><strong>返回值</strong> (<code>Any</code>): 解析后的 JSON 数据</p>
 <p><strong>异常</strong>: <code>WebSocketDisconnect</code> - 连接断开时</p>
 <hr>
-<h5 id="async-closecode-int-ws_close_normal-reason-str-none-none---none"><code>async close(code: int = WS_CLOSE_NORMAL, reason: str | None = None) -&gt; None</code></h5>
-<p>关闭 WebSocket 连接</p>
+<h5 id="async-_closecode-int-ws_close_normal-reason-str-none-none---none"><code>async _close(code: int = WS_CLOSE_NORMAL, reason: str | None = None) -&gt; None</code></h5>
+<p>实际关闭动作（权限校验见基类 close）</p>
 <ul>
 <li><strong>code</strong> (<code>int</code>): 关闭码 (默认: 1000)</li>
 <li><strong>reason</strong> (<code>str | None</code>): 关闭原因 (可选)</li>
@@ -290,20 +294,32 @@ ws <span class="token operator">=</span> <span class="token keyword">await</span
 <pre><code class="language-python">resp <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>request<span class="token punctuation">(</span><span class="token string">"GET"</span><span class="token punctuation">,</span> <span class="token string">"https://httpbin.org/get"</span><span class="token punctuation">,</span> params<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"q"</span><span class="token punctuation">:</span> <span class="token string">"test"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
 <hr>
-<h5 id="async-ws_connecturl-str-headers-dictstr-str-none-none-heartbeat-float-none-default_ws_client_heartbeat_secs-timeout-float-default_ws_client_connect_timeout_secs-kwargs---clientwebsocket"><code>async ws_connect(url: str, *, headers: dict[str, str] | None = None, heartbeat: float | None = DEFAULT_WS_CLIENT_HEARTBEAT_SECS, timeout: float = DEFAULT_WS_CLIENT_CONNECT_TIMEOUT_SECS, **kwargs) -&gt; ClientWebSocket</code></h5>
+<h5 id="async-ws_connecturl-str-headers-dictstr-str-none-none-heartbeat-float-none-default_ws_client_heartbeat_secs-timeout-float-default_ws_client_connect_timeout_secs-track-bool-true-owner-str-none-none-kwargs---clientwebsocket"><code>async ws_connect(url: str, *, headers: dict[str, str] | None = None, heartbeat: float | None = DEFAULT_WS_CLIENT_HEARTBEAT_SECS, timeout: float = DEFAULT_WS_CLIENT_CONNECT_TIMEOUT_SECS, track: bool = True, owner: str | None = None, **kwargs) -&gt; ClientWebSocket</code></h5>
 <p>建立 WebSocket 连接</p>
 <ul>
-<li><strong>url</strong>: str WebSocket 服务器 URL</li>
-<li><strong>headers</strong> (<code>dict[str, str] | None</code>): 额外请求头 (可选)</li>
-<li><strong>heartbeat</strong> (<code>float | None</code>): 心跳间隔秒数 (可选)</li>
-<li><strong>timeout</strong> (<code>float</code>): 连接超时秒数 (默认: DEFAULT_WS_CLIENT_CONNECT_TIMEOUT_SECS)</li>
-<li><strong>kwargs</strong>: 传递给底层 ws_connect 的额外参数</li>
+<li><p><strong>url</strong>: str WebSocket 服务器 URL</p>
+</li>
+<li><p><strong>headers</strong> (<code>dict[str, str] | None</code>): 额外请求头 (可选)</p>
+</li>
+<li><p><strong>heartbeat</strong> (<code>float | None</code>): 心跳间隔秒数 (可选)</p>
+</li>
+<li><p><strong>timeout</strong> (<code>float</code>): 连接超时秒数 (默认: DEFAULT_WS_CLIENT_CONNECT_TIMEOUT_SECS)</p>
+</li>
+<li><p><strong>track</strong> (<code>bool</code>): 是否将连接自动登记进连接池（默认 True）</p>
+</li>
+<li><p><strong>owner</strong> (<code>str | None</code>): 连接归属者（默认取当前 owner 上下文；</p>
+<pre><code>        上下文不可用时建议显式传模块名，卸载时框架按其统一关闭）
+</code></pre>
+</li>
+<li><p><strong>kwargs</strong>: 传递给底层 ws_connect 的额外参数</p>
+</li>
 </ul>
 <p><strong>返回值</strong>: ClientWebSocket WebSocket 连接对象</p>
 <p><strong>异常</strong>: <code>ClientConnectionError</code> - 连接失败</p>
 <p><strong>异常</strong>: <code>ClientError</code> - 其他客户端错误</p>
 <p><strong>示例</strong>:</p>
 <pre><code class="language-python">ws <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">,</span> heartbeat<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
+ws<span class="token punctuation">.</span><span class="token builtin">id</span>  <span class="token comment"># 已登记，可被 connections 查询/广播</span>
 <span class="token keyword">async</span> <span class="token keyword">for</span> text <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">await</span> ws<span class="token punctuation">.</span>send_text<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Echo: </span><span class="token interpolation"><span class="token punctuation">{</span>text<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>

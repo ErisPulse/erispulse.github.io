@@ -74,24 +74,24 @@
         <article class="markdown-content" id="docs-content">
             <h1 id="введение-в-разработку-адаптеров">Введение в разработку адаптеров</h1>
 <p>Это руководство поможет вам начать разработку адаптеров ErisPulse для подключения новых платформ сообщений.</p>
-<h2 id="общее-описание-адаптера">Общее описание адаптера</h2>
+<h2 id="адаптеры">Адаптеры</h2>
 <h3 id="что-такое-адаптер">Что такое адаптер</h3>
-<p>Адаптер — это мост между ErisPulse и различными платформами сообщений, который отвечает за:</p>
+<p>Адаптеры служат мостом между ErisPulse и различными платформами мессенджеров и отвечают за:</p>
 <ol>
-<li><strong>Прямое преобразование</strong>: получение событий платформы и их преобразование в стандартный формат OneBot12 (Converter)</li>
-<li><strong>Обратное преобразование</strong>: преобразование OneBot12-сегментов сообщений в вызовы API платформы (<code>Raw_ob12</code>)</li>
-<li><strong>Управление подключениями к платформе (WebSocket/WebHook)</strong></li>
-<li><strong>Предоставление унифицированного интерфейса отправки сообщений SendDSL</strong></li>
+<li><strong>Прямое преобразование</strong>: получение событий платформы и преобразование их в стандартный формат OneBot12 (Converter)</li>
+<li><strong>Обратное преобразование</strong>: преобразование сегментов сообщений OneBot12 в вызовы API платформы (<code>Raw_ob12</code>)</li>
+<li>управление подключением к платформе (WebSocket/WebHook)</li>
+<li>предоставление унифицированного интерфейса отправки сообщений SendDSL</li>
 </ol>
 <h3 id="архитектура-адаптера">Архитектура адаптера</h3>
 <pre><code class="language-mermaid">flowchart LR
     subgraph receive["Прямое преобразование (прием)"]
         direction TB
-        P1["События платформы"] --&gt; C1["Converter.convert()"] --&gt; O1["События в стандарте OneBot12"] --&gt; S1["Система событий"] --&gt; M1["Обработка модулями"]
+        P1["События платформы"] --&gt; C1["Converter.convert()"] --&gt; O1["События в стандарте OneBot12"] --&gt; S1["Система событий"] --&gt; M1["Обработка модулем"]
     end
     subgraph send["Обратное преобразование (отправка)"]
         direction TB
-        M2["Создание сообщения модулем"] --&gt; R1["Send.Raw_ob12()"] --&gt; N1["Вызов API платформы"] --&gt; R2["Стандартный формат ответа"]
+        M2["Модуль формирует сообщение"] --&gt; R1["Send.Raw_ob12()"] --&gt; N1["Вызовы API платформы"] --&gt; R2["Стандартный формат ответа"]
     end
 </code></pre>
 <h2 id="структура-каталогов">Структура каталогов</h2>
@@ -102,7 +102,7 @@
 ├── LICENSE                 # Лицензия
 └── MyAdapter/
     ├── __init__.py          # Точка входа пакета
-    ├── Core.py               # Главный класс адаптера
+    ├── Core.py               # Основной класс адаптера
     └── Converter.py          # Конвертер событий
 </code></pre>
 <h2 id="быстрый-старт">Быстрый старт</h2>
@@ -113,14 +113,14 @@
 <pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">project</span><span class="token punctuation">]</span>
 <span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">"ErisPulse-MyAdapter"</span>
 <span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"1.0.0"</span>
-<span class="token key property">description</span> <span class="token punctuation">=</span> <span class="token string">"Адаптер MyAdapter"</span>
+<span class="token key property">description</span> <span class="token punctuation">=</span> <span class="token string">"Платформенный адаптер MyAdapter"</span>
 <span class="token key property">readme</span> <span class="token punctuation">=</span> <span class="token string">"README.md"</span>
 <span class="token key property">requires-python</span> <span class="token punctuation">=</span> <span class="token string">"&gt;=3.10"</span>
 <span class="token key property">license</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">file</span> <span class="token punctuation">=</span> <span class="token string">"LICENSE"</span> <span class="token punctuation">}</span>
 <span class="token key property">authors</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span> <span class="token punctuation">{</span> <span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">"yourname"</span><span class="token punctuation">,</span> <span class="token key property">email</span> <span class="token punctuation">=</span> <span class="token string">"your@mail.com"</span> <span class="token punctuation">}</span> <span class="token punctuation">]</span>
 
 <span class="token key property">dependencies</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span>
-    <span class="token string">"ErisPulse&gt;=2.4.0"</span>  <span class="token comment"># aiohttp уже встроен в ErisPulse, обычно не нужно отдельно зависеть</span>
+    <span class="token string">"ErisPulse&gt;=2.4.0"</span>  <span class="token comment"># aiohttp встроен в ErisPulse, обычно отдельная зависимость не нужна</span>
 <span class="token punctuation">]</span>
 
 <span class="token punctuation">[</span><span class="token table class-name">project.urls</span><span class="token punctuation">]</span>
@@ -129,12 +129,12 @@
 <span class="token punctuation">[</span><span class="token table class-name">project.entry-points."erispulse.adapter"</span><span class="token punctuation">]</span>
 <span class="token key property">"MyAdapter"</span> <span class="token punctuation">=</span> <span class="token string">"MyAdapter:MyAdapter"</span>
 </code></pre>
-<h3 id="3-создание-главного-класса-адаптера">3. Создание главного класса адаптера</h3>
-<p>Рамка предоставляет декларативное управление конфигурацией с помощью <code>ConfigClass</code> / <code>AccountConfigClass</code>. Адаптеру нужно только объявить класс конфигурации, чтобы автоматически загружать, проверять и генерировать шаблон конфигурации.</p>
+<h3 id="3-создание-основного-класса-адаптера">3. Создание основного класса адаптера</h3>
+<p>Рамка предоставляет декларативное управление конфигурацией с помощью <code>ConfigClass</code> / <code>AccountConfigClass</code>, адаптеру нужно лишь объявить класс конфигурации, чтобы автоматически загружать, проверять и генерировать шаблон конфигурации.</p>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/Core.py</span>
 <span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
-<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> BaseAdapter
-<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig
+<span class="token comment"># Рекомендуется корневой импорт (2.10+): часто используемые символы импортируются напрямую из корневого пакета, глубокие пути по-прежнему совместимы</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> BaseConfig
 
 <span class="token decorator annotation punctuation">@dataclass</span>
 <span class="token keyword">class</span> <span class="token class-name">MyAdapterConfig</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -158,11 +158,11 @@
     <span class="token punctuation">)</span>
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># Объявление класса конфигурации, управление автоматически</span>
+    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># Объявление класса конфигурации, рамка автоматически управляет</span>
     
     <span class="token comment"># Не нужно переопределять __init__! Рамка автоматически обрабатывает:</span>
     <span class="token comment"># - self.sdk / self.logger автоматически устанавливаются</span>
-    <span class="token comment"># - self.cfg читается в реальном времени из конфигурации</span>
+    <span class="token comment"># - self.cfg читается в реальном времени</span>
     <span class="token comment"># - self.Send / self.Request автоматически инициализируются</span>
     
     <span class="token keyword">def</span> <span class="token function">_setup_converter</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -173,7 +173,7 @@
 <p>⚠️ <strong>О <code>__init__</code></strong>: В новой версии <code>BaseAdapter.__init__(self, sdk=None)</code> автоматически обрабатывает ссылку на SDK, инициализацию логирования и загрузку конфигурации. Большинству адаптеров <strong>не нужно переопределять <code>__init__</code></strong>. Подробнее см. <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">Примечания по <strong>init</strong></a>.</p>
 </blockquote>
 <blockquote>
-<p>⚠️ <strong>О <code>super().__init__()</code></strong>: <code>BaseAdapter.__init__()</code> отвечает за создание фабрик <code>Send</code> и <code>Request</code>. Если забыть вызвать, все операции отправки сообщений и запросов будут вызывать <code>AttributeError</code>. Подробнее см. <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">Примечания по <strong>init</strong></a>.</p>
+<p>⚠️ <strong>О <code>super().__init__()</code></strong>: <code>BaseAdapter.__init__()</code> отвечает за создание экземпляров фабрик <code>Send</code> и <code>Request</code>. Если забыть вызвать, все операции отправки сообщений и запросов будут вызывать <code>AttributeError</code>. Подробнее см. <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">Примечания по <strong>init</strong></a>.</p>
 </blockquote>
 <h3 id="4-реализация-обязательных-методов">4. Реализация обязательных методов</h3>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -181,7 +181,7 @@
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token triple-quoted-string string">"""Запуск адаптера (обязательно реализовать)"""</span>
-        <span class="token comment"># Регистрация маршрутов WebSocket или WebHook</span>
+        <span class="token comment"># Регистрация WebSocket или WebHook маршрута</span>
         router<span class="token punctuation">.</span>register_websocket<span class="token punctuation">(</span>
             module_name<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span>
             path<span class="token operator">=</span><span class="token string">"/ws"</span><span class="token punctuation">,</span>
@@ -195,20 +195,20 @@
             module_name<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span>
             path<span class="token operator">=</span><span class="token string">"/ws"</span>
         <span class="token punctuation">)</span>
-        <span class="token comment"># Очистка подключений и ресурсов</span>
+        <span class="token comment"># Очистка соединений и ресурсов</span>
         self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Адаптер остановлен"</span><span class="token punctuation">)</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token triple-quoted-string string">"""Вызов API платформы (обязательно реализовать)"""</span>
         <span class="token keyword">raise</span> NotImplementedError<span class="token punctuation">(</span><span class="token string">"Необходимо реализовать call_api"</span><span class="token punctuation">)</span>
 </code></pre>
-<h4 id="отправка-метасобытий">Отправка метасобытий</h4>
-<p>Адаптер должен активно отправлять метасобытия, чтобы система отслеживала состояние онлайн-бота. Это можно сделать одной строкой с помощью <code>emit_meta()</code>:</p>
+<h4 id="активная-отправка-мета-событий">Активная отправка мета-событий</h4>
+<p>Адаптер должен активно отправлять мета-события, чтобы рамка отслеживала состояние онлайн-бота. Использование <code>emit_meta()</code> позволяет выполнить это одной строкой:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_ws_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> websocket<span class="token punctuation">)</span><span class="token punctuation">:</span>
         bot_id <span class="token operator">=</span> self<span class="token punctuation">.</span>_get_bot_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-        <span class="token comment"># Бот вошёл в сеть</span>
+        <span class="token comment"># Бот в сети</span>
         <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"connect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> user_name<span class="token operator">=</span><span class="token string">"MyBot"</span><span class="token punctuation">)</span>
 
         <span class="token keyword">try</span><span class="token punctuation">:</span>
@@ -220,32 +220,32 @@
         <span class="token keyword">except</span> WebSocketDisconnect<span class="token punctuation">:</span>
             <span class="token keyword">pass</span>
         <span class="token keyword">finally</span><span class="token punctuation">:</span>
-            <span class="token comment"># Бот вышел из сети</span>
+            <span class="token comment"># Бот отключен</span>
             <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"disconnect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>Подробнее о управлении состоянием бота и метасобытиях см. <a href="/docs/ru/developer-guide/adapters/best-practices.html#bot-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E4%B8%8E-meta-%E4%BA%8B%E4%BB%B6">Рекомендации по адаптерам - Управление состоянием бота и метасобытия</a>.</p>
+<p>Подробное руководство по управлению состоянием бота и мета-событиям см. в <a href="/docs/ru/developer-guide/adapters/best-practices.html#bot-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E4%B8%8E-meta-%E4%BA%8B%E4%BB%B6">Рекомендациях по лучшим практикам адаптера - Управление состоянием бота и мета-события</a>.</p>
 </blockquote>
 <h3 id="5-реализация-класса-send">5. Реализация класса Send</h3>
-<p>Декораторы <code>At</code>/<code>AtAll</code>/<code>Reply</code> уже реализованы в базовом классе SendDSL, адаптеру нужно только реализовать <code>Raw_ob12</code> и конкретные методы отправки.</p>
+<p>Модификаторы <code>At</code>/<code>AtAll</code>/<code>Reply</code> уже реализованы в базовом классе SendDSL, адаптеру нужно лишь реализовать <code>Raw_ob12</code> и конкретные методы отправки.</p>
 <p>Рамка предоставляет два ключевых вспомогательных метода:</p>
 <ul>
-<li><code>self._apply_modifiers(message)</code> — автоматически объединяет At/AtAll/Reply декораторы в сегменты сообщения</li>
+<li><code>self._apply_modifiers(message)</code> — автоматически объединяет модификаторы At/AtAll/Reply в сегменты сообщения</li>
 <li><code>self.send_context</code> — получает словарь контекста отправки (<code>target_type</code>, <code>target_id</code>, <code>account_id</code>)</li>
 </ul>
 <pre><code class="language-python"><span class="token keyword">import</span> asyncio
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token comment"># ... остальной код ...</span>
-    
+    <span class="token comment"># ... другие код ...</span>
+
     <span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
 
         <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
             <span class="token triple-quoted-string string">"""
             Отправка сообщения в формате OneBot12 (обязательно реализовать)
 
-            Использование _apply_modifiers для автоматического объединения состояния декораторов,
-            использование send_context для получения контекста отправки.
+            Использование _apply_modifiers автоматически объединяет состояние модификаторов,
+            использование send_context получает контекст отправки.
             """</span>
             <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
                 segments <span class="token operator">=</span> self<span class="token punctuation">.</span>_apply_modifiers<span class="token punctuation">(</span>message<span class="token punctuation">)</span>
@@ -257,29 +257,29 @@
                 <span class="token punctuation">)</span>
             <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>_do_send<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 
-        <span class="token comment"># Методы Text/Image/Voice/Video/File уже унаследованы от базового класса SendDSL,</span>
-        <span class="token comment"># по умолчанию делегируют Raw_ob12, повторная реализация не требуется.</span>
-        <span class="token comment"># Если нужны платформенно-специфические логики, можно переопределить отдельные методы:</span>
+        <span class="token comment"># Text/Image/Voice/Video/File унаследованы от базового класса SendDSL,</span>
+        <span class="token comment"># по умолчанию делегируются в Raw_ob12, повторная реализация не нужна.</span>
+        <span class="token comment"># Если нужна платформенно-специфическая логика, можно переопределить отдельные методы:</span>
         <span class="token comment"># def Text(self, text: str):</span>
         <span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
 </code></pre>
-<p><strong>Особенности реализации методов отправки медиа-файлов (Image/Video/File):</strong></p>
+<p><strong>Особенности реализации методов отправки медиа (Image/Video/File):</strong></p>
 <ul>
-<li>Базовая реализация по умолчанию упаковывает параметр <code>file</code> в сегмент OneBot12 и передаёт в <code>Raw_ob12</code>, адаптер должен обрабатывать загрузку/передачу в <code>Raw_ob12</code></li>
-<li>Параметр <code>file</code> должен поддерживать как <code>bytes</code> (бинарные данные), так и <code>str</code> (URL)</li>
-<li>При передаче URL необходимо сначала загрузить файл, а затем загрузить на платформу</li>
-<li>Платформа обычно требует сначала вызвать загрузочный API для получения идентификатора файла, а затем вызвать API отправки</li>
+<li>Стандартная реализация базового класса封装ирует параметр <code>file</code> в сегмент OneBot12 и передает в <code>Raw_ob12</code>, адаптер должен обработать загрузку/загрузку в <code>Raw_ob12</code></li>
+<li>Параметр <code>file</code> должен поддерживать как двоичные данные <code>bytes</code>, так и URL <code>str</code></li>
+<li>При передаче URL необходимо сначала загрузить файл, а затем загрузить его на платформу</li>
+<li>Платформа обычно требует сначала вызвать интерфейс загрузки для получения идентификатора файла, а затем вызвать интерфейс отправки</li>
 </ul>
-<p><strong>Метод <code>__getattr__</code>:</strong></p>
+<p><strong>Метод <code>__getattr__</code> магии:</strong></p>
 <ul>
-<li>Реализация методов нечувствительна к регистру (<code>Text</code>, <code>text</code>, <code>TEXT</code> вызывают один и тот же метод)</li>
-<li>Неопределённые методы должны возвращать информационное сообщение, а не вызывать ошибку</li>
+<li>Реализация методов без учета регистра (Text, text, TEXT могут быть вызваны)</li>
+<li>Неопределенные методы должны возвращать информационное сообщение, а не вызывать ошибку</li>
 </ul>
 <p><strong>Метод <code>Raw_ob12</code>:</strong></p>
 <ul>
 <li>Преобразует стандартный формат OneBot12 в формат платформы для отправки</li>
-<li>Использует <code>self._apply_modifiers(message)</code> для автоматической обработки декораторов At/AtAll/Reply</li>
-<li>Использует <code>**self.send_context</code> для передачи информации о цели и аккаунте</li>
+<li>Использует <code>self._apply_modifiers(message)</code> для автоматической обработки модификаторов At/AtAll/Reply</li>
+<li>Использует <code>**self.send_context</code> для передачи информации о цели отправки и учетной записи</li>
 </ul>
 <h3 id="6-реализация-конвертера">6. Реализация конвертера</h3>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/Converter.py</span>
@@ -288,7 +288,7 @@
 
 <span class="token keyword">class</span> <span class="token class-name">MyPlatformConverter</span><span class="token punctuation">:</span>
     <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Преобразование событий платформы в стандартный формат OneBot12"""</span>
+        <span class="token triple-quoted-string string">"""Преобразование оригинального события платформы в стандартный формат OneBot12"""</span>
         <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
             <span class="token keyword">return</span> <span class="token boolean">None</span>
         
@@ -317,21 +317,21 @@
         <span class="token keyword">return</span> type_map<span class="token punctuation">.</span>get<span class="token punctuation">(</span>event_type<span class="token punctuation">,</span> <span class="token string">"unknown"</span><span class="token punctuation">)</span>
     
     <span class="token keyword">def</span> <span class="token function">_convert_detail_type</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Преобразование детального типа"""</span>
-        <span class="token keyword">return</span> <span class="token string">"private"</span>  <span class="token comment"># Упрощённый пример</span>
+        <span class="token triple-quoted-string string">"""Преобразование подробного типа"""</span>
+        <span class="token keyword">return</span> <span class="token string">"private"</span>  <span class="token comment"># Упрощенный пример</span>
 </code></pre>
-<h3 id="7-реализация-класса-request-операции-запросов">7. Реализация класса Request (операции запросов)</h3>
-<p>Если платформа поддерживает запросы, такие как запросы на добавление в друзья, приглашения в группы, где боту нужно принять решение, можно реализовать внутренний класс <code>Request</code>:</p>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> RequestDSL
+<h3 id="7-реализация-класса-request-операции-запроса">7. Реализация класса Request (операции запроса)</h3>
+<p>Если ваша платформа поддерживает запросы от друзей, приглашения в группы и т.д., требующие принятия решения ботом, можно реализовать внутренний класс <code>Request</code>:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> RequestDSL
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token comment"># ... Send и другие коды ...</span>
+    <span class="token comment"># ... код Send и другие код ...</span>
 
     <span class="token keyword">class</span> <span class="token class-name">Request</span><span class="token punctuation">(</span>RequestDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Реализация операций запросов (запросы на добавление, приглашения и т.д.)"""</span>
+        <span class="token triple-quoted-string string">"""Реализация операций запроса (запросы от друзей, приглашения в группы и т.д.)"""</span>
 
         <span class="token keyword">def</span> <span class="token function">accept</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
-            <span class="token triple-quoted-string string">"""Принять запрос"""</span>
+            <span class="token triple-quoted-string string">"""Согласие с запросом"""</span>
             <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
                 result <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
                     endpoint<span class="token operator">=</span><span class="token string">"/set_request"</span><span class="token punctuation">,</span>
@@ -349,7 +349,7 @@
             <span class="token keyword">return</span> self<span class="token punctuation">.</span>_create_task<span class="token punctuation">(</span>_do<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 
         <span class="token keyword">def</span> <span class="token function">reject</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
-            <span class="token triple-quoted-string string">"""Отклонить запрос"""</span>
+            <span class="token triple-quoted-string string">"""Отказ от запроса"""</span>
             <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
                 result <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
                     endpoint<span class="token operator">=</span><span class="token string">"/set_request"</span><span class="token punctuation">,</span>
@@ -366,39 +366,39 @@
                 <span class="token punctuation">}</span>
             <span class="token keyword">return</span> self<span class="token punctuation">.</span>_create_task<span class="token punctuation">(</span>_do<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
-<p>Способ использования модулями:</p>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> request
+<p>Способ использования для разработчиков модулей:</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> request
 
 <span class="token decorator annotation punctuation">@request<span class="token punctuation">.</span>on_friend_request</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_friend_request</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token comment"># Использование удобного метода Event</span>
+    <span class="token comment"># Через удобный метод Event</span>
     <span class="token keyword">await</span> event<span class="token punctuation">.</span>approve<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    <span class="token comment"># Или напрямую через адаптер</span>
+    <span class="token comment"># Или через адаптер напрямую</span>
     <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>Если платформа не поддерживает операции запросов, можно не реализовывать внутренний класс <code>Request</code>. Базовый класс по умолчанию возвращает <code>retcode=10002</code> (операция не поддерживается). Подробнее см. <a href="/docs/ru/standards/request-action-spec.html">Спецификация операций запросов</a>.</p>
+<p>Если платформа не поддерживает операции запроса, можно не реализовывать внутренний класс <code>Request</code>. Базовый класс по умолчанию возвращает <code>retcode=10002</code> (операция не поддерживается). Подробнее см. <a href="/docs/ru/standards/request-action-spec.html">Спецификация операций запроса</a>.</p>
 </blockquote>
-<h3 id="8-создание-точки-входа-пакета">8. Создание точки входа пакета</h3>
+<h3 id="8-создание-входной-точки-пакета">8. Создание входной точки пакета</h3>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/__init__.py</span>
 <span class="token keyword">from</span> <span class="token punctuation">.</span>Core <span class="token keyword">import</span> MyAdapter
 </code></pre>
-<h2 id="зависимости-опционально-280">Зависимости (опционально, 2.8.0+)</h2>
-<p>Адаптер может объявлять зависимости от других адаптеров или модулей для реализации взаимодействия между адаптерами и опциональных функций:</p>
+<h2 id="зависимости-необязательно-280">Зависимости (необязательно, 2.8.0+)</h2>
+<p>Адаптеры могут объявлять зависимости от других адаптеров или модулей, чтобы обеспечить взаимодействие между адаптерами и опциональные функции:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> typing <span class="token keyword">import</span> ClassVar
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token comment"># Жёсткая зависимость: отсутствие приводит к пропуску запуска (предупреждение + событие status=skipped-dependency)</span>
+    <span class="token comment"># Жёсткая зависимость: запуск пропускается при отсутствии (предупреждение + событие status=skipped-dependency)</span>
     depends<span class="token punctuation">:</span> ClassVar<span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
         <span class="token string">"adapters"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"onebot11"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token comment"># Зависимые адаптеры (по названию платформы)</span>
         <span class="token string">"modules"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"TranslateEngine"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token comment"># Зависимые модули (по зарегистрированному имени)</span>
     <span class="token punctuation">}</span>
-    <span class="token comment"># Опциональная зависимость: отсутствие не влияет на запуск; модули получают обратный вызов при загрузке/выгрузке (режим опциональной функции)</span>
+    <span class="token comment"># Опциональная зависимость: отсутствие не влияет на запуск; при загрузке/выгрузке модуля вызывается обратный вызов (режим опциональной функции)</span>
     optional_modules<span class="token punctuation">:</span> ClassVar<span class="token punctuation">[</span><span class="token builtin">list</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"TranslateEngine"</span><span class="token punctuation">]</span>
 </code></pre>
 <ul>
-<li><strong>Порядок запуска</strong>: адаптеры, объявившие жёсткую зависимость от модуля, будут запускаться <strong>после инициализации модуля</strong></li>
-<li><strong>Уведомления по опциональной зависимости</strong>: при загрузке модуля из <code>optional_modules</code> (или жёсткой зависимости) вызывается <code>on_dependency_ready(module_name)</code>; при выгрузке вызывается <code>on_dependency_lost(module_name)</code> (по умолчанию пустой метод, можно переопределить) — для сценариев поздней загрузки и горячей перезагрузки:</li>
+<li><strong>Порядок запуска</strong>: адаптеры, объявившие жёсткую зависимость от модуля, будут <strong>запущены после инициализации модуля</strong></li>
+<li><strong>Уведомления об опциональной зависимости</strong>: при загрузке модуля из <code>optional_modules</code> (или жёсткой зависимости) вызывается <code>on_dependency_ready(module_name)</code>, при выгрузке — <code>on_dependency_lost(module_name)</code> (по умолчанию пустая реализация, можно переопределить) — для сценариев поздней загрузки и горячей перезагрузки:</li>
 </ul>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_dependency_ready</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> module_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""Опциональный модуль готов: включить соответствующую опциональную функцию"""</span>
@@ -406,95 +406,95 @@
         self<span class="token punctuation">.</span>_translate <span class="token operator">=</span> self<span class="token punctuation">.</span>sdk<span class="token punctuation">.</span>TranslateEngine
 
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_dependency_lost</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> module_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""Опциональный модуль утрачен: понизить функциональность"""</span>
+    <span class="token triple-quoted-string string">"""Опциональный модуль отсутствует: понизить функциональность"""</span>
     <span class="token keyword">if</span> module_name <span class="token operator">==</span> <span class="token string">"TranslateEngine"</span><span class="token punctuation">:</span>
         self<span class="token punctuation">.</span>_translate <span class="token operator">=</span> <span class="token boolean">None</span>
 </code></pre>
 <div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p>Эта функция требует ErisPulse <strong>2.8.0+</strong>.</p>
+<p>Эта функция доступна начиная с ErisPulse <strong>2.8.0+</strong>.</p>
 </div>
 <h2 id="примечания-по-__init__">Примечания по <code>__init__</code></h2>
-<p>В разработке адаптеров есть три уровня, где может потребоваться переопределение <code>__init__</code>. Ниже приведены правильные подходы для каждого уровня.</p>
-<h3 id="1-уровень-baseadapter-в-большинстве-случаев-не-нужно-переопределять">1. Уровень BaseAdapter (в большинстве случаев не нужно переопределять)</h3>
-<p><code>BaseAdapter.__init__(self, sdk=None)</code> отвечает за создание фабрик <code>Send</code> / <code>Request</code> и автоматически выполняет следующее:</p>
+<p>При разработке адаптеров могут потребоваться перезаписи <code>__init__</code> на трех уровнях. Ниже приведены правильные подходы для каждого уровня.</p>
+<h3 id="1-уровень-baseadapter-в-большинстве-случаев-не-нужно-перезаписывать">1. Уровень BaseAdapter (в большинстве случаев не нужно перезаписывать)</h3>
+<p><code>BaseAdapter.__init__(self, sdk=None)</code> отвечает за создание фабрики <code>Send</code> / <code>Request</code> и автоматически выполняет следующие задачи:</p>
 <ul>
-<li>Принятие параметра <code>sdk</code> и установку <code>self.sdk</code>, <code>self.logger</code></li>
-<li>Если объявлен <code>ConfigClass</code>, можно читать глобальную конфигурацию через <code>self.cfg</code> в реальном времени</li>
-<li>Если объявлен <code>AccountConfigClass</code>, можно читать конфигурацию нескольких аккаунтов через <code>self.accounts</code> в реальном времени</li>
+<li>Принимает параметр <code>sdk</code> и устанавливает <code>self.sdk</code>, <code>self.logger</code></li>
+<li>Если объявлен <code>ConfigClass</code>, можно получить доступ к глобальной конфигурации через <code>self.cfg</code></li>
+<li>Если объявлен <code>AccountConfigClass</code>, можно получить доступ к конфигурации нескольких аккаунтов через <code>self.accounts</code></li>
 </ul>
-<p><strong>В большинстве случаев не нужно переопределять <code>__init__</code></strong>, достаточно объявить <code>ConfigClass</code>:</p>
+<p><strong>В большинстве случаев не нужно переопределять <code>__init__</code></strong> — достаточно просто объявить <code>ConfigClass</code>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># После объявления конфигурация автоматически управляется</span>
+    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># После объявления конфигурация будет автоматически управляться фреймворком</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        cfg <span class="token operator">=</span> self<span class="token punctuation">.</span>cfg  <span class="token comment"># Статическая типизация, чтение в реальном времени</span>
+        cfg <span class="token operator">=</span> self<span class="token punctuation">.</span>cfg  <span class="token comment"># Типобезопасное получение, доступ к конфигурации в реальном времени</span>
         <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
-<p>Если действительно нужно пользовательскую инициализацию, вызовите <code>super().__init__(sdk)</code>:</p>
+<p>Если действительно требуется пользовательская инициализация, вызовите <code>super().__init__(sdk)</code>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     ConfigClass <span class="token operator">=</span> MyAdapterConfig
     
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sdk<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>sdk<span class="token punctuation">)</span>  <span class="token comment"># Передать sdk</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>sdk<span class="token punctuation">)</span>  <span class="token comment"># Передача параметра sdk</span>
         self<span class="token punctuation">.</span>converter <span class="token operator">=</span> self<span class="token punctuation">.</span>_setup_converter<span class="token punctuation">(</span><span class="token punctuation">)</span>
         self<span class="token punctuation">.</span>convert <span class="token operator">=</span> self<span class="token punctuation">.</span>converter<span class="token punctuation">.</span>convert
 </code></pre>
-<h3 id="2-внутренний-класс-send-в-большинстве-случаев-не-нужно-переопределять">2. Внутренний класс Send (в большинстве случаев не нужно переопределять)</h3>
-<p><code>SendDSL.__init__</code> отвечает за передачу состояния при цепочечных вызовах (тип цели, ID цели, аккаунт и т.д.). <strong>В большинстве случаев нужно переопределять только методы</strong> (<code>Raw_ob12</code>, <code>Text</code> и т.д.), а не <code>__init__</code>.</p>
-<p>Если действительно нужно (например, инициализация платформенно-специфического состояния), <strong>обязательно передавайте все параметры</strong>:</p>
+<h3 id="2-внутренний-класс-send-в-большинстве-случаев-не-нужно-перезаписывать">2. Внутренний класс Send (в большинстве случаев не нужно перезаписывать)</h3>
+<p><code>SendDSL.__init__</code> отвечает за передачу состояния при цепочечных вызовах (тип цели, ID цели, аккаунт и т.д.). <strong>В большинстве случаев вам нужно переопределять только методы</strong> (<code>Raw_ob12</code>, <code>Text</code> и т.д.), а не <code>__init__</code>.</p>
+<p>Если действительно необходимо (например, для инициализации платформо-специфического состояния), <strong>необходимо передать все параметры</strong>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token comment"># Параметры: adapter, target_type, target_id, account_id</span>
         <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> adapter<span class="token punctuation">,</span> target_type<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> target_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> account_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
             <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>adapter<span class="token punctuation">,</span> target_type<span class="token punctuation">,</span> target_id<span class="token punctuation">,</span> account_id<span class="token punctuation">)</span>  <span class="token comment"># ← Обязательно передать</span>
-            self<span class="token punctuation">.</span>_my_state <span class="token operator">=</span> <span class="token boolean">None</span>  <span class="token comment"># Инициализация платформенно-специфического состояния</span>
+            self<span class="token punctuation">.</span>_my_state <span class="token operator">=</span> <span class="token boolean">None</span>  <span class="token comment"># Инициализация платформо-специфического состояния</span>
 </code></pre>
-<p><strong>Почему необходимо передавать?</strong> Каждый шаг цепочечного вызова создаёт новый экземпляр через <code>self.__class__(...)</code>:</p>
+<p><strong>Почему необходимо передавать?</strong> Каждый шаг цепочечного вызова создает новый экземпляр через <code>self.__class__(...)</code>:</p>
 <pre><code class="language-python">adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>               <span class="token comment"># → Send(adapter, "user", "123", None)</span>
 adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span>  <span class="token comment"># → Send(adapter, "user", "123", "bot1")</span>
 </code></pre>
-<p>Если подпись <code>__init__</code> не совпадает или не вызван <code>super()</code>, цепочечный вызов прервётся.</p>
-<h3 id="3-внутренний-класс-request-в-большинстве-случаев-не-нужно-переопределять">3. Внутренний класс Request (в большинстве случаев не нужно переопределять)</h3>
+<p>Если сигнатура <code>__init__</code> не совпадает или не вызван <code>super()</code>, цепочечный вызов прервется.</p>
+<h3 id="3-внутренний-класс-request-в-большинстве-случаев-не-нужно-перезаписывать">3. Внутренний класс Request (в большинстве случаев не нужно перезаписывать)</h3>
 <p>Аналогично Send. Параметры: <code>adapter</code>, <code>request_id</code>, <code>account_id</code>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">class</span> <span class="token class-name">Request</span><span class="token punctuation">(</span>RequestDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token comment"># Параметры: adapter, request_id, account_id</span>
         <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> adapter<span class="token punctuation">,</span> request_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> account_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
             <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>adapter<span class="token punctuation">,</span> request_id<span class="token punctuation">,</span> account_id<span class="token punctuation">)</span>  <span class="token comment"># ← Обязательно передать</span>
-            self<span class="token punctuation">.</span>_my_state <span class="token operator">=</span> <span class="token boolean">None</span>  <span class="token comment"># Инициализация платформенно-специфического состояния</span>
+            self<span class="token punctuation">.</span>_my_state <span class="token operator">=</span> <span class="token boolean">None</span>  <span class="token comment"># Инициализация платформо-специфического состояния</span>
 </code></pre>
 <h3 id="сводка">Сводка</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Уровень</th>
-<th>Когда переопределять</th>
+<th>Когда перезаписывать</th>
 <th>Обязательные действия</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><strong>BaseAdapter</strong></td>
 <td>При необходимости пользовательской логики инициализации</td>
-<td><code>super().__init__(sdk)</code> (передать параметр sdk)</td>
+<td><code>super().__init__(sdk)</code> (передача параметра sdk)</td>
 </tr>
 <tr>
 <td><strong>Send внутренний класс</strong></td>
-<td>При необходимости инициализации состояний отправки</td>
+<td>При необходимости инициализации состояния отправки</td>
 <td><code>super().__init__(adapter, target_type, target_id, account_id)</code></td>
 </tr>
 <tr>
 <td><strong>Request внутренний класс</strong></td>
-<td>При необходимости инициализации состояний запросов</td>
+<td>При необходимости инициализации состояния запроса</td>
 <td><code>super().__init__(adapter, request_id, account_id)</code></td>
 </tr>
 <tr>
-<td>Все уровни</td>
+<td>Все три уровня</td>
 <td>В большинстве случаев</td>
-<td><strong>Объявить ConfigClass, не трогать <code>__init__</code></strong></td>
+<td><strong>Объявите ConfigClass, не трогайте <code>__init__</code></strong></td>
 </tr>
 </tbody></table></div>
 <h3 id="9-информация-о-подключении-и-обнаружение-маршрутов">9. Информация о подключении и обнаружение маршрутов</h3>
-<p>После регистрации маршрутов адаптером, система сохраняет всю информацию о маршрутах. Пользователи могут получить доступ к информации о подключении адаптера с помощью следующего API:</p>
+<p>После регистрации маршрутов адаптером фреймворк будет записывать всю информацию о маршрутах. Пользователь может использовать следующие API для просмотра информации о подключении адаптера:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
 <span class="token comment"># Получение полной информации о подключении адаптера</span>
@@ -515,24 +515,24 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 <span class="token comment">#   }</span>
 <span class="token comment"># }</span>
 
-<span class="token comment"># Перечисление всех пространств имён (адаптеры/модули) маршрутов</span>
+<span class="token comment"># Перечисление всех пространств имен (адаптеров/модулей) маршрутов</span>
 namespaces <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>list_namespaces<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {"myplatform": {"http": ["/myplatform/webhook"], "websocket": ["/myplatform/ws"]}}</span>
 
-<span class="token comment"># Получение полных URL подключения пространства имён</span>
+<span class="token comment"># Получение полных URL-адресов подключения для пространства имен</span>
 urls <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"base_url": "http://localhost:8080", "http": [...], "websocket": [...]}</span>
 
-<span class="token comment"># Получение подробной информации о маршрутах пространства имён</span>
+<span class="token comment"># Получение подробной информации о маршрутах пространства имен</span>
 routes <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"http": [{"path": "/myplatform/webhook", "methods": ["POST"]}],</span>
 <span class="token comment">#  "websocket": [{"path": "/myplatform/ws", "auth": false}]}</span>
 </code></pre>
 <blockquote>
-<p><strong>Подсказка</strong>: Возвращаемая информация из <code>get_connection_info()</code> подходит для отображения пользователю (например, в WebUI), помогая настроить адрес обратного вызова или адрес подключения WebSocket на стороне платформы. Имя модуля, указанное при регистрации маршрута, должно полностью соответствовать названию платформы, зарегистрированному в ErisPulse, иначе обнаружение маршрутов не будет корректным.</p>
+<p><strong>Подсказка:</strong> Возвращаемая информация <code>get_connection_info()</code> подходит для отображения пользователю (например, в WebUI), чтобы помочь настроить URL-адреса обратных вызовов или подключения WebSocket на стороне платформы. <code>module_name</code>, указанный при регистрации маршрута, должен полностью совпадать с именем <code>platform</code>, зарегистрированным в ErisPulse, иначе обнаружение маршрутов не будет правильно сопоставлено.</p>
 </blockquote>
 <h3 id="10-поддержка-sse-server-sent-events">10. Поддержка SSE (Server-Sent Events)</h3>
-<p>ErisPulse включает в себя серверно-независимую поддержку SSE, модули и адаптеры могут регистрировать конечные точки SSE с помощью <code>@sdk.router.sse()</code>.</p>
+<p>ErisPulse имеет встроенную поддержку SSE, независимую от сервера. Модули и адаптеры могут зарегистрировать конечные точки SSE с помощью <code>@sdk.router.sse()</code>.</p>
 <h4 id="основное-использование">Основное использование</h4>
 <pre><code class="language-python"><span class="token keyword">import</span> asyncio
 <span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
@@ -547,7 +547,7 @@ routes <span class="token operator">=</span> sdk<span class="token punctuation">
         <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="использование-параметров-запроса">Использование параметров запроса</h4>
-<p>Обработчик может объявить параметр <code>request</code>, чтобы получить информацию о клиентском запросе:</p>
+<p>Обработчик может объявить параметр <code>request</code>, чтобы получить доступ к информации о клиентском запросе:</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>sse</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/events"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">event_stream</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> sse<span class="token punctuation">)</span><span class="token punctuation">:</span>
     token <span class="token operator">=</span> request<span class="token punctuation">.</span>query_params<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"token"</span><span class="token punctuation">)</span>
@@ -570,15 +570,15 @@ routes <span class="token operator">=</span> sdk<span class="token punctuation">
 </thead>
 <tbody><tr>
 <td><code>sse.send(data, event=None, id=None, retry=None)</code></td>
-<td>Отправка события SSE. <code>data</code>, не являющийся строкой, автоматически сериализуется в JSON</td>
+<td>Отправка события SSE. Не-строковые данные автоматически сериализуются в JSON</td>
 </tr>
 <tr>
 <td><code>sse.close()</code></td>
-<td>Безопасное закрытие подключения SSE (можно вызывать несколько раз)</td>
+<td>Элегантное закрытие соединения SSE (безопасный вызов, можно несколько раз)</td>
 </tr>
 <tr>
 <td><code>sse.closed</code></td>
-<td>Закрыто ли подключение</td>
+<td>Закрыто ли соединение</td>
 </tr>
 <tr>
 <td><code>sse.request</code></td>
@@ -598,23 +598,23 @@ routes <span class="token operator">=</span> sdk<span class="token punctuation">
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>list_namespaces<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {"MyModule": {"http": [...], "websocket": [...], "sse": ["/MyModule/events"]}}</span>
 
-<span class="token comment"># get_module_routes пометит streaming: true</span>
+<span class="token comment"># get_module_routes будет помечать streaming: true</span>
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"http": [...], "websocket": [...], "sse": [{"path": "/MyModule/events", "streaming": true}]}</span>
 
-<span class="token comment"># get_module_urls сгенерирует полный URL</span>
+<span class="token comment"># get_module_urls будет генерировать полный URL</span>
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"sse": [{"path": "/MyModule/events", "url": "http://localhost:8080/MyModule/events"}]}</span>
 </code></pre>
 <blockquote>
-<p><strong>Дизайн, независимый от сервера</strong>: <code>SseEmitter</code> использует обратные вызовы для декомпозиции от базового HTTP-фреймворка. Рамка предоставляет <code>register_sse()</code> и декоратор <code>@sse</code> в качестве единого регистрационного входа, адаптер не должен напрямую зависеть от любого базового HTTP-фреймворка, чтобы реализовать конечную точку SSE.</p>
+<p><strong>Дизайн, независимый от сервера:</strong> <code>SseEmitter</code> использует обратные вызовы для декомпозиции от базового HTTP-фреймворка. Фреймворк предоставляет <code>register_sse()</code> и декоратор <code>@sse</code> как единый вход для регистрации, адаптер не должен напрямую зависеть от какого-либо базового HTTP-фреймворка, чтобы реализовать конечную точку SSE.</p>
 </blockquote>
 <h2 id="далее">Далее</h2>
 <ul>
-<li><a href="/docs/ru/developer-guide/adapters/core-concepts.html">Основные концепции адаптера</a> - Понимание архитектуры адаптера</li>
-<li><a href="/docs/ru/developer-guide/adapters/send-dsl.html">Подробности SendDSL</a> - Изучение отправки сообщений</li>
-<li><a href="/docs/ru/developer-guide/adapters/converter.html">Реализация конвертера</a> - Понимание преобразования событий</li>
-<li><a href="/docs/ru/developer-guide/adapters/best-practices.html">Рекомендации по адаптерам</a> - Разработка качественных адаптеров</li>
+<li><a href="/docs/ru/developer-guide/adapters/core-concepts.html">Основные концепции адаптера</a> - Ознакомьтесь с архитектурой адаптера</li>
+<li><a href="/docs/ru/developer-guide/adapters/send-dsl.html">Подробное руководство по SendDSL</a> - Научитесь отправлять сообщения</li>
+<li><a href="/docs/ru/developer-guide/adapters/converter.html">Реализация конвертера</a> - Ознакомьтесь с преобразованием событий</li>
+<li><a href="/docs/ru/developer-guide/adapters/best-practices.html">Рекомендации по адаптерам</a> - Создание качественных адаптеров</li>
 </ul>
 
         </article>

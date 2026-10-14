@@ -309,6 +309,9 @@ lease <span class="token operator">=</span> sdk<span class="token punctuation">.
 <a href="/docs/advanced/conversation.html">Conversation 多轮对话</a>的"恢复即接管"）——
 恢复的对话天然持有会话，其他模块不会插入。</p>
 <h2 id="会话收件箱eventhistory">会话收件箱：event.history</h2>
+<blockquote>
+<p>保留策略（7 天 / 条数上限）与运行时覆盖 API、风险与审计见<a href="/docs/advanced/transcript.html">会话收件箱</a>专题。</p>
+</blockquote>
 <p>每会话近期消息流的统一记录（用户 + 机器人双方），作为 AI 上下文、
 防复读、行为分析类模块的<strong>共享事实底座</strong>——各模块不再各自存历史。</p>
 <pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># 当前会话最近 20 条，时间升序</span>
@@ -318,8 +321,9 @@ lease <span class="token operator">=</span> sdk<span class="token punctuation">.
 <ul>
 <li>自动记录：入站消息（role=user）+ 机器人出站文本（role=bot）</li>
 <li>存储：独立 SQLite 表，保留策略 = 每会话上限（默认 50）+ 全局 TTL（默认 7 天）</li>
+<li>写入方式：内存缓冲 + 后台批量落盘（延迟至多 1 秒），查询接口自动合并未落盘的缓冲行——同进程"读你的写"不受影响；正常退出（<code>sdk.uninit</code> / 进程退出）自动刷盘。<strong>硬崩溃 / 强杀时最近约 1 秒的记录可能丢失</strong>：该底座定位为近期上下文缓存，不适合作为审计级持久化</li>
 <li>配置：<code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
-<li>管理器 API：<code>sdk.transcript.append() / get() / clear()</code></li>
+<li>管理器 API：<code>sdk.transcript.append() / get() / clear()</code>，<code>aflush()</code> / <code>flush()</code> 手动刷盘</li>
 </ul>
 <h2 id="消息事务message_tx">消息事务：message_tx</h2>
 <p>事务内的所有出站发送自动记账；<strong>异常退出时逆序自动撤回</strong>已发送的消息

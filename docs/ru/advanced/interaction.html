@@ -288,17 +288,21 @@ lease <span class="token operator">=</span> sdk<span class="token punctuation">.
 </code></pre>
 <p>Аренда поддерживает <code>renew(ttl)</code> для продления; TTL ленивый — просроченная аренда автоматически удаляется при следующем обращении.</p>
 <p><code>Conversation.resume()</code> при возобновлении диалога автоматически приобретает аренду (см. <a href="/docs/ru/advanced/conversation.html">Многошаговый диалог</a> "Восстановление = захват") — восстановленный диалог автоматически владеет сессией, другие модули не могут вмешаться.</p>
-<h2 id="почтовый-ящик-сессии-eventhistory">Почтовый ящик сессии: event.history</h2>
-<p>Единая запись недавних сообщений в сессии (со стороны пользователя и бота), используется как общая база контекста для AI, предотвращения повторов, анализа поведения — модули больше не хранят историю отдельно.</p>
-<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># Последние 20 сообщений в сессии, в порядке возрастания времени</span>
+<h2 id="ящик-для-диалогов-eventhistory">Ящик для диалогов: event.history</h2>
+<blockquote>
+<p>Стратегия сохранения (7 дней / ограничение на количество) и API для перезаписи во время выполнения, риски и аудит см. в специальной теме <a href="/docs/ru/advanced/transcript.html">Ящик для диалогов</a>.</p>
+</blockquote>
+<p>Единая запись недавнего потока сообщений для каждого диалога (обе стороны: пользователь и робот), используемая как <strong>общая база фактов</strong> для модулей контекста ИИ, предотвращения дублирования и анализа поведения — модули больше не хранят историю отдельно.</p>
+<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># Последние 20 сообщений текущего диалога, по возрастанию времени</span>
 <span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># role: "user" / "bot"</span>
 </code></pre>
 <ul>
-<li>Автоматически записывается: входящие сообщения (role=user) + исходящие сообщения бота (role=bot)</li>
-<li>Хранение: отдельная SQLite-таблица, политика хранения = лимит на сессию (по умолчанию 50) + глобальный TTL (по умолчанию 7 дней)</li>
-<li>Настройка: <code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
-<li>API менеджера: <code>sdk.transcript.append() / get() / clear()</code></li>
+<li>Автоматическая запись: входящие сообщения (role=user) + текстовые ответы робота (role=bot)</li>
+<li>Хранение: отдельная таблица SQLite, стратегия сохранения = верхний предел на диалог (по умолчанию 50) + глобальный TTL (по умолчанию 7 дней)</li>
+<li>Способ записи: буфер в памяти + фоновая пакетная запись на диск (задержка до 1 секунды), интерфейс запроса автоматически объединяет незаписанные строки из буфера — чтение из того же процесса не затрагивается; нормальное завершение (sdk.uninit / выход из процесса) автоматически записывает на диск. <strong>При сильном сбое / принудительном завершении могут быть потеряны последние около 1 секунды записей</strong>: эта база предназначена для кэширования недавнего контекста, а не для аудита и длительного хранения</li>
+<li>Конфигурация: <code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
+<li>API менеджера: <code>sdk.transcript.append() / get() / clear()</code>, <code>aflush()</code> / <code>flush()</code> для ручной записи на диск</li>
 </ul>
 <h2 id="транзакции-сообщений-message_tx">Транзакции сообщений: message_tx</h2>
 <p>Все исходящие отправки в транзакции автоматически записываются; <strong>при исключительном выходе автоматически отменяются отправленные сообщения</strong> (если адаптер не реализует <code>delete_message</code>, пропускается, но журнал записей остаётся).</p>

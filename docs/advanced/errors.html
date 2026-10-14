@@ -90,6 +90,9 @@
 │   └── HTTPStatusError             # HTTP 状态码错误（如 4xx/5xx 且 raise_for_status）
 ├── WebSocketError                  # WebSocket 异常基类（Core/client 的 WS 连接）
 │   └── WebSocketDisconnect         # WebSocket 断开连接（服务端/客户端通用）
+├── ConnectionRegistryError         # 连接注册表异常基类（Core/connections，2.10+）
+│   ├── ConnectionNotFoundError     # 连接不存在/已断开注销（connections.get/close）
+│   └── ConnectionPermissionError   # 非 owner 关闭他人连接（关闭权归创建者）
 ├── StorageError                    # 存储异常基类（Core/storage）
 │   └── StorageUnreachableError     # 存储后端不可达（建池重试耗尽：数据库不可达/凭据错误）
 ├── InteractionError                # 交互会话异常基类（Core/Event/interaction）
@@ -100,6 +103,10 @@
 │       ├── ModuleNotAvailableError # 目标模块未注册/未启用/初始化失败（含懒加载访问）
 │       ├── ServiceNotProvidedError # 目标模块未声明该服务（meta.services 白名单外）
 │       └── ModuleCallTimeoutError  # 被调方法执行超时（默认 30s）
+├── ShadowError                     # 影子模块异常基类（Core/shadow）
+│   ├── ShadowStateError            # 状态不满足：目标未加载/已有活跃影子/未绑定影子（start/dismiss）
+│   ├── ShadowSourceError           # 影子源不可用：路径不存在/加载器缺失/装载失败（start）
+│   └── ShadowPromoteError          # 转正失败：影子未注册/未加载/加载器无快照/重载失败（promote）
 └── StrictModeError                 # 严格模式致命违规（中止启动流程，loaders/strict）
 </code></pre>
 <h2 id="结构化属性">结构化属性</h2>
@@ -122,6 +129,14 @@
 <tr>
 <td><code>WebSocketDisconnect</code></td>
 <td><code>.code</code> 关闭码、<code>.reason</code> 关闭原因</td>
+</tr>
+<tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>.connection_id</code> 查找的连接 id</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td><code>.connection_id</code> 目标连接 id、<code>.owner</code> 连接归属 owner</td>
 </tr>
 <tr>
 <td><code>StorageUnreachableError</code></td>
@@ -212,6 +227,26 @@
 <td><code>WebSocketDisconnect</code></td>
 <td>WS 收发方法</td>
 <td>对端正常断开连接（框架会自动重连）</td>
+</tr>
+</tbody></table></div>
+<h3 id="连接注册表系列-coreconnectionspy210">连接注册表系列 — <code>Core/connections.py</code>（2.10+）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>发生位置</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>connections.get</code> / <code>assign</code> / <code>dismiss</code> / <code>close</code></td>
+<td>连接 id 不存在或已断开注销</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td>非 owner 调用 <code>conn.close()</code></td>
+<td>跨模块关闭他人连接（发送与分组不受限）</td>
 </tr>
 </tbody></table></div>
 <h3 id="storage-系列-corestorage-corebasessql_basepy">Storage 系列 — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
@@ -335,6 +370,36 @@
 <span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># 目标模块未提供该服务</span>
 </code></pre>
+<h3 id="shadow-系列-coreshadowpy影子模块">Shadow 系列 — <code>Core/shadow.py</code>（影子模块）</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>异常</th>
+<th>发生位置</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ShadowError</code></td>
+<td>影子模块机制</td>
+<td>影子异常基类（统一捕获所有影子错误）</td>
+</tr>
+<tr>
+<td><code>ShadowStateError</code></td>
+<td><code>shadow_start()</code> / <code>dismiss_shadow()</code></td>
+<td>目标未加载 / 已有活跃影子 / 未绑定影子</td>
+</tr>
+<tr>
+<td><code>ShadowSourceError</code></td>
+<td><code>shadow_start()</code></td>
+<td>源路径不存在 / 插件加载器缺失 / 源无可加载类 / 装载失败</td>
+</tr>
+<tr>
+<td><code>ShadowPromoteError</code></td>
+<td><code>promote_shadow()</code></td>
+<td>影子未注册 / 未加载 / 加载器不支持快照 / 转正重载失败</td>
+</tr>
+</tbody></table></div>
 <h3 id="框架内部参数校验valueerror">框架内部参数校验（ValueError）</h3>
 <p>存储查询构建器的参数校验（空列类型、<code>Insert</code> 非 dict、不安全列类型等）抛标准
 <code>ValueError</code>——这类属于<strong>开发期编码错误</strong>，正常业务代码不应捕获，而应修正调用。</p>
@@ -365,7 +430,7 @@
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/advanced/storage-backends.html"><small>上一篇</small><br>存储后端</a>
-        <a class="doc-pager-next" href="/docs/advanced/startup.html"><small>下一篇</small><br>启动流程与手动控制</a>
+        <a class="doc-pager-next" href="/docs/advanced/connections.html"><small>下一篇</small><br>连接池与广播</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

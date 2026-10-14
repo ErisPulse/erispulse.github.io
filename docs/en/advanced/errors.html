@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Exception System and Handling Guide - ErisPulse 文档中心</title>
-    <meta name="description" content="All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and con..." />
+    <meta name="description" content="All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are caught and converted into c..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/errors.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
     <meta property="og:title" content="Exception System and Handling Guide - ErisPulse 文档中心" />
-    <meta property="og:description" content="All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and con..." />
+    <meta property="og:description" content="All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are caught and converted into c..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/errors.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Exception System and Handling Guide","description":"All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and con...","url":"https://www.erisdev.com/docs/en/advanced/errors.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Exception System and Handling Guide","description":"All custom exceptions in ErisPulse inherit from ErisPulseError. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are caught and converted into c...","url":"https://www.erisdev.com/docs/en/advanced/errors.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,46 +73,53 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="exception-system-and-handling-guide">Exception System and Handling Guide</h1>
-<p>All custom exceptions in ErisPulse inherit from <code>ErisPulseError</code>. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are captured internally and converted to corresponding ErisPulse exceptions—business code <strong>does not need to rely on any underlying library exception types</strong>.</p>
+<p>All custom exceptions in ErisPulse inherit from <code>ErisPulseError</code>. Underlying library exceptions (e.g., aiohttp, aiomysql, etc.) are caught and converted into corresponding ErisPulse exceptions within the framework — business code <strong>does not need to rely on any underlying library exception types</strong>.</p>
 <p>{!--&lt; tips &gt;!--}</p>
 <ol>
-<li>For broad error handling: catch <code>ErisPulseError</code> (base class for all framework exceptions)</li>
+<li>For broad fallback: catch <code>ErisPulseError</code> (the base class for all framework exceptions)</li>
 <li>For precise handling: catch by module (e.g., <code>ModuleCallTimeoutError</code>, <code>StorageUnreachableError</code>)</li>
-<li>Storage operations do not throw by default: log failures and return <code>False / None / default</code>; subscribe to <code>storage.unreachable</code> / <code>storage.recovered</code> events for connection state changes
+<li>Storage operations do not throw by default: failures are logged and <code>False / None / default</code> returned; subscribe to <code>storage.unreachable</code> / <code>storage.recovered</code> events for connection state changes
 {!--&lt; /tips &gt;!--}</li>
 </ol>
 <h2 id="exception-overview">Exception Overview</h2>
 <pre><code class="language-text">ErisPulseError                      # Base class for all framework exceptions
 ├── ClientError                     # Base class for HTTP/WS client request exceptions (Core/client)
-│   ├── ClientConnectionError       # Connection layer errors: DNS resolution failed, connection refused, network unreachable
+│   ├── ClientConnectionError       # Connection layer error: DNS resolution failed, connection refused, network unreachable
 │   ├── ClientTimeoutError          # Request timeout
-│   └── HTTPStatusError             # HTTP status code errors (e.g., 4xx/5xx with raise_for_status)
-├── WebSocketError                  # Base class for WebSocket exceptions (Core/client WS connections)
-│   └── WebSocketDisconnect         # WebSocket disconnected (common to both server and client)
+│   └── HTTPStatusError             # HTTP status code error (e.g., 4xx/5xx with raise_for_status)
+├── WebSocketError                  # Base class for WebSocket exceptions (WS connection in Core/client)
+│   └── WebSocketDisconnect         # WebSocket disconnected (common for both server and client)
+├── ConnectionRegistryError         # Base class for connection registry exceptions (Core/connections, 2.10+)
+│   ├── ConnectionNotFoundError     # Connection does not exist / has been disconnected/unregistered (connections.get/close)
+│   └── ConnectionPermissionError   # Closing another's connection without owner permission (closing rights belong to creator)
 ├── StorageError                    # Base class for storage exceptions (Core/storage)
-│   └── StorageUnreachableError     # Storage backend unreachable (retry exhaustion: database unreachable/credential error)
+│   └── StorageUnreachableError     # Storage backend unreachable (retry exhausted: database unreachable/credentials error)
 ├── InteractionError                # Base class for interaction session exceptions (Core/Event/interaction)
-│   ├── InteractionCancelled        # Canceled pending wait/lease (wait_reply upper layer returns None)
-│   └── SessionOccupiedError        # Session exclusive lease occupied (hold() acquisition failed)
+│   ├── InteractionCancelled        # Pending wait/lease canceled (wait_reply upper layer returns None)
+│   └── SessionOccupiedError        # Session mutual exclusion lease occupied (hold() acquisition failed)
 ├── ModuleError                     # Base class for module system exceptions (Core/module)
-│   └── ModuleCallError             # Base class for module call exceptions
+│   └── ModuleCallError             # Base class for module inter-call exceptions
 │       ├── ModuleNotAvailableError # Target module not registered/unavailable/initialization failed (including lazy loading access)
 │       ├── ServiceNotProvidedError # Target module did not declare this service (outside meta.services whitelist)
 │       └── ModuleCallTimeoutError  # Called method execution timeout (default 30s)
-└── StrictModeError                 # Fatal violation in strict mode (halts startup process, loaders/strict)
+├── ShadowError                     # Base class for shadow module exceptions (Core/shadow)
+│   ├── ShadowStateError            # State mismatch: target not loaded/active shadow already exists/not bound shadow (start/dismiss)
+│   ├── ShadowSourceError           # Shadow source unavailable: path does not exist/loader missing/loading failed (start)
+│   └── ShadowPromoteError          # Promotion failed: shadow not registered/not loaded/loader has no snapshot/reload failed (promote)
+└── StrictModeError                 # Strict mode fatal violation (aborts startup process, loaders/strict)
 </code></pre>
-<h2 id="structured-properties">Structured Properties</h2>
-<p>After catching an exception, you can read structured properties (no need to parse message text):</p>
+<h2 id="structured-attributes">Structured Attributes</h2>
+<p>After capturing an exception, you can read structured attributes (without parsing the message text):</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Exception</th>
-<th>Properties</th>
+<th>Attributes</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>ClientError</code> (and subclasses)</td>
-<td><code>.url</code> Request URL, <code>.method</code> Request method, <code>.attempts</code> Number of attempts (when retries exhausted)</td>
+<td><code>ClientError</code> (with subclasses)</td>
+<td><code>.url</code> Request URL, <code>.method</code> Request method, <code>.attempts</code> Number of attempts (when retries are exhausted)</td>
 </tr>
 <tr>
 <td><code>HTTPStatusError</code></td>
@@ -123,11 +130,19 @@
 <td><code>.code</code> Close code, <code>.reason</code> Close reason</td>
 </tr>
 <tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>.connection_id</code> Connection ID searched for</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td><code>.connection_id</code> Target connection ID, <code>.owner</code> Owner of the connection</td>
+</tr>
+<tr>
 <td><code>StorageUnreachableError</code></td>
 <td><code>.backend</code> Backend name (sqlite/mysql/postgres), <code>.cooldown</code> Cool-down seconds</td>
 </tr>
 <tr>
-<td><code>ModuleCallError</code> (and subclasses)</td>
+<td><code>ModuleCallError</code> (with subclasses)</td>
 <td><code>.module</code> Target module name, <code>.method</code> Target method name</td>
 </tr>
 <tr>
@@ -156,19 +171,19 @@
 </code></pre>
 <h2 id="exception-descriptions-and-occurrence-locations">Exception Descriptions and Occurrence Locations</h2>
 <h3 id="client-series-coreclientpy-corebasesclientpy">Client Series — <code>Core/client.py</code> / <code>Core/Bases/client.py</code></h3>
-<p>Thrown when <code>sdk.client</code> / HTTP client and WebSocket client initiate requests:</p>
+<p><code>sdk.client</code> / HTTP client and WebSocket client raise exceptions when initiating requests:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Exception</th>
-<th>Location</th>
+<th>Occurrence Location</th>
 <th>Typical Scenario</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>ClientError</code></td>
-<td>Request encapsulation layer</td>
-<td>Other client errors (underlying aiohttp exceptions already converted)</td>
+<td>Request wrapper layer</td>
+<td>Other client errors (lower-level aiohttp exceptions have been converted)</td>
 </tr>
 <tr>
 <td><code>ClientConnectionError</code></td>
@@ -178,7 +193,7 @@
 <tr>
 <td><code>ClientTimeoutError</code></td>
 <td>Request execution phase</td>
-<td>Exceeds request timeout</td>
+<td>Request timeout exceeded</td>
 </tr>
 <tr>
 <td><code>HTTPStatusError</code></td>
@@ -198,19 +213,39 @@
 <thead>
 <tr>
 <th>Exception</th>
-<th>Location</th>
+<th>Occurrence Location</th>
 <th>Typical Scenario</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>WebSocketError</code></td>
 <td>WS send/receive methods</td>
-<td>Connection closed, received unexpected message type, underlying WS exception</td>
+<td>Connection closed, received unexpected message type, low-level WS exception</td>
 </tr>
 <tr>
 <td><code>WebSocketDisconnect</code></td>
 <td>WS send/receive methods</td>
-<td>Peer disconnected normally (framework will auto-reconnect)</td>
+<td>Peer disconnected normally (framework will automatically reconnect)</td>
+</tr>
+</tbody></table></div>
+<h3 id="connection-registry-series-coreconnectionspy-210">Connection Registry Series — <code>Core/connections.py</code> (2.10+)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Occurrence Location</th>
+<th>Typical Scenario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ConnectionNotFoundError</code></td>
+<td><code>connections.get</code> / <code>assign</code> / <code>dismiss</code> / <code>close</code></td>
+<td>Connection ID does not exist or has been disconnected and unregistered</td>
+</tr>
+<tr>
+<td><code>ConnectionPermissionError</code></td>
+<td>Non-owner calls <code>conn.close()</code></td>
+<td>Closing someone else's connection across modules (sending and grouping are not restricted)</td>
 </tr>
 </tbody></table></div>
 <h3 id="storage-series-corestorage-corebasessql_basepy">Storage Series — <code>Core/storage</code> / <code>Core/Bases/sql_base.py</code></h3>
@@ -218,7 +253,7 @@
 <thead>
 <tr>
 <th>Exception</th>
-<th>Location</th>
+<th>Occurrence Location</th>
 <th>Typical Scenario</th>
 </tr>
 </thead>
@@ -234,16 +269,16 @@
 </tr>
 </tbody></table></div>
 <blockquote>
-<p><strong>Failure semantics for storage operations</strong>: KV and query operations <strong>do not throw by default</strong>—failures log ERROR and return <code>False</code> / <code>None</code> / <code>default</code> (to avoid blocking framework operation due to connection issues). Thus, business code usually <strong>does not</strong> catch <code>StorageUnreachableError</code> (it is mainly used for direct storage layer operations or custom backends). For runtime connection state awareness, subscribe to lifecycle events <code>storage.unreachable</code> / <code>storage.recovered</code> (see <a href="/docs/en/advanced/lifecycle.html#storage-connection-status">Lifecycle Events</a>).</p>
+<p><strong>Failure semantics of storage operations</strong>: KV and query operations <strong>do not throw exceptions by default</strong>—failures are logged as ERROR and return <code>False</code> / <code>None</code> / <code>default</code> (to avoid blocking the framework due to connection issues). Therefore, business code typically <strong>does not</strong> catch <code>StorageUnreachableError</code> (it is mainly used for direct storage layer operations or custom backends). To perceive connection status at runtime, subscribe to lifecycle events <code>storage.unreachable</code> / <code>storage.recovered</code> (see <a href="/docs/en/advanced/lifecycle.html#storage-connection-status">Lifecycle Events</a>).</p>
 </blockquote>
-<p>See <a href="/docs/en/advanced/storage-backends.html#connection-failure-behavior">Storage Backend → Connection Failure Behavior</a> for details on connection failure behavior.</p>
+<p>See <a href="/docs/en/advanced/storage-backends.html#connection-failure-behavior">Storage Backend → Connection Failure Behavior</a> for details on handling connection failures.</p>
 <h3 id="interaction-coreeventinteractionpy">Interaction — <code>Core/Event/interaction.py</code></h3>
-<p>Related to <code>wait_reply</code> / session lease / reminder timer:</p>
+<p><code>wait_reply</code> / session lease / reminder timer related:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Exception</th>
-<th>Location</th>
+<th>Occurrence Location</th>
 <th>Typical Scenario</th>
 </tr>
 </thead>
@@ -254,22 +289,22 @@
 </tr>
 <tr>
 <td><code>InteractionCancelled</code></td>
-<td>When pending wait is canceled</td>
-<td>Set on the waiting future (the waiting code can catch and get <code>.reason</code>)</td>
+<td>When pending wait is cancelled</td>
+<td>Set on the waiting future (the waiting part can catch and get <code>.reason</code>)</td>
 </tr>
 <tr>
 <td><code>SessionOccupiedError</code></td>
 <td><code>hold()</code> lease acquisition failed</td>
-<td>Session already occupied by another owner (<code>.owner</code> can check the occupier)</td>
+<td>Session is already occupied by another owner (<code>.owner</code> can check the occupier)</td>
 </tr>
 </tbody></table></div>
-<p>When wait is canceled (module unload / platform shutdown / new wait in same session replaces it), <code>wait_reply</code> <strong>returns <code>None</code></strong> instead of throwing an exception (<code>InteractionCancelled</code> is internally converted); only catch it directly when distinguishing the cancellation reason is needed.</p>
+<p>When waiting is cancelled (module unloading / platform shutdown / new wait replaces the same session), <code>wait_reply</code> <strong>returns <code>None</code></strong> instead of throwing an exception (<code>InteractionCancelled</code> is internally converted); only directly catch it when distinguishing the reason for cancellation.</p>
 <h3 id="module-series-coremodulepy-sdkmodulecall">Module Series — <code>Core/module.py</code> (<code>sdk.module.call</code>)</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Exception</th>
-<th>Location</th>
+<th>Occurrence Location</th>
 <th>Typical Scenario</th>
 </tr>
 </thead>
@@ -285,13 +320,13 @@
 </tr>
 <tr>
 <td><code>ModuleNotAvailableError</code></td>
-<td><code>module.call()</code> / lazy loading attribute access</td>
-<td>Target not registered / disabled / initialization failed</td>
+<td><code>module.call()</code> / lazy-loaded attribute access</td>
+<td>Target not registered / not enabled / initialization failed</td>
 </tr>
 <tr>
 <td><code>ServiceNotProvidedError</code></td>
 <td><code>module.call()</code></td>
-<td>Target <code>meta.services</code> whitelist did not declare this method</td>
+<td>Target <code>meta.services</code> whitelist does not declare this method</td>
 </tr>
 <tr>
 <td><code>ModuleCallTimeoutError</code></td>
@@ -299,7 +334,7 @@
 <td>Called coroutine exceeds timeout (default 30s)</td>
 </tr>
 </tbody></table></div>
-<p>"Target module unavailable" in different access paths:</p>
+<p>"Target module unavailable" exception types under different access paths:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -312,11 +347,11 @@
 <td><code>ModuleNotAvailableError</code> (typed)</td>
 </tr>
 <tr>
-<td><code>sdk.module.X.attr</code> (lazy loading attribute access, after initialization failure)</td>
+<td><code>sdk.module.X.attr</code> (lazy-loaded attribute access, after initialization failure)</td>
 <td><code>ModuleNotAvailableError</code></td>
 </tr>
 <tr>
-<td><code>sdk.module.X</code> (attribute access when module is disabled)</td>
+<td><code>sdk.module.X</code> (module attribute access when module is not enabled)</td>
 <td><code>AttributeError</code> (Python attribute convention, <code>hasattr</code> relies on this semantics)</td>
 </tr>
 </tbody></table></div>
@@ -325,34 +360,64 @@
 <span class="token keyword">try</span><span class="token punctuation">:</span>
     history <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
 <span class="token keyword">except</span> ModuleNotAvailableError<span class="token punctuation">:</span>
-    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Target module does not exist / is disabled</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Target module does not exist / is not enabled</span>
 <span class="token keyword">except</span> ServiceNotProvidedError<span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Target module does not provide this service</span>
 </code></pre>
+<h3 id="shadow-series-coreshadowpy-shadow-modules">Shadow Series — <code>Core/shadow.py</code> (Shadow Modules)</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Exception</th>
+<th>Occurrence Location</th>
+<th>Typical Scenario</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ShadowError</code></td>
+<td>Shadow module mechanism</td>
+<td>Base class for shadow exceptions (catch all shadow errors)</td>
+</tr>
+<tr>
+<td><code>ShadowStateError</code></td>
+<td><code>shadow_start()</code> / <code>dismiss_shadow()</code></td>
+<td>Target not loaded / active shadow exists / shadow not bound</td>
+</tr>
+<tr>
+<td><code>ShadowSourceError</code></td>
+<td><code>shadow_start()</code></td>
+<td>Source path does not exist / plugin loader missing / source has no loadable class / loading failed</td>
+</tr>
+<tr>
+<td><code>ShadowPromoteError</code></td>
+<td><code>promote_shadow()</code></td>
+<td>Shadow not registered / not loaded / loader does not support snapshot / promotion reload failed</td>
+</tr>
+</tbody></table></div>
 <h3 id="framework-internal-parameter-validation-valueerror">Framework Internal Parameter Validation (ValueError)</h3>
-<p>Parameter validation in storage query builders (empty column types, <code>Insert</code> non-dict, unsafe column types, etc.) throws standard <code>ValueError</code>—these are <strong>development-time coding errors</strong>, and normal business code should not catch them, but rather correct the calls.</p>
-<p>Standard adapter actions do not throw exceptions on failure: return a response dictionary with <code>retcode</code> (protocol semantics, e.g., <code>retcode=10002</code> means action not implemented)—this is a parallel error channel to client layer "failures throw <code>ClientError</code>". Adapter development must handle both.</p>
+<p>Parameter validation for storage query builder (empty column types, <code>Insert</code> not dict, unsafe column types, etc.) throws standard <code>ValueError</code>—these are <strong>development-time coding errors</strong>, and normal business code should not catch them, but instead fix the calls.</p>
+<p>Adaptor standard action failures <strong>do not throw exceptions</strong>: return a response dictionary with <code>retcode</code> (protocol semantics, e.g., <code>retcode=10002</code> means the action is not implemented)—this is a parallel error channel to client layer "failures throw <code>ClientError</code>", and adaptor development must handle both.</p>
 <h2 id="handling-recommendations">Handling Recommendations</h2>
-<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># Base class is aggregated from Core</span>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> ErisPulseError  <span class="token comment"># Base class is aggregated and exported from Core</span>
 
 <span class="token keyword">try</span><span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 <span class="token keyword">except</span> ErisPulseError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
-    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># General catch-all: all framework custom exceptions</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Unified fallback: all framework custom exceptions</span>
 </code></pre>
 <ul>
 <li>For module development: catch as needed (see table above), use <code>ErisPulseError</code> as a fallback at the outermost layer</li>
-<li>All exceptions are aggregated and exported from <code>ErisPulse.Core</code> (including <code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code>), or can be imported from <code>ErisPulse.Core.Bases.errors</code></li>
+<li>All exceptions are aggregated and exported from <code>ErisPulse.Core</code> (including <code>SessionOccupiedError</code> / <code>InteractionCancelled</code> / <code>StrictModeError</code>), also available from <code>ErisPulse.Core.Bases.errors</code></li>
 <li>Full definitions are in <code>src/ErisPulse/Core/Bases/errors.py</code></li>
 </ul>
-<h2 id="noise-folding-on-shutdown">Noise Folding on Shutdown</h2>
-<p>When long-running processes are shut down (or background loops are canceled), the event loop often generates a batch of noise messages such as <code>Task was destroyed but it is pending!</code> that have little value for troubleshooting. The framework includes built-in <strong>noise folding</strong> functionality: within a 2-second window, similar messages are downgraded to TRACE level, merged, and counted, with only one output being generated, followed by a suffix indicating 「(N more similar messages were folded)」. This is a deliberate noise reduction measure—seeing the folding suffix does not mean the framework has swallowed real exceptions. Business exceptions (all types listed above) are still fully output as usual.</p>
+<h2 id="shutdown-noise-folding">Shutdown Noise Folding</h2>
+<p>Long-running processes often generate a batch of unactionable <code>Task was destroyed but it is pending!</code>-like interpreter noise when shutting down (or background loops are canceled). The framework includes <strong>noise folding for similar messages</strong>: within a 2-second window, identical messages are downgraded to TRACE and merged with a count, outputting only once, followed by a suffix indicating "another N similar messages were folded." This is deliberate noise reduction — seeing the folding suffix does not mean the framework swallowed real exceptions; business exceptions (all types above) are still fully output.</p>
 
         </article>
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/en/advanced/storage-backends.html"><small>Previous</small><br>Storage Backends</a>
-        <a class="doc-pager-next" href="/docs/en/advanced/startup.html"><small>Next</small><br>Startup Process and Manual Control</a>
+        <a class="doc-pager-next" href="/docs/en/advanced/connections.html"><small>Next</small><br>Connection Pool and Broadcasting</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

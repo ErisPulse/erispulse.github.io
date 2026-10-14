@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>接続プールとブロードキャスト - ErisPulse 文档中心</title>
+    <meta name="description" content="ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）はフレームワークレベルの一等リソースです。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュール..." />
+    <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/connections.html" />
+    <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/connections.html" />
+    <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/connections.html" />
+    <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/connections.html" />
+    <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/connections.html" />
+    <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/connections.html" />
+    <meta property="og:title" content="接続プールとブロードキャスト - ErisPulse 文档中心" />
+    <meta property="og:description" content="ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）はフレームワークレベルの一等リソースです。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュール..." />
+    <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/connections.html" />
+    <meta property="og:type" content="article" />
+    <meta name="twitter:card" content="summary" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"接続プールとブロードキャスト","description":"ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）はフレームワークレベルの一等リソースです。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュール...","url":"https://www.erisdev.com/docs/ja/advanced/connections.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <link rel="stylesheet" href="/assets/css/markdown.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+    <style>
+        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
+        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
+        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
+        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
+        .doc-nav-links a:hover{color:var(--primary)}
+        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
+        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
+        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
+        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
+        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
+        .doc-lang-link.current{color:var(--primary);font-weight:600}
+        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
+        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
+        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
+        .doc-pager a small{color:var(--text-secondary)}
+        .doc-pager-next{text-align:right}
+        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
+    </style>
+</head>
+<body>
+    
+    <nav class="doc-static-nav">
+        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
+        <div class="doc-nav-links">
+            <a href="/">首页</a>
+            <a href="/docs.html">文档中心</a>
+            <a href="/market.html">模块市场</a>
+            <a href="/community.html">社区</a>
+            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+    </nav>
+    <main class="doc-page">
+        
+    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+        <a href="/docs.html">Docs</a>
+        <span class="doc-crumb-sep">/</span> 高度なトピック
+        <span class="doc-crumb-sep">/</span> <span>接続プールとブロードキャスト</span>
+    </nav>
+        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/connections.html">简体中文</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/connections.html">English</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/connections.html">繁體中文</a>
+<a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/connections.html">日本語</a>
+<a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/connections.html">Русский</a></div>
+        <div class="doc-interactive">
+            <span>本文为静态镜像，内容以交互版为准</span>
+            <a href="https://www.erisdev.com/#docs/advanced/connections.md">在交互式文档中心打开 →</a>
+        </div>
+        <article class="markdown-content" id="docs-content">
+            <h1 id="接続プールとブロードキャスト">接続プールとブロードキャスト</h1>
+<p>ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）は<strong>フレームワークレベルの一等リソース</strong>です。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュールのアンロード時にはフレームワークが自動的に接続を閉じて回収します。これにより、業務側が <code>_ws_clients</code> 集合を自前で作成する必要がなく、忘れずにクリーンアップすることでリソースリークを防げます。</p>
+<blockquote>
+<p>本文ドキュメントの例はすべて<strong>ルートインポート</strong>の書き方を前提としています（2.10以降推奨）：
+<code>from ErisPulse import connections, router, client, WebSocketConnection</code></p>
+</blockquote>
+<h2 id="概要">概要</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections<span class="token punctuation">,</span> router<span class="token punctuation">,</span> WebSocketConnection
+
+<span class="token comment"># サーバ側：接続は自動登録され、ハンドラ内で業務グループに参加</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ws<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>            <span class="token comment"># グループ名は業務側で自由に命名</span>
+    <span class="token keyword">async</span> <span class="token keyword">for</span> msg <span class="token keyword">in</span> ws<span class="token punctuation">.</span>iter_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                             <span class="token comment"># 接続が切断された際にはフレームワークが自動的に登録を解除し、グループをクリーンアップ</span>
+
+<span class="token comment"># 任意の位置で：グループにブロードキャスト（成功/失敗の詳細を返す）</span>
+result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"notify"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token keyword">not</span> result<span class="token punctuation">.</span>ok<span class="token punctuation">:</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>                                 <span class="token comment"># result.failed: {接続ID: 例外}</span>
+</code></pre>
+<p>3種類の接続はすべて登録表に統合されます：</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>kind</th>
+<th>来源</th>
+<th>归属 owner</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>server</code></td>
+<td><code>@router.ws(...)</code> / <code>register_websocket(...)</code></td>
+<td>ルートを登録したモジュール名</td>
+<td>接続切断時に自動的に登録を解除</td>
+</tr>
+<tr>
+<td><code>sse</code></td>
+<td><code>@router.sse(...)</code> / <code>register_sse(...)</code></td>
+<td>ルートを登録したモジュール名</td>
+<td>ブロードキャストは <code>sse.send()</code> を使用</td>
+</tr>
+<tr>
+<td><code>client</code></td>
+<td><code>await client.ws_connect(url)</code></td>
+<td>現在のモジュール（または明示的な <code>owner=</code>）</td>
+<td>接続の閉じる、リモート切断時に自動的に登録を解除；アダプターが停止した際にはフレームワークが一括して閉じる</td>
+</tr>
+</tbody></table></div>
+<p>自動登録を不要とする場合：ルートに <code>track=False</code> を渡すか、出向接続に <code>track=False</code> を渡すことで、従来のコードの挙動は完全に維持されます。</p>
+<h2 id="接続プールの確認">接続プールの確認</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections
+
+<span class="token comment"># 特定のモジュールの接続プールを確認（「現在、あるモジュールに何本の接続があるか」）</span>
+conns <span class="token operator">=</span> connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>
+<span class="token keyword">for</span> conn <span class="token keyword">in</span> conns<span class="token punctuation">:</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span>conn<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span> conn<span class="token punctuation">.</span>kind<span class="token punctuation">,</span> conn<span class="token punctuation">.</span>groups<span class="token punctuation">,</span> conn<span class="token punctuation">.</span>meta<span class="token punctuation">)</span>
+
+<span class="token comment"># その他の条件でフィルタリング（すべての条件がAND条件）</span>
+connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">,</span> kind<span class="token operator">=</span><span class="token string">"client"</span><span class="token punctuation">)</span>
+connections<span class="token punctuation">.</span><span class="token builtin">list</span><span class="token punctuation">(</span>group<span class="token operator">=</span><span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 全体の統計情報（各条件のカウント）</span>
+stats <span class="token operator">=</span> connections<span class="token punctuation">.</span>stats<span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token comment"># {'total': 5, 'by_kind': {...}, 'by_namespace': {...}, 'by_owner': {...}, 'groups': {...}}</span>
+
+<span class="token comment"># 所有権監査のカウント（ownership インターフェースでも確認可能）</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> ownership
+ownership<span class="token punctuation">.</span>counts<span class="token punctuation">(</span><span class="token string">"Dashboard"</span><span class="token punctuation">)</span>   <span class="token comment"># {'connections': 3, ...}</span>
+</code></pre>
+<p>各接続は以下の識別情報を読み取ることができます：<code>conn.id</code>（例: <code>Dashboard:1a2b3c4d</code>）、<code>conn.namespace</code>、<code>conn.owner</code>、<code>conn.kind</code>、<code>conn.groups</code>、<code>conn.meta</code>（業務用の自由な辞書）。</p>
+<h2 id="ブロードキャストとサブスクリプション">ブロードキャストとサブスクリプション</h2>
+<h3 id="グループサブスクリプションモデル">グループ（サブスクリプションモデル）</h3>
+<p>グループは<strong>フラットな文字列</strong>であり、命名は完全に業務側の合意によって行われます（ルーム / テナント / トピックなど）。ネストされた階層は命名規則で表現します（例: <code>tenant:acme/room:1</code>）。フレームワークは形式を制限しません。</p>
+<p>両方向から操作が可能です：</p>
+<pre><code class="language-python"><span class="token comment"># 方向1：接続側が参加/退出（ハンドラ内で）</span>
+<span class="token decorator annotation punctuation">@router<span class="token punctuation">.</span>ws</span><span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"/ws"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle</span><span class="token punctuation">(</span>ws<span class="token punctuation">:</span> WebSocketConnection<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    ws<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>        <span class="token comment"># 等価: connections.assign(ws.id, "room:1")</span>
+    ws<span class="token punctuation">.</span>leave_group<span class="token punctuation">(</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 方向2：管理側が割り当て（ルート側 / 他のモジュール）</span>
+connections<span class="token punctuation">.</span>assign<span class="token punctuation">(</span>conn_id<span class="token punctuation">,</span> <span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>
+connections<span class="token punctuation">.</span>dismiss<span class="token punctuation">(</span>conn_id<span class="token punctuation">,</span> <span class="token string">"tenant:acme"</span><span class="token punctuation">)</span>   <span class="token comment"># グループ名を指定しない場合はすべてのグループから退出</span>
+</code></pre>
+<p>接続が切断された際には、すべてのグループから自動的に退出し、業務側によるクリーンアップは不要です。</p>
+<h3 id="ブロードキャスト">ブロードキャスト</h3>
+<pre><code class="language-python">result <span class="token operator">=</span> <span class="token keyword">await</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span>
+    data<span class="token punctuation">,</span>                       <span class="token comment"># WS は send_json を使用；SSE は send を使用（自動的にJSONシリアライズ）</span>
+    namespace<span class="token operator">=</span><span class="token string">"Dashboard"</span><span class="token punctuation">,</span>      <span class="token comment"># 名前空間でフィルタリング</span>
+    group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">,</span>             <span class="token comment"># グループでフィルタリング</span>
+    kind<span class="token operator">=</span><span class="token string">"sse"</span><span class="token punctuation">,</span>                 <span class="token comment"># 接続の種類でフィルタリング</span>
+    owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">,</span>          <span class="token comment"># 所有者でフィルタリング</span>
+    ids<span class="token operator">=</span><span class="token punctuation">{</span>conn_id<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>         <span class="token comment"># 明示的に候補集を指定（フィルタ条件は依然有効）</span>
+    exclude<span class="token operator">=</span><span class="token punctuation">{</span>conn_id<span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># 特定の接続を除外</span>
+    timeout<span class="token operator">=</span><span class="token number">10.0</span><span class="token punctuation">,</span>               <span class="token comment"># 単一接続の送信タイムアウト（トータルの時間ではなく）</span>
+    concurrency<span class="token operator">=</span><span class="token number">64</span><span class="token punctuation">,</span>             <span class="token comment"># 並列送信の上限</span>
+    raise_on_error<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>       <span class="token comment"># True の場合、失敗した項目があると最初の例外を送出</span>
+<span class="token punctuation">)</span>
+result<span class="token punctuation">.</span>total      <span class="token comment"># 目標接続の総数（除外前に）</span>
+result<span class="token punctuation">.</span>sent       <span class="token comment"># 成功した接続IDのリスト</span>
+result<span class="token punctuation">.</span>failed     <span class="token comment"># {接続ID: 例外オブジェクト}（タイムアウト/切断済み/送信失敗）</span>
+result<span class="token punctuation">.</span>excluded   <span class="token comment"># 除外された接続ID</span>
+result<span class="token punctuation">.</span>ok         <span class="token comment"># 全て送信されたか</span>
+</code></pre>
+<p>フィルタ条件は <strong>AND</strong> で処理されます。1件の失敗は他の接続への影響はありません。<code>ids</code> に存在しない接続は <code>failed</code> にカウントされ、業務側が状況を把握できるようにします。</p>
+<h3 id="ライフサイクルイベント">ライフサイクルイベント</h3>
+<p>接続の登録/登録解除/グループ変更は標準的なライフサイクルイベントとして発行され、Dashboard などのコンポーネントはサブスクライブしてリアルタイムに表示できます：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> lifecycle
+
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.registered"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_registered</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.unregistered"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unregistered</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.group.joined"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_joined</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"connection.group.left"</span><span class="token punctuation">)</span>
+<span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_left</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+</code></pre>
+<h2 id="モジュール間の渡し渡し-再利用">モジュール間の渡し渡し / 再利用</h2>
+<p>接続はフレームワークが登録したリソースであり、どのモジュールでも接続IDを使って取得して<strong>再利用</strong>できます。自前で新たな接続を作成する必要も、誰が接続を作成したかを知る必要もありません：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections
+
+conn <span class="token operator">=</span> connections<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"Dashboard:1a2b3c4d"</span><span class="token punctuation">)</span>   <span class="token comment"># 存在しない/切断済みの場合は ConnectionNotFoundError を送出</span>
+<span class="token keyword">await</span> conn<span class="token punctuation">.</span>send_json<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"ping"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">)</span>              <span class="token comment"># どのモジュールからでも送信可能</span>
+conn<span class="token punctuation">.</span>join_group<span class="token punctuation">(</span><span class="token string">"someone-elses-room"</span><span class="token punctuation">)</span>          <span class="token comment"># グループ参加も可能</span>
+</code></pre>
+<p><strong>所有権と閉じる権限</strong>：</p>
+<ul>
+<li>接続の <code>owner</code>（作成したモジュール）は、閉じる権限を独占します。非 owner が <code>close()</code> を呼び出すと <code>ConnectionPermissionError</code>（<code>from ErisPulse import ConnectionPermissionError</code>）が送出されます；</li>
+<li>送信やグループ操作は、どのモジュールからでも許可なく実行可能です；</li>
+<li>owner モジュールのアンロード / アダプターの停止時に、フレームワークは<strong>一括して閉じて登録を解除</strong>します（サーバ側 + 出向接続）。取得した参照で送信を試みても失敗結果が返り、<code>connection.unregistered</code> イベントを監視することで感知できます；</li>
+<li>フレームワーク内部のリソース回収には <code>close(force=True)</code> を使用して検証を回避します。</li>
+</ul>
+<blockquote>
+<p>説明：閉じる権限の検証は、実行時の owner コンテキスト（<code>owner_scope</code> / イベント配信 / <code>spawn_background</code> など）に依存します。コンテキストが不明な呼び出し（古いコードなど）は許可され、破壊的な影響をゼロに保ちます。新しいコードでは、owner コンテキスト内で呼び出すことで保護されます。</p>
+</blockquote>
+<h2 id="出向接続クライアント側">出向接続（クライアント側）</h2>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> client
+
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">)</span>
+ws<span class="token punctuation">.</span><span class="token builtin">id</span>          <span class="token comment"># 登録済みで、connections で検索/ブロードキャストが可能</span>
+ws<span class="token punctuation">.</span>owner       <span class="token comment"># 現在のモジュール（owner コンテキストが利用できない場合は明示的に指定）</span>
+
+<span class="token comment"># owner コンテキストが利用できない場合（例：ツールスレッドのコールバック）は明示的に指定し、アンロード時に自動回収されます：</span>
+ws <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span>ws_connect<span class="token punctuation">(</span><span class="token string">"wss://example.com/ws"</span><span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">)</span>
+</code></pre>
+<p>リモート側が切断した場合、またはローカルで <code>close()</code> を呼び出した場合、自動的に登録を解除します。モジュールのアンロード時には、フレームワークがその名下のすべての出向接続を閉じます。これにより、従来のコードで接続を自前で管理し忘れることによるリソースリークはなくなりました。</p>
+<h2 id="スレッド間の投递">スレッド間の投递</h2>
+<p>子スレッドから接続にアクセスする場合（ブロードキャスト / プッシュ / 閉じる）には、フレームワークの標準的なツールを使ってメインループに投递してください。**<code>run_coroutine_threadsafe</code> を手書きで使用しないでください**：</p>
+<pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> run_main_loop<span class="token punctuation">,</span> spawn_later<span class="token punctuation">,</span> spawn_thread
+
+<span class="token comment"># 子スレッドでブロックして結果を取得：</span>
+run_main_loop<span class="token punctuation">(</span>connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"tick"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+
+<span class="token comment"># バックグラウンドスレッド + 遅延タスク（所有権の割り当て、アンロード時に自動キャンセル）：</span>
+<span class="token keyword">def</span> <span class="token function">push_tick</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">return</span> connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"tick"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span>
+spawn_later<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">,</span> push_tick<span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<h2 id="アンロードとクリーンアップの意味">アンロードとクリーンアップの意味</h2>
+<p>モジュールのアンロード / アダプターの停止時の所有権回収の流れは次のように進行します：所属するバックグラウンドタスクやタイマーのキャンセル → <strong>所属する接続の閉じて登録を解除</strong> → <code>on_cleanup</code> フックの呼び出し → ルート/ハンドラなどの登録済みリソースの登録解除。詳細は <a href="/docs/ja/advanced/ownership.html">所有権（owner）システム</a> を参照してください。</p>
+<div class="markdown-alert markdown-alert-warning"><p class="markdown-alert-title"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i>Warning</p>
+<p>2.10以降、モジュールのアンロード時に登録された WS/SSE/出向接続が閉じられます。アンロード後に接続が生き続けることを依存している下流コンポーネント（例：旧バージョンの Dashboard プッシュ）は、これはリソースリークを防ぐ意図的な挙動であることを認識する必要があります。</p>
+</div>
+<h2 id="api-一覧">API 一覧</h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>API</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>connections.get(id)</code></td>
+<td>接続を取得（モジュール間のエントリーポイント）、存在しない場合は <code>ConnectionNotFoundError</code> を送出</td>
+</tr>
+<tr>
+<td><code>connections.list(namespace=, owner=, group=, kind=)</code></td>
+<td>接続のリストをフィルタリングして取得</td>
+</tr>
+<tr>
+<td><code>connections.stats(namespace=, owner=)</code></td>
+<td>各条件のカウント統計</td>
+</tr>
+<tr>
+<td><code>connections.assign(id, *groups)</code> / <code>dismiss(id, *groups)</code></td>
+<td>管理側によるグループ参加/退出</td>
+</tr>
+<tr>
+<td><code>await connections.broadcast(data, ...)</code></td>
+<td>ブロードキャスト、<code>BroadcastResult</code> を返す</td>
+</tr>
+<tr>
+<td><code>await connections.close(id, force=False)</code></td>
+<td>閉じて登録を解除（権限チェックあり）</td>
+</tr>
+<tr>
+<td><code>await connections.close_owner(owner)</code></td>
+<td>指定 owner 名下のすべての接続を閉じて登録を解除（フレームワークのアンロードチェーンで呼び出される）</td>
+</tr>
+<tr>
+<td><code>conn.join_group(*groups)</code> / <code>conn.leave_group(*groups)</code></td>
+<td>接続側によるグループ参加/退出</td>
+</tr>
+<tr>
+<td><code>conn.send_json / send_text / iter_text / ...</code></td>
+<td>受信/送信（サーバ側/クライアント側のインターフェースは同一）</td>
+</tr>
+<tr>
+<td><code>conn.meta</code></td>
+<td>業務用メタデータ辞書</td>
+</tr>
+<tr>
+<td><code>conn.close(force=False)</code></td>
+<td>閉じる（非 owner は <code>ConnectionPermissionError</code> を送出）</td>
+</tr>
+</tbody></table></div>
+
+        </article>
+        
+    <nav class="doc-pager">
+        <a class="doc-pager-prev" href="/docs/ja/advanced/errors.html"><small>Previous</small><br>エラーシステムとキャッチガイド</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/startup.html"><small>Next</small><br>スタートフローと手動制御</a>
+    </nav>
+    </main>
+    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</body>
+</html>

@@ -83,10 +83,14 @@
 <ol>
 <li><code>spawn_background(coro)</code> 调度一个不关心返回值的协程</li>
 <li>任务自动归属到当前 <code>owner_scope</code> 上下文（模块/适配器），卸载时可由框架兜底取消</li>
-<li><code>cancel_owner_tasks(owner)</code> 取消并等待指定归属者的全部后台任务</li>
+<li><code>cancel_owner_tasks(owner)</code> 取消并等待指定归属者的全部后台任务与定时器</li>
 <li><code>cancel_all_background_tasks()</code> 供 <code>sdk.uninit()</code> 兜底清理</li>
 <li><code>install_owner_task_factory()</code>（随启动自动安装）：事件循环级任务工厂，
 owner 上下文内<strong>任何</strong> <code>asyncio.create_task</code>（含第三方库）自动归属、卸载兜底取消</li>
+<li><code>run_main_loop(coro)</code> 从子线程安全投递到主循环并阻塞取结果；
+<code>spawn_later(delay, coro_fn)</code> 归属化的延迟调度（裸 <code>loop.call_later</code> 不归属）</li>
+<li><code>spawn_thread(name, target)</code> 归属化的线程启动（观测面；线程不可强杀，
+退出清理靠 <code>on_cleanup</code> 约定）</li>
 </ol>
 </blockquote>
 <hr>
@@ -170,6 +174,83 @@ owner 上下文内<strong>任何</strong> <code>asyncio.create_task</code>（含
 <p><strong>示例</strong>:</p>
 <pre><code class="language-python">spawn_background<span class="token punctuation">(</span>some_async_work<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
+<hr>
+<h3 id="run_main_loopcoro-coroutineany-any-_t-timeout-float-none-none---_t"><code>run_main_loop(coro: Coroutine[Any, Any, _T], *, timeout: float | None = None) -&gt; _T</code></h3>
+<p>从子线程安全投递协程到主循环并阻塞等待结果</p>
+<p>跨线程投递的标准工具：在主循环内调用时直接报错（应 <code>await</code>）；
+在其它线程（含其它事件循环的线程）调用时经
+<code>asyncio.run_coroutine_threadsafe</code> 投递回已注册的主循环并阻塞取结果。
+广播、推送、连接操作等凡从子线程触达主循环资源的场景都应基于它，
+不再手写 <code>run_coroutine_threadsafe</code>。</p>
+<ul>
+<li><strong>coro</strong>: 待执行的协程对象</li>
+<li><strong>timeout</strong>: 阻塞等待结果的超时秒数；None 表示无限等待</li>
+</ul>
+<p><strong>返回值</strong>: 协程的返回值</p>
+<p><strong>异常</strong>: <code>RuntimeError</code> - 在主循环内同步调用（应改为 await），</p>
+<pre><code>                 或超时未完成（:class:`TimeoutError`）
+</code></pre>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python"><span class="token comment"># 在子线程里向某分组广播：</span>
+run_main_loop<span class="token punctuation">(</span>connections<span class="token punctuation">.</span>broadcast<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"ping"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> group<span class="token operator">=</span><span class="token string">"room:1"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">5</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h3 id="_warn_coro_fn_failederror-exception---none"><code>_warn_coro_fn_failed(error: Exception) -&gt; None</code></h3>
+<p><strong>内部方法</strong> spawn_later 触发回调失败留痕（不中断事件循环回调调度）</p>
+<hr>
+<h3 id="spawn_laterdelay-float-coro_fn-callable-awaitableany-args-any-owner-str-none-none---asynciotimerhandle"><code>spawn_later(delay: float, coro_fn: Callable[[], Awaitable[Any]], *args: Any, owner: str | None = None) -&gt; asyncio.TimerHandle</code></h3>
+<p>归属化的延迟调度（<code>loop.call_later</code> 的 owner 感知包装）</p>
+<p>裸 <code>loop.call_later</code> 产生的 TimerHandle 不经过任务工厂，是归属权
+体系的盲区；本函数把句柄登记到 owner 名下，模块卸载时随
+<code>cancel_owner_tasks</code> 兜底取消，触发后经 <code>spawn_background</code> 调度
+协程（同样归属该 owner）。</p>
+<ul>
+<li><p><strong>delay</strong>: 延迟秒数</p>
+</li>
+<li><p><strong>coro_fn</strong>: 返回可等待对象的工厂函数（在触发瞬间调用；</p>
+<pre><code>          传协程工厂而非协程对象，可避免取消后 "never awaited" 警告）
+</code></pre>
+</li>
+<li><p><strong>args</strong>: 传给 <code>coro_fn</code> 的位置参数</p>
+</li>
+<li><p><strong>owner</strong>: 显式指定资源归属者；缺省时从当前 owner 上下文捕获</p>
+</li>
+</ul>
+<p><strong>返回值</strong>: :class:<code>asyncio.TimerHandle</code>（可提前 <code>handle.cancel()</code>）</p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">spawn_later<span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">,</span> <span class="token keyword">lambda</span><span class="token punctuation">:</span> cleanup_expired<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h3 id="spawn_threadname-str-target-callable-any-args-any-owner-str-none-none-daemon-bool-true---threadingthread"><code>spawn_thread(name: str, target: Callable[..., Any], *args: Any, owner: str | None = None, daemon: bool = True) -&gt; threading.Thread</code></h3>
+<p>归属化的线程启动（观测面）</p>
+<p>线程无法被框架强制终止：登记使 <code>ownership.counts()</code> / 泄漏审计
+可见该归属者的存活线程，退出清理由业务在 <code>on_cleanup</code> 中自行约定
+（与框架内部 config-watcher / file-watcher 的兜底风格一致）。</p>
+<ul>
+<li><strong>name</strong>: 线程名（自动加 <code>erispulse:</code> 前缀便于辨识）</li>
+<li><strong>target</strong>: 线程入口函数</li>
+<li><strong>args</strong>: 传给 <code>target</code> 的位置参数</li>
+<li><strong>owner</strong>: 显式指定资源归属者；缺省时从当前 owner 上下文捕获</li>
+<li><strong>daemon</strong>: 是否守护线程 (默认: True，随主进程退出)</li>
+</ul>
+<p><strong>返回值</strong>: 已启动的 :class:<code>threading.Thread</code></p>
+<p><strong>示例</strong>:</p>
+<pre><code class="language-python">spawn_thread<span class="token punctuation">(</span><span class="token string">"poller"</span><span class="token punctuation">,</span> poll_loop<span class="token punctuation">,</span> owner<span class="token operator">=</span><span class="token string">"MyAdapter"</span><span class="token punctuation">)</span>
+</code></pre>
+<hr>
+<h3 id="get_owner_timersowner-str-none---setasynciotimerhandle"><code>get_owner_timers(owner: str | None) -&gt; set[asyncio.TimerHandle]</code></h3>
+<p>获取指定归属者名下未触发的定时器句柄集合</p>
+<ul>
+<li><strong>owner</strong>: 资源归属者（模块名/适配器平台名）</li>
+</ul>
+<p><strong>返回值</strong>: 未触发句柄集合的浅拷贝</p>
+<hr>
+<h3 id="get_owner_threadsowner-str-none---setthreadingthread"><code>get_owner_threads(owner: str | None) -&gt; set[threading.Thread]</code></h3>
+<p>获取指定归属者名下存活的线程集合</p>
+<ul>
+<li><strong>owner</strong>: 资源归属者（模块名/适配器平台名）</li>
+</ul>
+<p><strong>返回值</strong>: 存活线程集合的浅拷贝</p>
 <hr>
 <h3 id="_owner_aware_task_factoryloop-asyncioabstracteventloop-coro-any-kwargs-any---asynciotaskany"><code>_owner_aware_task_factory(loop: asyncio.AbstractEventLoop, coro: Any, **kwargs: Any) -&gt; asyncio.Task[Any]</code></h3>
 <p><strong>内部方法</strong> 任务创建钩子：归属上下文内的任务自动登记（供卸载兜底取消）</p>

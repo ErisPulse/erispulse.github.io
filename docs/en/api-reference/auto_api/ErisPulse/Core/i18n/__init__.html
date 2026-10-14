@@ -159,6 +159,24 @@ BCP 47 格式的 locale 名称（如 "zh-CN", "en-US"）</p>
 <p>获取当前生效的语言</p>
 <p>优先级: 手动设置 &gt; ERISPULSE_LANG 环境变量 &gt; 全局持久化设置 &gt; 配置项 &gt; 检测到的语言</p>
 <p>配置值为 "auto" 时使用自动检测的语言。</p>
+<p>除手动设置与环境变量外走解析缓存：以全局状态文件的 mtime 为失效信号，
+避免每次调用都打开并解析 <code>~/.erispulse/cli_state.json</code>（热路径成本）；
+外部修改（如另一进程执行 <code>epsdk i18n</code>）通过 mtime 变化即时感知，
+进程内 <code>ErisPulse.i18n.*</code> 配置写入通过 lifecycle 事件失效缓存。</p>
+<p><strong>内部方法</strong></p>
+<hr>
+<h5 id="_ensure_config_invalidation_hook---none"><code>_ensure_config_invalidation_hook() -&gt; None</code></h5>
+<p>注册配置写入对语言缓存的失效监听</p>
+<p>惰性注册一次（避免 Core 单例构造顺序上的导入环），
+监听 <code>config.set</code> / <code>config.updated</code> 两类事件。</p>
+<p><strong>内部方法</strong>
+注册失败静默跳过，不影响语言解析本身。</p>
+<hr>
+<h5 id="_on_language_config_changeddata-any---none"><code>_on_language_config_changed(data: Any) -&gt; None</code></h5>
+<p>配置事件回调：ErisPulse.i18n.* 写入或外部配置重载时清除语言缓存</p>
+<ul>
+<li><strong>data</strong>: 事件数据（含 <code>key</code> 的 dict，或任意载荷）</li>
+</ul>
 <p><strong>内部方法</strong></p>
 <hr>
 <h5 id="_global_state_path---pathstaticmethod"><code>_global_state_path() -&gt; Path</code>（staticmethod）</h5>
@@ -248,18 +266,23 @@ i18n<span class="token punctuation">.</span>t<span class="token punctuation">(</
 <p>在指定语言中查找翻译键</p>
 <p><strong>内部方法</strong></p>
 <hr>
-<h5 id="registerlang-str-translations-dictstr-str-domain-str-app---none"><code>register(lang: str, translations: dict[str, str], domain: str = 'app') -&gt; None</code></h5>
+<h5 id="registerlang-str-translations-dictstr-str-domain-str-none-none---none"><code>register(lang: str, translations: dict[str, str], domain: 'str | None' = None) -&gt; None</code></h5>
 <p>注册翻译文本（供外部模块使用）</p>
 <ul>
-<li><strong>lang</strong> (<code>str</code>): 语言代码，如 "en", "zh-CN"（会按就近原则映射）</li>
-<li><strong>translations</strong> (<code>dict[str, str]</code>): 翻译键值对，如 {"my_module.welcome": "Welcome!"}</li>
-<li><strong>domain</strong> (<code>str</code>): 域名，用于区分不同模块的翻译，默认 "app"</li>
+<li><p><strong>lang</strong> (<code>str</code>): 语言代码，如 "en", "zh-CN"（会按就近原则映射）</p>
+</li>
+<li><p><strong>translations</strong> (<code>dict[str, str]</code>): 翻译键值对，如 {"my_module.welcome": "Welcome!"}</p>
+</li>
+<li><p><strong>domain</strong> (<code>str | None</code>): 域名，用于区分不同模块的翻译并支持卸载清理；</p>
+<pre><code>        缺省时自动取当前归属 owner（模块名/平台名），无归属上下文
+        才落入 "app"。模块显式传 domain 时请与模块名一致，
+        否则卸载时词条无法按 owner 清理。
+</code></pre>
+</li>
 </ul>
 <p><strong>示例</strong>:</p>
-<pre><code class="language-python">i18n<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"zh-CN"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token string">"mybot.welcome"</span><span class="token punctuation">:</span> <span class="token string">"欢迎使用机器人"</span><span class="token punctuation">,</span>
-    <span class="token string">"mybot.goodbye"</span><span class="token punctuation">:</span> <span class="token string">"再见"</span><span class="token punctuation">,</span>
-<span class="token punctuation">}</span><span class="token punctuation">,</span> domain<span class="token operator">=</span><span class="token string">"mybot"</span><span class="token punctuation">)</span>
+<pre><code class="language-python"><span class="token comment"># 模块内注册：domain 自动归属本模块，卸载时自动清理</span>
+i18n<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"zh-CN"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"mybot.welcome"</span><span class="token punctuation">:</span> <span class="token string">"欢迎使用机器人"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 i18n<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"en"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     <span class="token string">"mybot.welcome"</span><span class="token punctuation">:</span> <span class="token string">"Welcome to the bot"</span><span class="token punctuation">,</span>
     <span class="token string">"mybot.goodbye"</span><span class="token punctuation">:</span> <span class="token string">"Goodbye"</span><span class="token punctuation">,</span>

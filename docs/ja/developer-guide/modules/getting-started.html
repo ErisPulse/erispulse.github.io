@@ -106,8 +106,8 @@
 </code></pre>
 <h2 id="corepy---基礎モジュール">Core.py - 基礎モジュール</h2>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
-<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule
-<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
+<span class="token comment"># 推奨されるルートインポート（2.10+）：一般的なシンボルはルートパッケージから直接インポートでき、深いパスも互換性があります</span>
+<span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> BaseModule<span class="token punctuation">,</span> command
 
 <span class="token keyword">class</span> <span class="token class-name">Main</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sdk<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -122,14 +122,14 @@
         <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
             lazy_load<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
             priority<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span>
-            depends<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token comment"># オプション：他のモジュールへの依存リスト</span>
-            <span class="token comment"># オプション：イベント駆動の遅延活性化——トリガーを宣言し、最初の一致するイベント/コマンドが到着した時点で自動的にロード</span>
-            <span class="token comment"># activate_on=[{"command": {"name": "hello", "help": "挨拶を送信"}}],</span>
+            depends<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token comment"># オプション：依存する他のモジュールのリスト</span>
+            <span class="token comment"># オプション：イベント駆動の遅延活性化——トリガーを宣言し、最初の一致するイベント/コマンドが到着したときに自動的にロードされます</span>
+            <span class="token comment"># activate_on=[{"command": {"name": "hello", "help": "挨拶を送る"}}],</span>
         <span class="token punctuation">)</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""モジュールがロードされたときに呼び出される"""</span>
-        <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"挨拶を送信"</span><span class="token punctuation">)</span>
+        <span class="token triple-quoted-string string">"""モジュールがロードされたときに呼び出されます"""</span>
+        <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"挨拶を送る"</span><span class="token punctuation">)</span>
         <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">hello_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
             name <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_nickname<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">or</span> <span class="token string">"友達"</span>
             <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"こんにちは、</span><span class="token interpolation"><span class="token punctuation">{</span>name<span class="token punctuation">}</span></span><span class="token string">！"</span></span><span class="token punctuation">)</span>
@@ -137,11 +137,11 @@
         self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"モジュールがロードされました"</span><span class="token punctuation">)</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_unload</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""モジュールがアンロードされたときに呼び出される"""</span>
+        <span class="token triple-quoted-string string">"""モジュールがアンロードされたときに呼び出されます"""</span>
         self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"モジュールがアンロードされました"</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p><strong>設定の読み込み</strong>：上記の基本的な例では設定は使用していません。設定を読み込む必要がある場合は、<code>ConfigClass</code> をネストして宣言し、<code>self.cfg</code> を通じてリアルタイムに読み取ることを推奨します（<a href="/docs/ja/developer-guide/modules/docs/ja/core-concepts.html#%E5%AE%A3%E8%A8%80%E7%9A%84%E8%A8%AD%E5%AE%9A%E3%81%AE%E6%8E%A8%E5%A5%A8">モジュールのコア概念</a>を参照）。手動で <code>_load_config()</code> を呼び出す旧い書き方は廃止されました。</p>
+<p><strong>設定の読み込み</strong>：上記の基本的な例では設定は使用していません。設定を読み込む必要がある場合は、<code>ConfigClass</code> をネストして宣言し、<code>self.cfg</code> を使ってリアルタイムで読み込むことを推奨します（<a href="/docs/ja/developer-guide/modules/docs/ja/core-concepts.html#%E5%AE%A3%E8%A8%80%E7%9A%84%E8%A8%AD%E5%AE%9A%E3%81%AE%E6%8E%A8%E5%A5%A8">モジュールのコア概念</a>を参照してください）。手動で <code>_load_config()</code> を呼び出す古い書き方は廃止されました。</p>
 </blockquote>
 <h2 id="テストモジュール">テストモジュール</h2>
 <h3 id="ローカルテスト">ローカルテスト</h3>
