@@ -618,7 +618,7 @@ function emptyStateHtml() {
     const filtered = hasActiveFilters();
     return `
         <div class="empty-state">
-            <i class="fas fa-box-open empty-state-icon"></i>
+            <img class="empty-state-mascot" src="assets/img/mascot-hero.webp" alt="" aria-hidden="true" loading="lazy">
             <h3 class="empty-state-title">${I18n.t(filtered ? 'market.empty.filtered' : 'market.empty')}</h3>
             <p class="empty-state-desc">${I18n.t('market.empty.hint')}</p>
             ${filtered ? `<button type="button" class="filter-reset empty-state-action" data-action="clear-filters">
