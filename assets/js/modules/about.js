@@ -73,8 +73,16 @@ export async function loadContributors() {
             contributorElement.className = 'contributor';
             contributorElement.innerHTML = `
                 <img src="${contributor.avatar_url}" alt="${contributor.login}" class="contributor-avatar" referrerpolicy="no-referrer">
-                <span class="contributor-name">${contributor.login}</span>
+                <span class="contributor-name">${contributor.login.replace(/\[bot\]$/, '<span class="name-bot-tag">[bot]</span>')}</span>
             `;
+            // GitHub 直连受阻时头像会 404/超时，退化为首字母占位
+            const avatar = contributorElement.querySelector('img');
+            avatar.addEventListener('error', () => {
+                const fallback = document.createElement('span');
+                fallback.className = 'contributor-avatar contributor-avatar-fallback';
+                fallback.textContent = (contributor.login || '?').charAt(0).toUpperCase();
+                avatar.replaceWith(fallback);
+            }, { once: true });
             contributorElement.onclick = () => window.open(contributor.html_url, '_blank');
             container.appendChild(contributorElement);
         });

@@ -1,4 +1,4 @@
-const CACHE_NAME = "erispulse-v2.14.0";
+const CACHE_NAME = "erispulse-v2.16.0";
 const EXTERNAL_LIBS = [
   "https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/",
   "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/",
@@ -49,6 +49,12 @@ const urlsToCache = [
   "/assets/img/codeberg.svg",
   "/assets/img/yunhu.png",
   "/assets/img/ep_chan.png",
+  "/assets/img/eris-pattern.webp",
+  "/assets/fonts/inter-latin-400-normal.woff2",
+  "/assets/fonts/inter-latin-500-normal.woff2",
+  "/assets/fonts/inter-latin-600-normal.woff2",
+  "/assets/fonts/inter-latin-700-normal.woff2",
+  "/assets/js/modules/reveal.js",
   "/manifest.json",
 ];
 

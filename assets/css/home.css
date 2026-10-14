@@ -4,7 +4,14 @@
 .hero-section {
     position: relative;
     overflow: hidden;
-    background: rgb(var(--hero-bg-rgb));
+    /* 底图：ep 娘图案大格平铺做水彩底，罩「白丝透肉」烟白纱——
+       带灰蓝的烟白而非纯白，压住亮度让内容立得住，图案隐约透出 */
+    background:
+        linear-gradient(168deg,
+            rgba(233, 239, 247, 0.93) 0%,
+            rgba(228, 235, 245, 0.76) 46%,
+            rgba(223, 231, 243, 0.87) 100%),
+        url("../img/eris-pattern.webp") center top / 640px auto repeat;
     padding: 4.5rem 1.5rem;
     /* 铺满首屏：100dvh - 固定导航(65) - banner 实测高（home.js 写入 --banner-h，
        随轮播换片/换行/语言切换重测）；缺省 42px 仅为 JS 未跑时兜底 */
@@ -15,9 +22,10 @@
     text-align: center;
 }
 
-/* 背景氛围：站点双色大光斑（静态，无 rAF 依赖） */
+/* 背景氛围：三色大光斑（蓝/粉/淡紫，缓慢漂移，无 rAF 依赖） */
 .hero-section::before,
-.hero-section::after {
+.hero-section::after,
+.hero-glow-lavender {
     content: "";
     position: absolute;
     border-radius: 50%;
@@ -31,7 +39,8 @@
     height: 420px;
     top: -140px;
     right: -120px;
-    background: radial-gradient(closest-side, rgba(140, 203, 253, 0.16), transparent);
+    background: radial-gradient(closest-side, rgba(143, 195, 236, 0.22), transparent);
+    animation: blobDrift 16s ease-in-out infinite alternate;
 }
 
 .hero-section::after {
@@ -39,7 +48,155 @@
     height: 440px;
     bottom: -180px;
     left: -140px;
-    background: radial-gradient(closest-side, rgba(249, 157, 203, 0.13), transparent);
+    background: radial-gradient(closest-side, rgba(244, 163, 200, 0.18), transparent);
+    animation: blobDrift 19s ease-in-out infinite alternate-reverse;
+}
+
+/* 第三块淡水和蓝光斑：由 views/home.html 注入，弥补 ::before/::after 只有两个的限制 */
+img.hero-glow-lavender,
+span.hero-glow-lavender,
+div.hero-glow-lavender {
+    display: block;
+    width: 460px;
+    height: 400px;
+    top: 34%;
+    left: 16%;
+    background: radial-gradient(closest-side, rgba(168, 216, 236, 0.16), transparent);
+    animation: blobDrift 22s ease-in-out infinite alternate;
+}
+
+@keyframes blobDrift {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(34px, -22px) scale(1.06); }
+}
+
+/* 深色下光斑天然更难察觉，适当加浓；白纱换成夜色纱，仍隐约透出图案 */
+[data-theme="dark"] .hero-section {
+    background:
+        linear-gradient(168deg,
+            rgba(14, 20, 27, 0.92) 0%,
+            rgba(14, 20, 27, 0.78) 46%,
+            rgba(14, 20, 27, 0.88) 100%),
+        url("../img/eris-pattern.webp") center top / 640px auto repeat;
+}
+
+[data-theme="dark"] .hero-section::before {
+    background: radial-gradient(closest-side, rgba(143, 195, 236, 0.3), transparent);
+}
+
+[data-theme="dark"] .hero-section::after {
+    background: radial-gradient(closest-side, rgba(244, 163, 200, 0.26), transparent);
+}
+
+[data-theme="dark"] .hero-glow-lavender {
+    background: radial-gradient(closest-side, rgba(168, 216, 236, 0.22), transparent);
+}
+
+/* 吉祥物旁的星星/爱心点缀：闪烁节奏错开，≤1080px 隐藏避免遮挡内容 */
+.hero-deco {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0;
+    animation: decoTwinkle 4.2s ease-in-out infinite;
+}
+
+.hero-deco-star {
+    width: 26px;
+    height: 26px;
+    right: calc(2vw + min(38vh, 370px));
+    top: 24%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238FC3EC' d='M12 1.5C13.2 7.6 16.4 10.8 22.5 12 16.4 13.2 13.2 16.4 12 22.5 10.8 16.4 7.6 13.2 1.5 12 7.6 10.8 10.8 7.6 12 1.5Z'/%3E%3C/svg%3E");
+    animation-delay: 0.6s;
+}
+
+.hero-deco-heart {
+    width: 20px;
+    height: 20px;
+    right: 4vw;
+    top: 38%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23F4A3C8' d='M12 21C5.2 15.4 2 11.4 2 7.8 2 4.9 4.3 2.5 7.2 2.5c1.9 0 3.7 1 4.8 2.7 1.1-1.7 2.9-2.7 4.8-2.7 2.9 0 5.2 2.4 5.2 5.3 0 3.6-3.2 7.6-10 13.2Z'/%3E%3C/svg%3E");
+    animation-delay: 2.1s;
+}
+
+.hero-deco-star2 {
+    width: 16px;
+    height: 16px;
+    right: calc(6vw + min(30vh, 290px));
+    top: 52%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23A8D8EC' d='M12 1.5C13.2 7.6 16.4 10.8 22.5 12 16.4 13.2 13.2 16.4 12 22.5 10.8 16.4 7.6 13.2 1.5 12 7.6 10.8 10.8 7.6 12 1.5Z'/%3E%3C/svg%3E");
+    animation-delay: 3.3s;
+}
+
+@keyframes decoTwinkle {
+    0%, 100% { opacity: 0; transform: scale(0.6) rotate(-8deg); }
+    50% { opacity: 0.9; transform: scale(1) rotate(6deg); }
+}
+
+@media (max-width: 1080px) {
+    .hero-deco,
+    .hero-fleck { display: none; }
+}
+
+/* ==================== 水彩小点缀场：星星 / 爱心 / 蝴蝶结 / 光环 ==================== */
+/* 位置与尺寸由元素上的 --fx/--fy/--fs/--fd 控制，与 .hero-deco 同拍明灭 */
+.hero-fleck {
+    position: absolute;
+    left: var(--fx, 10%);
+    top: var(--fy, 20%);
+    width: var(--fs, 20px);
+    height: var(--fs, 20px);
+    z-index: 1;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0;
+    animation: decoTwinkle 4.6s ease-in-out infinite;
+    animation-delay: var(--fd, 0s);
+}
+
+.fleck-star-b {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238FC3EC' d='M12 1.5C13.2 7.6 16.4 10.8 22.5 12 16.4 13.2 13.2 16.4 12 22.5 10.8 16.4 7.6 13.2 1.5 12 7.6 10.8 10.8 7.6 12 1.5Z'/%3E%3C/svg%3E");
+}
+
+.fleck-star-g {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23F2CF8B' d='M12 1.5C13.2 7.6 16.4 10.8 22.5 12 16.4 13.2 13.2 16.4 12 22.5 10.8 16.4 7.6 13.2 1.5 12 7.6 10.8 10.8 7.6 12 1.5Z'/%3E%3C/svg%3E");
+}
+
+.fleck-heart-p {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23F4A3C8' d='M12 21C5.2 15.4 2 11.4 2 7.8 2 4.9 4.3 2.5 7.2 2.5c1.9 0 3.7 1 4.8 2.7 1.1-1.7 2.9-2.7 4.8-2.7 2.9 0 5.2 2.4 5.2 5.3 0 3.6-3.2 7.6-10 13.2Z'/%3E%3C/svg%3E");
+}
+
+.fleck-bow-b {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2396C0EA' d='M11 12 2.6 7.2c-.8 3.1-.8 6.5 0 9.6L11 12Zm2 0 8.4-4.8c.8 3.1.8 6.5 0 9.6L13 12Z'/%3E%3Ccircle fill='%237FB2E4' cx='12' cy='12' r='2.8'/%3E%3C/svg%3E");
+}
+
+/* 光环：细环无填充 */
+.fleck-halo {
+    width: 44px;
+    height: 13px;
+    background: none;
+    border: 2px solid rgba(143, 195, 236, 0.65);
+    border-radius: 50%;
+    transform: rotate(-8deg);
+}
+
+/* 小圆点 */
+.fleck-dot-p {
+    width: 7px;
+    height: 7px;
+    background: rgba(244, 163, 200, 0.85);
+    border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-deco { animation: none; opacity: 0.55; }
+    .hero-fleck { animation: none; opacity: 0.7; }
+    .hero-section::before,
+    .hero-section::after,
+    .hero-glow-lavender { animation: none; }
 }
 
 /* 内容层：margin:auto 垂直居中（溢出时自动退化为顶对齐），交互元素可点 */
@@ -68,25 +225,14 @@
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* 超大 wordmark（矢量 logo：assets/img/eplogo.svg，含糖果渐变与高光） */
+/* 首屏字样：logo 退场时飞向这里交棒；不做入场动画（位子提前站好，落点才准） */
 .hero-title {
-    margin-bottom: 0.9rem;
-    animation: heroFadeIn 1s ease-out;
-}
-
-.hero-title img {
-    width: min(350px, 58vw);
-    height: auto;
-    display: block;
-    margin: 0 auto;
-    user-select: none;
-    -webkit-user-drag: none;
-    animation: logoFloat 5.5s ease-in-out infinite alternate;
-}
-
-@keyframes logoFloat {
-    from { transform: translateY(0); }
-    to { transform: translateY(-8px); }
+    font-size: clamp(2.4rem, 5.5vw, 3.4rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 0.8rem;
 }
 
 /* 主立绘：右下角站台式点缀（ep 娘），轻微浮动 */
@@ -108,14 +254,7 @@
     to { transform: translateY(-12px); }
 }
 
-/* 浅色主题：logo 无白描边，用多向投影补贴纸轮廓（深色底无需） */
-[data-theme="light"] .hero-title img {
-    filter:
-        drop-shadow(1.6px 0 0 #fff) drop-shadow(-1.6px 0 0 #fff)
-        drop-shadow(0 1.6px 0 #fff) drop-shadow(0 -1.6px 0 #fff)
-        drop-shadow(1.1px 1.1px 0 #fff) drop-shadow(-1.1px 1.1px 0 #fff)
-        drop-shadow(1.1px -1.1px 0 #fff) drop-shadow(-1.1px -1.1px 0 #fff);
-}
+/* 白边衬底已内嵌在新版 eplogo.svg 中，无需再用投影补贴纸轮廓 */
 
 .hero-subtitle {
     font-size: clamp(1.05rem, 2.2vw, 1.35rem);
@@ -418,7 +557,7 @@
 
 /* ==================== AI Vibe Coding 提示条 ==================== */
 .ai-vibe-banner {
-    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.06), rgba(var(--primary-rgb), 0.02));
+    background: rgba(var(--primary-rgb), 0.04);
     border-bottom: 1px solid rgba(var(--primary-rgb), 0.1);
     padding: 0.55rem 1.5rem;
     text-align: center;
@@ -998,7 +1137,7 @@
 }
 
 .dash-icon-mem {
-    background: rgba(124, 196, 168, 0.15);
+    background: rgba(var(--accent-rgb), 0.15);
     color: var(--accent);
 }
 
@@ -1504,11 +1643,7 @@
         padding: 2.4rem 1.2rem 3.4rem;
     }
 
-    /* 移动端 logo 缩小，避免挤占首屏 */
-    .hero-title img {
-        width: min(230px, 58vw);
-    }
-
+    /* 移动端不再有字标，标题区让位给水彩点缀场 */
     .hero-subtitle {
         font-size: 0.95rem;
         margin-bottom: 1.6rem;
