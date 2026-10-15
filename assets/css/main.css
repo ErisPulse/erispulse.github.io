@@ -280,15 +280,27 @@ a {
     transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
-/* 背景独立成层，方便整层过渡处理 */
+/* 背景独立成层：与 Hero 同款水彩平铺（图案 + 烟白纱），溶解退场时无缝衔接 */
 .page-loader::before {
     content: "";
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 50% 42%, rgba(var(--primary-rgb), 0.07), transparent 55%),
-        var(--bg);
+        linear-gradient(168deg,
+            rgba(233, 239, 247, 0.93) 0%,
+            rgba(228, 235, 245, 0.76) 46%,
+            rgba(223, 231, 243, 0.87) 100%),
+        url("../img/eris-pattern.webp") center top / 640px auto repeat;
     transition: opacity 0.55s ease;
+}
+
+[data-theme="dark"] .page-loader::before {
+    background:
+        linear-gradient(168deg,
+            rgba(14, 20, 27, 0.92) 0%,
+            rgba(14, 20, 27, 0.78) 46%,
+            rgba(14, 20, 27, 0.88) 100%),
+        url("../img/eris-pattern.webp") center top / 640px auto repeat;
 }
 
 .page-loader.hidden {
@@ -320,12 +332,12 @@ a {
     45%, 60% { transform: scale(1.035); }
 }
 
-/* 加载动画视觉：ep 娘元素语汇 —— 头顶光环悬浮 + 三颗四角星错拍明灭 */
+/* 加载动画视觉：水彩平铺底 + 贴纸 eplogo 呼吸 + 细进度条 */
 .loader-pulse {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 22px;
+    gap: 30px;
 }
 
 .loader-icon {
@@ -345,69 +357,32 @@ a {
     45%, 60% { transform: scale(1.035); }
 }
 
-/* 光环：微倾悬浮，环上缀一颗小星 */
-.loader-halo {
+/* 进度条：细线水蓝，静默往复填充 —— 不用扫光渐变，克制专业 */
+.loader-bar {
     position: relative;
-    width: 128px;
-    height: 30px;
-    border: 2.5px solid rgba(157, 189, 239, 0.7);
-    border-radius: 50%;
-    animation: haloBob 3.4s ease-in-out infinite;
+    width: 168px;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(var(--primary-rgb), 0.16);
+    overflow: hidden;
 }
 
-.loader-halo::after {
-    content: "";
+.loader-bar-fill {
     position: absolute;
-    top: -6px;
-    right: 7px;
-    width: 10px;
-    height: 10px;
-    background: #F2CF8B;
-    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
-    animation: haloStarTwinkle 2.2s ease-in-out infinite;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: 4px;
+    background: var(--primary);
+    transform-origin: left center;
+    animation: loaderFill 1.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
-@keyframes haloBob {
-    0%, 100% { transform: translateY(0) rotate(-2deg); }
-    50% { transform: translateY(-6px) rotate(2deg); }
-}
-
-@keyframes haloStarTwinkle {
-    0%, 100% { opacity: 0.35; transform: scale(0.7); }
-    50% { opacity: 1; transform: scale(1.1); }
-}
-
-/* 星子：蓝 / 金 / 粉，取自 ep 娘的蝴蝶结、眼星与腮红 */
-.loader-stars {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.loader-star {
-    width: 12px;
-    height: 12px;
-    background: var(--primary-light);
-    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
-    opacity: 0.25;
-    animation: starTwinkle 1.8s ease-in-out infinite;
-}
-
-.loader-star:nth-child(2) {
-    width: 15px;
-    height: 15px;
-    background: #F2CF8B;
-    animation-delay: 0.25s;
-}
-
-.loader-star:nth-child(3) {
-    background: var(--pink);
-    animation-delay: 0.5s;
-}
-
-@keyframes starTwinkle {
-    0%, 100% { opacity: 0.25; transform: scale(0.7) rotate(-10deg); }
-    50% { opacity: 1; transform: scale(1) rotate(8deg); }
+@keyframes loaderFill {
+    0% { transform: scaleX(0); opacity: 0.95; }
+    72% { transform: scaleX(1); opacity: 0.95; }
+    100% { transform: scaleX(1); opacity: 0; }
 }
 
 /* 退场：水彩溶解 —— 整层轻微放大、虚化后淡出 */
@@ -422,10 +397,12 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
     .loader-icon,
-    .loader-halo,
-    .loader-halo::after,
-    .loader-star {
+    .loader-bar-fill {
         animation: none;
+    }
+
+    .loader-bar-fill {
+        transform: scaleX(0.4);
     }
 }
 
