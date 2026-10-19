@@ -83,9 +83,12 @@
 <pre><code>project/
 ├── main.py
 └── plugins/                  # 默认插件目录
-    ├── weather/              # 包形式插件（含 __init__.py）
+    ├── weather/              # 包形式模块插件（含 __init__.py）
     │   ├── __init__.py
     │   └── Core.py           # 定义 class Main(BaseModule)
+    ├── my_adapter/           # 包形式适配器插件
+    │   ├── __init__.py
+    │   └── Core.py           # 定义 BaseAdapter 子类（推荐经 __init__ 导出）
     └── dice.py               # 单文件插件
 </code></pre>
 <blockquote>
@@ -93,8 +96,10 @@
 <ol>
 <li>单 <code>.py</code> 文件 → 插件名 = 文件名；子目录（含 <code>__init__.py</code>）→ 插件名 = 目录名</li>
 <li>模块类识别：优先 <code>Main</code>（BaseModule 子类），兼容首个 BaseModule 子类</li>
-<li>与 PyPI 模块同名时<strong>本地插件优先</strong>（便于覆盖调试）</li>
-<li>插件与安装包模块共用同一套启用状态 / 作用域 / meta / i18n / 上下文</li>
+<li>适配器类识别：优先 <code>Main</code>（BaseAdapter 子类），兼容插件内定义/导出的
+首个 BaseAdapter 子类；由 :meth:<code>discover_adapters</code> 供适配器加载器消费</li>
+<li>与 PyPI 模块/适配器同名时<strong>本地插件优先</strong>（便于覆盖调试）</li>
+<li>插件与安装包模块/适配器共用同一套启用状态 / 作用域 / meta / i18n / 上下文</li>
 </ol>
 </blockquote>
 <hr>
@@ -117,7 +122,7 @@
 解析插件名；不符合约定的条目返回 None</p>
 <ul>
 <li>单文件：必须为 .py，文件名（不含后缀）为插件名</li>
-<li>子目录：必须含 <strong>init</strong>.py，目录名为插件名</li>
+<li>子目录：必须含 __init__.py，目录名为插件名</li>
 <li>忽略 <strong>pycache</strong> 与 _ 开头的条目</li>
 </ul>
 <hr>
@@ -148,6 +153,46 @@
 <li><strong>module_obj</strong>: 插件模块对象</li>
 </ul>
 <p><strong>返回值</strong>: 模块类；未找到返回 None</p>
+<hr>
+<h5 id="_find_adapter_classmodule_obj-any---type-nonestaticmethod"><code>_find_adapter_class(module_obj: Any) -&gt; type | None</code>（staticmethod）</h5>
+<p><strong>内部方法</strong>
+识别插件中的适配器类</p>
+<p>优先 <code>Main</code>（BaseAdapter 子类）；否则回落到插件内定义或经包
+<code>__init__</code> 导出的首个 BaseAdapter 子类（<code>MyAdapter.Core</code> 定义、
+<code>MyAdapter.__init__</code> 导出为模板惯例，故 <code>__module__</code> 匹配
+插件名自身或其子模块均有效，但不接受外部包的重导出）。</p>
+<ul>
+<li><strong>module_obj</strong>: 插件模块对象</li>
+</ul>
+<p><strong>返回值</strong>: 适配器类；未找到返回 None</p>
+<hr>
+<h5 id="discover_adapters---dictstr-dictstr-any"><code>discover_adapters() -&gt; dict[str, dict[str, Any]]</code></h5>
+<p>扫描全部插件目录并识别适配器插件</p>
+<p>与 :meth:<code>discover</code> 共享目录解析与导入机制；模块类插件静默跳过
+（由模块加载侧消费）。发现结果同步登记到
+:attr:<code>_loaded_adapter_paths</code> 供热重载查询源路径。</p>
+<p><strong>返回值</strong>: <code>{适配器名: {"name", "path", "adapter_class", "module_obj", "meta"}}</code></p>
+<blockquote>
+<p><strong>提示</strong>
+meta 结构与 entry-point 加载路径的 <code>adapterInfo.meta</code> 一致，
+<code>source</code> 为 <code>ADAPTER_SOURCE_PLUGIN_FOLDER</code>。</p>
+</blockquote>
+<hr>
+<h5 id="_load_adapter_pluginname-str-path-path---dictstr-any-none"><code>_load_adapter_plugin(name: str, path: Path) -&gt; dict[str, Any] | None</code></h5>
+<p><strong>内部方法</strong>
+导入单个适配器插件并构造与 entry-point 加载路径一致的描述结构</p>
+<ul>
+<li><strong>name</strong>: 适配器插件名</li>
+<li><strong>path</strong>: 插件路径（.py 文件或包目录）</li>
+</ul>
+<p><strong>返回值</strong>: 适配器描述字典；非适配器插件或加载失败返回 None</p>
+<hr>
+<h5 id="get_loaded_adapter_pathname-str---path-none"><code>get_loaded_adapter_path(name: str) -&gt; Path | None</code></h5>
+<p>获取已加载适配器插件的源路径（热重载用）</p>
+<ul>
+<li><strong>name</strong>: 适配器插件名</li>
+</ul>
+<p><strong>返回值</strong>: 插件路径；未知适配器返回 None</p>
 <hr>
 <h5 id="_get_load_strategymodule_class-type---anystaticmethod"><code>_get_load_strategy(module_class: type) -&gt; Any</code>（staticmethod）</h5>
 <p><strong>内部方法</strong> 读取模块类的 get_load_strategy()</p>

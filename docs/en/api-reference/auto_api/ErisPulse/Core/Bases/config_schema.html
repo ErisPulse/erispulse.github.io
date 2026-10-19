@@ -342,7 +342,23 @@ validate_config 的既有语义一致</li>
 </ol>
 </blockquote>
 <hr>
-<h3 id="validate_configinstance---liststr"><code>validate_config(instance) -&gt; list[str]</code></h3>
+<h3 id="_file_comment_suffixsection_key-str-none-field_path-str---str"><code>_file_comment_suffix(section_key: 'str | None', field_path: str) -&gt; str</code></h3>
+<p>取配置文件中字段行尾注释并格式化为错误消息后缀（"文件即文档"回读）</p>
+<p>声明式字段的 description 以注释落盘后，配置文件本身就是用户眼前的
+文档；校验失败时引用文件里的原文比 schema 元数据更贴近用户所见。
+按需无损解析配置文件，任何失败静默返回空串（注释是增强信息，
+不允许拖垮校验主流程）。</p>
+<ul>
+<li><p><strong>section_key</strong> (<code>str</code>): 配置节键（点分路径）；None 表示调用方未提供</p>
+<p>  节上下文，跳过回读</p>
+</li>
+<li><p><strong>field_path</strong> (<code>str</code>): 节内字段路径（点分，嵌套字段含祖先路径）</p>
+</li>
+</ul>
+<p><strong>返回值</strong> (<code>str</code>): 形如 <code>" （配置文件注释：…）"</code> 的后缀；无注释返回空串</p>
+<p><strong>内部方法</strong></p>
+<hr>
+<h3 id="validate_configinstance-section_key-str-none-none---liststr"><code>validate_config(instance, section_key: 'str | None' = None) -&gt; list[str]</code></h3>
 <p>校验 dataclass 实例</p>
 <ul>
 <li>检查 <code>required</code> 字段是否非空</li>
@@ -351,11 +367,25 @@ validate_config 的既有语义一致</li>
 <li>检查 <code>min</code>/<code>max</code> 数值范围约束</li>
 </ul>
 <p>返回错误信息列表（空列表表示通过）。description 若为 i18n 字典，
-错误信息使用其 fallback/default 文本。</p>
+错误信息使用其 fallback/default 文本。传入 <code>section_key</code> 时，
+配置文件中该字段的行尾注释（如有）会附在对应错误消息之后。</p>
 <ul>
-<li><strong>instance</strong> (<code>dataclass</code>): 实例</li>
+<li><p><strong>instance</strong> (<code>dataclass</code>): 实例</p>
+</li>
+<li><p><strong>section_key</strong> (<code>str</code>): 实例对应的配置节键（点分路径，如</p>
+<p>  <code>"MyAdapter"</code>）；传入后启用文件注释回读（默认 None 不回读）</p>
+</li>
 </ul>
 <p><strong>返回值</strong>: 错误信息列表</p>
+<hr>
+<h3 id="_validate_configinstance-section_key-str-none-prefix-str---liststr"><code>_validate_config(instance, section_key: 'str | None', prefix: str) -&gt; list[str]</code></h3>
+<p>:meth:<code>validate_config</code> 的递归实现</p>
+<ul>
+<li><strong>instance</strong> (<code>dataclass</code>): 实例</li>
+<li><strong>section_key</strong> (<code>str</code>): 配置节键（透传，用于文件注释回读）</li>
+<li><strong>prefix</strong> (<code>str</code>): 嵌套字段的路径前缀（如 <code>"Nested."</code>）</li>
+</ul>
+<p><strong>内部方法</strong></p>
 <hr>
 <h3 id="_schema_fieldsconfig_class-type---dict"><code>_schema_fields(config_class: type) -&gt; dict</code></h3>
 <p>递归生成配置类的字段 schema（嵌套 dataclass 字段以 <code>fields</code> 子树承载）</p>

@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Система принадлежности (owner) - ErisPulse 文档中心</title>
-    <meta name="description" content="Принадлежность — основа модульной системы &quot;Plug and Play&quot;: все ресурсы, зарегистрированные фреймворком во время загрузки модуля, автоматически привязываются ..." />
+    <title>Система собственности (owner) - ErisPulse 文档中心</title>
+    <meta name="description" content="Когда читать эту статью: при диагностике утечек ресурсов, при изучении цепочки очистки при отключении или при декларировании ресурсов собственности. Если не ..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/ownership.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/ownership.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/ownership.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/ownership.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/ownership.html" />
-    <meta property="og:title" content="Система принадлежности (owner) - ErisPulse 文档中心" />
-    <meta property="og:description" content="Принадлежность — основа модульной системы &quot;Plug and Play&quot;: все ресурсы, зарегистрированные фреймворком во время загрузки модуля, автоматически привязываются ..." />
+    <meta property="og:title" content="Система собственности (owner) - ErisPulse 文档中心" />
+    <meta property="og:description" content="Когда читать эту статью: при диагностике утечек ресурсов, при изучении цепочки очистки при отключении или при декларировании ресурсов собственности. Если не ..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/ownership.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система принадлежности (owner)","description":"Принадлежность — основа модульной системы \"Plug and Play\": все ресурсы, зарегистрированные фреймворком во время загрузки модуля, автоматически привязываются ...","url":"https://www.erisdev.com/docs/ru/advanced/ownership.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система собственности (owner)","description":"Когда читать эту статью: при диагностике утечек ресурсов, при изучении цепочки очистки при отключении или при декларировании ресурсов собственности. Если не ...","url":"https://www.erisdev.com/docs/ru/advanced/ownership.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -60,7 +60,7 @@
     <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
         <a href="/docs.html">Docs</a>
         <span class="doc-crumb-sep">/</span> Продвинутые темы
-        <span class="doc-crumb-sep">/</span> <span>Система принадлежности (owner)</span>
+        <span class="doc-crumb-sep">/</span> <span>Система собственности (owner)</span>
     </nav>
         <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/ownership.html">简体中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/ownership.html">English</a>
@@ -72,17 +72,20 @@
             <a href="https://www.erisdev.com/#docs/advanced/ownership.md">在交互式文档中心打开 →</a>
         </div>
         <article class="markdown-content" id="docs-content">
-            <h1 id="система-принадлежности-owner">Система принадлежности (owner)</h1>
-<p>Принадлежность — основа модульной системы "Plug and Play": все ресурсы, зарегистрированные фреймворком во время загрузки модуля, автоматически привязываются к нему, а при отключении/выгрузке модуля — автоматически удаляются. Автор модуля просто объявляет ресурсы, не вручную удаляя их.</p>
+            <h1 id="система-собственности-owner">Система собственности (owner)</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>Когда читать эту статью</strong>: при диагностике утечек ресурсов, при изучении цепочки очистки при отключении или при декларировании ресурсов собственности. Если не нужно, можно пропустить, это не повлияет на использование других функций.</p>
+</div>
+<p>Собственность является основой "plug-and-play" модулей: все ресурсы фреймворка, зарегистрированные во время загрузки модуля, автоматически именуются, и при отключении/отключении модуля они автоматически возвращаются — автор модуля должен просто декларировать ресурсы, не нужно писать логику очистки вручную.</p>
 <blockquote>
-<p><strong>Связанные системы</strong>: область видимости (scope) определяет, "действует ли ресурс" при обработке событий, а принадлежность — "кому принадлежит ресурс и кто будет отвечать за его удаление при выгрузке модуля". Область видимости описана в <a href="/docs/ru/advanced/scope.html">Единая контрольная плоскость (scope)</a>, фоновые задачи — в [Управление жизненным циклом](lifecycle.md#Фоновые задачи и автоматическая отмена).</p>
+<p><strong>Связанные системы</strong>: область действия (scope) определяет, "действует ли ресурс" при рассылке событий, а собственность определяет, "кому принадлежит ресурс и кто будет очищен при отключении" в течение жизненного цикла. Область действия можно найти в <a href="/docs/ru/advanced/scope.html">Единой контрольной поверхности (scope)</a>, фоновые задачи — в <a href="/docs/ru/advanced/lifecycle.html#%D0%BF%D1%80%D0%B8%D0%BD%D0%B0%D0%B4%D0%BB%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C-%D1%84%D0%BE%D0%BD%D0%BE%D0%B2%D1%8B%D1%85-%D0%B7%D0%B0%D0%B4%D0%B0%D1%87-%D0%B8-%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9-%D0%BE%D1%82%D0%BC%D0%B5%D0%BD%D0%B0">Управлении жизненным циклом</a>.</p>
 </blockquote>
 <p>{!--&lt; tips &gt;!--}</p>
 <ol>
-<li>Принадлежность автоматически записывается в момент регистрации (<code>current_owner</code>), без изменений в коде модуля</li>
-<li>Выгрузка/отключение используют одну и ту же цепочку очистки (<code>_cleanup_module_registrations</code>), при сбое на одном этапе — только предупреждение, не прерывание</li>
-<li>Ресурсы, определённые пользовательскими настройками (постоянное переопределение / scope-правила / ACL команд) <strong>не</strong> удаляются при выгрузке модуля</li>
-<li>Внешние дескрипторы, управляемые утилитным модулем, можно включить в цепочку очистки с помощью <code>on_cleanup(cb)</code>, при выгрузке модуля будет автоматически вызвана функция обратного вызова (см. [Руководство по утилитным модулям](#Руководство по утилитным модулям-хранение дескрипторов других модулей))
+<li>Собственность <strong>в момент регистрации</strong> автоматически записывается по <code>current_owner</code>, код модуля не требует изменений</li>
+<li>Отключение/отключение используют одну и ту же цепочку очистки (<code>_cleanup_module_registrations</code>), каждая неудача вызывает только предупреждение, но не прерывает процесс</li>
+<li>Ресурсы, определённые пользовательскими настройками (постоянное перезаписывание / правила scope / ACL команд) <strong>не</strong> очищаются при отключении модуля</li>
+<li>Внешние дескрипторы, предоставленные инструментальным модулем, можно добавить в цепочку очистки с помощью <code>on_cleanup(cb)</code>, и они будут автоматически вызываться при отключении другого модуля (см. <a href="#%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5-%D0%BC%D0%BE%D0%B4%D1%83%D0%BB%D0%B8-%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE-%D0%BF%D0%BE-%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%D0%B0%D1%87%D0%B5-%D0%B4%D0%B5%D1%81%D0%BA%D1%80%D0%B8%D0%BF%D1%82%D0%BE%D1%80%D0%BE%D0%B2-%D0%B4%D1%80%D1%83%D0%B3%D0%B8%D0%BC-%D0%BC%D0%BE%D0%B4%D1%83%D0%BB%D1%8F%D0%BC">Руководство по инструментальным модулям</a>)
 {!--&lt; /tips &gt;!--}</li>
 </ol>
 <h2 id="механизм-контекста-owner">Механизм контекста owner</h2>
@@ -556,7 +559,7 @@ ownership<span class="token punctuation">.</span>orphans<span class="token punct
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ru/advanced/scope.html"><small>Previous</small><br>Scope (область видимости)</a>
+        <a class="doc-pager-prev" href="/docs/ru/advanced/scope.html"><small>Previous</small><br>Scope</a>
         <a class="doc-pager-next" href="/docs/ru/advanced/interaction.html"><small>Next</small><br>Система интерактивных сессий</a>
     </nav>
     </main>

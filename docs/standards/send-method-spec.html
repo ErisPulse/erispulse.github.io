@@ -390,6 +390,76 @@ send<span class="token punctuation">.</span>To<span class="token punctuation">(<
 <p><strong>示例：</strong></p>
 <pre><code class="language-python">send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"收到"</span><span class="token punctuation">)</span>
 </code></pre>
+<h3 id="24-合并转发能力mergeforward可选">2.4 合并转发能力（<code>MergeForward</code>，可选）</h3>
+<p><code>MergeForward(nodes)</code> 是<strong>可选的能力方法</strong>：把多段内容打包为「合并转发 / 富文本折叠」形式发送，
+由适配器按平台能力决定最佳呈现。与 §1.1 的 <code>Forward(from_chat_id, message_id)</code>（转发<strong>已有</strong>消息）
+语义不同，二者并存。</p>
+<blockquote>
+<p><strong>标准背景</strong>：OneBot12 核心标准没有 node 消息段，也没有合并转发 API——"消息结点"是 OneBot v11
+生态（go-cqhttp 扩展）的实现层概念，v12 把这类平台特有能力下放给扩展机制。ErisPulse 的落地方式
+即扩展机制等价物：<strong>不新增标准消息段，而是可选能力方法 + <code>list_sends</code> 运行时探测</strong>——实现了
+<code>MergeForward</code> 的适配器自动获得能力，未实现的调用方自动回退普通文本，模块零改动。</p>
+</blockquote>
+<p><strong>方法签名：</strong></p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">MergeForward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> nodes<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    发送合并转发 / 富文本折叠消息
+
+    :param nodes: 合并转发节点数组（go-cqhttp 扩展的 OneBot v11 节点格式）：
+        [
+            {
+                "type": "node",
+                "data": {
+                    "user_id": "10000",     # 展示用发送者 id
+                    "nickname": "MyBot",     # 展示用发送者昵称
+                    "content": [            # 消息段数组，当前为 text 段
+                        {"type": "text", "data": {"text": "【1/3】标题\n正文…"}}
+                    ],
+                },
+            },
+        ]
+    :return: asyncio.Task，await 后返回标准响应格式
+    """</span>
+</code></pre>
+<p><strong>实现要求：</strong></p>
+<ol>
+<li><strong>平台有原生合并转发</strong>（OneBot11 系）：<strong>必须</strong>调用协议端专用端点
+（<code>send_group_forward_msg</code> / <code>send_private_forward_msg</code>）——NapCat 等实现会拒绝
+<code>send_msg</code> 携带的 node 段（retcode 1400）；专用端点失败时<strong>可以</strong>回退 <code>send_msg</code> 直发 node 段</li>
+<li><strong>平台无原生转发但有富文本</strong>（云湖 / Telegram / Kook / Discord / Matrix 等）：
+<strong>应当</strong>将节点渲染为平台的富文本折叠形态（HTML 折叠卡 / Card / Embed / blockquote 列表），
+参考样式与逐适配器任务清单见 <code>SDK/Adapter/ADAPTER_FORWARD_GUIDE.md</code></li>
+<li><strong>两者皆无</strong>：<strong>不得</strong>实现本方法（更不得返回成功却把 node 字典当纯文本发出）——
+不实现时 <code>list_sends</code> 不含 <code>MergeForward</code>，调用方自动回退普通文本</li>
+<li><strong>失败语义</strong>：返回标准错误响应（<code>status: "failed"</code>）或抛出异常均可，调用方会回退纯文本发送，内容不丢失</li>
+<li><strong>不得</strong>在 <code>MergeForward</code> 内部再调用 <code>Raw_ob12</code> 发送同样的 nodes（OneBot11 的 <code>Raw_ob12</code>
+已内置纯 node 段自动路由，会成环）</li>
+<li><strong>出站 node 段解析</strong>（全适配器约定）：各适配器的 <code>Raw_ob12</code> 段分发应注册 <code>node</code> 段——
+纯 node 列表自动路由到本适配器的合并转发呈现（有 <code>MergeForward</code> 的平台等价于直接调用；
+无该方法的平台提取各节点文本以「昵称: 正文」逐行<strong>原文输出</strong>）；混合列表中 node 段的文本并入正文。
+任何适配器收到 node 段都不得静默丢弃。</li>
+</ol>
+<p><strong>平台实现形态（详见 <code>SDK/Adapter/ADAPTER_FORWARD_GUIDE.md</code>）：</strong></p>
+<ul>
+<li>原生端点：OneBot11、SnowLuma（三级回退：<code>send_group/private_forward_msg</code> 专用端点 → <code>upload_forward_msg</code>
+取 resid 发 forward 段 → 直发 node 段；SnowLuma API 全面向 NapCat 对齐，适配器可直接连接 NapCat 后端）</li>
+<li>折叠 HTML <code>&lt;details&gt;</code> 卡：云湖（bot/用户协议）、Email、Sandbox、Allons(Ideaura)</li>
+<li>白名单 HTML / 引用块：Telegram（<code>&lt;b&gt;</code>+<code>&lt;blockquote&gt;</code>）、Matrix（blockquote 变体，白名单剥离 details/内联样式）</li>
+<li>平台卡片：Kook（Card header+section）、Discord（Embed fields）</li>
+<li>官方 Markdown 引用列表：QQBot（官方 md 无折叠语法，服务端校验拒绝无效标签 40034011）</li>
+<li>不实现（node 段原文输出降级）：OneBot12（标准无 node 段）、WeCom、Terminal、Webhook、WechatMp</li>
+</ul>
+<p><strong>调用方探测示例：</strong></p>
+<pre><code class="language-python">sends <span class="token operator">=</span> adapter<span class="token punctuation">.</span>list_sends<span class="token punctuation">(</span>platform<span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token string">"MergeForward"</span> <span class="token keyword">in</span> sends<span class="token punctuation">:</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>MergeForward<span class="token punctuation">(</span>nodes<span class="token punctuation">)</span>
+<span class="token keyword">else</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span>plain_text<span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>参考实现：<code>ErisPulse-OneBot11Adapter</code>（专用端点 → <code>send_msg</code> 回退）；渲染模板与各适配器任务清单见
+<code>SDK/Adapter/ADAPTER_FORWARD_GUIDE.md</code>。</p>
+</blockquote>
 <h2 id="3-平台特有方法命名">3. 平台特有方法命名</h2>
 <p><strong>不推荐</strong>在 Send 类中直接添加平台前缀方法。建议使用通用方法名或 <code>Raw_{协议}</code> 方法。</p>
 <p><strong>不推荐：</strong></p>
@@ -694,6 +764,13 @@ info <span class="token operator">=</span> adapter<span class="token punctuation
 <li><input disabled type="checkbox"> <code>File</code> 的文件名推导顺序符合 §2.1.3（显式 <code>filename</code> &gt; URL basename &gt; 路径 basename &gt; 平台默认）</li>
 <li><input disabled type="checkbox"> 平台的媒体限制（大小 / MIME / 时长）已在适配器文档声明（§2.1.4）</li>
 <li><input disabled type="checkbox"> 不支持的媒体类型按 §2.1.5 降级阶梯处理：近缘类型降级或返回 <code>retcode=10002</code>，不抛异常、不静默丢弃</li>
+</ul>
+<h3 id="合并转发可选见-24">合并转发（可选，见 §2.4）</h3>
+<ul>
+<li><input disabled type="checkbox"> 平台有原生合并转发时，<code>MergeForward</code> 走协议专用端点，失败回退 <code>send_msg</code>（OneBot11 系）</li>
+<li><input disabled type="checkbox"> 平台无原生转发但有富文本时，<code>MergeForward</code> 渲染为平台折叠形态（HTML 卡 / Card / Embed / blockquote）</li>
+<li><input disabled type="checkbox"> 两者皆无时<strong>不实现</strong> <code>MergeForward</code>，不返回成功却发出 node 字典纯文本</li>
+<li><input disabled type="checkbox"> <code>MergeForward</code> 内部不再调 <code>Raw_ob12</code> 转发同样 nodes</li>
 </ul>
 <h3 id="反向转换">反向转换</h3>
 <ul>

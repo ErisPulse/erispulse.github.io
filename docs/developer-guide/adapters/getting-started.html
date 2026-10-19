@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>适配器开发入门 - ErisPulse 文档中心</title>
-    <meta name="description" content="本指南帮助你开始开发 ErisPulse 适配器，连接新的消息平台。" />
+    <meta name="description" content="什么时候需要读这篇：适配器开发路径的入口篇（必读）。从零写一个适配器、了解适配器的职责边界与项目结构都在这里；读完后再按需进入 事件转换器 与 SendDSL 详解。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/getting-started.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/getting-started.html" />
     <meta property="og:title" content="适配器开发入门 - ErisPulse 文档中心" />
-    <meta property="og:description" content="本指南帮助你开始开发 ErisPulse 适配器，连接新的消息平台。" />
+    <meta property="og:description" content="什么时候需要读这篇：适配器开发路径的入口篇（必读）。从零写一个适配器、了解适配器的职责边界与项目结构都在这里；读完后再按需进入 事件转换器 与 SendDSL 详解。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/developer-guide/adapters/getting-started.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"适配器开发入门","description":"本指南帮助你开始开发 ErisPulse 适配器，连接新的消息平台。","url":"https://www.erisdev.com/docs/developer-guide/adapters/getting-started.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"适配器开发入门","description":"什么时候需要读这篇：适配器开发路径的入口篇（必读）。从零写一个适配器、了解适配器的职责边界与项目结构都在这里；读完后再按需进入 事件转换器 与 SendDSL 详解。","url":"https://www.erisdev.com/docs/developer-guide/adapters/getting-started.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,6 +73,9 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="适配器开发入门">适配器开发入门</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>什么时候需要读这篇</strong>：适配器开发路径的入口篇（必读）。从零写一个适配器、了解适配器的职责边界与项目结构都在这里；读完后再按需进入 <a href="/docs/developer-guide/adapters/converter.html">事件转换器</a> 与 <a href="/docs/developer-guide/adapters/send-dsl.html">SendDSL 详解</a>。</p>
+</div>
 <p>本指南帮助你开始开发 ErisPulse 适配器，连接新的消息平台。</p>
 <h2 id="适配器简介">适配器简介</h2>
 <h3 id="什么是适配器">什么是适配器</h3>
@@ -107,6 +110,14 @@
 </code></pre>
 <h2 id="快速开始">快速开始</h2>
 <h3 id="1-创建项目">1. 创建项目</h3>
+<p>推荐直接用脚手架生成完整骨架（含 pyproject、主类、转换器）：</p>
+<pre><code class="language-bash"><span class="token comment"># 标准项目（打包发布用）</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter
+
+<span class="token comment"># 本地适配器插件（免打包，放入 plugins/ 目录即可被自动加载，见下方"本地开发"）</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter <span class="token parameter variable">--local</span>
+</code></pre>
+<p>也可以手动创建：</p>
 <pre><code class="language-bash"><span class="token function">mkdir</span> MyAdapter <span class="token operator">&amp;&amp;</span> <span class="token builtin class-name">cd</span> MyAdapter
 </code></pre>
 <h3 id="2-创建-pyprojecttoml">2. 创建 pyproject.toml</h3>
@@ -383,6 +394,33 @@
 <pre><code class="language-python"><span class="token comment"># MyAdapter/__init__.py</span>
 <span class="token keyword">from</span> <span class="token punctuation">.</span>Core <span class="token keyword">import</span> MyAdapter
 </code></pre>
+<h2 id="本地开发免打包">本地开发（免打包）</h2>
+<p>与模块一致，适配器也可以放入项目的本地插件目录（默认 <code>plugins/</code>，可通过 <code>ErisPulse.framework.plugins_dir</code> 配置）直接开发，**无需 <code>pip install -e .</code>**：</p>
+<pre><code class="language-bash"><span class="token comment"># 生成本地适配器插件</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter <span class="token parameter variable">--local</span>
+<span class="token comment"># 生成结构：</span>
+<span class="token comment"># plugins/</span>
+<span class="token comment"># └── MyAdapter/</span>
+<span class="token comment">#     ├── __init__.py</span>
+<span class="token comment">#     ├── Core.py</span>
+<span class="token comment">#     └── Converter.py</span>
+</code></pre>
+<p>框架启动时自动扫描插件目录并加载其中的模块与适配器（与 entry-point 安装包同等待遇：启用状态、配置声明、热更新、卸载清理全部一致）：</p>
+<ul>
+<li><strong>识别规则</strong>：包目录（含 <code>__init__.py</code>）或单 <code>.py</code> 文件均可；优先识别 <code>Main</code> 命名类，否则取插件内首个 <code>BaseAdapter</code> / <code>BaseModule</code> 子类</li>
+<li><strong>同名覆盖</strong>：本地插件与 PyPI 安装的适配器同名时，本地插件优先（便于覆盖调试）</li>
+<li><strong>热重载</strong>：<code>sdk.enable_plugin_hot_reload()</code> 开启的插件目录监控同样覆盖适配器；适配器代码级热重载将在 2.11 提供（当前版本修改适配器代码后需重启框架生效）</li>
+</ul>
+<h3 id="从本地插件到发布">从本地插件到发布</h3>
+<p>本地验证完成后，用 <code>pack</code> 子命令把插件一键转换为可发布的标准项目（交互式选择插件、补全元信息，生成含 entry-point 的 pyproject）：</p>
+<pre><code class="language-bash">epsdk create pack
+<span class="token comment"># 选择插件目录中的插件 → 输入项目名/描述/作者 → 生成 MyAdapter/ 项目目录</span>
+<span class="token builtin class-name">cd</span> MyAdapter
+pip <span class="token function">install</span> <span class="token parameter variable">-e</span> <span class="token builtin class-name">.</span>   <span class="token comment"># 转为标准安装；随后按发布流程上传 PyPI</span>
+</code></pre>
+<blockquote>
+<p><strong>提示</strong>：转换完成后建议移除 <code>plugins/</code> 中的原件，避免本地插件与安装包重复加载（两者同名时本地优先，会让你误以为安装包生效）。</p>
+</blockquote>
 <h2 id="依赖声明可选280">依赖声明（可选，2.8.0+）</h2>
 <p>适配器可以声明对其它适配器或模块的依赖，实现适配器间联动与可选功能：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> typing <span class="token keyword">import</span> ClassVar

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>イベントコンバーター実装ガイド - ErisPulse 文档中心</title>
-    <meta name="description" content="イベントコンバーター (Converter) は、アダプターのコアコンポーネントの一つであり、プラットフォームのネイティブイベントを ErisPulse 統一の OneBot12 標準イベント形式に変換する役割を担います。" />
+    <meta name="description" content="この記事を読むべきタイミング：アダプター開発経路内では必須（イベントコンバーター）。不要なら飛ばしても、他の機能の使用に影響はありません。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/converter.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/converter.html" />
     <meta property="og:title" content="イベントコンバーター実装ガイド - ErisPulse 文档中心" />
-    <meta property="og:description" content="イベントコンバーター (Converter) は、アダプターのコアコンポーネントの一つであり、プラットフォームのネイティブイベントを ErisPulse 統一の OneBot12 標準イベント形式に変換する役割を担います。" />
+    <meta property="og:description" content="この記事を読むべきタイミング：アダプター開発経路内では必須（イベントコンバーター）。不要なら飛ばしても、他の機能の使用に影響はありません。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"イベントコンバーター実装ガイド","description":"イベントコンバーター (Converter) は、アダプターのコアコンポーネントの一つであり、プラットフォームのネイティブイベントを ErisPulse 統一の OneBot12 標準イベント形式に変換する役割を担います。","url":"https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"イベントコンバーター実装ガイド","description":"この記事を読むべきタイミング：アダプター開発経路内では必須（イベントコンバーター）。不要なら飛ばしても、他の機能の使用に影響はありません。","url":"https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,19 +73,22 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="イベントコンバーター実装ガイド">イベントコンバーター実装ガイド</h1>
-<p>イベントコンバーター (Converter) は、アダプターのコアコンポーネントの一つであり、プラットフォームのネイティブイベントを ErisPulse 統一の OneBot12 標準イベント形式に変換する役割を担います。</p>
-<h2 id="converter-の責任">Converter の責任</h2>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>この記事を読むべきタイミング</strong>：アダプター開発経路内では必須（イベントコンバーター）。不要なら飛ばしても、他の機能の使用に影響はありません。</p>
+</div>
+<p>イベントコンバーター (Converter) は、アダプターのコアコンポーネントの一つであり、プラットフォームのネイティブイベントを ErisPulse が統一する OneBot12 標準イベント形式に変換する役割を担います。</p>
+<h2 id="converterの役割">Converterの役割</h2>
 <pre><code>プラットフォームのネイティブイベント ──→ Converter.convert() ──→ OneBot12 標準イベント
 </code></pre>
-<p>Converter は<strong>正方向の変換</strong>（受信方向）のみを担当し、プラットフォームのネイティブイベントデータを OneBot12 標準形式に変換します。逆方向の変換（送信方向）は <code>Send.Raw_ob12()</code> メソッドで処理されます。</p>
+<p>Converterは<strong>正方向の変換</strong>（受信方向）のみを担当し、プラットフォームのネイティブイベントデータを OneBot12 標準形式に変換します。逆方向の変換（送信方向）は <code>Send.Raw_ob12()</code> メソッドで処理されます。</p>
 <h3 id="核心原則">核心原則</h3>
 <ol>
-<li><strong>無損変換</strong>：元のデータはすべて <code>{platform}_raw</code> フィールドに完全に保持される必要があります</li>
-<li><strong>標準互換性</strong>：変換後のイベントは OneBot12 標準形式に準拠している必要があります</li>
-<li><strong>プラットフォーム拡張</strong>：プラットフォーム固有のデータは <code>{platform}_</code> で始まるフィールドに格納されます</li>
+<li><strong>無損変換</strong>：元のデータは必ず <code>{platform}_raw</code> フィールドに完全に保持される</li>
+<li><strong>標準互換性</strong>：変換後のイベントは OneBot12 標準形式に準拠する</li>
+<li><strong>プラットフォーム拡張</strong>：プラットフォーム固有のデータは <code>{platform}_</code> で始まるフィールドに格納する</li>
 </ol>
-<h2 id="baseconverter-基底クラス推奨">BaseConverter 基底クラス（推奨）</h2>
-<p>2.7.0 以降、フレームワークは <code>BaseConverter</code> 基底クラス（<code>ErisPulse.Core.Bases</code>）を提供しており、OneBot12 イベントの<strong>共通フィールド構築</strong>と<strong>一般的なメッセージセグメント補助</strong>をカプセル化しています。これにより、コンバーターは型マッピングにのみ集中できます。</p>
+<h2 id="baseconverter基底クラス推奨">BaseConverter基底クラス（推奨）</h2>
+<p>2.7.0以降、フレームワークは <code>BaseConverter</code> 基底クラス（<code>ErisPulse.Core.Bases</code>）を提供しており、OneBot12イベントの<strong>共通フィールド構築</strong>と<strong>一般的なメッセージセグメントの補助</strong>をカプセル化しています。これにより、コンバーターは型マッピングに集中することができます。</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConverter
 
 
@@ -112,12 +115,12 @@
 <thead>
 <tr>
 <th>フィールド</th>
-<th>情報源</th>
+<th>来源</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>id</code></td>
-<td><code>raw_event["event_id"]</code>、不足時は UUID を自動生成</td>
+<td><code>raw_event["event_id"]</code>、不足時はUUIDを自動生成</td>
 </tr>
 <tr>
 <td><code>time</code></td>
@@ -133,11 +136,11 @@
 </tr>
 <tr>
 <td><code>{platform}_raw</code></td>
-<td>原始イベント（「無損失変換」の原則を満たす）</td>
+<td>原始イベント（「無損変換」の原則を満たす）</td>
 </tr>
 <tr>
 <td><code>{platform}_raw_type</code></td>
-<td>原始イベントの型</td>
+<td>原始イベントの型名</td>
 </tr>
 </tbody></table></div>
 <p>一般的なメッセージセグメント補助メソッド（すべて静的メソッドで、直接再利用可能）：</p>
@@ -146,26 +149,26 @@ converter<span class="token punctuation">.</span>at<span class="token punctuatio
 converter<span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"file.png"</span><span class="token punctuation">)</span>   <span class="token comment"># {"type": "image", "data": {"file": "file.png"}}</span>
 </code></pre>
 <blockquote>
-<p>手動実装では、<code>build_base_event</code> の共通フィールド構築は繰り返し書く必要のある定型コードです。<code>BaseConverter</code> を使用することで、この部分を省略でき、また「無損失変換」（原始イベントは常に <code>{platform}_raw</code> に格納される）を自然に満たします。</p>
+<p>手動実装の際、<code>build_base_event</code> の共通フィールド構築は繰り返し書く必要のある定型コードです。<code>BaseConverter</code> を使用することで、この部分を省略でき、かつ「無損変換」（原始イベントは常に <code>{platform}_raw</code> に格納される）が自然に満たされます。</p>
 </blockquote>
-<h2 id="convert-メソッド">convert() メソッド</h2>
+<h2 id="convertメソッド">convert()メソッド</h2>
 <h3 id="メソッド署名">メソッド署名</h3>
 <pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""
-    プラットフォーム固有のイベントを OneBot12 標準フォーマットに変換します。
+    プラットフォームのネイティブイベントを OneBot12 標準形式に変換する
 
-    :param raw_event: プラットフォーム固有のイベントデータ
-    :return: OneBot12 標準フォーマットのイベント辞書
+    :param raw_event: プラットフォームのネイティブイベントデータ
+    :return: OneBot12 標準形式のイベント辞書
     """</span>
     <span class="token keyword">pass</span>
 </code></pre>
 <h3 id="戻り値構造">戻り値構造</h3>
 <p>変換後のイベント辞書には、以下の標準フィールドが含まれている必要があります：</p>
 <pre><code class="language-python"><span class="token punctuation">{</span>
-    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"イベントの唯一ID"</span><span class="token punctuation">,</span>
-    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>           <span class="token comment"># Unix タイムスタンプ（秒）</span>
-    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>             <span class="token comment"># イベントの種類</span>
-    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>      <span class="token comment"># 詳細な種類</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"イベントの一意ID"</span><span class="token punctuation">,</span>
+    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>           <span class="token comment"># Unixタイムスタンプ（秒）</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>             <span class="token comment"># イベントの型</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>      <span class="token comment"># 詳細型</span>
     <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>      <span class="token comment"># プラットフォーム名</span>
     <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
         <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
@@ -173,17 +176,17 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
 
     <span class="token comment"># メッセージイベントのフィールド</span>
-    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"送信者のID"</span><span class="token punctuation">,</span>
-    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">]</span><span class="token punctuation">,</span>              <span class="token comment"># OneBot12 メッセージセグメントのリスト</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"sender_id"</span><span class="token punctuation">,</span>
+    <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">]</span><span class="token punctuation">,</span>              <span class="token comment"># OneBot12 メッセージセグメントリスト</span>
     <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"プレーンテキストの内容"</span><span class="token punctuation">,</span>
 
-    <span class="token comment"># 原始データを保持する必要がある</span>
-    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>     <span class="token comment"># プラットフォーム固有のイベントの完全なデータ</span>
-    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"プラットフォーム固有のイベントタイプ名"</span><span class="token punctuation">,</span>
+    <span class="token comment"># 原始データを必ず保持する</span>
+    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>     <span class="token comment"># プラットフォームのネイティブイベントの完全なデータ</span>
+    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"ネイティブイベントの型名"</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <h2 id="必須フィールドのマッピング">必須フィールドのマッピング</h2>
-<h3 id="一般的なフィールドすべてのイベントタイプ">一般的なフィールド（すべてのイベントタイプ）</h3>
+<h3 id="一般的なフィールドすべてのイベント型に共通">一般的なフィールド（すべてのイベント型に共通）</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -195,27 +198,27 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tbody><tr>
 <td><code>id</code></td>
 <td>str</td>
-<td>イベントの一意の識別子</td>
+<td>イベントの一意識別子</td>
 </tr>
 <tr>
 <td><code>time</code></td>
 <td>int</td>
-<td>Unix タイムスタンプ（秒）</td>
+<td>Unixタイムスタンプ（秒）</td>
 </tr>
 <tr>
 <td><code>type</code></td>
 <td>str</td>
-<td>イベントの種類：<code>message</code> / <code>notice</code> / <code>request</code> / <code>meta</code></td>
+<td>イベントの型：<code>message</code> / <code>notice</code> / <code>request</code> / <code>meta</code></td>
 </tr>
 <tr>
 <td><code>detail_type</code></td>
 <td>str</td>
-<td>詳細なタイプ：<code>private</code> / <code>group</code> / <code>friend</code> など</td>
+<td>詳細型：<code>private</code> / <code>group</code> / <code>friend</code> 等</td>
 </tr>
 <tr>
 <td><code>platform</code></td>
 <td>str</td>
-<td>プラットフォーム名。アダプターの登録名と同じ</td>
+<td>プラットフォーム名、アダプター登録名と一致する</td>
 </tr>
 <tr>
 <td><code>self</code></td>
@@ -235,7 +238,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tbody><tr>
 <td><code>user_id</code></td>
 <td>str</td>
-<td>送信者の ID</td>
+<td>送信者のID</td>
 </tr>
 <tr>
 <td><code>message</code></td>
@@ -245,7 +248,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tr>
 <td><code>alt_message</code></td>
 <td>str</td>
-<td>純粋なテキストの代替内容</td>
+<td>プレーンテキストの代替内容</td>
 </tr>
 </tbody></table></div>
 <h3 id="通知イベントの追加フィールド">通知イベントの追加フィールド</h3>
@@ -260,16 +263,16 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tbody><tr>
 <td><code>user_id</code></td>
 <td>str</td>
-<td>関連するユーザーの ID</td>
+<td>関連するユーザーのID</td>
 </tr>
 <tr>
 <td><code>operator_id</code></td>
 <td>str</td>
-<td>操作者の ID（例：グループメンバーの変更時）</td>
+<td>操作者のID（例：グループメンバーの変更時）</td>
 </tr>
 </tbody></table></div>
 <h2 id="メッセージセグメントの変換">メッセージセグメントの変換</h2>
-<p>OneBot12 標準では、以下のメッセージセグメントタイプが定義されています：</p>
+<p>OneBot12 標準は以下のメッセージセグメント型を定義しています：</p>
 <pre><code class="language-python"><span class="token comment"># テキスト</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 
@@ -291,12 +294,12 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <span class="token comment"># @全員</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention_all"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 
-<span class="token comment"># 返信</span>
+<span class="token comment"># 回答</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"reply"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"msg_123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 </code></pre>
-<p>プラットフォームがサポートしていないメッセージセグメントタイプがある場合、そのセグメントを省略するか、最も近い標準タイプに変換することができます。</p>
+<p>プラットフォームがサポートしていないメッセージセグメント型がある場合、そのセグメントを省略するか、最も近い標準型に変換することができます。</p>
 <h2 id="プラットフォーム拡張フィールド">プラットフォーム拡張フィールド</h2>
-<p>プラットフォーム固有のデータは、標準フィールドとの競合を避けるために <code>{platform}_</code> という接頭辞を使用して保存してください。</p>
+<p>プラットフォーム固有のデータは、<code>{platform}_</code> で始まるフィールドに格納し、標準フィールドとの衝突を避ける必要があります：</p>
 <pre><code class="language-python"><span class="token punctuation">{</span>
     <span class="token comment"># 標準フィールド</span>
     <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
@@ -305,18 +308,18 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 
     <span class="token comment"># プラットフォーム拡張フィールド</span>
     <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>          <span class="token comment"># 原始イベントデータ（必須）</span>
-    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"chat"</span><span class="token punctuation">,</span>      <span class="token comment"># 原始イベントの種類（必須）</span>
+    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"chat"</span><span class="token punctuation">,</span>      <span class="token comment"># 原始イベントの型名（必須）</span>
 
     <span class="token comment"># その他のプラットフォーム固有のフィールド</span>
-    <span class="token string">"myplatform_group_name"</span><span class="token punctuation">:</span> <span class="token string">"群名称"</span><span class="token punctuation">,</span>
-    <span class="token string">"myplatform_sender_role"</span><span class="token punctuation">:</span> <span class="token string">"admin"</span><span class="token punctuation">,</span>
+    <span class="token string">"myplatform_group_name"</span><span class="token punctuation">:</span> <span class="token string">"グループ名"</span><span class="token punctuation">,</span>
+    <span class="token string">"myplatform_sender_role"</span><span class="token punctuation">:</span> <span class="token string">"管理者"</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <blockquote>
-<p><strong>重要</strong>：<code>{platform}_raw</code> フィールドは必須です。ErisPulse のイベントシステムやモジュールは、プラットフォームの元のデータにアクセスするためにこのフィールドに依存することがあります。</p>
+<p><strong>重要</strong>：<code>{platform}_raw</code> フィールドは必須であり、ErisPulse のイベントシステムやモジュールは、このフィールドを介してプラットフォームの原始データにアクセスできる可能性があります。</p>
 </blockquote>
-<h2 id="完整例">完整例</h2>
-<p>以下は Converter の完全な実装例です：</p>
+<h2 id="完全な実装例">完全な実装例</h2>
+<p>以下は、完全な Converter 実装の一例です：</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyConverter</span><span class="token punctuation">:</span>
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> platform<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         self<span class="token punctuation">.</span>platform <span class="token operator">=</span> platform
@@ -393,10 +396,10 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 
         <span class="token keyword">return</span> base
 </code></pre>
-<h2 id="富媒体メッセージ変換の例">富媒体メッセージ変換の例</h2>
-<p>実際のプラットフォームのメッセージには、画像、@メンション、返信などの富媒体コンテンツが含まれることが多いです。以下は、<code>_convert_message_segments</code> が複数のメッセージタイプを処理する例です：</p>
+<h2 id="ファイバーメディアメッセージの変換例">ファイバーメディアメッセージの変換例</h2>
+<p>実際のプラットフォームのメッセージは、画像、@メンション、回答などのファイバーメディアコンテンツを含むことがよくあります。以下は、<code>_convert_message_segments</code> で複数のメッセージ型を処理する例です：</p>
 <pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_message_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_content<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""プラットフォーム固有のメッセージセグメントリストを OneBot12 標準のメッセージセグメントに変換する"""</span>
+    <span class="token triple-quoted-string string">"""プラットフォームのネイティブメッセージセグメントリストを OneBot12 標準メッセージセグメントに変換する"""</span>
     segments <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
 
     <span class="token keyword">for</span> item <span class="token keyword">in</span> raw_content<span class="token punctuation">:</span>
@@ -438,53 +441,53 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 
     <span class="token keyword">return</span> segments
 </code></pre>
-<h2 id="常見の落とし穴">常見の落とし穴</h2>
+<h2 id="一般的な落とし穴">一般的な落とし穴</h2>
 <h3 id="1-platform_raw-フィールドの欠落">1. <code>{platform}_raw</code> フィールドの欠落</h3>
-<p>これは最も一般的なエラーです。元データフィールドが欠落していると、モジュールがプラットフォーム固有の情報をアクセスできなくなります。</p>
+<p>これは最も一般的な間違いです。元のデータフィールドを欠くと、モジュールがプラットフォーム固有の情報をアクセスできなくなります。</p>
 <pre><code class="language-python">base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw_event        <span class="token comment"># 必須！</span>
 base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> event_type   <span class="token comment"># 必須！</span>
 </code></pre>
-<h3 id="2-時間スタンプの形式エラー">2. 時間スタンプの形式エラー</h3>
-<p>OneBot12 標準では、<code>time</code> フィールドは Unix 秒単位の時間スタンプ（整数）である必要があります。もしプラットフォームがミリ秒単位の時間スタンプや ISO 形式の文字列を返している場合、変換が必要です。</p>
+<h3 id="2-タイムスタンプ形式の誤り">2. タイムスタンプ形式の誤り</h3>
+<p>OneBot12 標準では、<code>time</code> フィールドは Unix 秒単位のタイムスタンプ（整数）である必要があります。もしプラットフォームがミリ秒単位のタイムスタンプや ISO 形式の文字列を返している場合、変換が必要です：</p>
 <pre><code class="language-python"><span class="token keyword">import</span> time
 
 <span class="token comment"># ミリ秒 → 秒</span>
 <span class="token string">"time"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"timestamp"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">//</span> <span class="token number">1000</span>
 
-<span class="token comment"># ISO 文字列 → 秒</span>
+<span class="token comment"># ISO文字列 → 秒</span>
 <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>mktime<span class="token punctuation">(</span>time<span class="token punctuation">.</span>strptime<span class="token punctuation">(</span>raw_event<span class="token punctuation">[</span><span class="token string">"created_at"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"%Y-%m-%dT%H:%M:%S"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="3-self-フィールドの欠落">3. <code>self</code> フィールドの欠落</h3>
-<p><code>self</code> フィールドには、ロボット自身の情報が含まれており、<code>user_id</code> はロボットのアカウント ID です。複数の Bot が存在する状況では、このフィールドは非常に重要です。</p>
+<p><code>self</code> フィールドにはロボット自身の情報が含まれており、<code>user_id</code> はロボットのアカウントIDです。複数の Bot が存在する場面では、このフィールドは非常に重要です：</p>
 <pre><code class="language-python"><span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
     <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
     <span class="token string">"user_id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>   <span class="token comment"># ロボット自身の ID</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<h3 id="4-detail_type-に非標準の値を使用">4. <code>detail_type</code> に非標準の値を使用</h3>
-<p><code>detail_type</code> には、OneBot12 標準で定義された値、例えば <code>private</code>、<code>group</code>、<code>friend_increase</code>、<code>group_member_increase</code> などを使用する必要があります。プラットフォーム固有の命名は使用しないでください。</p>
-<h3 id="5-送受信の一貫性">5. 送受信の一貫性</h3>
-<p>Converter が生成するメッセージセグメントの型が、Send 端でサポートされているメソッドに対応していることを確認してください。たとえば、Converter がプラットフォームの画像メッセージを <code>{"type": "image", ...}</code> に変換した場合、Send 端の <code>Image()</code> メソッドは画像の送信を処理できる必要があります。</p>
-<h2 id="最佳実践">最佳実践</h2>
+<h3 id="4-detail_type-に非標準値を使用">4. <code>detail_type</code> に非標準値を使用</h3>
+<p><code>detail_type</code> には OneBot12 標準で定義された値（例：<code>private</code>、<code>group</code>、<code>friend_increase</code>、<code>group_member_increase</code>）を使用する必要があります。プラットフォーム固有の命名は使用しないでください。</p>
+<h3 id="5-往復の一貫性">5. 往復の一貫性</h3>
+<p>Converter が生成するメッセージセグメントの型と Send 端の対応するメソッドが一致していることを確認してください。たとえば、Converter がプラットフォームの画像メッセージを <code>{"type": "image", ...}</code> に変換した場合、Send 端の <code>Image()</code> メソッドは画像送信を処理できる必要があります。</p>
+<h2 id="最善の実践">最善の実践</h2>
 <ol>
-<li><strong>常に元のデータを保持する</strong>：<code>{platform}_raw</code> フィールドは省略しないでください。</li>
-<li><strong>標準メッセージセグメントを使用する</strong>：可能な限りプラットフォームのメッセージを OneBot12 標準メッセージセグメントに変換してください。</li>
-<li><strong>detail_type を適切に設定する</strong>：標準の型（<code>private</code>/<code>group</code>/<code>channel</code> など）を使用し、独自に定義しないでください。</li>
-<li><strong>境界ケースを処理する</strong>：元のイベントにフィールドが欠けている可能性があるため、<code>.get()</code> を使用し、適切なデフォルト値を提供してください。</li>
-<li><strong>パフォーマンスの考慮</strong>：<code>convert()</code> は各イベントで呼び出されるため、ここで処理に時間がかかる操作を避けてください。</li>
+<li><strong>常に元のデータを保持する</strong>：<code>{platform}_raw</code> フィールドは省略しない</li>
+<li><strong>標準メッセージセグメントを使用する</strong>：できるだけプラットフォームのメッセージを OneBot12 標準メッセージセグメントに変換する</li>
+<li><strong><code>detail_type</code> を適切に設定する</strong>：標準型（<code>private</code>/<code>group</code>/<code>channel</code> 等）を使用し、独自の命名はしない</li>
+<li><strong>境界条件を処理する</strong>：元のイベントに特定のフィールドが欠けている可能性があるため、<code>.get()</code> を使用し、適切なデフォルト値を提供する</li>
+<li><strong>パフォーマンスを考慮する</strong>：<code>convert()</code> は各イベントで呼び出されるため、ここで時間のかかる処理を実行しない</li>
 </ol>
 <h2 id="関連ドキュメント">関連ドキュメント</h2>
 <ul>
-<li><a href="/docs/ja/developer-guide/adapters/core-concepts.html">アダプタのコアコンセプト</a> - アダプタの全体的なアーキテクチャ</li>
-<li><a href="/docs/ja/developer-guide/adapters/send-dsl.html">SendDSLの詳細</a> - 逆変換（送信方向）</li>
+<li><a href="/docs/ja/developer-guide/adapters/core-concepts.html">アダプターのコアコンセプト</a> - アダプターの全体的なアーキテクチャ</li>
+<li><a href="/docs/ja/developer-guide/adapters/send-dsl.html">SendDSLの詳細</a> - 逆方向の変換（送信方向）</li>
 <li><a href="/docs/ja/standards/event-conversion.html">イベント変換の標準</a> - 公式のイベント変換規格</li>
-<li><a href="/docs/ja/standards/session-types.html">セッション型システム</a> - セッション型のマッピングルール</li>
+<li><a href="/docs/ja/standards/session-types.html">セッションタイプシステム</a> - セッションタイプのマッピングルール</li>
 </ul>
 
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ja/developer-guide/adapters/best-practices.html"><small>Previous</small><br>アダプタ開発のベストプラクティス</a>
+        <a class="doc-pager-prev" href="/docs/ja/developer-guide/adapters/best-practices.html"><small>Previous</small><br>アダプター開発のベストプラクティス</a>
         <a class="doc-pager-next" href="/docs/ja/platform-guide/README.html"><small>Next</small><br>ErisPulse PlatformFeatures ドキュメント</a>
     </nav>
     </main>

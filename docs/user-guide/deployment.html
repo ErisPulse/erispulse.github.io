@@ -327,6 +327,26 @@
 <span class="token key attr-name">stderr_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/err.log</span>
 <span class="token key attr-name">stdout_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/out.log</span>
 </code></pre>
+<h3 id="uv-tool-分离部署cli-与项目环境隔离">uv tool 分离部署（CLI 与项目环境隔离）</h3>
+<p><code>uv tool install</code> 将 <code>epsdk</code> 安装为<strong>独立的工具环境</strong>，CLI 自身与项目依赖彻底隔离：升级 CLI 不会触碰项目 <code>.venv</code>，项目依赖变动也不会影响 CLI。</p>
+<pre><code class="language-bash"><span class="token comment"># 1. 全局安装 CLI（自动暴露 epsdk / ep 命令）</span>
+uv tool <span class="token function">install</span> ErisPulse
+
+<span class="token comment"># 2. 项目内只放机器人依赖（.venv 由 uv 管理）</span>
+<span class="token builtin class-name">cd</span> /opt/erispulse-bot
+uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># 按需追加适配器</span>
+
+<span class="token comment"># 3. 用 CLI 运行（自动探测并使用项目 .venv 中的解释器）</span>
+epsdk run main.py
+</code></pre>
+<p>行为要点：</p>
+<ul>
+<li><code>epsdk run</code> 的目标解释器解析顺序：<code>ERISPULSE_PYTHON</code> 环境变量 → 项目 <code>.venv</code> → 当前解释器；工具环境本身只承载 CLI，组件（适配器/模块）应装进项目 <code>.venv</code></li>
+<li><code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> 同样作用于项目 <code>.venv</code>，不会污染工具环境</li>
+<li>升级 CLI：<code>uv tool upgrade ErisPulse</code>（或直接 <code>epsdk self-update</code>，uv tool 环境下自动改走 <code>uv tool upgrade</code>）；升级项目依赖：在项目目录执行 <code>uv sync</code> / <code>uv add</code>，两者互不影响</li>
+<li>服务器场景下工具环境由 uv 统一管理（<code>uv tool list</code> 查看、<code>uv tool upgrade --all</code> 批量升级），无需手工维护全局 pip 包</li>
+<li>若在无项目的目录用 <code>uv run epsdk ...</code> 执行，会落入<strong>一次性隔离环境</strong>（安装的组件不持久化）；服务器上请始终用 <code>epsdk</code> 直接调用，或先 <code>cd</code> 进项目目录</li>
+</ul>
 <h2 id="安全建议">安全建议</h2>
 <ol>
 <li><strong>设置 Dashboard 令牌</strong>：使用强随机令牌，不要使用默认值</li>
@@ -354,6 +374,13 @@
 <h3 id="pip-方式">pip 方式</h3>
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
+</code></pre>
+<h3 id="uv-tool-方式">uv tool 方式</h3>
+<pre><code class="language-bash"><span class="token comment"># 升级 CLI 工具环境</span>
+uv tool upgrade ErisPulse
+
+<span class="token comment"># 升级项目依赖（项目目录内执行）</span>
+uv <span class="token function">sync</span>
 </code></pre>
 <h3 id="运行时热重载服务器配置">运行时热重载服务器配置</h3>
 <p>修改监听地址 / 端口 / SSL 证书后无需重启进程，在任意协程中调用 <code>router.reload()</code>：</p>

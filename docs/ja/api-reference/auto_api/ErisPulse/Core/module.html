@@ -707,8 +707,8 @@ overview <span class="token operator">=</span> module<span class="token punctuat
 <ul>
 <li><strong>module_name</strong>: 模块名称</li>
 </ul>
-<p><strong>返回值</strong>: <code>[{"name": ..., "description": &lt;str|i18n dict|None&gt;}, ...]</code>；</p>
-<pre><code>未声明时返回 None（公开方法全开放）
+<p><strong>返回值</strong>: ``[{"name": ..., "description": &lt;str|i18n dict|None&gt;,</p>
+<pre><code>"parameters": &lt;dict|None&gt;}, ...]``；未声明时返回 None（公开方法全开放）
 </code></pre>
 <hr>
 <h5 id="_service_namesmodule_name-str---liststr-none"><code>_service_names(module_name: str) -&gt; 'list[str] | None'</code></h5>
@@ -738,27 +738,56 @@ overview <span class="token operator">=</span> module<span class="token punctuat
 </ul>
 <p><strong>返回值</strong>: 介绍文本</p>
 <hr>
-<h5 id="servicesmodule_name-str-none-none---dictstr-listdictstr-str"><code>services(module_name: str | None = None) -&gt; dict[str, list[dict[str, str]]]</code></h5>
+<h5 id="_docstring_paramsfunc-any---dictstr-strstaticmethod"><code>_docstring_params(func: Any) -&gt; dict[str, str]</code>（staticmethod）</h5>
+<p><strong>内部方法</strong>
+从 docstring 提取参数说明（<code>:param name: 文本</code> 行），作为服务参数提示的自动兜底</p>
+<p>兼容 Sphinx 带类型形态（<code>:param int n: ...</code>，取末位词为参数名）；
+每个参数取说明首行，重复声明取首个。</p>
+<ul>
+<li><strong>func</strong>: 函数 / 绑定方法</li>
+</ul>
+<p><strong>返回值</strong>: <code>{参数名: 说明文本}</code>（无 docstring 或无参数区时为空字典）</p>
+<hr>
+<h5 id="_service_parametersmodule_name-str-entry-dictstr-any---dictstr-str"><code>_service_parameters(module_name: str, entry: dict[str, Any]) -&gt; dict[str, str]</code></h5>
+<p><strong>内部方法</strong>
+解析服务参数提示：显式声明（i18n 字典解析）与方法 docstring <code>:param:</code> 行按参数合并，
+单参数内显式声明优先</p>
+<p>仅保留方法签名中实际存在的参数（首个 <code>self</code> / <code>cls</code> 与变长参数除外）——
+声明与签名不一致时以签名为准，保证提示不会描述不存在的调用面。</p>
+<ul>
+<li><strong>module_name</strong>: 模块名</li>
+<li><strong>entry</strong>: 规范化服务条目（{"name", "description", "parameters"}）</li>
+</ul>
+<p><strong>返回值</strong>: <code>{参数名: 提示文本}</code>（无任何提示来源时为空字典）</p>
+<hr>
+<h5 id="servicesmodule_name-str-none-none---dictstr-listdictstr-any"><code>services(module_name: str | None = None) -&gt; 'dict[str, list[dict[str, Any]]]'</code></h5>
 <p>服务目录：列出模块通过 <code>get_meta().services</code> 声明的对外服务</p>
 <p>仅包含<strong>显式声明</strong>的模块（未声明的模块不出现在结果中）；
-每个服务附带方法签名字符串与介绍文本：</p>
+每个服务附带方法签名字符串、介绍文本与参数提示：</p>
 <ul>
 <li><p><strong>介绍来源</strong>：<code>services</code> 中 <code>{"name", "description"}</code> 的显式声明</p>
 <p>（支持 i18n 字典，解析为当前语言）&gt; 方法 docstring 首行 &gt; 空串</p>
 </li>
 <li><p><strong>签名</strong>：<code>inspect.signature</code> 提取</p>
 </li>
+<li><p><strong>参数提示</strong>：<code>parameters</code> 中 <code>{参数名: 说明}</code> 显式声明</p>
+<p>（支持 i18n 字典）与方法 docstring <code>:param:</code> 行按参数合并，
+单参数内显式声明优先；仅含签名内实际存在的参数</p>
+</li>
 </ul>
+<p>懒加载（已注册未加载）模块同样进入目录——服务发现先于加载发生，
+调用方可据此决定是否 <code>call()</code> 唤醒目标模块。</p>
 <p>为后续 MCP 化（调用点暴露给 AI）与生态服务发现提供数据基础。</p>
 <ul>
 <li><strong>module_name</strong>: 仅查询指定模块；None 时列出全部已注册模块中声明了服务的</li>
 </ul>
-<p><strong>返回值</strong>: <code>{模块名: [{"name", "signature", "description"}]}</code></p>
+<p><strong>返回值</strong>: <code>{模块名: [{"name", "signature", "description", "parameters"}]}</code></p>
 <p><strong>示例</strong>:</p>
 <pre><code class="language-python">sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span><span class="token string">'Chat'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">'name'</span><span class="token punctuation">:</span> <span class="token string">'get_history'</span><span class="token punctuation">,</span>
            <span class="token string">'signature'</span><span class="token punctuation">:</span> <span class="token string">'(session_id, n=20)'</span><span class="token punctuation">,</span>
-           <span class="token string">'description'</span><span class="token punctuation">:</span> <span class="token string">'查询会话历史'</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">}</span>
+           <span class="token string">'description'</span><span class="token punctuation">:</span> <span class="token string">'查询会话历史'</span><span class="token punctuation">,</span>
+           <span class="token string">'parameters'</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">'session_id'</span><span class="token punctuation">:</span> <span class="token string">'会话 ID'</span><span class="token punctuation">,</span> <span class="token string">'n'</span><span class="token punctuation">:</span> <span class="token string">'返回条数'</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">}</span>
 sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span><span class="token string">'Chat'</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">'name'</span><span class="token punctuation">:</span> <span class="token string">'get_history'</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">]</span><span class="token punctuation">}</span>
 </code></pre>

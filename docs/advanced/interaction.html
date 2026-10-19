@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>交互会话系统 - ErisPulse 文档中心</title>
-    <meta name="description" content="ErisPulse 把&quot;与用户的持续交互&quot;做成了框架级基础设施：从一条 wait_reply， 到定时提醒、多路等待、会话互斥、重启恢复，全部由统一的 交互会话管理器（Core/Event/interaction.py，sdk.interaction）调度。" />
+    <meta name="description" content="什么时候需要读这篇：需要 wait_reply、多轮对话、定时提醒、会话互斥或链路追踪时。不需要则跳过，不影响其它功能的使用。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/advanced/interaction.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/interaction.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/interaction.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/interaction.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/interaction.html" />
     <meta property="og:title" content="交互会话系统 - ErisPulse 文档中心" />
-    <meta property="og:description" content="ErisPulse 把&quot;与用户的持续交互&quot;做成了框架级基础设施：从一条 wait_reply， 到定时提醒、多路等待、会话互斥、重启恢复，全部由统一的 交互会话管理器（Core/Event/interaction.py，sdk.interaction）调度。" />
+    <meta property="og:description" content="什么时候需要读这篇：需要 wait_reply、多轮对话、定时提醒、会话互斥或链路追踪时。不需要则跳过，不影响其它功能的使用。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/advanced/interaction.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"交互会话系统","description":"ErisPulse 把\"与用户的持续交互\"做成了框架级基础设施：从一条 wait_reply， 到定时提醒、多路等待、会话互斥、重启恢复，全部由统一的 交互会话管理器（Core/Event/interaction.py，sdk.interaction）调度。","url":"https://www.erisdev.com/docs/advanced/interaction.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"交互会话系统","description":"什么时候需要读这篇：需要 wait_reply、多轮对话、定时提醒、会话互斥或链路追踪时。不需要则跳过，不影响其它功能的使用。","url":"https://www.erisdev.com/docs/advanced/interaction.html","inLanguage":"zh-CN","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,6 +73,9 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="交互会话系统">交互会话系统</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>什么时候需要读这篇</strong>：需要 wait_reply、多轮对话、定时提醒、会话互斥或链路追踪时。不需要则跳过，不影响其它功能的使用。</p>
+</div>
 <div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
 <p>本章内容需要 ErisPulse **2.8.0+**。</p>
 </div>
@@ -152,6 +155,11 @@ reply <span class="token operator">=</span> <span class="token keyword">await</s
 <span class="token comment"># 会话级等待：群协作场景，任何群友回答均可</span>
 reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> prompt<span class="token operator">=</span><span class="token string">"哪位大佬帮忙答一下？"</span><span class="token punctuation">)</span>
 </code></pre>
+<h3 id="等待与命令的边界命令穿透">等待与命令的边界（命令穿透）</h3>
+<p>等待期间收到<strong>已注册命令</strong>（如 <code>/cancel</code>）的消息时，默认放行给命令分发器执行、
+不作为回复消费（配置项 <code>ErisPulse.event.wait_reply.cmdpass</code>，<code>True</code> 则反转——
+消息一律作为回复）。判定文本口径与命令分发一致：<code>alt_message</code> 优先、
+缺失时回退消息段拼接（2.10.1 起纯 message 段适配器同样生效）。</p>
 <h3 id="等待会在什么时候被取消">等待会在什么时候被取消</h3>
 <p>等待不再是"只能等超时"——以下情况会让等待<strong>立即终止</strong>（<code>wait_reply</code> 返回 <code>None</code>），
 而不是让调用方干等到超时：</p>
@@ -284,6 +292,14 @@ reply <span class="token operator">=</span> <span class="token keyword">await</s
 <code>select</code> 与多线程 <code>asyncio.wait</code> 手工编排相比：期望未命中时自动清理、
 命中事件自动认领、权限复查与归属清理全部生效——不需要自己管任何 Future。
 {!--&lt; /tips &gt;!--}</p>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>2.10.1 起 <code>select</code> 为<strong>聚合等待</strong>：全部期望合并为单条目 + 自定义命中判定，
+同键多路（如同一 user 挂两条不同 pattern）不再互相取消，任一路先命中即返回。
+回复文本的判定口径为 <code>alt_message</code> 优先 + 消息段回退（与命令分发一致）。</p>
+<p>边界说明：<code>event.wait_for(...)</code> 直挂在适配器事件总线上，<strong>不经过</strong>中间件与
+detail_type 条件过滤（身份准入由分发入口兜底）；需要完整管线的等待请用
+<code>wait_reply</code> / <code>select</code>。</p>
+</div>
 <h2 id="会话互斥acquire-hold-get_owner_of">会话互斥：acquire / hold / get_owner_of</h2>
 <p>归属权从"资源"走向"会话"——"这个用户当前正被谁占用"成为一等查询。</p>
 <pre><code class="language-python"><span class="token comment"># 查询：这个会话正被谁交互？（空闲返回 None）</span>

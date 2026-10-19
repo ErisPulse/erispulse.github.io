@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ownership (owner) System - ErisPulse 文档中心</title>
-    <meta name="description" content="Ownership is the cornerstone of the &quot;plug-and-play&quot; nature of modules: all framework resources registered during module loading are automatically attributed,..." />
+    <title>Ownership (Owner) System - ErisPulse 文档中心</title>
+    <meta name="description" content="When to read this: When troubleshooting resource leaks, understanding the unload/cleanup chain, or declaring owned resources. If not needed, skip this sectio..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/ownership.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/ownership.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/ownership.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/ownership.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/ownership.html" />
-    <meta property="og:title" content="Ownership (owner) System - ErisPulse 文档中心" />
-    <meta property="og:description" content="Ownership is the cornerstone of the &quot;plug-and-play&quot; nature of modules: all framework resources registered during module loading are automatically attributed,..." />
+    <meta property="og:title" content="Ownership (Owner) System - ErisPulse 文档中心" />
+    <meta property="og:description" content="When to read this: When troubleshooting resource leaks, understanding the unload/cleanup chain, or declaring owned resources. If not needed, skip this sectio..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/ownership.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Ownership (owner) System","description":"Ownership is the cornerstone of the \"plug-and-play\" nature of modules: all framework resources registered during module loading are automatically attributed,...","url":"https://www.erisdev.com/docs/en/advanced/ownership.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Ownership (Owner) System","description":"When to read this: When troubleshooting resource leaks, understanding the unload/cleanup chain, or declaring owned resources. If not needed, skip this sectio...","url":"https://www.erisdev.com/docs/en/advanced/ownership.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -60,7 +60,7 @@
     <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
         <a href="/docs.html">Docs</a>
         <span class="doc-crumb-sep">/</span> Advanced Topics
-        <span class="doc-crumb-sep">/</span> <span>Ownership (owner) System</span>
+        <span class="doc-crumb-sep">/</span> <span>Ownership (Owner) System</span>
     </nav>
         <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/ownership.html">简体中文</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/advanced/ownership.html">English</a>
@@ -72,17 +72,20 @@
             <a href="https://www.erisdev.com/#docs/advanced/ownership.md">在交互式文档中心打开 →</a>
         </div>
         <article class="markdown-content" id="docs-content">
-            <h1 id="ownership-owner-system">Ownership (owner) System</h1>
-<p>Ownership is the cornerstone of the "plug-and-play" nature of modules: all framework resources registered during module loading are automatically attributed, and automatically reclaimed when the module is unloaded or disabled. Module authors only need to declare resources, without writing manual cleanup logic.</p>
+            <h1 id="ownership-owner-system">Ownership (Owner) System</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>When to read this</strong>: When troubleshooting resource leaks, understanding the unload/cleanup chain, or declaring owned resources. If not needed, skip this section—it won't affect the use of other features.</p>
+</div>
+<p>Ownership is the foundation of the module's "plug-and-play" capability: all framework resources registered during module loading are automatically named, and are automatically reclaimed when the module is unloaded or disabled—module authors only need to declare resources, without manually writing cleanup logic.</p>
 <blockquote>
-<p><strong>Related Systems</strong>: Scope determines "whether a resource is active" during event dispatching, while ownership determines "who owns the resource and who is responsible for reclaiming it during lifecycle events." For more details on scope, see <a href="/docs/en/advanced/scope.html">Unified Control Plane (scope)</a>. For background tasks, see [Lifecycle Management](lifecycle.md#Background Task Ownership and Automatic Cancellation).</p>
+<p><strong>Related systems</strong>: Scopes determine whether resources are active during event dispatching, while ownership determines which module owns a resource and who is responsible for reclaiming it during the lifecycle. See <a href="/docs/en/advanced/scope.html">Unified Control Plane (Scope)</a> for scopes, and <a href="/docs/en/advanced/lifecycle.html#background-task-ownership-and-automatic-cancellation">Lifecycle Management</a> for background tasks.</p>
 </blockquote>
 <p>{!--&lt; tips &gt;!--}</p>
 <ol>
-<li>Ownership is automatically recorded at the <strong>moment of registration</strong> based on <code>current_owner</code>, requiring zero code changes from the module.</li>
-<li>Unload and disable share the same cleanup chain (<code>_cleanup_module_registrations</code>), where each step only logs a warning if it fails, without interrupting the process.</li>
-<li>Resources with user-configured semantics (persistent overrides / scope rules / command ACLs) are <strong>not</strong> cleaned up when the module is unloaded.</li>
-<li>External handles managed by utility modules can be attached to the cleanup chain via <code>on_cleanup(cb)</code>, which will be automatically called when the dependent module is unloaded (see <a href="#Guide-to-Utility-Modules-Managing-Handles-of-Other-Modules">Guide to Utility Modules: Managing Handles of Other Modules</a>).
+<li>Ownership is automatically recorded at the <strong>moment of registration</strong> based on <code>current_owner</code>, requiring zero changes to module code.</li>
+<li>Unload and disable share the same cleanup chain (<code>_cleanup_module_registrations</code>), where each step failure only generates a warning and does not interrupt the process.</li>
+<li>User-configured resources (persistent overrides, scope rules, command ACLs) are <strong>not</strong> cleaned up when the module is unloaded.</li>
+<li>External handles managed by utility modules can be attached to the cleanup chain using <code>on_cleanup(cb)</code>, which automatically calls back when the dependent module is unloaded (see <a href="#utility-module-guide-handling-handles-of-other-modules">Utility Module Guide</a>).
 {!--&lt; /tips &gt;!--}</li>
 </ol>
 <h2 id="owner-context-mechanism">Owner Context Mechanism</h2>
@@ -549,7 +552,7 @@ ownership<span class="token punctuation">.</span>orphans<span class="token punct
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/en/advanced/scope.html"><small>Previous</small><br>Scope</a>
-        <a class="doc-pager-next" href="/docs/en/advanced/interaction.html"><small>Next</small><br>Interactive Session System</a>
+        <a class="doc-pager-next" href="/docs/en/advanced/interaction.html"><small>Next</small><br>Interactive Conversation System</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

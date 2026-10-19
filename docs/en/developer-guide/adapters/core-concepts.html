@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Core Concepts of Adapters - ErisPulse 文档中心</title>
-    <meta name="description" content="Understanding the core concepts of ErisPulse adapters is fundamental to adapter development." />
+    <title>Core Adapter Concepts - ErisPulse 文档中心</title>
+    <meta name="description" content="When to read this: Mandatory for adapter development path (complete explanation of BaseAdapter / SendDSL / lifecycle mechanisms). For quick start, read Adapt..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/developer-guide/adapters/core-concepts.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/core-concepts.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/core-concepts.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/core-concepts.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/core-concepts.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/core-concepts.html" />
-    <meta property="og:title" content="Core Concepts of Adapters - ErisPulse 文档中心" />
-    <meta property="og:description" content="Understanding the core concepts of ErisPulse adapters is fundamental to adapter development." />
+    <meta property="og:title" content="Core Adapter Concepts - ErisPulse 文档中心" />
+    <meta property="og:description" content="When to read this: Mandatory for adapter development path (complete explanation of BaseAdapter / SendDSL / lifecycle mechanisms). For quick start, read Adapt..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/developer-guide/adapters/core-concepts.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Core Concepts of Adapters","description":"Understanding the core concepts of ErisPulse adapters is fundamental to adapter development.","url":"https://www.erisdev.com/docs/en/developer-guide/adapters/core-concepts.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Core Adapter Concepts","description":"When to read this: Mandatory for adapter development path (complete explanation of BaseAdapter / SendDSL / lifecycle mechanisms). For quick start, read Adapt...","url":"https://www.erisdev.com/docs/en/developer-guide/adapters/core-concepts.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -60,7 +60,7 @@
     <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
         <a href="/docs.html">Docs</a>
         <span class="doc-crumb-sep">/</span> Developer Guide <span class="doc-crumb-sep">/</span> Adapters
-        <span class="doc-crumb-sep">/</span> <span>Core Concepts of Adapters</span>
+        <span class="doc-crumb-sep">/</span> <span>Core Adapter Concepts</span>
     </nav>
         <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/developer-guide/adapters/core-concepts.html">简体中文</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/developer-guide/adapters/core-concepts.html">English</a>
@@ -72,15 +72,18 @@
             <a href="https://www.erisdev.com/#docs/developer-guide/adapters/core-concepts.md">在交互式文档中心打开 →</a>
         </div>
         <article class="markdown-content" id="docs-content">
-            <h1 id="core-concepts-of-adapters">Core Concepts of Adapters</h1>
-<p>Understanding the core concepts of ErisPulse adapters is fundamental to adapter development.</p>
+            <h1 id="core-adapter-concepts">Core Adapter Concepts</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>When to read this</strong>: Mandatory for adapter development path (complete explanation of BaseAdapter / SendDSL / lifecycle mechanisms). For quick start, read <a href="/docs/en/developer-guide/adapters/getting-started.html">Adapter Development Introduction</a> first, and return here for deeper questions.</p>
+</div>
+<p>Understanding the core concepts of ErisPulse adapters is the foundation for developing adapters.</p>
 <h2 id="adapter-architecture">Adapter Architecture</h2>
 <h3 id="component-relationships">Component Relationships</h3>
-<pre><code>Forward Conversion (Receiving Direction)                           Reverse Conversion (Sending Direction)
+<pre><code>Forward Conversion (Receive Direction)                           Reverse Conversion (Send Direction)
 ─────────────────                           ─────────────────
                                              
 ┌──────────────────┐                        ┌──────────────────┐
-│ Native Platform Event     │                        │ Module-built Message     │
+│ Platform Native Event     │                        │ Module Constructed Message     │
 └────────┬─────────┘                        └────────┬─────────┘
          │                                           │
          ↓                                           ↓
@@ -104,34 +107,34 @@
                                 │
                                 ↓
                        ┌──────────────────┐
-                       │ Module (Event Handling)  │
+                       │ Module (Event Handler)  │
                        └──────────────────┘
 </code></pre>
 <p><strong>Core Symmetry</strong>:</p>
 <ul>
-<li><strong>Forward Conversion</strong> (Converter): Native platform event → OneBot12 standard event, original data preserved in <code>{platform}_raw</code></li>
+<li><strong>Forward Conversion</strong> (Converter): Platform native event → OneBot12 standard event, original data preserved in <code>{platform}_raw</code></li>
 <li><strong>Reverse Conversion</strong> (Raw_ob12): OneBot12 message segment → Platform API call, returns standard response format</li>
 </ul>
 <h2 id="adaptermanager-adapter-manager">AdapterManager Adapter Manager</h2>
-<p><code>AdapterManager</code> is the core component of ErisPulse's adapter system, responsible for managing the registration, startup, shutdown, and event distribution of all platform adapters.</p>
-<h3 id="core-features">Core Features</h3>
+<p><code>AdapterManager</code> is the core component of the ErisPulse adapter system, responsible for managing all platform adapters' registration, startup, shutdown, and event distribution.</p>
+<h3 id="core-functions">Core Functions</h3>
 <ul>
 <li><strong>Adapter Registration</strong>: Register and manage multiple platform adapters</li>
-<li><strong>Lifecycle Management</strong>: Control the startup and shutdown of adapters</li>
-<li><strong>Event Distribution</strong>: Distribute OneBot12 standard events and platform-native events</li>
-<li><strong>Configuration Management</strong>: Manage the enabled/disabled status of adapters</li>
+<li><strong>Lifecycle Management</strong>: Control adapter startup and shutdown</li>
+<li><strong>Event Distribution</strong>: Distribute OneBot12 standard events and platform native events</li>
+<li><strong>Configuration Management</strong>: Manage adapter enable/disable status</li>
 <li><strong>Middleware Support</strong>: Support OneBot12 event middleware</li>
 </ul>
 <h3 id="basic-usage">Basic Usage</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
-<span class="token comment"># Register adapters (usually done automatically by Loader)</span>
+<span class="token comment"># Register adapter (usually done automatically by Loader)</span>
 sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>register<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> MyPlatformAdapter<span class="token punctuation">)</span>
 
 <span class="token comment"># Start all adapters</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Start specified adapters</span>
+<span class="token comment"># Start specified adapter</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"myplatform"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 <span class="token comment"># Start all adapters</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -145,34 +148,34 @@ my_adapter <span class="token operator">=</span> sdk<span class="token punctuati
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="startup-and-shutdown">Startup and Shutdown</h3>
-<h4 id="start-adapters">Start Adapters</h4>
+<h4 id="start-adapter">Start Adapter</h4>
 <pre><code class="language-python"><span class="token comment"># Start all registered adapters</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Start specified platforms</span>
+<span class="token comment"># Start specified platform</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"platform1"</span><span class="token punctuation">,</span> <span class="token string">"platform2"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 </code></pre>
 <p><strong>Startup Process:</strong></p>
 <ol>
 <li>Submit <code>adapter.start</code> lifecycle event</li>
 <li>Submit <code>adapter.status.change</code> event (starting)</li>
-<li>Parallel start each adapter</li>
+<li>Start adapters in parallel</li>
 <li>If startup fails, automatically retry (exponential backoff strategy)</li>
 <li>After successful startup, submit <code>adapter.status.change</code> event (started)</li>
 </ol>
 <p><strong>Retry Mechanism:</strong></p>
 <ul>
 <li>First 4 retries: 60 seconds, 10 minutes, 30 minutes, 60 minutes</li>
-<li>5th and later: Fixed interval of 3 hours</li>
+<li>5th and subsequent: Fixed interval of 3 hours</li>
 </ul>
-<h4 id="shutdown-adapters">Shutdown Adapters</h4>
+<h4 id="shutdown-adapter">Shutdown Adapter</h4>
 <pre><code class="language-python"><span class="token comment"># Shutdown all adapters</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <p><strong>Shutdown Process:</strong></p>
 <ol>
 <li>Submit <code>adapter.stop</code> lifecycle event</li>
-<li>Call <code>shutdown()</code> method for all adapters</li>
+<li>Call all adapters' <code>shutdown()</code> method</li>
 <li>Shutdown router server</li>
 <li>Clear event handlers</li>
 <li>Submit <code>adapter.stopped</code> lifecycle event</li>
@@ -204,28 +207,28 @@ enabled_platforms <span class="token operator">=</span> <span class="token punct
 <h4 id="onebot12-standard-events">OneBot12 Standard Events</h4>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
-<span class="token comment"># Listen for standard message events from all platforms</span>
+<span class="token comment"># Listen to standard message events from all platforms</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_message</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Received OneBot12 message: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># Listen for standard message events from a specific platform</span>
+<span class="token comment"># Listen to standard message events from specific platform</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> platform<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_platform_message</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Received myplatform message: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Received message from myplatform: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># Listen for all events</span>
+<span class="token comment"># Listen to all events</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"*"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_any_event</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Received event: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">'type'</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="platform-native-events">Platform Native Events</h4>
-<pre><code class="language-python"><span class="token comment"># Listen for native events from a specific platform</span>
+<pre><code class="language-python"><span class="token comment"># Listen to specific platform's native event</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"raw_event_type"</span><span class="token punctuation">,</span> raw<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> platform<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_raw_event</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Received native event: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># Listen for native events from all platforms (wildcard)</span>
+<span class="token comment"># Listen to native events from all platforms (wildcard)</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"*"</span><span class="token punctuation">,</span> raw<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_all_raw_events</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Received native event: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
@@ -233,13 +236,13 @@ enabled_platforms <span class="token operator">=</span> <span class="token punct
 <h4 id="event-distribution-mechanism">Event Distribution Mechanism</h4>
 <p>When calling <code>adapter.emit(event_data)</code>:</p>
 <ol>
-<li><strong>Middleware Processing</strong>: Execute all OneBot12 middlewares first</li>
+<li><strong>Middleware Processing</strong>: Execute all OneBot12 middleware first</li>
 <li><strong>Standard Event Distribution</strong>: Distribute to matching OneBot12 event handlers</li>
 <li><strong>Native Event Distribution</strong>: If raw data exists, distribute to native event handlers</li>
 </ol>
 <p><strong>Matching Rules:</strong></p>
 <ul>
-<li>Exact match: <code>@sdk.adapter.on("message")</code> only matches <code>message</code> events</li>
+<li>Exact match: <code>@sdk.adapter.on("message")</code> only matches <code>message</code> event</li>
 <li>Wildcard: <code>@sdk.adapter.on("*")</code> matches all events</li>
 <li>Platform filtering: <code>platform="myplatform"</code> only distributes events from the specified platform</li>
 </ul>
@@ -256,7 +259,7 @@ enabled_platforms <span class="token operator">=</span> <span class="token punct
     <span class="token triple-quoted-string string">"""Event filtering middleware"""</span>
     <span class="token comment"># Filter out unwanted events</span>
     <span class="token keyword">if</span> data<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"notice"</span><span class="token punctuation">:</span>
-        <span class="token keyword">return</span> <span class="token boolean">None</span>  <span class="token comment"># Returning None means the middleware chain ignores this return value, keeping original data for further processing</span>
+        <span class="token keyword">return</span> <span class="token boolean">None</span>  <span class="token comment"># Return None to ignore the return value and preserve original data</span>
     <span class="token keyword">return</span> data  <span class="token comment"># Must return data to continue passing</span>
 </code></pre>
 <h4 id="middleware-return-contract">Middleware Return Contract</h4>
@@ -269,39 +272,39 @@ enabled_platforms <span class="token operator">=</span> <span class="token punct
 </thead>
 <tbody><tr>
 <td><code>dict</code></td>
-<td>Rewrite event payload (subsequent handlers receive rewritten event)</td>
+<td>Rewrite event payload (subsequent handlers receive the modified event)</td>
 </tr>
 <tr>
 <td><code>None</code></td>
-<td>Allow passage, payload unchanged (outputs WARNING log — recommend explicit <code>return data</code>)</td>
+<td>Pass through, payload unchanged (outputs WARNING prompt - recommend explicit <code>return data</code>)</td>
 </tr>
 <tr>
 <td><code>False</code></td>
-<td><strong>Reject</strong>: Event is discarded, not passed to any handler, no outbound side effects</td>
+<td><strong>Block</strong>: Event is discarded, not entering any handler, no outbound side effects</td>
 </tr>
 </tbody></table></div>
-<p>Reject is suitable for firewall, rate limiting, blacklist scenarios where events are discarded at the event level ("direct discard at event level") (previously only achievable via high-priority event handlers). When rejecting, the framework outputs TRACE log and triggers the <code>adapter.event.blocked</code> lifecycle hook (carrying <code>middleware</code> middleware name, full <code>event</code>, <code>platform</code> / <code>event_type</code> / <code>detail_type</code>), facilitating troubleshooting of "why an event received no response":</p>
+<p>Blocking is suitable for firewall, rate limiting, blacklist scenarios where events are discarded at the event level (previously only achievable with high-priority event handlers). When blocking, the framework outputs TRACE log and triggers the <code>adapter.event.blocked</code> lifecycle hook (carrying <code>middleware</code> middleware name, full <code>event</code>, <code>platform</code> / <code>event_type</code> / <code>detail_type</code>), facilitating troubleshooting for "why events are not responded to":</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">rate_limit_middleware</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""Rate limiting middleware"""</span>
     <span class="token keyword">if</span> _is_rate_limited<span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token keyword">return</span> <span class="token boolean">False</span>  <span class="token comment"># Reject: event is discarded</span>
+        <span class="token keyword">return</span> <span class="token boolean">False</span>  <span class="token comment"># Block: event is discarded</span>
     data<span class="token punctuation">[</span><span class="token string">"rate_marked"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">True</span>
     <span class="token keyword">return</span> data
 
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.event.blocked"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_event_blocked</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Event rejected by </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'middleware'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'event_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Event blocked by </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'middleware'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>data<span class="token punctuation">[</span><span class="token string">'event_type'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="middleware-execution-order">Middleware Execution Order</h4>
-<p>Middlewares execute in registration order, with later-registered middlewares executing first.</p>
+<p>Middleware executes in registration order, with later registered middleware executing first.</p>
 <blockquote>
-<p><strong>Note</strong>: If a middleware returns <code>None</code> (e.g., forgetting to <code>return data</code>), the framework ignores this return value and continues passing the original data, while outputting a warning-level log. This ensures that a single middleware mistake does not interrupt the entire event chain.</p>
+<p><strong>Note</strong>: If middleware returns <code>None</code> (e.g., forgetting <code>return data</code>), the framework ignores the return value and preserves the original data while outputting a warning-level log. This ensures that a single middleware mistake does not interrupt the entire event chain.</p>
 </blockquote>
 <pre><code class="language-python"><span class="token comment"># Registration order</span>
-sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware<span class="token punctuation">(</span>middleware1<span class="token punctuation">)</span>  <span class="token comment"># Executes last</span>
-sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware<span class="token punctuation">(</span>middleware2<span class="token punctuation">)</span>  <span class="token comment"># Executes in the middle</span>
-sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware<span class="token punctuation">(</span>middleware3<span class="token punctuation">)</span>  <span class="token comment"># Executes first</span>
+sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware<span class="token punctuation">(</span>middleware1<span class="token punctuation">)</span>  <span class="token comment"># Last executed</span>
+sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware<span class="token punctuation">(</span>middleware2<span class="token punctuation">)</span>  <span class="token comment"># Middle executed</span>
+sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware<span class="token punctuation">(</span>middleware3<span class="token punctuation">)</span>  <span class="token comment"># First executed</span>
 
 <span class="token comment"># Execution order: middleware3 -&gt; middleware2 -&gt; middleware1</span>
 </code></pre>
@@ -324,7 +327,7 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
 
 <span class="token decorator annotation punctuation">@dataclass</span>
 <span class="token keyword">class</span> <span class="token class-name">MyConfig</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""Adapter Configuration (declared, framework automatically manages)"""</span>
+    <span class="token triple-quoted-string string">"""Adapter configuration (declared, framework automatically manages)"""</span>
     token<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
         default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span>
         metadata<span class="token operator">=</span><span class="token punctuation">{</span>
@@ -338,7 +341,7 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     ConfigClass <span class="token operator">=</span> MyConfig  <span class="token comment"># Declare configuration class</span>
     
-    <span class="token comment"># No need to override __init__, framework automatically handles:</span>
+    <span class="token comment"># No need to override __init__, framework handles automatically:</span>
     <span class="token comment"># - self.sdk, self.logger</span>
     <span class="token comment"># - self.cfg (type-safe configuration instance, real-time read)</span>
     <span class="token comment"># - self.Send, self.Request</span>
@@ -357,7 +360,7 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
         <span class="token keyword">pass</span>
 </code></pre>
 <h3 id="configuration-management-2">Configuration Management</h3>
-<p>The framework provides declarative configuration management, defining configuration structures via dataclass, with the framework automatically handling loading, validation, and template generation.</p>
+<p>The framework provides declarative configuration management, defining configuration structures through dataclass, and automatically handling loading, validation, and template generation.</p>
 <h4 id="single-account-configuration">Single Account Configuration</h4>
 <pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
 <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConfig
@@ -385,7 +388,7 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
         <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect<span class="token punctuation">(</span>cfg<span class="token punctuation">.</span>token<span class="token punctuation">,</span> proxy<span class="token operator">=</span>cfg<span class="token punctuation">.</span>proxy<span class="token punctuation">)</span>
 </code></pre>
 <h4 id="multi-account-configuration">Multi-Account Configuration</h4>
-<p>The <code>BotAccountConfig</code> base class provides <code>enabled</code> and <code>name</code> fields. Most adapters can automatically obtain <code>bot_id</code> from the platform protocol or login response, injecting it into the account configuration during event conversion:</p>
+<p>The <code>BotAccountConfig</code> base class provides <code>enabled</code> and <code>name</code> fields. Most adapters can automatically obtain <code>bot_id</code> from the platform protocol or login response, injecting it into the account configuration during event conversion.:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
 <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BotAccountConfig
 
@@ -397,11 +400,11 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
         <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
 
-<span class="token comment"># If bot_id cannot be obtained during login, allow users to fill it in configuration</span>
+<span class="token comment"># If bot_id cannot be obtained during login, allow users to fill it in the configuration</span>
 <span class="token decorator annotation punctuation">@dataclass</span>
 <span class="token keyword">class</span> <span class="token class-name">YunhuBotConfig</span><span class="token punctuation">(</span>BotAccountConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
     bot_id<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span> metadata<span class="token operator">=</span><span class="token punctuation">{</span>
-        <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"yunhu.bot_id"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Bot ID"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"yunhu.bot_id"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Robot ID"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
         <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span>
     token<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span> metadata<span class="token operator">=</span><span class="token punctuation">{</span>
@@ -421,11 +424,11 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
 <p>Field metadata serves both TOML comment generation and WebUI form rendering:</p>
 <pre><code class="language-python">metadata <span class="token operator">=</span> <span class="token punctuation">{</span>
     <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">|</span> <span class="token builtin">dict</span><span class="token punctuation">,</span>  <span class="token comment"># Field description (supports i18n)</span>
-    <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token builtin">bool</span><span class="token punctuation">,</span>         <span class="token comment"># Whether required (validation + WebUI required marker)</span>
+    <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token builtin">bool</span><span class="token punctuation">,</span>         <span class="token comment"># Whether required (validation + WebUI required mark)</span>
     <span class="token string">"secret"</span><span class="token punctuation">:</span> <span class="token builtin">bool</span><span class="token punctuation">,</span>           <span class="token comment"># Whether sensitive (WebUI displays as ***, logs are masked)</span>
-    <span class="token string">"example"</span><span class="token punctuation">:</span> <span class="token builtin">bool</span><span class="token punctuation">,</span>          <span class="token comment"># Non-persistent flag: not written to config.toml (default value/template excluded),</span>
+    <span class="token string">"example"</span><span class="token punctuation">:</span> <span class="token builtin">bool</span><span class="token punctuation">,</span>          <span class="token comment"># Not persisted flag: not written to config.toml (default value/template excluded),</span>
                               <span class="token comment"># only rendered into config.full.example; schema with "example": true marked,</span>
-                              <span class="token comment"># CLI configuration wizard skips by default; user manually sets and persists normally</span>
+                              <span class="token comment"># CLI configuration wizard skips by default; user manually sets then normal persistence</span>
     <span class="token string">"min"</span><span class="token punctuation">:</span> number<span class="token punctuation">,</span> <span class="token string">"max"</span><span class="token punctuation">:</span> number<span class="token punctuation">,</span>  <span class="token comment"># Numerical range validation</span>
     <span class="token string">"ui"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>                   <span class="token comment"># WebUI control configuration (old name "webui" still compatible)</span>
         <span class="token string">"widget"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span>        <span class="token comment"># Control type: "text" | "switch" | "select" | "number" | "password"</span>
@@ -434,7 +437,7 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
         <span class="token string">"options"</span><span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">,</span>      <span class="token comment"># Select control options [{label, value}], label supports i18n</span>
         <span class="token string">"placeholder"</span><span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">|</span> <span class="token builtin">dict</span><span class="token punctuation">,</span>  <span class="token comment"># Input box placeholder (supports i18n)</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token string">"extra"</span><span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span>            <span class="token comment"># Extra extended field (passed through to schema)</span>
+    <span class="token string">"extra"</span><span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">,</span>            <span class="token comment"># Additional extension field (passed through to schema)</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <p>All user-visible text fields support i18n, uniformly using the <code>{"i18n": "key", "default": "text"}</code> format,
@@ -468,7 +471,7 @@ pure strings are passed through as-is (backward compatibility). Supported i18n f
 <td>Group display name (Dashboard partition title)</td>
 </tr>
 </tbody></table></div>
-<p>When using i18n, translation keys must be pre-registered in the i18n system (see [i18n documentation](../../advanced/i18n.md#Configuration Field Multilingual)).</p>
+<p>When using i18n, you need to register the translation keys to the i18n system in advance (see <a href="/docs/en/advanced/i18n.html#configuration-field-multilingual">i18n documentation</a> for more details).</p>
 <p><strong>description / placeholder / options label</strong> example:</p>
 <pre><code class="language-python">token<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
     default<span class="token operator">=</span><span class="token string">""</span><span class="token punctuation">,</span>
@@ -494,7 +497,7 @@ mode<span class="token punctuation">:</span> <span class="token builtin">str</sp
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 </code></pre>
-<p><strong>group_labels</strong> example (declare after configuration class definition):</p>
+<p><strong>group_labels</strong> example (declared after configuration class definition):</p>
 <pre><code class="language-python">MyConfig<span class="token punctuation">.</span>_schema_meta <span class="token operator">=</span> <span class="token punctuation">{</span>
     <span class="token string">"group_labels"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
         <span class="token string">"basic"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.group.basic"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Basic Settings"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
@@ -502,10 +505,10 @@ mode<span class="token punctuation">:</span> <span class="token builtin">str</sp
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<p>The framework's <code>resolve_config_schema()</code> automatically resolves all i18n keys in these fields according to the current language;
-<code>get_config_schema()</code> passes through the i18n dictionary as-is, to be parsed by the frontend.</p>
-<h4 id="docstring-automatically-generates-field-descriptions-v280">docstring Automatically Generates Field Descriptions (v2.8.0+)</h4>
-<p>Fields without <code>description</code> declared in metadata, the framework automatically extracts field descriptions from the configuration class docstring as a fallback, supporting two common styles (can be mixed):</p>
+<p>The framework's <code>resolve_config_schema()</code> will automatically parse all the above fields' i18n keys based on the current language;
+<code>get_config_schema()</code> will pass through the i18n dictionary as-is, for the frontend to parse itself.</p>
+<h4 id="docstring-automatically-generates-field-descriptions-v280">docstring automatically generates field descriptions (v2.8.0+)</h4>
+<p>Fields without <code>description</code> declared in metadata, the framework will automatically extract field descriptions from the configuration class docstring as a fallback, supporting two common styles (can be mixed):</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@dataclass</span>
 <span class="token keyword">class</span> <span class="token class-name">MyConfig</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""
@@ -515,7 +518,7 @@ mode<span class="token punctuation">:</span> <span class="token builtin">str</sp
     :ivar timeout: Request timeout in seconds
     """</span>
 
-    endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> <span class="token string">"https://api.example.com"</span>   <span class="token comment"># No metadata description → comment/description from docstring</span>
+    endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> <span class="token string">"https://api.example.com"</span>   <span class="token comment"># No metadata description → Comment/description from docstring</span>
     timeout<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> <span class="token number">30</span>
 
     <span class="token comment"># Google style is also supported (Attributes: section):</span>
@@ -525,9 +528,9 @@ mode<span class="token punctuation">:</span> <span class="token builtin">str</sp
 <p>Priority: <strong>metadata description &gt; docstring field description &gt; empty</strong>.
 i18n dictionary form of description is unaffected (always prioritized).</p>
 <h4 id="nested-configuration-v280">Nested Configuration (v2.8.0+)</h4>
-<p>When the field type is a nested dataclass, the framework recursively processes: schema uses <code>"type": "table"</code> +
-<code>"fields"</code> subtree (WebUI renders as a collapsible nested group), TOML template renders as <code>[sub-table]</code> section,
-default values / filling / validation / i18n resolution all recursively apply.</p>
+<p>When the field type is a nested dataclass, the framework recursively processes: the schema uses <code>"type": "table"</code> +
+<code>"fields"</code> subtree to carry (WebUI renders as collapsible nested group), TOML template renders as <code>[sub-table]</code> section,
+default values / filling / validation / i18n parsing all recursively take effect.</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@dataclass</span>
 <span class="token keyword">class</span> <span class="token class-name">RetryConfig</span><span class="token punctuation">(</span>BaseConfig<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""Retry Strategy
@@ -552,10 +555,10 @@ default values / filling / validation / i18n resolution all recursively apply.</
 <span class="token key property">backoff</span> <span class="token punctuation">=</span> <span class="token number">0.5</span>
 </code></pre>
 <blockquote>
-<p>For nested types, it is recommended to use direct type annotations; string annotations (e.g., for deferred evaluation scenarios) must ensure
-the type can be globally resolved from the configuration class's module, <code>__qualname__</code> outer class namespace, or class attribute by name.</p>
+<p>For nested types, it is recommended to use direct type annotations; string annotations (for delayed evaluation scenarios) must ensure
+the type can be globally resolved from the configuration class's module, <code>__qualname__</code> outer class namespace, or class attributes by name.</p>
 </blockquote>
-<h4 id="non-persistent-example-fields-v280">Non-persistent example Fields (v2.8.0+)</h4>
+<h4 id="non-persisted-example-fields-v280">Non-persisted example fields (v2.8.0+)</h4>
 <pre><code class="language-python">gc_interval<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>default<span class="token operator">=</span><span class="token number">300</span><span class="token punctuation">,</span> metadata<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"example"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
 <p>Fields with <code>example: True</code>:</p>
@@ -563,17 +566,17 @@ the type can be globally resolved from the configuration class's module, <code>_
 <li>Not written to config.toml (adapter/module configuration template and default values excluded, runtime uses code default values)</li>
 <li>Only rendered into project's <code>config.full.example</code> (for user reference, manually copied to config.toml as needed)</li>
 <li>Schema marked with <code>"example": true</code> (panel can decide display strategy), CLI configuration wizard skips by default</li>
-<li>After user manually sets this key, it persists normally and updates normally (user's explicit intent takes precedence)</li>
+<li>After user manually sets this key, it is normally persisted, normally hot-updated (user's explicit intent takes precedence)</li>
 </ul>
-<p>Suitable for "complex and rarely touched" advanced configuration items, keeping the user's config.toml minimal.</p>
+<p>Suitable for "complex but rarely touched" advanced configuration items, keeping the user's config.toml minimal.</p>
 <blockquote>
-<p>⚠️ <code>_schema_meta</code> is class-level metadata (not a configuration field). If declared inside the dataclass body,
-it must be annotated with <code>ClassVar</code> (<code>_schema_meta: ClassVar[dict] = {...}</code>), otherwise it will be treated
-as a regular field by dataclass. The framework defensively excludes fields with leading underscores from any
-schema/template/default value/validation output, but it is still recommended to declare them properly.</p>
+<p>⚠️ <code>_schema_meta</code> is class-level metadata (not a configuration field). If declared within the dataclass class body,
+must add <code>ClassVar</code> annotation (<code>_schema_meta: ClassVar[dict] = {...}</code>), otherwise it will be treated as a normal field by
+dataclass. The framework defensively excludes fields with leading underscores from any
+schema / template / default value / validation output, but it is still recommended to declare them properly.</p>
 </blockquote>
 <h3 id="declarative-translation-keys-v270">Declarative Translation Keys (v2.7.0+)</h3>
-<p>Adapters can declare translation keys centrally by nesting the <code>I18nClass</code> class, similar to declaring <code>ConfigClass</code>. The framework automatically registers all declared translation keys during <code>__init__</code> phase (before configuration template generation), ensuring that i18n keys referenced in configuration descriptions are available when generating templates.</p>
+<p>Adapters can declare translation keys in a centralized manner through the nested <code>I18nClass</code>, similar to declaring <code>ConfigClass</code>. The framework automatically registers all declared translation keys during <code>__init__</code> (before configuration template generation), ensuring that i18n keys referenced in configuration descriptions are available when generating templates.</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> BaseI18n<span class="token punctuation">,</span> I18nKey
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -596,12 +599,12 @@ schema/template/default value/validation output, but it is still recommended to 
         <span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p><code>I18nKey.default</code> is a language-agnostic fallback text and is not registered in any language.
-To make translations effective, at least one language parameter must be explicitly provided.</p>
+<p><code>I18nKey.default</code> is <strong>language-agnostic fallback text</strong>, not registered to any language.
+To make translations effective, at least one language parameter must be explicitly passed.</p>
 </blockquote>
-<p>For detailed usage (key path rules, explicit key parameters, etc.), see [i18n documentation](../../advanced/i18n.md#Recommended Writing Method Through I18nClass Declaration of Translation Keys v270).</p>
+<p>For detailed usage (key path rules, explicit key parameters, etc.), see <a href="/docs/en/advanced/i18n.html#recommended-usage-declaring-translation-keys-via-i18nclass-v270">i18n documentation</a>.</p>
 <h3 id="declarative-event-extension-methods-v270">Declarative Event Extension Methods (v2.7.0+)</h3>
-<p>Adapters can declare platform-specific event extension methods in <code>EventMixin</code>, which the framework automatically registers to the current platform.</p>
+<p>Adapters can declare platform-specific event extension methods through <code>EventMixin</code>, and the framework automatically registers them to the current platform.</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> BaseAdapter
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -623,11 +626,11 @@ To make translations effective, at least one language parameter must be explicit
         <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"[</span><span class="token interpolation"><span class="token punctuation">{</span>chat_name<span class="token punctuation">}</span></span><span class="token string">] Official message received"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>Adapter's event extension methods are registered to its own platform (<code>self._platform</code>).
-Modules needing cross-platform event extensions should use the original <code>register_event_mixin()</code> API.</p>
+<p>Event extension methods of adapters are registered to their own platform (<code>self._platform</code>).
+Modules need to use the original <code>register_event_mixin()</code> API for cross-platform event extensions.</p>
 </blockquote>
 <h4 id="account-resolution">Account Resolution</h4>
-<p>Multi-account adapters can use <code>_resolve_account()</code> to automatically resolve target accounts:</p>
+<p>Multi-account adapters can use <code>_resolve_account()</code> to automatically resolve the target account:</p>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
     account_id <span class="token operator">=</span> params<span class="token punctuation">.</span>pop<span class="token punctuation">(</span><span class="token string">"account_id"</span><span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">)</span>
     name<span class="token punctuation">,</span> account <span class="token operator">=</span> self<span class="token punctuation">.</span>_resolve_account<span class="token punctuation">(</span>account_id<span class="token punctuation">)</span>
@@ -641,7 +644,7 @@ Modules needing cross-platform event extensions should use the original <code>re
     
     <span class="token keyword">def</span> <span class="token function">on_config_update</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> old_config<span class="token punctuation">,</span> new_config<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">if</span> old_config<span class="token punctuation">.</span>token <span class="token operator">!=</span> new_config<span class="token punctuation">.</span>token<span class="token punctuation">:</span>
-            self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Token has been updated, reconnecting"</span><span class="token punctuation">)</span>
+            self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Token updated, reconnecting"</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="initialization-process">Initialization Process</h3>
 <p>The framework automatically performs the following tasks in <code>BaseAdapter.__init__(self, sdk=None)</code>:</p>
@@ -650,9 +653,9 @@ Modules needing cross-platform event extensions should use the original <code>re
 <li><strong>Send/Request Factory</strong>: Create <code>self.Send</code> and <code>self.Request</code></li>
 <li><strong>Configuration Template</strong>: If <code>ConfigClass</code> is declared, automatically generate default configuration template (first time)</li>
 <li><strong>Account Template</strong>: If <code>AccountConfigClass</code> is declared, automatically generate default account template (first time)</li>
-<li><strong>EventMixin Registration</strong>: If <code>EventMixin</code> is declared, automatically register in <code>AdapterManager</code> after platform name injection</li>
+<li><strong>EventMixin Registration</strong>: If <code>EventMixin</code> is declared, automatically register to <code>AdapterManager</code> after platform name injection</li>
 </ol>
-<p>Configuration is read in real-time via <code>self.cfg</code> / <code>self.accounts</code> (each access reads the latest value from configuration storage). <code>self.config</code> as a compatibility alias for <code>self.cfg</code> is still usable.</p>
+<p>Configuration is read in real-time via <code>self.cfg</code> / <code>self.accounts</code> (each access reads from configuration storage). <code>self.config</code> as a compatibility alias for <code>self.cfg</code> is still available.</p>
 <p>Most adapters do not need to override <code>__init__</code>. If custom initialization is required:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     ConfigClass <span class="token operator">=</span> MyConfig
@@ -663,14 +666,14 @@ Modules needing cross-platform event extensions should use the original <code>re
         self<span class="token punctuation">.</span>convert <span class="token operator">=</span> self<span class="token punctuation">.</span>converter<span class="token punctuation">.</span>convert
 </code></pre>
 <h2 id="send-message-sending-dsl">Send Message Sending DSL</h2>
-<h3 id="inheritance-structure">Inheritance Structure</h3>
+<h3 id="inheritance-relationship">Inheritance Relationship</h3>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token triple-quoted-string string">"""Send nested class, inherits from BaseAdapter.Send"""</span>
         <span class="token keyword">pass</span>
 </code></pre>
 <h3 id="available-properties">Available Properties</h3>
-<p>The <code>Send</code> class automatically sets the following properties when called:</p>
+<p><code>Send</code> class automatically sets the following properties when called:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -711,12 +714,12 @@ Modules needing cross-platform event extensions should use the original <code>re
 </tr>
 <tr>
 <td><code>_reply_message_id</code></td>
-<td>ID of replied message</td>
+<td>Reply Message ID</td>
 <td><code>Reply(message_id)</code></td>
 </tr>
 <tr>
 <td><code>_at_all</code></td>
-<td>Whether to @ all</td>
+<td>Whether @ All</td>
 <td><code>AtAll()</code></td>
 </tr>
 </tbody></table></div>
@@ -741,10 +744,10 @@ Modules needing cross-platform event extensions should use the original <code>re
 </tr>
 </tbody></table></div>
 <h3 id="basic-methods">Basic Methods</h3>
-<p>Adapters only need to implement <code>Raw_ob12</code>, standard methods (Text/Image/Voice/Video/File) are inherited from the <code>SendDSL</code> base class and default to delegating to it:</p>
+<p>The adapter only needs to implement <code>Raw_ob12</code>, standard methods (Text/Image/Voice/Video/File) are inherited from the <code>SendDSL</code> base class and default to delegating to it:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Must implement: OneBot12 message segment → platform API"""</span>
+        <span class="token triple-quoted-string string">"""Must implement: OneBot12 message segment → Platform API"""</span>
         <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
             segments <span class="token operator">=</span> self<span class="token punctuation">.</span>_apply_modifiers<span class="token punctuation">(</span>message<span class="token punctuation">)</span>
             <span class="token keyword">return</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
@@ -760,7 +763,7 @@ Modules needing cross-platform event extensions should use the original <code>re
     <span class="token comment"># def Text(self, text: str):</span>
     <span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
 </code></pre>
-<h3 id="chaining-modifier-methods">Chaining Modifier Methods</h3>
+<h3 id="chainable-modifier-methods">Chainable Modifier Methods</h3>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
 
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> adapter<span class="token punctuation">,</span> target_type<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> target_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">,</span> account_id<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -772,7 +775,7 @@ Modules needing cross-platform event extensions should use the original <code>re
         <span class="token keyword">return</span> self
 </code></pre>
 <h2 id="event-converter">Event Converter</h2>
-<h3 id="conversion-flow">Conversion Flow</h3>
+<h3 id="conversion-process">Conversion Process</h3>
 <pre><code>Platform Raw Event
     ↓
 Converter.convert()
@@ -782,17 +785,17 @@ OneBot12 Standard Event
 <h3 id="required-fields">Required Fields</h3>
 <p>All converted events must include:</p>
 <pre><code class="language-python"><span class="token punctuation">{</span>
-    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"Event Unique Identifier"</span><span class="token punctuation">,</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"Unique Event Identifier"</span><span class="token punctuation">,</span>
     <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>           <span class="token comment"># 10-digit Unix timestamp</span>
     <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message/notice/request/meta"</span><span class="token punctuation">,</span>
-    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"Event Detailed Type"</span><span class="token punctuation">,</span>
+    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"Detailed Event Type"</span><span class="token punctuation">,</span>
     <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"Platform Name"</span><span class="token punctuation">,</span>
     <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
         <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"Platform Name"</span><span class="token punctuation">,</span>
         <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"Bot ID"</span>     <span class="token comment"># Must match bot_id</span>
     <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token string">"{platform}_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>       <span class="token comment"># Raw data (must)</span>
-    <span class="token string">"{platform}_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"..."</span>    <span class="token comment"># Raw type (must)</span>
+    <span class="token string">"{platform}_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>       <span class="token comment"># Raw data (required)</span>
+    <span class="token string">"{platform}_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"..."</span>    <span class="token comment"># Raw type (required)</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <h3 id="converter-example">Converter Example</h3>
@@ -816,7 +819,7 @@ OneBot12 Standard Event
         event_type <span class="token operator">=</span> self<span class="token punctuation">.</span>_convert_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
         detail_type <span class="token operator">=</span> self<span class="token punctuation">.</span>_convert_detail_type<span class="token punctuation">(</span>raw_event<span class="token punctuation">)</span>
         
-        <span class="token comment"># Build standard event</span>
+        <span class="token comment"># Construct standard event</span>
         onebot_event <span class="token operator">=</span> <span class="token punctuation">{</span>
             <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>event_id<span class="token punctuation">)</span><span class="token punctuation">,</span>
             <span class="token string">"time"</span><span class="token punctuation">:</span> timestamp<span class="token punctuation">,</span>
@@ -885,7 +888,7 @@ OneBot12 Standard Event
         <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span><span class="token punctuation">}</span>
 </code></pre>
 <blockquote>
-<p><strong>Route Information Query</strong>: Adapter-registered routes (HTTP, WebSocket, SSE) can be queried for complete connection addresses (including <code>base_url</code> + path) via <code>sdk.adapter.get_connection_info(platform)</code> and <code>sdk.router.get_module_urls(module_name)</code>. See [Getting Started - Adapter Development - Connection Information and Route Discovery](getting-started.md#9-Connection Information and Route Discovery) and <a href="/docs/en/developer-guide/adapters/getting-started.html#10-SSE-Server-Sent-Events-Support">SSE Support</a>.</p>
+<p><strong>Route Information Query</strong>: The routes registered by adapters (HTTP, WebSocket, SSE) can be queried through <code>sdk.adapter.get_connection_info(platform)</code> and <code>sdk.router.get_module_urls(module_name)</code> to obtain complete connection addresses (including <code>base_url</code> + path). See <a href="/docs/en/developer-guide/adapters/getting-started.html#9-connection-information-and-route-discovery">Adapter Development Introduction - Connection Information and Route Discovery</a> and <a href="/docs/en/developer-guide/adapters/getting-started.html#10-sse-server-sent-events-support">SSE Support</a>.</p>
 </blockquote>
 <h2 id="api-response-standard">API Response Standard</h2>
 <p>The framework provides <code>make_response()</code> and <code>make_error()</code> methods to construct standardized responses, eliminating the need to manually build response dictionaries.</p>
@@ -902,7 +905,7 @@ OneBot12 Standard Event
     <span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
         <span class="token keyword">return</span> self<span class="token punctuation">.</span>make_error<span class="token punctuation">(</span>message<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">,</span> raw<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span>
 </code></pre>
-<h3 id="manual-response-construction-legacy-method-still-compatible">Manual Response Construction (Legacy Method Still Compatible)</h3>
+<h3 id="manually-constructed-response-legacy-method-still-compatible">Manually Constructed Response (Legacy Method Still Compatible)</h3>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span> <span class="token punctuation">{</span>
         <span class="token string">"status"</span><span class="token punctuation">:</span> <span class="token string">"ok"</span><span class="token punctuation">,</span>
@@ -948,20 +951,20 @@ OneBot12 Standard Event
 <span class="token key property">token</span> <span class="token punctuation">=</span> <span class="token string">"token2"</span>
 <span class="token key property">enabled</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
 </code></pre>
-<h3 id="specifying-account-for-sending">Specifying Account for Sending</h3>
+<h3 id="specify-account-for-sending">Specify Account for Sending</h3>
 <pre><code class="language-python"><span class="token comment"># Use Using method to specify account</span>
 my_adapter <span class="token operator">=</span> adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Through event's self.user_id (recommended, most general)</span>
+<span class="token comment"># Through event's self.user_id (recommended, most universal)</span>
 <span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span>event<span class="token punctuation">[</span><span class="token string">"self"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"user_id"</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
 
 <span class="token comment"># Through account name</span>
 <span class="token keyword">await</span> my_adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"account1"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="relationship-between-selfuser_id-and-using">Relationship between self.user_id and Using</h3>
-<p>The framework's event reply mechanism automatically extracts <code>account_id</code> (if present) or <code>user_id</code> from the event's <code>self</code> field, as the <code>Using</code> parameter. Adapter developers need to ensure the Converter correctly sets <code>self.user_id</code> so that <code>_resolve_account()</code> can match the correct account.</p>
+<p>The framework's event reply mechanism automatically extracts <code>account_id</code> (prioritized) or <code>user_id</code> from the event's <code>self</code> field as the <code>Using</code> parameter. Adapter developers need to ensure that the <code>self.user_id</code> value set by the Converter correctly matches <code>_resolve_account()</code>.</p>
 <p><strong>Framework Internal Behavior</strong>:</p>
-<pre><code class="language-python"><span class="token comment"># Framework extraction logic for bot_id</span>
+<pre><code class="language-python"><span class="token comment"># Framework extraction of bot_id logic</span>
 bot_id <span class="token operator">=</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"self"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"account_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span> <span class="token keyword">or</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"self"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"user_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
 
 <span class="token comment"># Only call Using if bot_id is non-empty</span>
@@ -969,7 +972,7 @@ bot_id <span class="token operator">=</span> self<span class="token punctuation"
     send_chain <span class="token operator">=</span> send_chain<span class="token punctuation">.</span>Using<span class="token punctuation">(</span>bot_id<span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p><strong>Key Point</strong>: Even if the adapter uses a single Bot configuration, as long as the Converter correctly sets <code>self.user_id</code>, the framework will use it as the <code>Using</code> parameter. The adapter must ensure <code>self.user_id</code> matches the identifier field (e.g., <code>bot_id</code>) in <code>AccountConfigClass</code> so that <code>_resolve_account()</code> can match the correct account. If <code>self.user_id</code> is empty, the framework will not call <code>Using</code>, in which case <code>call_api</code> receives <code>account_id</code> as <code>None</code>, and <code>_resolve_account(None)</code> returns the first enabled account.</p>
+<p><strong>Key Point</strong>: Even if the adapter only uses a single Bot configuration, as long as the Converter correctly sets <code>self.user_id</code>, the framework will use it as the <code>Using</code> parameter. The adapter needs to ensure that <code>self.user_id</code> matches the identifier field (such as <code>bot_id</code>) in <code>AccountConfigClass</code> so that <code>_resolve_account()</code> can match the correct account. If <code>self.user_id</code> is empty, the framework will not call <code>Using</code>, and the received <code>account_id</code> in <code>call_api</code> will be <code>None</code>, and <code>_resolve_account(None)</code> returns the first enabled account.</p>
 </blockquote>
 <h2 id="error-handling">Error Handling</h2>
 <h3 id="connection-retry">Connection Retry</h3>
@@ -1017,15 +1020,15 @@ bot_id <span class="token operator">=</span> self<span class="token punctuation"
         <span class="token keyword">return</span> self<span class="token punctuation">.</span>_error_response<span class="token punctuation">(</span><span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">34000</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p><strong>Backward Compatibility</strong>: Adapters using <code>aiohttp.ClientSession</code> directly are unaffected and can still catch <code>aiohttp.ClientError</code>. Both methods can coexist. New code is recommended to use <code>sdk.client</code> with ErisPulse's exception system.</p>
+<p><strong>Backward Compatibility</strong>: Code using <code>aiohttp.ClientSession</code> in old adapters is unaffected and can still catch <code>aiohttp.ClientError</code>. Both methods can coexist. New code is recommended to use <code>sdk.client</code> + ErisPulse exception system.</p>
 </blockquote>
 <h2 id="bot-status-management">Bot Status Management</h2>
-<p>AdapterManager includes a built-in bot status tracking system, automatically maintaining the online status, active time, and metadata of all registered bots.</p>
+<p>AdapterManager includes a built-in Bot status tracking system that automatically maintains the online status, active time, and metadata of all registered Bots.</p>
 <h3 id="automatic-discovery-mechanism">Automatic Discovery Mechanism</h3>
-<p>When the adapter emits an event via <code>adapter.emit()</code>, the framework automatically checks the event's <code>self</code> field:</p>
+<p>When an adapter emits an event via <code>adapter.emit()</code>, the framework automatically checks the <code>self</code> field in the event:</p>
 <ul>
-<li><strong>Meta Events</strong>: Execute corresponding actions based on <code>detail_type</code> (register on connect, mark offline on disconnect, update active time on heartbeat)</li>
-<li><strong>Regular Events</strong> (message/notice/request): Automatically discover bots and update active time</li>
+<li><strong>Meta Events</strong>: Perform corresponding actions based on <code>detail_type</code> (register on connect, mark as offline on disconnect, update active time on heartbeat)</li>
+<li><strong>Regular Events</strong> (message/notice/request): Automatically discover Bots and update active time</li>
 </ul>
 <pre><code class="language-python"><span class="token comment"># All events containing self field trigger automatic discovery</span>
 <span class="token keyword">await</span> self<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
@@ -1048,17 +1051,17 @@ bot_id <span class="token operator">=</span> self<span class="token punctuation"
 <tbody><tr>
 <td><code>connect</code></td>
 <td>Bot connects</td>
-<td>Register bot and trigger <code>adapter.bot.online</code> lifecycle event</td>
+<td>Register Bot and trigger <code>adapter.bot.online</code> lifecycle event</td>
 </tr>
 <tr>
 <td><code>disconnect</code></td>
 <td>Bot disconnects</td>
-<td>Mark bot as offline and trigger <code>adapter.bot.offline</code> lifecycle event</td>
+<td>Mark Bot as offline and trigger <code>adapter.bot.offline</code> lifecycle event</td>
 </tr>
 <tr>
 <td><code>heartbeat</code></td>
 <td>Bot heartbeat</td>
-<td>Update bot active time and metadata</td>
+<td>Update Bot active time and metadata</td>
 </tr>
 </tbody></table></div>
 <h3 id="adapter-sending-meta-events">Adapter Sending Meta Events</h3>
@@ -1066,12 +1069,12 @@ bot_id <span class="token operator">=</span> self<span class="token punctuation"
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_on_bot_connect</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> bot_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token comment"># Send connect event in one line</span>
-        <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"connect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> user_name<span class="token operator">=</span><span class="token string">"MyBot"</span><span class="token punctuation">,</span> nickname<span class="token operator">=</span><span class="token string">"My Bot"</span><span class="token punctuation">)</span>
+        <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"connect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">,</span> user_name<span class="token operator">=</span><span class="token string">"MyBot"</span><span class="token punctuation">,</span> nickname<span class="token operator">=</span><span class="token string">"My Robot"</span><span class="token punctuation">)</span>
 
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_on_bot_disconnect</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> bot_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"disconnect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
 </code></pre>
-<p>Also supports manual construction (legacy method still compatible):</p>
+<p>Also supports manual construction (old method still compatible):</p>
 <pre><code class="language-python"><span class="token keyword">await</span> self<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
     <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"meta"</span><span class="token punctuation">,</span>
     <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"connect"</span><span class="token punctuation">,</span>
@@ -1079,7 +1082,7 @@ bot_id <span class="token operator">=</span> self<span class="token punctuation"
     <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"user_id"</span><span class="token punctuation">:</span> bot_id<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
-<h3 id="extended-information-in-self-field">Extended Information in <code>self</code> Field</h3>
+<h3 id="extended-self-field-information">Extended <code>self</code> Field Information</h3>
 <p>Besides the required <code>platform</code> and <code>user_id</code>, the <code>self</code> field supports the following optional fields:</p>
 <div class="table-wrapper"><table>
 <thead>
@@ -1108,24 +1111,24 @@ bot_id <span class="token operator">=</span> self<span class="token punctuation"
 <h3 id="bot-status-query">Bot Status Query</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
-<span class="token comment"># Get single bot information</span>
+<span class="token comment"># Get single Bot information</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_bot_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"bot123"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"status": "online", "last_active": 1712345678.0, "info": {"nickname": "MyBot"}}</span>
 
-<span class="token comment"># List all bots</span>
+<span class="token comment"># List all Bots</span>
 all_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># List bots of specified platform</span>
+<span class="token comment"># List Bots of specified platform</span>
 platform_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Check if bot is online</span>
+<span class="token comment"># Check if Bot is online</span>
 is_online <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>is_bot_online<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span> <span class="token string">"bot123"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Get full status summary (suitable for WebUI display)</span>
+<span class="token comment"># Get complete status summary (suitable for WebUI display)</span>
 summary <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_status_summary<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {"adapters": {"myplatform": {"status": "started", "bots": {...}}}}</span>
 </code></pre>
-<h3 id="listening-to-bot-lifecycle">Listening to Bot Lifecycle</h3>
+<h3 id="listen-to-bot-lifecycle">Listen to Bot Lifecycle</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.bot.online"</span><span class="token punctuation">)</span>
@@ -1142,7 +1145,7 @@ summary <span class="token operator">=</span> sdk<span class="token punctuation"
 </code></pre>
 <h2 id="related-documentation">Related Documentation</h2>
 <ul>
-<li><a href="/docs/en/developer-guide/adapters/getting-started.html">Getting Started with Adapter Development</a> - Create your first adapter</li>
+<li><a href="/docs/en/developer-guide/adapters/getting-started.html">Adapter Development Introduction</a> - Create your first adapter</li>
 <li><a href="/docs/en/developer-guide/adapters/send-dsl.html">SendDSL Detailed Explanation</a> - Learn message sending</li>
 <li><a href="/docs/en/developer-guide/adapters/best-practices.html">Adapter Best Practices</a> - Develop high-quality adapters</li>
 </ul>

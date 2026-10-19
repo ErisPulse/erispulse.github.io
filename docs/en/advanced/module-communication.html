@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inter-Module Communication - ErisPulse 文档中心</title>
-    <meta name="description" content="This chapter requires ErisPulse 2.8.0+." />
+    <meta name="description" content="When to read this: When you need cross-module calls (RPC), service contracts, directed events, or cold-start replay. Skip if not needed, as it does not affec..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/module-communication.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/module-communication.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/module-communication.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/module-communication.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/module-communication.html" />
     <meta property="og:title" content="Inter-Module Communication - ErisPulse 文档中心" />
-    <meta property="og:description" content="This chapter requires ErisPulse 2.8.0+." />
+    <meta property="og:description" content="When to read this: When you need cross-module calls (RPC), service contracts, directed events, or cold-start replay. Skip if not needed, as it does not affec..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/module-communication.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Inter-Module Communication","description":"This chapter requires ErisPulse 2.8.0+.","url":"https://www.erisdev.com/docs/en/advanced/module-communication.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Inter-Module Communication","description":"When to read this: When you need cross-module calls (RPC), service contracts, directed events, or cold-start replay. Skip if not needed, as it does not affec...","url":"https://www.erisdev.com/docs/en/advanced/module-communication.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,10 +73,13 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="inter-module-communication">Inter-Module Communication</h1>
-<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p><br>This chapter requires ErisPulse <strong>2.8.0+</strong>.</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>When to read this</strong>: When you need cross-module calls (RPC), service contracts, directed events, or cold-start replay. Skip if not needed, as it does not affect other features.</p>
 </div>
-<p>ErisPulse's modules have a <strong>three-layer communication model</strong>, ordered as "point-to-point → directed → broadcast":</p>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>This chapter requires ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>ErisPulse has a <strong>three-layer communication model</strong> between modules, arranged as "point-to-point → directed → broadcast":</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -90,23 +93,24 @@
 <td><strong>RPC</strong></td>
 <td><code>await sdk.module.call("Chat", "get_history", ...)</code></td>
 <td>Point-to-point request-response with contract / audit / timeout</td>
-<td>Invoking capabilities of another module (e.g., fetching history, translation, refund)</td>
+<td>Invoking another module's capability (e.g., check history, translate, refund)</td>
 </tr>
 <tr>
 <td><strong>Directed Events</strong></td>
 <td><code>await lifecycle.emit("message_received", {...}, to="Chat")</code></td>
-<td>Distributed only to lifecycle hooks registered by the specified module</td>
-<td>Notifying downstream modules of upstream state changes ("a new message was received")</td>
+<td>Only delivered to lifecycle hooks registered by the specified module</td>
+<td>Upstream state change notification to downstream ("new message received")</td>
 </tr>
 <tr>
 <td><strong>Broadcast</strong></td>
 <td><code>await lifecycle.emit("config.updated", {...})</code></td>
-<td>Framework-wide visible lifecycle events</td>
-<td>Hot configuration updates, module up/down events</td>
+<td>Framework-wide visible lifecycle event</td>
+<td>Hot configuration updates, module up/down</td>
 </tr>
 </tbody></table></div>
 <p>{!--&lt; tips &gt;!--}
-Selection rule: <strong>Use <code>call</code> when you need a return value, use <code>emit(..., to=...)</code> when you only want to notify a specific module's hooks, and use <code>emit(...)</code> to notify everyone.</strong><br>{!--&lt; /tips &gt;!--}</p>
+Selection mnemonic: <strong>Use <code>call</code> for return values, <code>emit(..., to=...)</code> for notifying a specific module's hooks, and <code>emit(...)</code> for notifying everyone.</strong> 
+{!--&lt; /tips &gt;!--}</p>
 <h2 id="rpc-modulecall">RPC: module.call</h2>
 <pre><code class="language-python">result <span class="token operator">=</span> <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>call<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">,</span> <span class="token string">"get_history"</span><span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span>
 </code></pre>
@@ -120,28 +124,28 @@ Selection rule: <strong>Use <code>call</code> when you need a return value, use 
 </tr>
 </thead>
 <tbody><tr>
-<td>Target not registered / disabled</td>
+<td>Target not registered / enabled</td>
 <td>Throws <code>ModuleNotAvailableError</code></td>
 <td>Throws <code>AttributeError</code></td>
 </tr>
 <tr>
-<td>Lazy-loaded modules</td>
-<td><strong>Automatically wakes up</strong> (event-driven modules go through activation lock)</td>
-<td>Asynchronous initialization throws RuntimeError</td>
+<td>Lazy-loaded module</td>
+<td><strong>Automatically wakes up</strong> (event-driven modules use activation lock)</td>
+<td>Async initialization throws RuntimeError</td>
 </tr>
 <tr>
 <td><code>current_owner</code></td>
 <td>Attributed to the <strong>target module</strong> (its internal wait_reply / send / logs are correctly attributed)</td>
-<td>Remains the caller</td>
+<td>Maintains caller</td>
 </tr>
 <tr>
 <td>Timeout</td>
-<td>Default 30 seconds (<code>timeout=</code> overrides, None means unlimited)</td>
+<td>Default 30 seconds (<code>timeout=</code> overrides, None means no timeout)</td>
 <td>None</td>
 </tr>
 <tr>
 <td>Scope audit</td>
-<td>Caller goes through the outbound gate <code>actions.&lt;caller&gt;.call</code></td>
+<td>Caller passes through outbound gate <code>actions.&lt;caller&gt;.call</code></td>
 <td>None</td>
 </tr>
 <tr>
@@ -153,13 +157,13 @@ Selection rule: <strong>Use <code>call</code> when you need a return value, use 
 <h3 id="exception-hierarchy">Exception Hierarchy</h3>
 <pre><code>ModuleError                      # Base class for module system exceptions
 └── ModuleCallError              # Base class for cross-module calls (includes module / method attributes)
-    ├── ModuleNotAvailableError  # Target not registered / disabled / activation failed
+    ├── ModuleNotAvailableError  # Target not registered / enabled / activation failed
     ├── ServiceNotProvidedError  # Method not in services whitelist / private method / does not exist
     └── ModuleCallTimeoutError   # Coroutine method timeout
 </code></pre>
-<p>All exceptions are under the <code>ErisPulseError</code> hierarchy and can be caught using <code>from ErisPulse.Core import ModuleCallError</code>.</p>
+<p>All are part of the <code>ErisPulseError</code> hierarchy, and can be caught via <code>from ErisPulse.Core import ModuleCallError</code>.</p>
 <h2 id="service-contract-metaservices">Service Contract: meta.services</h2>
-<p>Service providers declare a whitelist of publicly available services in <code>get_meta()</code> (symmetrical to the <code>commands</code> field):</p>
+<p>The service provider declares the whitelist of services offered externally in <code>get_meta()</code> (symmetrical to the <code>commands</code> field):</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseModule<span class="token punctuation">,</span> ModuleMeta
 
 <span class="token keyword">class</span> <span class="token class-name">ChatModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -175,87 +179,110 @@ Selection rule: <strong>Use <code>call</code> when you need a return value, use 
 
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">get_history</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> session_id<span class="token punctuation">,</span> n<span class="token operator">=</span><span class="token number">20</span><span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">translate</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">,</span> target_lang<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
-    <span class="token keyword">def</span> <span class="token function">_internal_helper</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>   <span class="token comment"># Underscore-prefixed methods are always forbidden for external calls</span>
+    <span class="token keyword">def</span> <span class="token function">_internal_helper</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>   <span class="token comment"># Methods with leading underscore are always prohibited from external calls</span>
 </code></pre>
-<p><strong>Default behavior is unnoticeable</strong>:</p>
+<p><strong>By default, services are invisible to developers</strong>:</p>
 <ul>
-<li>If <code>services</code> is not declared → All <strong>public</strong> methods are naturally callable via <code>module.call()</code> (consistent with direct attribute access),<br>no declaration is required</li>
-<li>After declaration → Restrict to the whitelist, calls beyond the list throw <code>ServiceNotProvidedError</code>—used to mark<br>"these methods are the ones promised externally"</li>
-<li>The main control authority lies with the user side: <code>scope.actions</code> configuration determines "who can call whom" (see audit below),<br>the module author's <code>services</code> is only a service declaration, and the two layers are not interchangeable</li>
+<li>If <code>services</code> is not declared → all <strong>public</strong> methods are naturally callable via <code>module.call()</code> (consistent with direct attribute access),
+no declaration is required</li>
+<li>After declaration → the scope is restricted to the whitelist, calling outside the whitelist raises <code>ServiceNotProvidedError</code>—used to mark
+"these methods are the ones promised externally"</li>
+<li>The main control authority lies with the user: <code>scope.actions</code> configuration determines "who can call whom" (see audit below),
+the module author's <code>services</code> is only a service declaration, and the two layers are independent</li>
 </ul>
-<p><strong>Service Descriptions</strong>: Provide human-readable / AI-readable descriptions for each service—no need to write anything if not required,<br>the description is automatically taken from the <strong>first line of the method's docstring</strong> (the framework already requires docstring style):</p>
+<p><strong>Service Descriptions</strong>: Provide human- or AI-readable descriptions for each service—leave empty if not needed,
+the description is automatically taken from the <strong>first line of the method's docstring</strong> (the framework already requires docstring style):</p>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">translate</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">,</span> target_lang<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""Translate text into a specified language"""</span>    <span class="token comment"># ← This line automatically becomes the service description</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
-<p>For fine-grained control (overriding docstring / multilingual), use dict form to declare <code>description</code> (supports i18n dictionary):</p>
+<p><strong>Parameter Hints</strong>: The caller (especially AI agents) needs to know the meaning of each parameter. Leave empty if not needed,
+hints are automatically taken from the <strong><code>:param:</code> lines</strong> in the method's docstring:</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">render_card</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> html<span class="token punctuation">,</span> width<span class="token operator">=</span><span class="token number">800</span><span class="token punctuation">,</span> height<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""Render HTML into an image file
+
+    :param html: HTML text to render          ← Automatically becomes the parameter hint
+    :param width: Canvas width in pixels, 0 for adaptive to content
+    :param height: Canvas height in pixels, 0 for adaptive to content
+    """</span>
+</code></pre>
+<p>For fine-grained control (overriding docstring or multi-language support), use the dict form to declare <code>description</code> and <code>parameters</code>
+(both support i18n dictionaries; <code>parameters</code> are merged with the docstring <strong>by parameter</strong>, explicit declaration within a single parameter takes precedence,
+parameters declared that do not exist in the signature are filtered):</p>
 <pre><code class="language-python">services<span class="token operator">=</span><span class="token punctuation">[</span>
     <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"translate"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"Translate text into a specified language"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"summarize"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"Chat.meta.svc.summarize"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"Summarize conversation"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"render_card"</span><span class="token punctuation">,</span>
+        <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"Render HTML into an image file"</span><span class="token punctuation">,</span>
+        <span class="token string">"parameters"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"html"</span><span class="token punctuation">:</span> <span class="token string">"HTML text"</span><span class="token punctuation">,</span> <span class="token string">"width"</span><span class="token punctuation">:</span> <span class="token string">"Width in pixels, 0 for adaptive"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
 <span class="token punctuation">]</span>
 </code></pre>
 <h2 id="service-directory-services">Service Directory: services()</h2>
 <pre><code class="language-python">sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {'Chat': [{'name': 'get_history', 'signature': '(session_id, n=20)',</span>
-<span class="token comment">#            'description': 'Translate text into a specified language'}]}</span>
+<span class="token comment">#            'description': 'Translate text into the specified language',</span>
+<span class="token comment">#            'parameters': {'session_id': 'Session ID', 'n': 'Number of entries to return'}}]}</span>
 
-sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>   <span class="token comment"># Only query a specific module</span>
+sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>   <span class="token comment"># Query only a specific module</span>
 </code></pre>
 <ul>
-<li>Only lists modules that explicitly declare <code>meta.services</code> (modules not declared do not appear in the directory)</li>
-<li>Each service includes method signature string (extracted via <code>inspect.signature</code>) and description text</li>
-<li>Also included in topology: <code>sdk.module.get_topology()</code> entries for each module include a <code>services</code> field</li>
+<li>Only modules that explicitly declare <code>meta.services</code> are listed (modules without declaration do not appear in the directory)</li>
+<li>Each service includes a method signature string (extracted via <code>inspect.signature</code>), description text, and parameter hints</li>
+<li><strong>Lazily loaded modules are also included in the directory</strong> (service discovery occurs before loading) — the caller can decide whether to <code>call()</code> to activate the target module</li>
+<li>Modules are also included in the topology: each entry in <code>sdk.module.get_topology()</code> contains a <code>services</code> field</li>
 </ul>
 <p>{!--&lt; tips &gt;!--}
-<strong>MCP Roadmap</strong>: The service directory (name + signature + description) is the shape of an MCP tool—<br>each service naturally becomes <code>{"name", "description", "parameters"}</code>.<br>In the future, the framework can expose <code>services()</code> directly as an MCP server endpoint, allowing AI to discover and invoke module capabilities;<br><code>scope.actions.call</code> audit naturally becomes the security gate for AI calls.
+<strong>MCP Roadmap</strong>: The service directory (name + signature + description + parameter hints) naturally forms the shape of an MCP tool — each service becomes <code>{"name", "description", "parameters"}</code>. In the future, the framework could directly expose <code>services()</code> as an MCP server endpoint, allowing AI to discover and invoke module capabilities; <code>scope.actions.call</code> auditing naturally becomes a security gate for AI calls.
 {!--&lt; /tips &gt;!--}</p>
 <h2 id="outbound-audit-who-can-call-whom">Outbound Audit: Who Can Call Whom</h2>
-<p>Each <code>module.call()</code> passes through the scope outbound gate as the <strong>caller module</strong>'s identity:</p>
+<p>Each <code>module.call()</code> passes through the scope outbound gate as the <strong>caller module</strong>:</p>
 <pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.scope.actions.CallerModule.call</span><span class="token punctuation">]</span>
-<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat.get_history"</span><span class="token punctuation">]</span>        <span class="token comment"># Prohibit CallerModule from calling Chat's get_history</span>
+<span class="token key property">deny</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"Chat.get_history"</span><span class="token punctuation">]</span>        <span class="token comment"># Deny CallerModule from calling Chat's get_history</span>
 <span class="token comment"># allow = ["Chat.get_*"]           # Or whitelist: only allow calling Chat's get-* services</span>
 </code></pre>
 <ul>
-<li><code>name</code> format is <code>&lt;target module&gt;.&lt;method name&gt;</code>, supports exact / glob / <code>re:</code> regex</li>
+<li><code>name</code> format is <code>&lt;target module&gt;.&lt;method name&gt;</code>, supporting exact / glob / <code>re:</code> regex</li>
 <li>Framework-level calls (without owner context, e.g., startup scripts) are not subject to audit constraints</li>
 <li>Denied calls throw <code>ModuleCallError</code> (TRACE log <code>core.module.call_denied</code>)</li>
 </ul>
 <p>See <a href="/docs/en/advanced/scope.html">Scope (scope)</a> for configuration details on the outbound dimension.</p>
-<h2 id="directed-events-lifecycleemits-to-parameter">Directed Events: lifecycle.emit's to parameter</h2>
-<p>Lifecycle events support directed propagation: <code>to</code> specifies the target owner (owner), and the event is only distributed to hooks registered by that owner (hooks automatically registered by the module in <code>on_load</code> are assigned to the module itself),<br>other modules and wildcard <code>*</code> handlers are not notified.</p>
+<h2 id="directed-events-lifecycleemit-with-to-parameter">Directed Events: lifecycle.emit with to parameter</h2>
+<p>Lifecycle events support directed propagation: when <code>to</code> specifies the target owner (owner), the event is only delivered to hooks registered by that owner (modules automatically register hooks in <code>on_load</code> and record the owner). Other modules and wildcard <code>*</code> handlers do not receive the event.</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>lifecycle <span class="token keyword">import</span> lifecycle
 
-<span class="token comment"># Emitter: Event is only sent to hooks registered by the Chat module</span>
+<span class="token comment"># Emitter: event is only delivered to hooks registered by Chat module</span>
 <span class="token keyword">await</span> lifecycle<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"hi"</span><span class="token punctuation">,</span> <span class="token string">"from"</span><span class="token punctuation">:</span> <span class="token string">"u1"</span><span class="token punctuation">}</span><span class="token punctuation">,</span> to<span class="token operator">=</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Subscriber (inside Chat module): Register same-name hook, owner is automatically recorded at registration</span>
+<span class="token comment"># Subscriber (inside Chat module): register same-name hook, owner is automatically recorded during registration</span>
 <span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message_received"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_message_received</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 
-<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>          <span class="token comment"># Dot-prefixed parent prefix also works (filtered by owner)</span>
+<span class="token decorator annotation punctuation">@lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>          <span class="token comment"># Point prefix also works (filtered by owner)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_any</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
 <p>Semantic details:</p>
 <ul>
-<li>If the target owner has no registered hooks → The event is <strong>silently discarded</strong> (events are not sent to non-existent places),<br>use <code>lifecycle.has_handlers("message_received")</code> to probe in advance</li>
-<li>When <code>data</code> is a dict, <code>_trace_id</code> is automatically added (without overwriting existing values), connecting to full-chain tracing</li>
-<li>Broadcast and directed events share the same hook registration: <code>emit(...)</code> without <code>to</code> broadcasts to the entire framework,<br>with <code>to</code> the same event is only visible to the target module</li>
-<li><code>emit_sync</code> / <code>submit_event</code> (compatible API) also support the <code>to=</code> parameter</li>
+<li>If the target owner has no registered hooks → the event is <strong>silently discarded</strong> (does not send to non-existent places), use <code>lifecycle.has_handlers("message_received")</code> to probe in advance</li>
+<li>When <code>data</code> is a dict, it automatically carries <code>_trace_id</code> (without overriding existing values), integrating with full-chain tracing</li>
+<li>Broadcast and directed events share the same hook registration: <code>emit(...)</code> without <code>to</code> broadcasts to the entire framework, while with <code>to</code> the same event is only visible to the target module</li>
+<li><code>emit_sync</code> / <code>submit_event</code> (compatibility API) also support <code>to=</code> parameter</li>
 </ul>
 <div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p><br>Directed events are lightweight notifications, <strong>do not perform target validation or lazy wake-up</strong>;<br>if target existence validation, contract audit, or return values are needed, switch to <a href="#rpcmodulecall">RPC: module.call</a>.</p>
+<p>Directed events are lightweight notifications, <strong>do not perform target validation or lazy activation</strong>; for target existence validation, contract audit, or return values, switch to <a href="#rpcmodulecall">RPC: module.call</a>.</p>
 </div>
-<h2 id="lazy-loading-and-calls">Lazy Loading and Calls</h2>
-<p><code>module.call()</code> transparently wakes up lazy-loaded modules:</p>
+<h2 id="lazy-loading-and-invocation">Lazy Loading and Invocation</h2>
+<p><code>module.call()</code> transparently activates lazy-loaded modules:</p>
 <ul>
-<li>Event-driven lazy modules (<code>activate_on</code> declared) → Go through the activation lock <code>_activate()</code>, stubs are automatically unregistered after activation</li>
-<li>Ordinary lazy modules → Synchronous initialization or regular loading path (idempotent)</li>
+<li>Event-driven lazy modules (<code>activate_on</code> declared) → Use activation lock <code>_activate()</code>, stub automatically unregisters after activation</li>
+<li>Regular lazy modules → Synchronous initialization or standard loading path (idempotent)</li>
 <li>Activation failure → <code>ModuleNotAvailableError</code></li>
 </ul>
-<p>That is: <strong>the caller does not need to care if the target module is loaded</strong>, nor does it need to wait for the target module to be awakened.</p>
-<p>Directed events (<code>lifecycle.emit(..., to=...)</code>) do not perform lazy wake-up—no hooks are present if the target is not loaded,<br>the event is silently discarded; use <code>module.call()</code> if delivery must be ensured.</p>
+<p>That is: <strong>the caller does not need to care whether the target module is loaded</strong> and does not need to wait for it to be activated.</p>
+<p>Directed events (<code>lifecycle.emit(..., to=...)</code>) do not perform lazy activation—target not loaded means no hooks, event silently discarded; use <code>module.call()</code> if you need to ensure delivery.</p>
 <h2 id="cold-start-replay">Cold Start Replay</h2>
-<p>A newly installed / restarted module misses some chat history—<code>get_load_strategy(replay=...)</code> allows the framework to replay the module's inbox messages <strong>after the module is ready</strong>:</p>
+<p>A newly installed / restarted module missed some chat messages—<code>get_load_strategy(replay=...)</code> allows the framework to replay the most recent messages from the session inbox to the module itself after it is ready:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>loaders <span class="token keyword">import</span> ModuleLoadStrategy
 
 <span class="token keyword">class</span> <span class="token class-name">MyAIModule</span><span class="token punctuation">(</span>BaseModule<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -264,7 +291,7 @@ sdk<span class="token punctuation">.</span>module<span class="token punctuation"
         <span class="token keyword">return</span> ModuleLoadStrategy<span class="token punctuation">(</span>
             lazy_load<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
             priority<span class="token operator">=</span><span class="token number">100</span><span class="token punctuation">,</span>
-            replay<span class="token operator">=</span><span class="token string">"5m"</span><span class="token punctuation">,</span>        <span class="token comment"># Replay the last 5 minutes (can also use "1h" / "300" seconds)</span>
+            replay<span class="token operator">=</span><span class="token string">"5m"</span><span class="token punctuation">,</span>        <span class="token comment"># Replay the last 5 minutes ("1h" / "300" seconds are also valid)</span>
         <span class="token punctuation">)</span>
 
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_load</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -276,30 +303,30 @@ sdk<span class="token punctuation">.</span>module<span class="token punctuation"
 </code></pre>
 <p>Semantic details:</p>
 <ul>
-<li>The data source is the <a href="/docs/en/advanced/interaction.html#session-inbox-eventhistory">session inbox</a> (<code>sdk.transcript.recent()</code>),<br>executed in the background after module loading, not blocking startup</li>
-<li>Synthetic events include the <code>replayed: True</code> flag, complete <code>platform / detail_type / user_id / alt_message</code>,<br><strong>only distributed to the module's own handlers</strong>—other modules are unaffected by replay</li>
+<li>The data source is the <a href="/docs/en/advanced/interaction.html#session-inbox-eventhistory">session inbox</a> (<code>sdk.transcript.recent()</code>), executed in the background after module loading, without blocking startup</li>
+<li>Synthetic events carry the <code>replayed: True</code> flag, along with complete <code>platform / detail_type / user_id / alt_message</code>, and are <strong>only distributed to the module's own handlers</strong>—other modules are unaffected by the replay</li>
 <li>If the inbox is not enabled / no records exist / the replay duration is invalid (<code>replay_invalid</code> warning), it is silently skipped</li>
 </ul>
 <h2 id="event-idempotency-deduplication">Event Idempotency Deduplication</h2>
-<p>After platform websocket reconnection, the same event (same <code>event["id"]</code>) is often resent—distribution entry performs LRU deduplication (capacity 4096),<br>so the same id event is only distributed once.</p>
+<p>After platform websocket reconnection, the same event (with the same <code>event["id"]</code>) is often re-sent—event distribution entry deduplicates by id (capacity 4096), so the same id event is only distributed once.</p>
 <pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">ErisPulse.framework</span><span class="token punctuation">]</span>
-<span class="token key property">event_dedupe</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>   <span class="token comment"># Default is enabled; disable for test environments with fixed id synthetic events</span>
+<span class="token key property">event_dedupe</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>   <span class="token comment"># Default on; turn off for test environments with fixed id synthetic events</span>
 </code></pre>
-<p>The deduplication cache is automatically reset when adapters register (start of new connection lifecycle).</p>
+<p>The deduplication cache is automatically reset when adapters <strong>register</strong> (start of new connection lifecycle).</p>
 <h2 id="related-documentation">Related Documentation</h2>
 <ul>
-<li><a href="/docs/en/advanced/interaction.html">Interaction Session System</a> - wait_reply / timers / multiplexed waiting / session mutual exclusion</li>
-<li><a href="/docs/en/advanced/scope.html">Scope (scope)</a> - Complete configuration for outbound dimension audit</li>
-<li><a href="/docs/en/advanced/ownership.html">Ownership (owner) System</a> - How owner context permeates across module calls</li>
-<li><a href="/docs/en/advanced/lazy-loading.html">Lazy Loading System</a> - Lazy loading and event-driven lazy activation (<code>activate_on</code>)</li>
-<li><a href="/docs/en/advanced/lifecycle.html">Lifecycle Management</a> - Mechanism of the broadcast layer event bus</li>
+<li><a href="/docs/en/advanced/interaction.html">Interaction Session System</a> - wait_reply / timers / multi-wait / session mutual exclusion</li>
+<li><a href="/docs/en/advanced/scope.html">Scope (scope)</a> - complete configuration for outbound dimension audit</li>
+<li><a href="/docs/en/advanced/ownership.html">Ownership (owner) System</a> - how owner context traverses cross-module calls</li>
+<li><a href="/docs/en/advanced/lazy-loading.html">Lazy Loading System</a> - lazy loading and event-driven lazy activation (<code>activate_on</code>)</li>
+<li><a href="/docs/en/advanced/lifecycle.html">Lifecycle Management</a> - mechanism of the broadcast layer event bus</li>
 </ul>
 
         </article>
         
     <nav class="doc-pager">
         <a class="doc-pager-prev" href="/docs/en/advanced/shadow.html"><small>Previous</small><br>Shadow Modules and Gradual Promotion</a>
-        <a class="doc-pager-next" href="/docs/en/advanced/storage-backends.html"><small>Next</small><br>Storage Backends</a>
+        <a class="doc-pager-next" href="/docs/en/advanced/storage-backends.html"><small>Next</small><br>Storage Backend</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

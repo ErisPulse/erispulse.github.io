@@ -75,7 +75,7 @@
             <h1 id="cli-命令参考">CLI 命令参考</h1>
 <p>ErisPulse 命令行工具（<code>epsdk</code>）提供项目管理和包管理功能。</p>
 <blockquote>
-<p><strong>提示</strong>：所有命令均可通过 <code>epsdk &lt;命令&gt; --help</code> 查看详细的参数说明。</p>
+<p><strong>提示</strong>：所有命令均可通过 <code>epsdk &lt;命令&gt; --help</code> 查看详细的参数说明。<code>epsdk</code>（不带命令）的主帮助按类别分组展示：<strong>项目</strong>（init / create / run）、<strong>组件管理</strong>（install / uninstall / upgrade / list / list-remote / types）、<strong>配置与诊断</strong>（config / doctor / i18n）、<strong>其他</strong>（self-update / version）。</p>
 </blockquote>
 <hr>
 <h2 id="包管理命令">包管理命令</h2>
@@ -126,8 +126,8 @@
 <tbody><tr>
 <td><code>doctor</code></td>
 <td><code>diag</code></td>
-<td><code>[--verbose]</code></td>
-<td>诊断环境并输出健康报告</td>
+<td><code>[--verbose] [--fix]</code></td>
+<td>诊断环境并输出健康报告；<code>--fix</code> 尝试自动修复</td>
 </tr>
 </tbody></table></div>
 <h3 id="install">install</h3>
@@ -602,7 +602,7 @@ epsdk config MyModule
 <tbody><tr>
 <td><code>run</code></td>
 <td><code>r</code></td>
-<td><code>[script] [--reload]</code></td>
+<td><code>[script] [--reload] [--strict/--no-strict]</code></td>
 <td>运行指定脚本或 SDK</td>
 </tr>
 </tbody></table></div>
@@ -625,6 +625,10 @@ epsdk config MyModule
 <td><code>--reload</code></td>
 <td>启用热重载模式，监控文件变化自动重启</td>
 </tr>
+<tr>
+<td><code>--strict</code> / <code>--no-strict</code></td>
+<td>临时开启 / 关闭严格模式（仅本次生效，不写入配置）；缺省跟随 <code>ErisPulse.framework.strict_mode</code></td>
+</tr>
 </tbody></table></div>
 <p><strong>示例：</strong></p>
 <pre><code class="language-bash"><span class="token comment"># 直接运行 SDK</span>
@@ -638,7 +642,14 @@ epsdk run main.py <span class="token parameter variable">--reload</span>
 
 <span class="token comment"># SDK 热重载模式</span>
 epsdk run <span class="token parameter variable">--reload</span>
+
+<span class="token comment"># 临时严格模式：启动前自检失败即退出，框架严格级别本次提升为至少 1</span>
+epsdk run main.py <span class="token parameter variable">--strict</span>
+
+<span class="token comment"># 临时宽松模式（配置里开了 strict_mode 但本次想先跑起来）</span>
+epsdk run main.py --no-strict
 </code></pre>
+<p><strong>启动前自检：</strong> <code>run</code> 启动前会快速检查 <code>config/config.toml</code> 可解析性与已安装组件的必填配置完整性，严格性默认跟随 <code>ErisPulse.framework.strict_mode</code>（非 0 时检查失败即退出，0 时仅警告继续）。配置文件缺失视为正常首次启动，仅提示不判失败。<code>--strict</code> 临时开启：预检失败即退出，同时框架严格级别本次提升为至少 1（跳过不合规组件，经 <code>ERISPULSE_FRAMEWORK_STRICT_MODE</code> 环境变量传导到运行进程，不写入配置文件）；<code>--no-strict</code> 反之临时压到宽松。自检自身异常时自动跳过，不含网络探测，不会阻塞启动。</p>
 <hr>
 <h2 id="项目管理命令">项目管理命令</h2>
 <div class="table-wrapper"><table>
@@ -653,14 +664,14 @@ epsdk run <span class="token parameter variable">--reload</span>
 <tbody><tr>
 <td><code>init</code></td>
 <td>—</td>
-<td><code>[path] [--project-name/-n &lt;name&gt;] [--path &lt;dir&gt;] [--quick/-q] [--force/-f] [--here] [--no-uv] [--no-venv]</code></td>
+<td><code>[path] [--project-name/-n &lt;name&gt;] [--path &lt;dir&gt;] [--adapter/-a &lt;name&gt;] [--quick/-q] [--force/-f] [--here] [--no-uv] [--no-venv]</code></td>
 <td>初始化 ErisPulse 项目</td>
 </tr>
 <tr>
 <td><code>create</code></td>
 <td>—</td>
-<td><code>{module,adapter} [--name/-n &lt;name&gt;] [--description/-d &lt;desc&gt;] [--author/-a &lt;name&gt;] [--email/-e &lt;mail&gt;] [--homepage &lt;url&gt;] [--output/-o &lt;dir&gt;] [--force/-f]</code></td>
-<td>创建模块/适配器脚手架</td>
+<td><code>{module,adapter,pack} [--name/-n &lt;name&gt;] [--description/-d &lt;desc&gt;] [--author/-a &lt;name&gt;] [--email/-e &lt;mail&gt;] [--homepage &lt;url&gt;] [--output/-o &lt;dir&gt;] [--force/-f] [--local]</code></td>
+<td>创建模块/适配器脚手架；<code>pack</code> 将本地插件转换为可发布项目</td>
 </tr>
 </tbody></table></div>
 <h3 id="init">init</h3>
@@ -688,6 +699,11 @@ epsdk run <span class="token parameter variable">--reload</span>
 <td><code>--path</code></td>
 <td></td>
 <td>项目父目录（与 <code>-n</code> 组合指定创建位置）</td>
+</tr>
+<tr>
+<td><code>--adapter</code></td>
+<td><code>-a</code></td>
+<td>预选要安装的适配器（可重复传参或逗号分隔），传入时跳过适配器问询与选择</td>
 </tr>
 <tr>
 <td><code>--quick</code></td>
@@ -722,6 +738,9 @@ epsdk init
 <span class="token comment"># 快速初始化（当前目录下创建 my_bot/，含 pyproject.toml + .venv）</span>
 epsdk init <span class="token parameter variable">-q</span> <span class="token parameter variable">-n</span> my_bot
 
+<span class="token comment"># 快速初始化并预装适配器（免交互，脚本 / CI 场景）</span>
+epsdk init <span class="token parameter variable">-q</span> <span class="token parameter variable">-n</span> my_bot <span class="token parameter variable">--adapter</span> yunhu,telegram
+
 <span class="token comment"># 指定任意目录初始化（../apps/mybot）</span>
 epsdk init <span class="token punctuation">..</span>/apps/mybot
 
@@ -745,7 +764,7 @@ epsdk init --no-venv <span class="token parameter variable">-n</span> my_bot
 <p><strong>不要使用 <code>uv run epsdk run</code> 运行机器人</strong>。<code>uv run</code> 在无 <code>pyproject.toml</code> 的目录执行时创建<strong>一次性隔离环境</strong>——在其中通过 <code>epsdk install</code> 安装的适配器不会持久化。请在项目目录内使用 <code>epsdk run</code>（自动使用项目 <code>.venv</code>），或先激活虚拟环境再运行。</p>
 </div>
 <h3 id="create">create</h3>
-<p>创建 ErisPulse 模块或适配器的脚手架项目。</p>
+<p>创建 ErisPulse 模块或适配器的脚手架项目；<code>pack</code> 子命令将本地插件（<code>plugins/</code> 目录）转换为可发布的标准项目。</p>
 <p><strong>参数：</strong></p>
 <div class="table-wrapper"><table>
 <thead>
@@ -756,9 +775,9 @@ epsdk init --no-venv <span class="token parameter variable">-n</span> my_bot
 </tr>
 </thead>
 <tbody><tr>
-<td><code>{module,adapter}</code></td>
+<td><code>{module,adapter,pack}</code></td>
 <td></td>
-<td>要创建的类型：<code>module</code> 或 <code>adapter</code></td>
+<td>要创建的类型：<code>module</code> / <code>adapter</code> / <code>pack</code>（插件转项目）</td>
 </tr>
 <tr>
 <td><code>--name</code></td>
@@ -798,7 +817,7 @@ epsdk init --no-venv <span class="token parameter variable">-n</span> my_bot
 <tr>
 <td><code>--local</code></td>
 <td></td>
-<td>创建本地插件（仅 <code>module</code> 可用）：生成 <code>plugins/&lt;name&gt;/</code> 包结构，免打包安装</td>
+<td>创建本地插件（<code>module</code> / <code>adapter</code> 可用）：生成 <code>plugins/&lt;name&gt;/</code> 包结构，免打包安装</td>
 </tr>
 </tbody></table></div>
 <p><strong>示例：</strong></p>
@@ -808,11 +827,17 @@ epsdk create
 <span class="token comment"># 直接创建 Module 项目</span>
 epsdk create module <span class="token parameter variable">-n</span> MyModule
 
-<span class="token comment"># 创建本地插件（放入项目 plugins/ 目录，启动时自动发现，支持热重载）</span>
+<span class="token comment"># 创建本地插件（放入项目 plugins/ 目录，启动时自动发现）</span>
 epsdk create module <span class="token parameter variable">-n</span> MyModule <span class="token parameter variable">--local</span>
+
+<span class="token comment"># 创建本地适配器插件（同上，免打包开发）</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter <span class="token parameter variable">--local</span>
 
 <span class="token comment"># 直接创建 Adapter 项目</span>
 epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter
+
+<span class="token comment"># 将本地插件转换为可发布项目（交互选择插件 → 补全元信息 → 生成标准项目）</span>
+epsdk create pack
 
 <span class="token comment"># 完整参数</span>
 epsdk create module <span class="token parameter variable">-n</span> MyModule <span class="token parameter variable">-d</span> <span class="token string">"模块描述"</span> <span class="token parameter variable">-a</span> <span class="token string">"作者"</span> <span class="token parameter variable">-e</span> <span class="token string">"mail@example.com"</span>
@@ -1004,6 +1029,10 @@ epsdk types <span class="token parameter variable">--force</span>
 <td><code>--verbose</code></td>
 <td>显示详细诊断信息</td>
 </tr>
+<tr>
+<td><code>--fix</code></td>
+<td>诊断后尝试自动修复可修复的问题</td>
+</tr>
 </tbody></table></div>
 <p><strong>检查项</strong>：</p>
 <ul>
@@ -1011,14 +1040,24 @@ epsdk types <span class="token parameter variable">--force</span>
 <li><strong>安装后端</strong>：使用 <code>uv</code> 还是 <code>pip</code></li>
 <li><strong>目标解释器</strong>：包实际安装到的目标 Python 环境</li>
 <li><strong>配置文件</strong>：<code>config/config.toml</code> 是否存在</li>
+<li><strong>组件配置</strong>：已安装组件的声明式配置完整性（"装好了跑不起来"多因必填项缺失）</li>
 <li><strong>PyPI 连通性</strong>：能否访问 PyPI（并显示发现的组件数）</li>
 <li><strong>系统代理</strong>：是否检测到代理</li>
+</ul>
+<p><strong>自动修复（<code>--fix</code>）</strong>：</p>
+<ul>
+<li><code>config.toml</code> 缺失 → 按当前语言生成初始配置文件（与 <code>init</code> 建项同源）</li>
+<li>组件配置"待完善" → 逐个拉起交互式配置向导补全必填项（非交互环境提示改用 <code>epsdk config &lt;名称&gt;</code>）</li>
+<li>Python 版本过低、PyPI 无法访问等需人工介入的问题 → 仅输出行动建议</li>
 </ul>
 <pre><code class="language-bash"><span class="token comment"># 运行环境诊断</span>
 epsdk doctor
 
 <span class="token comment"># 使用别名</span>
 epsdk diag
+
+<span class="token comment"># 诊断并尝试自动修复</span>
+epsdk doctor <span class="token parameter variable">--fix</span>
 </code></pre>
 <hr>
 <h2 id="交互式安装">交互式安装</h2>

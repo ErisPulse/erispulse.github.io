@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Transcript - ErisPulse 文档中心</title>
-    <meta name="description" content="The Transcript Inbox automatically records messages sent and received by the bot (organized by session key platform:detail_type:target_id), providing histori..." />
+    <title>Transcript (Conversation Inbox) - ErisPulse 文档中心</title>
+    <meta name="description" content="When to read this: When you need message history, conversation recovery, or want to adjust the retention policy for the inbox. If not needed, you can skip th..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/advanced/transcript.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/transcript.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/transcript.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/transcript.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/transcript.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/transcript.html" />
-    <meta property="og:title" content="Transcript - ErisPulse 文档中心" />
-    <meta property="og:description" content="The Transcript Inbox automatically records messages sent and received by the bot (organized by session key platform:detail_type:target_id), providing histori..." />
+    <meta property="og:title" content="Transcript (Conversation Inbox) - ErisPulse 文档中心" />
+    <meta property="og:description" content="When to read this: When you need message history, conversation recovery, or want to adjust the retention policy for the inbox. If not needed, you can skip th..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/advanced/transcript.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Transcript","description":"The Transcript Inbox automatically records messages sent and received by the bot (organized by session key platform:detail_type:target_id), providing histori...","url":"https://www.erisdev.com/docs/en/advanced/transcript.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Transcript (Conversation Inbox)","description":"When to read this: When you need message history, conversation recovery, or want to adjust the retention policy for the inbox. If not needed, you can skip th...","url":"https://www.erisdev.com/docs/en/advanced/transcript.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -60,7 +60,7 @@
     <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
         <a href="/docs.html">Docs</a>
         <span class="doc-crumb-sep">/</span> Advanced Topics
-        <span class="doc-crumb-sep">/</span> <span>Transcript</span>
+        <span class="doc-crumb-sep">/</span> <span>Transcript (Conversation Inbox)</span>
     </nav>
         <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/transcript.html">简体中文</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/en/advanced/transcript.html">English</a>
@@ -72,10 +72,13 @@
             <a href="https://www.erisdev.com/#docs/advanced/transcript.md">在交互式文档中心打开 →</a>
         </div>
         <article class="markdown-content" id="docs-content">
-            <h1 id="transcript">Transcript</h1>
-<p>The Transcript Inbox automatically records messages sent and received by the bot (organized by session key <code>platform:detail_type:target_id</code>), providing historical data for conversation recovery (<code>event.history</code>), shadow module diff, cold start replay, and more. This document explains its <strong>storage model, what each retention policy knob protects</strong>, and the real cost of runtime override APIs and放开限制.</p>
+            <h1 id="transcript-conversation-inbox">Transcript (Conversation Inbox)</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>When to read this</strong>: When you need message history, conversation recovery, or want to adjust the retention policy for the inbox. If not needed, you can skip this section without affecting other features.</p>
+</div>
+<p>The conversation inbox automatically records messages sent and received by the bot (organized by the session key <code>platform:detail_type:target_id</code>), providing historical data for conversation recovery (<code>event.history</code>), shadow module diff, cold-start replay, and more. This document explains its <strong>storage model</strong>, what each retention policy knob protects, and the real cost of runtime override APIs and relaxed restrictions.</p>
 <blockquote>
-<p>Before changing any limits, please read the "Risks and Audits" section first—each knob exists for a reason.</p>
+<p>Before changing any limits, please read the "Risks and Auditing" section first—each knob exists for a specific reason.</p>
 </blockquote>
 <h2 id="how-it-works">How It Works</h2>
 <pre><code>Message ──append()──▶ Write buffer (in-memory deque, hard limit 4096 lines)

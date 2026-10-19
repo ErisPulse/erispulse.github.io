@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>啟動流程與手動控制 - ErisPulse 文档中心</title>
-    <meta name="description" content="ErisPulse 的 await sdk.run() / await sdk.init() 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。" />
+    <meta name="description" content="什麼時候需要閱讀這篇：需要手動驅動啟動鏈路、自訂啟動順序或排查啟動失敗時。不需要則跳過，不會影響其他功能的使用。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/startup.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/startup.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/startup.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
     <meta property="og:title" content="啟動流程與手動控制 - ErisPulse 文档中心" />
-    <meta property="og:description" content="ErisPulse 的 await sdk.run() / await sdk.init() 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。" />
+    <meta property="og:description" content="什麼時候需要閱讀這篇：需要手動驅動啟動鏈路、自訂啟動順序或排查啟動失敗時。不需要則跳過，不會影響其他功能的使用。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/startup.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"啟動流程與手動控制","description":"ErisPulse 的 await sdk.run() / await sdk.init() 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。","url":"https://www.erisdev.com/docs/zh-TW/advanced/startup.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"啟動流程與手動控制","description":"什麼時候需要閱讀這篇：需要手動驅動啟動鏈路、自訂啟動順序或排查啟動失敗時。不需要則跳過，不會影響其他功能的使用。","url":"https://www.erisdev.com/docs/zh-TW/advanced/startup.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,8 +73,11 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="啟動流程與手動控制">啟動流程與手動控制</h1>
-<p>ErisPulse 的 <code>await sdk.run()</code> / <code>await sdk.init()</code> 將一整條啟動鏈路封裝成了「一行程式碼」。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼、以及如何手動驅動每一步。</p>
-<p>本文把啟動鏈路拆解成獨立的環節，說明各自的職責、呼叫順序，並給出手動完整啟動的示例。</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>什麼時候需要閱讀這篇</strong>：需要手動驅動啟動鏈路、自訂啟動順序或排查啟動失敗時。不需要則跳過，不會影響其他功能的使用。</p>
+</div>
+<p>ErisPulse 的 <code>await sdk.run()</code> / <code>await sdk.init()</code> 將一整條啟動鏈路封裝成了一行代碼。但當你需要完全自訂啟動流程（例如部分載入、動態註冊、熱插拔、注入自訂載入策略）時，就需要了解這條鏈路內部到底發生了什麼，以及如何手動驅動每一步。</p>
+<p>本文將啟動鏈路拆解成獨立的環節，說明各自的職責、呼叫順序，並給出手動完整啟動的範例。</p>
 <blockquote>
 <p>本文假設你已經跑過 <a href="/docs/zh-TW/getting-started/first-bot.html">第一個機器人</a>，了解 <code>sdk.run(keep_running=True/False)</code> 兩種模式。本文聚焦於 <code>init()</code> <strong>內部</strong>的鏈路拆解，以及 <code>init()</code>/<code>init_task()</code>/<code>init_sync()</code> 等更底層的入口。</p>
 </blockquote>

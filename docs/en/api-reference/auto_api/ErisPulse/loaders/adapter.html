@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ErisPulse.loaders.adapter 模块 - ErisPulse 文档中心</title>
-    <meta name="description" content="从 entry-points 加载对象（使用 AdapterFinder）" />
+    <meta name="description" content="从 PyPI entry-points 与本地插件文件夹加载和初始化适配器" />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/loaders/adapter.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/auto_api/ErisPulse/loaders/adapter.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/loaders/adapter.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/auto_api/ErisPulse/loaders/adapter.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/auto_api/ErisPulse/loaders/adapter.html" />
     <meta property="og:title" content="ErisPulse.loaders.adapter 模块 - ErisPulse 文档中心" />
-    <meta property="og:description" content="从 entry-points 加载对象（使用 AdapterFinder）" />
+    <meta property="og:description" content="从 PyPI entry-points 与本地插件文件夹加载和初始化适配器" />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/loaders/adapter.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.loaders.adapter 模块","description":"从 entry-points 加载对象（使用 AdapterFinder）","url":"https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/loaders/adapter.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"ErisPulse.loaders.adapter 模块","description":"从 PyPI entry-points 与本地插件文件夹加载和初始化适配器","url":"https://www.erisdev.com/docs/en/api-reference/auto_api/ErisPulse/loaders/adapter.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -76,11 +76,12 @@
 <hr>
 <h2 id="模块概述">模块概述</h2>
 <p>ErisPulse 适配器加载器</p>
-<p>专门用于从 PyPI 包加载和初始化适配器</p>
+<p>从 PyPI entry-points 与本地插件文件夹加载和初始化适配器</p>
 <blockquote>
 <p><strong>提示</strong></p>
 <ol>
-<li>适配器必须通过 entry-points 机制注册到 erispulse.adapter 组</li>
+<li>适配器必须通过 entry-points 机制注册到 erispulse.adapter 组，
+或放入本地插件目录（默认 <code>plugins/</code>，经 <code>discover_adapters</code> 发现）</li>
 <li>适配器类必须继承 BaseAdapter</li>
 <li>适配器不适用懒加载</li>
 </ol>
@@ -89,7 +90,8 @@
 <h2 id="类列表">类列表</h2>
 <h3 id="class-adapterloaderbaseloader"><code>class AdapterLoader(BaseLoader)</code></h3>
 <p>适配器加载器</p>
-<p>负责从 PyPI entry-points 加载适配器</p>
+<p>负责从 PyPI entry-points 与本地插件文件夹加载适配器
+（本地插件优先：与 entry-point 适配器同名时覆盖，便于本地覆盖调试）</p>
 <blockquote>
 <p><strong>提示</strong>
 使用方式：</p>
@@ -133,6 +135,18 @@ list[str]: 更新后的禁用适配器列表
 bool: 是否为新适配器
 </code></pre>
 <p><strong>异常</strong>: <code>ImportError</code> - 当适配器加载失败时抛出</p>
+<hr>
+<h5 id="_merge_plugin_folderobjs-dictstr-any-enabled_list-liststr-disabled_list-liststr-manager_instance-any---none"><code>_merge_plugin_folder(objs: dict[str, Any], enabled_list: list[str], disabled_list: list[str], manager_instance: Any) -&gt; None</code></h5>
+<p><strong>内部方法</strong>
+发现本地适配器插件并并入加载结果</p>
+<p>本地插件优先：与 entry-point 适配器同名时，本地插件覆盖安装包条目
+（便于本地覆盖调试）。启用状态沿用 <code>ErisPulse.adapters.status</code>。</p>
+<ul>
+<li><strong>objs</strong>: 适配器对象字典（原地修改）</li>
+<li><strong>enabled_list</strong>: 启用列表（原地修改）</li>
+<li><strong>disabled_list</strong>: 禁用列表（原地修改）</li>
+<li><strong>manager_instance</strong>: 适配器管理器实例</li>
+</ul>
 <hr>
 <h5 id="async-register_to_manageradapters-liststr-adapter_objs-dictstr-any-manager_instance-any---bool"><code>async register_to_manager(adapters: list[str], adapter_objs: dict[str, Any], manager_instance: Any) -&gt; bool</code></h5>
 <p>将适配器注册到管理器</p>

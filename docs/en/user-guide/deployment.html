@@ -75,7 +75,7 @@
             <h1 id="deployment-guide">Deployment Guide</h1>
 <p>Best practices for deploying the ErisPulse bot to a production environment.</p>
 <h2 id="docker-deployment-recommended">Docker Deployment (Recommended)</h2>
-<p>ErisPulse provides an official Docker image that includes the ErisPulse framework and Dashboard management panel, supporting <code>linux/amd64</code> and <code>linux/arm64</code> architectures.</p>
+<p>ErisPulse provides an official Docker image, which includes the ErisPulse framework and Dashboard management panel, supporting <code>linux/amd64</code> and <code>linux/arm64</code> architectures.</p>
 <h3 id="quick-start">Quick Start</h3>
 <pre><code class="language-bash"><span class="token comment"># Pull the image</span>
 <span class="token function">docker</span> pull erispulse/erispulse:latest
@@ -83,7 +83,7 @@
 <span class="token comment"># Download docker-compose.yml</span>
 <span class="token function">curl</span> <span class="token parameter variable">-O</span> https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/docker-compose.yml
 
-<span class="token comment"># Set Dashboard login token and start</span>
+<span class="token comment"># Set the Dashboard login token and start</span>
 <span class="token assign-left variable">ERISPULSE_DASHBOARD_TOKEN</span><span class="token operator">=</span>your-token <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
 <p>After starting, access <code>http://localhost:8000/Dashboard</code> and log in using the set token as the password.</p>
@@ -91,7 +91,7 @@
 <p>If Docker Hub is inaccessible, you can pull the image from GitHub Container Registry:</p>
 <pre><code class="language-bash"><span class="token function">docker</span> pull ghcr.io/erispulse/erispulse:latest
 </code></pre>
-<p>When using the ghcr.io image, you need to modify the <code>docker-compose.yml</code> file:</p>
+<p>When using the ghcr.io image, modify the <code>docker-compose.yml</code> file's image:</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">image</span><span class="token punctuation">:</span> ghcr.io/erispulse/erispulse<span class="token punctuation">:</span>latest
@@ -115,14 +115,14 @@
     <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
 </code></pre>
 <blockquote>
-<p>It is recommended to directly use the <code>docker-compose.yml</code> file in the repository root, which includes the above configuration and health checks, as well as timezone and language environment variables.</p>
+<p>It is recommended to directly use the <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> in the repository root, which includes the above configuration along with health checks, timezone, and language environment variables.</p>
 </blockquote>
 <h3 id="environment-variables">Environment Variables</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>Variable</th>
-<th>Default</th>
+<th>Default Value</th>
 <th>Description</th>
 </tr>
 </thead>
@@ -144,26 +144,26 @@
 <tr>
 <td><code>LANG</code></td>
 <td><code>en_US.UTF-8</code></td>
-<td>System language, automatically detects the startup interface language</td>
+<td>System language, auto-detects the language of the startup interface</td>
 </tr>
 <tr>
 <td><code>ERISPULSE_LANG</code></td>
 <td>Empty</td>
-<td>Force startup interface language: <code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code> (overrides <code>LANG</code>)</td>
+<td>Force the startup interface language: <code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code> (overrides <code>LANG</code>)</td>
 </tr>
 </tbody></table></div>
 <h3 id="data-persistence">Data Persistence</h3>
 <p>The <code>./config</code> directory mounts configuration files and the database, including:</p>
 <ul>
-<li><code>config/config.toml</code> — Configuration file</li>
+<li><code>config/config.toml</code> — configuration file</li>
 <li><code>config/config.db</code> — SQLite storage database</li>
-<li><code>config/.packages</code> — Persistent Python site-packages volume, stores the framework, adapters, and installed modules (automatically initialized from the image backup on first startup, subsequent module installations and framework hot updates are written to this directory)</li>
+<li><code>config/.packages</code> — Python site-packages persistent volume, saves framework, adapters, and installed modules (automatically initialized from the image's built-in backup during the first startup, subsequent module installations and framework hot updates are written to this directory)</li>
 </ul>
 <blockquote>
-<p><strong>Framework Upgrade (including pre/rc) and Image Self-Healing</strong>: The entry point performs a core package integrity self-check each time the container starts. If damaged, it repairs according to the "user-installed version priority" principle — explicitly installed/upgraded versions in the persistent volume (e.g., pre versions installed via Dashboard) are reinstalled from PyPI to the same version, never silently downgraded to the image's built-in version. Therefore, after upgrading the framework via Dashboard, any subsequent container restart should maintain the target version.</p>
+<p><strong>Framework Upgrade (including pre/rc) and Image Self-Healing</strong>: The entrypoint performs a core package integrity check at each container startup. If damaged, it repairs according to the "user-installed version priority" principle—explicitly installed/upgraded versions in the persistent volume (e.g., pre version installed via Dashboard) will be reinstalled from PyPI <strong>at the same version</strong>, without silently rolling back to the image's built-in version. Therefore, after a Dashboard upgrade of the framework, any number of container restarts should maintain the target version.</p>
 </blockquote>
 <h2 id="dashboard-management-panel">Dashboard Management Panel</h2>
-<p>The ErisPulse Docker image includes the Dashboard module, providing a web-based visual management interface.</p>
+<p>The ErisPulse Docker image includes a built-in Dashboard module, providing a web-based visual management interface.</p>
 <h3 id="feature-overview">Feature Overview</h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -177,8 +177,8 @@
 <td>System overview, CPU/memory monitoring, uptime, event statistics</td>
 </tr>
 <tr>
-<td>Bot Management</td>
-<td>View online status and information of bots on various platforms</td>
+<td>Robot Management</td>
+<td>View online status and information of robots on various platforms</td>
 </tr>
 <tr>
 <td>Event Viewing</td>
@@ -186,7 +186,7 @@
 </tr>
 <tr>
 <td>Log Viewing</td>
-<td>Log viewer with filtering by module and level</td>
+<td>Log viewer filtered by module and level</td>
 </tr>
 <tr>
 <td>Module Management</td>
@@ -194,7 +194,7 @@
 </tr>
 <tr>
 <td>Module Store</td>
-<td>Browse remote available packages and install with one click</td>
+<td>Browse remote available packages and install them with one click</td>
 </tr>
 <tr>
 <td>Configuration Editing</td>
@@ -202,7 +202,7 @@
 </tr>
 <tr>
 <td>Storage Management</td>
-<td>Browse and edit key-value storage data</td>
+<td>Browse and edit Key-Value storage data</td>
 </tr>
 <tr>
 <td>Backup</td>
@@ -214,21 +214,21 @@
 </tr>
 </tbody></table></div>
 <h3 id="installing-modules-via-dashboard">Installing Modules via Dashboard</h3>
-<p>The Dashboard integrates the module store feature, allowing you to:</p>
+<p>The Dashboard integrates a module store feature, allowing you to:</p>
 <ol>
-<li><strong>Install from Store</strong>: Browse the list of remote modules and install the desired one with one click</li>
-<li><strong>Upload Local Package</strong>: Directly upload <code>.whl</code> or <code>.zip</code> files for installation, convenient for testing personal development modules</li>
+<li><strong>Install from the store</strong>: Browse the list of remote modules and install the desired ones with one click</li>
+<li><strong>Upload local packages</strong>: Directly upload <code>.whl</code> or <code>.zip</code> files for installation, convenient for testing personal development modules</li>
 </ol>
 <blockquote>
-<p><strong>Quick Testing Process for Module Developers</strong>: After deploying with Docker, use the "Upload Local Package" feature in the Dashboard to directly upload your built <code>.whl</code> file for testing, without manual container operations.</p>
+<p><strong>Quick testing workflow for module developers</strong>: After deploying with Docker, use the "Upload local package" feature in the Dashboard to directly upload your built <code>.whl</code> file for testing, without manual container operations.</p>
 </blockquote>
 <h2 id="process-supervision-and-hard-restart">Process Supervision and Hard Restart</h2>
-<p>The hard restart of ErisPulse (<code>sdk.hard_restart()</code>) relies on an <strong>external supervisor</strong> restarting the process when the exit code is 42 — the SDK itself does not restart new processes. In production, you must configure a supervisor; otherwise, the process will not automatically recover after a hard restart:</p>
+<p>ErisPulse's hard restart (<code>sdk.hard_restart()</code>) relies on an <strong>external supervisor</strong> to restart the process when the exit code is 42—the SDK itself does not restart new processes. In production environments, a supervisor must be configured; otherwise, the process will not automatically recover after a hard restart:</p>
 <ul>
 <li>Docker: <code>restart: unless-stopped</code> (restarts for any exit code, including 42)</li>
 <li>systemd: <code>Restart=on-failure</code> + <code>RestartForceExitStatus=42</code></li>
-<li>PM2 / supervisord: Add 42 to the list of restartable exit codes</li>
-<li>Pure Python custom supervisor: Loop <code>Popen</code> + check <code>returncode == 42</code></li>
+<li>PM2 / supervisord: add 42 to the list of restartable exit codes</li>
+<li>Pure Python custom supervisor: loop <code>Popen</code> + check <code>returncode == 42</code></li>
 </ul>
 <p>Complete configuration examples for each supervisor and the exit code 42 contract are available in <a href="/docs/en/advanced/startup.html#Supervisor-Guide">Startup Flow → Supervisor Guide</a>.</p>
 <h2 id="health-check">Health Check</h2>
@@ -236,7 +236,7 @@
 <pre><code class="language-bash"><span class="token comment"># Health check</span>
 <span class="token function">curl</span> http://localhost:8000/health
 </code></pre>
-<p>Docker health checks can be added in <code>docker-compose.yml</code>:</p>
+<p>Docker health checks can be added to <code>docker-compose.yml</code>:</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">healthcheck</span><span class="token punctuation">:</span>
@@ -247,7 +247,7 @@
       <span class="token key atrule">retries</span><span class="token punctuation">:</span> <span class="token number">3</span>
 </code></pre>
 <h2 id="reverse-proxy">Reverse Proxy</h2>
-<p>If you need to expose the Dashboard through a reverse proxy like Nginx:</p>
+<p>If you need to expose the Dashboard via a reverse proxy like Nginx:</p>
 <pre><code class="language-nginx">server {
     listen 80;
     server_name bot.example.com;
@@ -259,7 +259,7 @@
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # WebSocket support (required for Dashboard real-time event streams)
+    # WebSocket support (required for Dashboard real-time event stream)
     location /Dashboard/ws {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -272,8 +272,8 @@
 <pre><code class="language-bash"><span class="token function">sudo</span> certbot <span class="token parameter variable">--nginx</span> <span class="token parameter variable">-d</span> bot.example.com
 </code></pre>
 <h2 id="manual-deployment-pip">Manual Deployment (pip)</h2>
-<p>If you do not use Docker, you can also deploy manually.</p>
-<h3 id="production-configuration">Production Configuration</h3>
+<p>If you do not use Docker, manual deployment is also possible.</p>
+<h3 id="production-environment-configuration">Production Environment Configuration</h3>
 <pre><code class="language-toml"><span class="token comment"># config/config.toml</span>
 
 <span class="token punctuation">[</span><span class="token table class-name">ErisPulse.server</span><span class="token punctuation">]</span>
@@ -324,19 +324,39 @@
 <span class="token key attr-name">stderr_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/err.log</span>
 <span class="token key attr-name">stdout_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/out.log</span>
 </code></pre>
+<h3 id="uv-tool-for-separated-deployment-cli-and-project-environment-isolation">uv tool for Separated Deployment (CLI and Project Environment Isolation)</h3>
+<p><code>uv tool install</code> installs <code>epsdk</code> as an <strong>independent tool environment</strong>, completely isolating the CLI from project dependencies: upgrading the CLI does not affect the project <code>.venv</code>, and changes in project dependencies do not affect the CLI.</p>
+<pre><code class="language-bash"><span class="token comment"># 1. Install CLI globally (automatically exposes epsdk / ep commands)</span>
+uv tool <span class="token function">install</span> ErisPulse
+
+<span class="token comment"># 2. Only include robot dependencies in the project (managed by uv)</span>
+<span class="token builtin class-name">cd</span> /opt/erispulse-bot
+uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># Add adapters as needed</span>
+
+<span class="token comment"># 3. Run with CLI (automatically detects and uses the project's .venv interpreter)</span>
+epsdk run main.py
+</code></pre>
+<p>Behavior points:</p>
+<ul>
+<li>The target interpreter resolution order for <code>epsdk run</code>: <code>ERISPULSE_PYTHON</code> environment variable → project <code>.venv</code> → current interpreter; the tool environment only hosts the CLI, components (adapters/modules) should be installed into the project <code>.venv</code></li>
+<li><code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> also affect the project <code>.venv</code>, without polluting the tool environment</li>
+<li>Upgrade CLI: <code>uv tool upgrade ErisPulse</code> (or directly <code>epsdk self-update</code>, uv tool environment automatically switches to <code>uv tool upgrade</code>); upgrade project dependencies: execute <code>uv sync</code> / <code>uv add</code> in the project directory, both are independent</li>
+<li>In server scenarios, the tool environment is managed uniformly by uv (use <code>uv tool list</code> to view, <code>uv tool upgrade --all</code> for batch upgrades), eliminating the need for manual maintenance of global pip packages</li>
+<li>If <code>uv run epsdk ...</code> is executed in a directory without a project, it falls into a <strong>one-time isolated environment</strong> (installed components are not persisted); on servers, always use <code>epsdk</code> directly, or first <code>cd</code> into the project directory</li>
+</ul>
 <h2 id="security-recommendations">Security Recommendations</h2>
 <ol>
 <li><strong>Set Dashboard Token</strong>: Use a strong random token, do not use the default value</li>
-<li><strong>Do Not Expose Port to Public Internet</strong>: Unless using a reverse proxy + SSL, restrict the Dashboard port to the internal network</li>
-<li><strong>Protect Data Directory</strong>: The <code>config/</code> directory contains configuration and database; set appropriate file permissions</li>
+<li><strong>Do Not Expose Port to Public Network</strong>: Unless using a reverse proxy + SSL, restrict the Dashboard port to the internal network</li>
+<li><strong>Protect Data Directory</strong>: The <code>config/</code> directory contains configuration and database, set appropriate file permissions</li>
 <li><strong>Regular Updates</strong>: Use <code>epsdk self-update</code> or pull the latest Docker image</li>
 <li><strong>Do Not Run as Root</strong>: Create a dedicated user when deploying manually</li>
-<li><strong>Use Docker Restart Policy</strong>: <code>restart: unless-stopped</code> ensures automatic restart after abnormal exit</li>
+<li><strong>Use Docker Restart Policy</strong>: <code>restart: unless-stopped</code> ensures automatic restart after abnormal exits</li>
 </ol>
 <h2 id="multi-instance-deployment">Multi-Instance Deployment</h2>
-<p>When running multiple bot instances:</p>
+<p>When running multiple robot instances:</p>
 <ol>
-<li>Use a separate project directory and <code>docker-compose.yml</code> for each instance</li>
+<li>Each instance uses a separate project directory and <code>docker-compose.yml</code></li>
 <li>Use different port numbers: <code>ERISPULSE_PORT=8001</code></li>
 <li>Use different container names: <code>container_name: erispulse-bot2</code></li>
 </ol>
@@ -345,22 +365,29 @@
 <pre><code class="language-bash"><span class="token comment"># Pull the latest image</span>
 <span class="token function">docker</span> compose pull
 
-<span class="token comment"># Restart using the new image</span>
+<span class="token comment"># Restart to use the new image</span>
 <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
 <h3 id="pip-method">pip Method</h3>
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
+<h3 id="uv-tool-method">uv tool Method</h3>
+<pre><code class="language-bash"><span class="token comment"># Upgrade CLI tool environment</span>
+uv tool upgrade ErisPulse
+
+<span class="token comment"># Upgrade project dependencies (execute within the project directory)</span>
+uv <span class="token function">sync</span>
+</code></pre>
 <h3 id="hot-reload-server-configuration-at-runtime">Hot Reload Server Configuration at Runtime</h3>
 <p>After modifying the listening address / port / SSL certificate, no process restart is needed. Call <code>router.reload()</code> in any coroutine:</p>
 <pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># Change port</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># Hot swap certificate (e.g., certificate renewal scenario)</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># Use current configuration for unspecified parameters</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># Hot swap certificate (for certificate renewal scenarios)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># Use current configuration for missing parameters</span>
 </code></pre>
 <ul>
-<li>Reuse the same FastAPI application; all registered HTTP / WebSocket / SSE routes for modules are preserved</li>
-<li>Validate new configuration first (certificate can be built, port available) before switching; if it fails, restore service with the old configuration and return <code>False</code>, ensuring that <code>False</code> = old service remains available</li>
+<li>Reuse the same FastAPI application, all module-registered HTTP / WebSocket / SSE routes are retained</li>
+<li>Validate new configuration first (certificate can be built, port available) before switching; if failed, restore service with old configuration and return <code>False</code>, ensuring <code>False</code> means the old service remains available</li>
 <li>Return <code>False</code> if the server is not running (use <code>sdk.router.start()</code> for initial startup)</li>
 </ul>
 <h3 id="backup">Backup</h3>

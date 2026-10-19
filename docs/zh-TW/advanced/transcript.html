@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>會話收件箱（Transcript） - ErisPulse 文档中心</title>
-    <meta name="description" content="會話收件箱會自動記錄機器人收發的訊息（依會話鍵 platform:detail_type:target_id 組織）， 為對話恢復（event.history）、影子模組 diff、冷啟動回放等提供歷史資料。 本文檔說明它的儲存模型、保留策略旋鈕各保護什麼，以及執行時覆蓋 API 與放開限制的真實代價。" />
+    <meta name="description" content="什麼時候需要閱讀本文：需要消息歷史、對話恢復，或調整收件箱保留策略時。不需要則跳過，不會影響其他功能的使用。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/transcript.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/transcript.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/transcript.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/transcript.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/transcript.html" />
     <meta property="og:title" content="會話收件箱（Transcript） - ErisPulse 文档中心" />
-    <meta property="og:description" content="會話收件箱會自動記錄機器人收發的訊息（依會話鍵 platform:detail_type:target_id 組織）， 為對話恢復（event.history）、影子模組 diff、冷啟動回放等提供歷史資料。 本文檔說明它的儲存模型、保留策略旋鈕各保護什麼，以及執行時覆蓋 API 與放開限制的真實代價。" />
+    <meta property="og:description" content="什麼時候需要閱讀本文：需要消息歷史、對話恢復，或調整收件箱保留策略時。不需要則跳過，不會影響其他功能的使用。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/transcript.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"會話收件箱（Transcript）","description":"會話收件箱會自動記錄機器人收發的訊息（依會話鍵 platform:detail_type:target_id 組織）， 為對話恢復（event.history）、影子模組 diff、冷啟動回放等提供歷史資料。 本文檔說明它的儲存模型、保留策略旋鈕各保護什麼，以及執行時覆蓋 API 與放開限制的真實代價。","url":"https://www.erisdev.com/docs/zh-TW/advanced/transcript.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"會話收件箱（Transcript）","description":"什麼時候需要閱讀本文：需要消息歷史、對話恢復，或調整收件箱保留策略時。不需要則跳過，不會影響其他功能的使用。","url":"https://www.erisdev.com/docs/zh-TW/advanced/transcript.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,11 +73,12 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="會話收件箱transcript">會話收件箱（Transcript）</h1>
-<p>會話收件箱會自動記錄機器人收發的訊息（依會話鍵 <code>platform:detail_type:target_id</code> 組織），
-為對話恢復（<code>event.history</code>）、影子模組 diff、冷啟動回放等提供歷史資料。
-本文檔說明它的<strong>儲存模型、保留策略旋鈕各保護什麼</strong>，以及執行時覆蓋 API 與放開限制的真實代價。</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>什麼時候需要閱讀本文</strong>：需要消息歷史、對話恢復，或調整收件箱保留策略時。不需要則跳過，不會影響其他功能的使用。</p>
+</div>
+<p>會話收件箱會自動記錄機器人收發的消息（按會話鍵 <code>platform:detail_type:target_id</code> 組織），<br>為對話恢復（<code>event.history</code>）、影子模組 diff、冷啟動回放等提供歷史數據。<br>本文檔說明它的<strong>儲存模型、保留策略旋鈕各保護什麼</strong>，以及運行時覆蓋 API 與放開限制的真實代價。</p>
 <blockquote>
-<p>改限制前請先讀完「風險與審計」一節——每個旋鈕都有它存在的理由。</p>
+<p>改變限制前請先讀完「風險與審計」一節——每個旋鈕都有它存在的理由。</p>
 </blockquote>
 <h2 id="工作原理">工作原理</h2>
 <pre><code>訊息 ──append()──▶ 寫緩衝（記憶體 deque，硬上限 4096 行）
