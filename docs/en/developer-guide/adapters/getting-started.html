@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Getting Started with Adapter Development - ErisPulse 文档中心</title>
-    <meta name="description" content="This guide helps you get started with developing ErisPulse adapters to connect new messaging platforms." />
+    <meta name="description" content="When to read this: The entry point for the adapter development path (required reading). Learn how to write an adapter from scratch, understand its responsibi..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/getting-started.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/getting-started.html" />
     <meta property="og:title" content="Getting Started with Adapter Development - ErisPulse 文档中心" />
-    <meta property="og:description" content="This guide helps you get started with developing ErisPulse adapters to connect new messaging platforms." />
+    <meta property="og:description" content="When to read this: The entry point for the adapter development path (required reading). Learn how to write an adapter from scratch, understand its responsibi..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/developer-guide/adapters/getting-started.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Getting Started with Adapter Development","description":"This guide helps you get started with developing ErisPulse adapters to connect new messaging platforms.","url":"https://www.erisdev.com/docs/en/developer-guide/adapters/getting-started.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Getting Started with Adapter Development","description":"When to read this: The entry point for the adapter development path (required reading). Learn how to write an adapter from scratch, understand its responsibi...","url":"https://www.erisdev.com/docs/en/developer-guide/adapters/getting-started.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,14 +73,17 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="getting-started-with-adapter-development">Getting Started with Adapter Development</h1>
-<p>This guide helps you get started with developing ErisPulse adapters to connect new messaging platforms.</p>
-<h2 id="adapter-overview">Adapter Overview</h2>
-<h3 id="what-is-an-adapter">What is an Adapter</h3>
-<p>An adapter serves as the bridge between ErisPulse and various messaging platforms, responsible for:</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>When to read this</strong>: The entry point for the adapter development path (required reading). Learn how to write an adapter from scratch, understand its responsibilities and project structure here; after reading, proceed to <a href="/docs/en/developer-guide/adapters/converter.html">Event Converter</a> and <a href="/docs/en/developer-guide/adapters/send-dsl.html">SendDSL Detailed Guide</a> as needed.</p>
+</div>
+<p>This guide helps you start developing an ErisPulse adapter to connect new messaging platforms.</p>
+<h2 id="introduction-to-adapters">Introduction to Adapters</h2>
+<h3 id="what-is-an-adapter">What is an Adapter?</h3>
+<p>An adapter serves as a bridge between ErisPulse and various messaging platforms, responsible for:</p>
 <ol>
-<li><strong>Forward Conversion</strong>: Receiving platform events and converting them into the OneBot12 standard format (Converter)</li>
+<li><strong>Forward Conversion</strong>: Receiving platform events and converting them into OneBot12 standard format (Converter)</li>
 <li><strong>Reverse Conversion</strong>: Converting OneBot12 message segments into platform API calls (<code>Raw_ob12</code>)</li>
-<li>Managing the connection with the platform (WebSocket/WebHook)</li>
+<li>Managing connections with the platform (WebSocket/WebHook)</li>
 <li>Providing a unified SendDSL message sending interface</li>
 </ol>
 <h3 id="adapter-architecture">Adapter Architecture</h3>
@@ -97,23 +100,31 @@
 <h2 id="directory-structure">Directory Structure</h2>
 <p>Standard adapter package structure:</p>
 <pre><code>MyAdapter/
-├── pyproject.toml          # Project configuration
-├── README.md               # Project description
+├── pyproject.toml          # Project Configuration
+├── README.md               # Project Description
 ├── LICENSE                 # License
 └── MyAdapter/
-    ├── __init__.py          # Package entry point
-    ├── Core.py               # Adapter main class
-    └── Converter.py          # Event converter
+    ├── __init__.py          # Package Entry Point
+    ├── Core.py               # Main Adapter Class
+    └── Converter.py          # Event Converter
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
 <h3 id="1-create-project">1. Create Project</h3>
+<p>It is recommended to use the scaffolding tool to generate a complete skeleton (including pyproject, main class, and converter):</p>
+<pre><code class="language-bash"><span class="token comment"># Standard Project (for packaging and publishing)</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter
+
+<span class="token comment"># Local Adapter Plugin (no packaging required; just place in plugins/ directory to be automatically loaded, see "Local Development" below)</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter <span class="token parameter variable">--local</span>
+</code></pre>
+<p>Alternatively, you can create manually:</p>
 <pre><code class="language-bash"><span class="token function">mkdir</span> MyAdapter <span class="token operator">&amp;&amp;</span> <span class="token builtin class-name">cd</span> MyAdapter
 </code></pre>
 <h3 id="2-create-pyprojecttoml">2. Create pyproject.toml</h3>
 <pre><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">project</span><span class="token punctuation">]</span>
 <span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">"ErisPulse-MyAdapter"</span>
 <span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"1.0.0"</span>
-<span class="token key property">description</span> <span class="token punctuation">=</span> <span class="token string">"MyAdapter platform adapter"</span>
+<span class="token key property">description</span> <span class="token punctuation">=</span> <span class="token string">"MyAdapter Platform Adapter"</span>
 <span class="token key property">readme</span> <span class="token punctuation">=</span> <span class="token string">"README.md"</span>
 <span class="token key property">requires-python</span> <span class="token punctuation">=</span> <span class="token string">"&gt;=3.10"</span>
 <span class="token key property">license</span> <span class="token punctuation">=</span> <span class="token punctuation">{</span> <span class="token key property">file</span> <span class="token punctuation">=</span> <span class="token string">"LICENSE"</span> <span class="token punctuation">}</span>
@@ -130,10 +141,10 @@
 <span class="token key property">"MyAdapter"</span> <span class="token punctuation">=</span> <span class="token string">"MyAdapter:MyAdapter"</span>
 </code></pre>
 <h3 id="3-create-adapter-main-class">3. Create Adapter Main Class</h3>
-<p>The framework provides <code>ConfigClass</code> / <code>AccountConfigClass</code> for declarative configuration management. The adapter only needs to declare the configuration class, and the framework will automatically load, validate, and generate the configuration template.</p>
+<p>The framework provides <code>ConfigClass</code> / <code>AccountConfigClass</code> for declarative configuration management. The adapter only needs to declare the configuration class to automatically load, validate, and generate configuration templates.</p>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/Core.py</span>
 <span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
-<span class="token comment"># Recommended root import (2.10+): commonly used symbols directly imported from root package, deep paths are still compatible</span>
+<span class="token comment"># Recommended root import (for Python 3.10+): Common symbols directly imported from root package, deep paths still compatible</span>
 <span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> BaseConfig
 
 <span class="token decorator annotation punctuation">@dataclass</span>
@@ -158,11 +169,11 @@
     <span class="token punctuation">)</span>
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># Declare the configuration class, the framework will manage it automatically</span>
+    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># Declare configuration class for automatic management by the framework</span>
     
-    <span class="token comment"># No need to override __init__! The framework handles it automatically:</span>
+    <span class="token comment"># No need to override __init__! The framework automatically handles:</span>
     <span class="token comment"># - self.sdk / self.logger are automatically set</span>
-    <span class="token comment"># - self.cfg reads the configuration in real-time</span>
+    <span class="token comment"># - self.cfg is read in real-time from configuration</span>
     <span class="token comment"># - self.Send / self.Request are automatically initialized</span>
     
     <span class="token keyword">def</span> <span class="token function">_setup_converter</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -170,10 +181,10 @@
         <span class="token keyword">return</span> MyPlatformConverter<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>⚠️ <strong>Regarding <code>__init__</code></strong>: In the new version, <code>BaseAdapter.__init__(self, sdk=None)</code> will automatically handle SDK references, log initialization, and configuration loading. Most adapters <strong>do not need to override <code>__init__</code></strong>. See <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><strong>init</strong> Notes</a>.</p>
+<p>⚠️ <strong>About <code>__init__</code></strong>: In the new version, <code>BaseAdapter.__init__(self, sdk=None)</code> automatically manages SDK references, logging initialization, and configuration loading. Most adapters <strong>do not need to override <code>__init__</code></strong>. See <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><strong>init</strong> Notes</a>.</p>
 </blockquote>
 <blockquote>
-<p>⚠️ <strong>Regarding <code>super().__init__()</code></strong>: <code>BaseAdapter.__init__()</code> is responsible for creating <code>Send</code> and <code>Request</code> factory instances. If you forget to call it, all message sending and request operations will raise an <code>AttributeError</code>. See <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><strong>init</strong> Notes</a>.</p>
+<p>⚠️ <strong>About <code>super().__init__()</code></strong>: <code>BaseAdapter.__init__()</code> is responsible for creating <code>Send</code> and <code>Request</code> factory instances. If you forget to call it, all message sending and request operations will report <code>AttributeError</code>. See <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><strong>init</strong> Notes</a>.</p>
 </blockquote>
 <h3 id="4-implement-required-methods">4. Implement Required Methods</h3>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -190,20 +201,20 @@
         self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Adapter started"</span><span class="token punctuation">)</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Shutdown the adapter (must implement)"""</span>
+        <span class="token triple-quoted-string string">"""Shut down the adapter (must implement)"""</span>
         router<span class="token punctuation">.</span>unregister_websocket<span class="token punctuation">(</span>
             module_name<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span>
             path<span class="token operator">=</span><span class="token string">"/ws"</span>
         <span class="token punctuation">)</span>
         <span class="token comment"># Clean up connections and resources</span>
-        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Adapter shutdown"</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"Adapter shut down"</span><span class="token punctuation">)</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Call the platform API (must implement)"""</span>
-        <span class="token keyword">raise</span> NotImplementedError<span class="token punctuation">(</span><span class="token string">"call_api needs to be implemented"</span><span class="token punctuation">)</span>
+        <span class="token triple-quoted-string string">"""Call platform API (must implement)"""</span>
+        <span class="token keyword">raise</span> NotImplementedError<span class="token punctuation">(</span><span class="token string">"call_api must be implemented"</span><span class="token punctuation">)</span>
 </code></pre>
-<h4 id="proactively-emit-meta-events">Proactively Emit Meta Events</h4>
-<p>The adapter should proactively emit meta events to allow the framework to track the Bot's online status. Use <code>emit_meta()</code> to complete this in one line:</p>
+<h4 id="actively-send-meta-events">Actively Send Meta Events</h4>
+<p>The adapter should actively send meta events to let the framework track the Bot's online status. Use <code>emit_meta()</code> to complete this in one line:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_ws_handler</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> websocket<span class="token punctuation">)</span><span class="token punctuation">:</span>
         bot_id <span class="token operator">=</span> self<span class="token punctuation">.</span>_get_bot_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -224,14 +235,14 @@
             <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"disconnect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>For detailed Bot status management and meta event explanations, see <a href="/docs/en/developer-guide/adapters/best-practices.html#bot-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E4%B8%8E-meta-%E4%BA%8B%E4%BB%B6">Adapter Best Practices - Bot Status Management and Meta Events</a>.</p>
+<p>For detailed Bot status management and meta events, see <a href="/docs/en/developer-guide/adapters/best-practices.html#bot-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E4%B8%8E-meta-%E4%BA%8B%E4%BB%B6">Adapter Best Practices - Bot Status Management and Meta Events</a>.</p>
 </blockquote>
 <h3 id="5-implement-send-class">5. Implement Send Class</h3>
-<p>The <code>At</code>/<code>AtAll</code>/<code>Reply</code> decorators are built into the framework's SendDSL base class, so the adapter only needs to implement <code>Raw_ob12</code> and specific send methods.</p>
+<p>The <code>At</code>/<code>AtAll</code>/<code>Reply</code> decorators are already implemented in the framework's SendDSL base class. The adapter only needs to implement <code>Raw_ob12</code> and specific send methods.</p>
 <p>The framework provides two key helper methods:</p>
 <ul>
 <li><code>self._apply_modifiers(message)</code> — Automatically merges At/AtAll/Reply decorators into message segments</li>
-<li><code>self.send_context</code> — Gets the send context dictionary (<code>target_type</code>, <code>target_id</code>, <code>account_id</code>)</li>
+<li><code>self.send_context</code> — Retrieves the send context dictionary (<code>target_type</code>, <code>target_id</code>, <code>account_id</code>)</li>
 </ul>
 <pre><code class="language-python"><span class="token keyword">import</span> asyncio
 
@@ -245,7 +256,7 @@
             Send OneBot12 formatted message (must implement)
 
             Use _apply_modifiers to automatically merge modifier states,
-            use send_context to get the send context.
+            use send_context to retrieve send context.
             """</span>
             <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
                 segments <span class="token operator">=</span> self<span class="token punctuation">.</span>_apply_modifiers<span class="token punctuation">(</span>message<span class="token punctuation">)</span>
@@ -258,28 +269,28 @@
             <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>_do_send<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 
         <span class="token comment"># Text/Image/Voice/Video/File are inherited from the SendDSL base class,</span>
-        <span class="token comment"># defaulting to delegate to Raw_ob12, no need to re-implement.</span>
+        <span class="token comment"># default delegation to Raw_ob12, no need to re-implement.</span>
         <span class="token comment"># If platform-specific logic is needed, override individual methods:</span>
         <span class="token comment"># def Text(self, text: str):</span>
         <span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
 </code></pre>
-<p><strong>Media send method implementation points (Image/Video/File):</strong></p>
+<p><strong>Media Send Method Implementation Points:</strong></p>
 <ul>
-<li>The default implementation in the base class will encapsulate the <code>file</code> parameter as a OneBot12 message segment and pass it to <code>Raw_ob12</code>, and the adapter needs to handle downloading/uploading in <code>Raw_ob12</code></li>
-<li>The <code>file</code> parameter should support both <code>bytes</code> binary data and <code>str</code> URL types</li>
-<li>When a URL is passed, the file must be downloaded first and then uploaded to the platform</li>
-<li>The platform usually requires first calling the upload interface to get the file identifier, then calling the send interface</li>
+<li>The base class's default implementation wraps the <code>file</code> parameter as a OneBot12 message segment and passes it to <code>Raw_ob12</code>. The adapter needs to handle downloads/uploads in <code>Raw_ob12</code>.</li>
+<li>The <code>file</code> parameter should support both <code>bytes</code> binary data and <code>str</code> URL types.</li>
+<li>When a URL is passed, the file must be downloaded first and then uploaded to the platform.</li>
+<li>Platforms usually require first calling an upload interface to get a file identifier, then calling the send interface.</li>
 </ul>
-<p><strong><code>__getattr__</code> magic method:</strong></p>
+<p><strong><code>__getattr__</code> Magic Method:</strong></p>
 <ul>
 <li>Implement case-insensitive method names (<code>Text</code>, <code>text</code>, <code>TEXT</code> all work)</li>
-<li>Undefined methods should return a hint message instead of throwing an error</li>
+<li>Undefined methods should return a prompt message instead of raising an error</li>
 </ul>
-<p><strong><code>Raw_ob12</code> method:</strong></p>
+<p><strong><code>Raw_ob12</code> Method:</strong></p>
 <ul>
-<li>Convert the OneBot12 standard message format to the platform format for sending</li>
-<li>Use <code>self._apply_modifiers(message)</code> to automatically handle At/AtAll/Reply modifiers</li>
-<li>Use <code>**self.send_context</code> to pass send target information and account information</li>
+<li>Converts OneBot12 standard message format into platform format for sending</li>
+<li>Uses <code>self._apply_modifiers(message)</code> to automatically handle At/AtAll/Reply modifiers</li>
+<li>Uses <code>**self.send_context</code> to pass send target information and account information</li>
 </ul>
 <h3 id="6-implement-converter">6. Implement Converter</h3>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/Converter.py</span>
@@ -288,7 +299,7 @@
 
 <span class="token keyword">class</span> <span class="token class-name">MyPlatformConverter</span><span class="token punctuation">:</span>
     <span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""Convert platform-native events to OneBot12 standard format"""</span>
+        <span class="token triple-quoted-string string">"""Convert platform-native events into OneBot12 standard format"""</span>
         <span class="token keyword">if</span> <span class="token keyword">not</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>raw_event<span class="token punctuation">,</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
             <span class="token keyword">return</span> <span class="token boolean">None</span>
         
@@ -321,7 +332,7 @@
         <span class="token keyword">return</span> <span class="token string">"private"</span>  <span class="token comment"># Simplified example</span>
 </code></pre>
 <h3 id="7-implement-request-class-request-operations">7. Implement Request Class (Request Operations)</h3>
-<p>If your platform supports friend requests, group invitations, and other requests that require the Bot to make decisions, you can implement the <code>Request</code> inner class:</p>
+<p>If your platform supports friend requests, group invitations, and other requests requiring the Bot to make decisions, you can implement the <code>Request</code> inner class:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> RequestDSL
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -366,47 +377,74 @@
                 <span class="token punctuation">}</span>
             <span class="token keyword">return</span> self<span class="token punctuation">.</span>_create_task<span class="token punctuation">(</span>_do<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
-<p>Module developer usage:</p>
+<p>Module developers use it as follows:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> request
 
 <span class="token decorator annotation punctuation">@request<span class="token punctuation">.</span>on_friend_request</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_friend_request</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token comment"># Through Event convenience methods</span>
+    <span class="token comment"># Approve via Event method</span>
     <span class="token keyword">await</span> event<span class="token punctuation">.</span>approve<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    <span class="token comment"># Or directly through the adapter</span>
+    <span class="token comment"># Or directly via adapter</span>
     <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>If the platform does not support request operations, you can omit implementing the <code>Request</code> inner class. The base class defaults to returning <code>retcode=10002</code> (unsupported operation). See <a href="/docs/en/standards/request-action-spec.html">Request Action Specification</a>.</p>
+<p>If the platform does not support request operations, you can omit the <code>Request</code> inner class. The base class defaults to returning <code>retcode=10002</code> (operation not supported). See <a href="/docs/en/standards/request-action-spec.html">Request Action Specification</a>.</p>
 </blockquote>
-<h3 id="8-create-package-entry">8. Create Package Entry</h3>
+<h3 id="8-create-package-entry-point">8. Create Package Entry Point</h3>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/__init__.py</span>
 <span class="token keyword">from</span> <span class="token punctuation">.</span>Core <span class="token keyword">import</span> MyAdapter
 </code></pre>
+<h2 id="local-development-no-packaging">Local Development (No Packaging)</h2>
+<p>Like modules, adapters can also be placed in the project's local plugin directory (default <code>plugins/</code>, configurable via <code>ErisPulse.framework.plugins_dir</code>) for direct development, <strong>no need for <code>pip install -e .</code></strong>:</p>
+<pre><code class="language-bash"><span class="token comment"># Generate local adapter plugin</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter <span class="token parameter variable">--local</span>
+<span class="token comment"># Structure generated:</span>
+<span class="token comment"># plugins/</span>
+<span class="token comment"># └── MyAdapter/</span>
+<span class="token comment">#     ├── __init__.py</span>
+<span class="token comment">#     ├── Core.py</span>
+<span class="token comment">#     └── Converter.py</span>
+</code></pre>
+<p>The framework automatically scans the plugin directory and loads modules and adapters (same treatment as entry-point installed packages: enabling status, configuration declaration, hot reload, uninstall cleanup are all consistent):</p>
+<ul>
+<li><strong>Identification Rules</strong>: Package directories (with <code>__init__.py</code>) or single <code>.py</code> files are both recognized; <code>Main</code> named class is prioritized, otherwise the first <code>BaseAdapter</code> / <code>BaseModule</code> subclass in the plugin is taken</li>
+<li><strong>Name Overlap</strong>: When a local plugin and a PyPI-installed adapter have the same name, the local plugin takes precedence (for easy debugging)</li>
+<li><strong>Hot Reload</strong>: <code>sdk.enable_plugin_hot_reload()</code> enables plugin directory monitoring, covering adapters as well; code-level hot reload for adapters will be available in 2.11 (current version requires restarting the framework after modifying adapter code)</li>
+</ul>
+<h3 id="from-local-plugin-to-release">From Local Plugin to Release</h3>
+<p>After local verification, use the <code>pack</code> subcommand to convert the plugin into a release-ready standard project (interactive selection of plugin, completion of metadata, generation of <code>pyproject</code> with entry-point):</p>
+<pre><code class="language-bash">epsdk create pack
+<span class="token comment"># Select plugin directory in plugin → Enter project name/description/author → Generate MyAdapter/ project directory</span>
+<span class="token builtin class-name">cd</span> MyAdapter
+pip <span class="token function">install</span> <span class="token parameter variable">-e</span> <span class="token builtin class-name">.</span>   <span class="token comment"># Convert to standard installation; then follow release process to upload to PyPI</span>
+</code></pre>
+<blockquote>
+<p><strong>Note</strong>: After conversion, it is recommended to remove the original from <code>plugins/</code> to avoid duplicate loading of local plugin and installed package (both take precedence when names overlap, which might make you think the installed package is effective).</p>
+</blockquote>
 <h2 id="dependency-declaration-optional-280">Dependency Declaration (Optional, 2.8.0+)</h2>
-<p>Adapters can declare dependencies on other adapters or modules to enable adapter interconnection and optional features:</p>
+<p>An adapter can declare dependencies on other adapters or modules to achieve adapter interconnection and optional features:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> typing <span class="token keyword">import</span> ClassVar
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token comment"># Hard dependency: Adapter startup is skipped if dependency is missing (warning + status=skipped-dependency event)</span>
+    <span class="token comment"># Hard Dependency: Skips startup if missing (warning + status=skipped-dependency event)</span>
     depends<span class="token punctuation">:</span> ClassVar<span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
         <span class="token string">"adapters"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"onebot11"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>   <span class="token comment"># Dependent adapters (by platform name)</span>
-        <span class="token string">"modules"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"TranslateEngine"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token comment"># Dependent modules (by registration name)</span>
+        <span class="token string">"modules"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"TranslateEngine"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>  <span class="token comment"># Dependent modules (by registered name)</span>
     <span class="token punctuation">}</span>
-    <span class="token comment"># Soft dependency: Missing dependency does not affect startup; callbacks are received when the module is loaded/unloaded (optional feature mode)</span>
+    <span class="token comment"># Soft Dependency: Does not affect startup; callbacks when module is loaded/unloaded (optional feature mode)</span>
     optional_modules<span class="token punctuation">:</span> ClassVar<span class="token punctuation">[</span><span class="token builtin">list</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"TranslateEngine"</span><span class="token punctuation">]</span>
 </code></pre>
 <ul>
-<li><strong>Startup Order</strong>: Adapters declaring hard dependencies on modules will <strong>start after the module initialization is complete</strong></li>
-<li><strong>Soft Dependency Notification</strong>: When modules in <code>optional_modules</code> (or hard dependencies) are loaded, <code>on_dependency_ready(module_name)</code> is called; when they are unloaded, <code>on_dependency_lost(module_name)</code> is called (default empty implementation, can be overridden) — covering late-load and hot-reload scenarios:</li>
+<li><strong>Startup Order</strong>: Adapters declaring hard dependencies on modules will <strong>start after module initialization</strong></li>
+<li><strong>Soft Dependency Notification</strong>: <code>on_dependency_ready(module_name)</code> is called when modules in <code>optional_modules</code> (or hard dependencies) are loaded; <code>on_dependency_lost(module_name)</code> is called when modules are unloaded (default is an empty implementation, can be overridden) — covers late loading and hot reload scenarios:</li>
 </ul>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_dependency_ready</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> module_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""Soft dependency module is ready: enable corresponding optional features"""</span>
+    <span class="token triple-quoted-string string">"""Soft dependency module ready: Enable corresponding optional features"""</span>
     <span class="token keyword">if</span> module_name <span class="token operator">==</span> <span class="token string">"TranslateEngine"</span><span class="token punctuation">:</span>
         self<span class="token punctuation">.</span>_translate <span class="token operator">=</span> self<span class="token punctuation">.</span>sdk<span class="token punctuation">.</span>TranslateEngine
 
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_dependency_lost</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> module_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""Soft dependency module is lost: degrade features"""</span>
+    <span class="token triple-quoted-string string">"""Soft dependency module lost: Downgrade features"""</span>
     <span class="token keyword">if</span> module_name <span class="token operator">==</span> <span class="token string">"TranslateEngine"</span><span class="token punctuation">:</span>
         self<span class="token punctuation">.</span>_translate <span class="token operator">=</span> <span class="token boolean">None</span>
 </code></pre>
@@ -414,34 +452,34 @@
 <p>This feature requires ErisPulse <strong>2.8.0+</strong>.</p>
 </div>
 <h2 id="__init__-notes"><code>__init__</code> Notes</h2>
-<p>There are three levels in adapter development where <code>__init__</code> may be overridden. Below are the correct practices for each level.</p>
-<h3 id="1-baseadapter-level-most-cases-do-not-require-overriding">1. BaseAdapter Level (Most Cases Do Not Require Overriding)</h3>
-<p><code>BaseAdapter.__init__(self, sdk=None)</code> is responsible for creating <code>Send</code> / <code>Request</code> factory instances and automatically performs the following tasks:</p>
+<p>There are three levels in adapter development where <code>__init__</code> may be involved. Here are the correct practices for each level.</p>
+<h3 id="1-baseadapter-level-most-cases-do-not-need-to-override">1. BaseAdapter Level (Most cases do not need to override)</h3>
+<p><code>BaseAdapter.__init__(self, sdk=None)</code> is responsible for creating <code>Send</code> / <code>Request</code> factory instances and automatically handles the following:</p>
 <ul>
-<li>Accepts the <code>sdk</code> parameter and sets <code>self.sdk</code> and <code>self.logger</code></li>
-<li>If <code>ConfigClass</code> is declared, you can read global configurations in real time via <code>self.cfg</code></li>
-<li>If <code>AccountConfigClass</code> is declared, you can read multi-account configurations in real time via <code>self.accounts</code></li>
+<li>Accepts <code>sdk</code> parameter and sets <code>self.sdk</code>, <code>self.logger</code></li>
+<li>If <code>ConfigClass</code> is declared, <code>self.cfg</code> can read global configuration in real-time</li>
+<li>If <code>AccountConfigClass</code> is declared, <code>self.accounts</code> can read multi-account configuration in real-time</li>
 </ul>
-<p><strong>In most cases, there is no need to override <code>__init__</code></strong>. Just declare <code>ConfigClass</code>:</p>
+<p><strong>Most cases do not need to override <code>__init__</code></strong>, just declare <code>ConfigClass</code>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># After declaration, the framework automatically manages configurations</span>
+    ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># Declare to let the framework manage configuration automatically</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        cfg <span class="token operator">=</span> self<span class="token punctuation">.</span>cfg  <span class="token comment"># Type-safe, real-time read</span>
+        cfg <span class="token operator">=</span> self<span class="token punctuation">.</span>cfg  <span class="token comment"># Type-safe, real-time reading</span>
         <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
-<p>If custom initialization is indeed required, call <code>super().__init__(sdk)</code>:</p>
+<p>If you really need custom initialization, call <code>super().__init__(sdk)</code>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     ConfigClass <span class="token operator">=</span> MyAdapterConfig
     
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> sdk<span class="token operator">=</span><span class="token boolean">None</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>sdk<span class="token punctuation">)</span>  <span class="token comment"># Pass in sdk</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>sdk<span class="token punctuation">)</span>  <span class="token comment"># Pass sdk</span>
         self<span class="token punctuation">.</span>converter <span class="token operator">=</span> self<span class="token punctuation">.</span>_setup_converter<span class="token punctuation">(</span><span class="token punctuation">)</span>
         self<span class="token punctuation">.</span>convert <span class="token operator">=</span> self<span class="token punctuation">.</span>converter<span class="token punctuation">.</span>convert
 </code></pre>
-<h3 id="2-send-inner-class-most-cases-do-not-require-overriding">2. Send Inner Class (Most Cases Do Not Require Overriding)</h3>
-<p><code>SendDSL.__init__</code> is responsible for state transfer in chain calls (target type, target ID, account, etc.). <strong>In most cases, you only need to override methods</strong> (<code>Raw_ob12</code>, <code>Text</code>, etc.), not <code>__init__</code>.</p>
-<p>If overriding is necessary (for example, initializing platform-specific states), <strong>all parameters must be passed through</strong>:</p>
+<h3 id="2-send-inner-class-most-cases-do-not-need-to-override">2. Send Inner Class (Most cases do not need to override)</h3>
+<p><code>SendDSL.__init__</code> is responsible for passing state through chain calls (target type, target ID, account, etc.). <strong>Most cases, you only need to override methods</strong> (<code>Raw_ob12</code>, <code>Text</code>, etc.), not <code>__init__</code>.</p>
+<p>If you really need to (e.g., initializing platform-specific states), <strong>you must pass all parameters</strong>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token comment"># Parameters: adapter, target_type, target_id, account_id</span>
@@ -449,13 +487,13 @@
             <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>adapter<span class="token punctuation">,</span> target_type<span class="token punctuation">,</span> target_id<span class="token punctuation">,</span> account_id<span class="token punctuation">)</span>  <span class="token comment"># ← Must pass through</span>
             self<span class="token punctuation">.</span>_my_state <span class="token operator">=</span> <span class="token boolean">None</span>  <span class="token comment"># Platform-specific initialization</span>
 </code></pre>
-<p><strong>Why must it be passed through?</strong> Each step in the chain call creates a new instance via <code>self.__class__(...)</code>:</p>
+<p><strong>Why must you pass through?</strong> Each step in chain calls creates a new instance via <code>self.__class__(...)</code>:</p>
 <pre><code class="language-python">adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>               <span class="token comment"># → Send(adapter, "user", "123", None)</span>
 adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span>  <span class="token comment"># → Send(adapter, "user", "123", "bot1")</span>
 </code></pre>
-<p>If the <code>__init__</code> signature does not match or <code>super()</code> is not called, the chain call will break.</p>
-<h3 id="3-request-inner-class-most-cases-do-not-require-overriding">3. Request Inner Class (Most Cases Do Not Require Overriding)</h3>
-<p>Same as <code>Send</code>. The parameters are <code>adapter</code>, <code>request_id</code>, <code>account_id</code>:</p>
+<p>If <code>__init__</code> signature does not match or <code>super()</code> is not called, chain calls will break.</p>
+<h3 id="3-request-inner-class-most-cases-do-not-need-to-override">3. Request Inner Class (Most cases do not need to override)</h3>
+<p>Same as Send. Parameters are <code>adapter</code>, <code>request_id</code>, <code>account_id</code>:</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">class</span> <span class="token class-name">Request</span><span class="token punctuation">(</span>RequestDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token comment"># Parameters: adapter, request_id, account_id</span>
@@ -469,13 +507,13 @@ adapter<span class="token punctuation">.</span>Send<span class="token punctuatio
 <tr>
 <th>Level</th>
 <th>When to Override</th>
-<th>Must Do</th>
+<th>What Must Be Done</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><strong>BaseAdapter</strong></td>
 <td>When custom initialization logic is needed</td>
-<td><code>super().__init__(sdk)</code> (pass in sdk parameter)</td>
+<td><code>super().__init__(sdk)</code> (pass sdk parameter)</td>
 </tr>
 <tr>
 <td><strong>Send Inner Class</strong></td>
@@ -488,16 +526,16 @@ adapter<span class="token punctuation">.</span>Send<span class="token punctuatio
 <td><code>super().__init__(adapter, request_id, account_id)</code></td>
 </tr>
 <tr>
-<td>All Three Levels</td>
-<td>Most Cases</td>
-<td><strong>Just declare ConfigClass, do not touch <code>__init__</code></strong></td>
+<td>All Levels</td>
+<td>Most cases</td>
+<td><strong>Declare ConfigClass and do not touch <code>__init__</code></strong></td>
 </tr>
 </tbody></table></div>
 <h3 id="9-connection-information-and-route-discovery">9. Connection Information and Route Discovery</h3>
-<p>After the adapter registers routes, the framework records all route information. Users can use the following API to view the adapter's connection address:</p>
+<p>After registering routes, the framework records all route information. Users can use the following API to view the adapter's connection address:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
-<span class="token comment"># Get complete connection information for the adapter</span>
+<span class="token comment"># Get complete adapter connection information</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_connection_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {</span>
 <span class="token comment">#   "platform": "myplatform",</span>
@@ -519,20 +557,20 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 namespaces <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>list_namespaces<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {"myplatform": {"http": ["/myplatform/webhook"], "websocket": ["/myplatform/ws"]}}</span>
 
-<span class="token comment"># Get complete connection URLs for the namespace</span>
+<span class="token comment"># Get complete connection URL for namespace</span>
 urls <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"base_url": "http://localhost:8080", "http": [...], "websocket": [...]}</span>
 
-<span class="token comment"># Get detailed route information for the namespace</span>
+<span class="token comment"># Get detailed route information for namespace</span>
 routes <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"http": [{"path": "/myplatform/webhook", "methods": ["POST"]}],</span>
 <span class="token comment">#  "websocket": [{"path": "/myplatform/ws", "auth": false}]}</span>
 </code></pre>
 <blockquote>
-<p><strong>Tip</strong>: The information returned by <code>get_connection_info()</code> is suitable for displaying to users (such as WebUI), helping users configure the callback address or WebSocket connection address on the platform side. The <code>module_name</code> registered during route registration must exactly match the <code>platform</code> name registered by the adapter in ErisPulse, otherwise route discovery will not be correctly associated.</p>
+<p><strong>Note</strong>: The information returned by <code>get_connection_info()</code> is suitable for displaying to users (e.g., WebUI), helping users configure the platform side callback address or WebSocket connection address. The <code>module_name</code> registered during route registration must exactly match the <code>platform</code> name registered in ErisPulse for the adapter; otherwise, route discovery will not correctly associate.</p>
 </blockquote>
 <h3 id="10-sse-server-sent-events-support">10. SSE (Server-Sent Events) Support</h3>
-<p>ErisPulse has built-in, server-agnostic SSE support. Modules and adapters can register SSE endpoints using <code>@sdk.router.sse()</code>.</p>
+<p>ErisPulse includes server-agnostic SSE support, allowing modules and adapters to register SSE endpoints via <code>@sdk.router.sse()</code>.</p>
 <h4 id="basic-usage">Basic Usage</h4>
 <pre><code class="language-python"><span class="token keyword">import</span> asyncio
 <span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
@@ -570,11 +608,11 @@ routes <span class="token operator">=</span> sdk<span class="token punctuation">
 </thead>
 <tbody><tr>
 <td><code>sse.send(data, event=None, id=None, retry=None)</code></td>
-<td>Send an SSE event. Non-string data is automatically JSON serialized</td>
+<td>Send SSE event. Non-str data is automatically JSON serialized</td>
 </tr>
 <tr>
 <td><code>sse.close()</code></td>
-<td>Gracefully close the SSE connection (safe to call multiple times)</td>
+<td>Gracefully close SSE connection (safe to call multiple times)</td>
 </tr>
 <tr>
 <td><code>sse.closed</code></td>
@@ -582,7 +620,7 @@ routes <span class="token operator">=</span> sdk<span class="token punctuation">
 </tr>
 <tr>
 <td><code>sse.request</code></td>
-<td>The underlying request object (can be used to read query params, headers)</td>
+<td>Underlying request object (can be used to read query params, headers)</td>
 </tr>
 </tbody></table></div>
 <h4 id="using-in-routegroup">Using in RouteGroup</h4>
@@ -593,8 +631,8 @@ routes <span class="token operator">=</span> sdk<span class="token punctuation">
     <span class="token keyword">await</span> sse<span class="token punctuation">.</span>send<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"msg"</span><span class="token punctuation">:</span> <span class="token string">"hello"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="route-discovery">Route Discovery</h4>
-<p>SSE routes will automatically appear in the route discovery API:</p>
-<pre><code class="language-python"><span class="token comment"># list_namespaces will include the "sse" key</span>
+<p>SSE routes are automatically included in route discovery APIs:</p>
+<pre><code class="language-python"><span class="token comment"># list_namespaces will include "sse" key</span>
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>list_namespaces<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {"MyModule": {"http": [...], "websocket": [...], "sse": ["/MyModule/events"]}}</span>
 
@@ -602,26 +640,26 @@ sdk<span class="token punctuation">.</span>router<span class="token punctuation"
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"http": [...], "websocket": [...], "sse": [{"path": "/MyModule/events", "streaming": true}]}</span>
 
-<span class="token comment"># get_module_urls will generate complete URLs</span>
+<span class="token comment"># get_module_urls will generate full URL</span>
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"sse": [{"path": "/MyModule/events", "url": "http://localhost:8080/MyModule/events"}]}</span>
 </code></pre>
 <blockquote>
-<p><strong>Server-Agnostic Design</strong>: <code>SseEmitter</code> is decoupled from the underlying HTTP framework through callbacks. The framework provides <code>register_sse()</code> and <code>@sse</code> decorators as unified registration entry points, allowing adapters to implement SSE endpoints without directly depending on any underlying HTTP framework.</p>
+<p><strong>Server-agnostic Design</strong>: <code>SseEmitter</code> decouples through callbacks from the underlying HTTP framework. The framework provides <code>register_sse()</code> and <code>@sse</code> decorators as unified registration entry points, allowing adapters to implement SSE endpoints without directly depending on any underlying HTTP framework.</p>
 </blockquote>
 <h2 id="next-steps">Next Steps</h2>
 <ul>
-<li><a href="/docs/en/developer-guide/adapters/core-concepts.html">Adapter Core Concepts</a> - Learn about the adapter architecture</li>
-<li><a href="/docs/en/developer-guide/adapters/send-dsl.html">SendDSL Explained</a> - Learn how to send messages</li>
-<li><a href="/docs/en/developer-guide/adapters/converter.html">Converter Implementation</a> - Understand event transformation</li>
+<li><a href="/docs/en/developer-guide/adapters/core-concepts.html">Adapter Core Concepts</a> - Understand adapter architecture</li>
+<li><a href="/docs/en/developer-guide/adapters/send-dsl.html">SendDSL Detailed Guide</a> - Learn message sending</li>
+<li><a href="/docs/en/developer-guide/adapters/converter.html">Converter Implementation</a> - Understand event conversion</li>
 <li><a href="/docs/en/developer-guide/adapters/best-practices.html">Adapter Best Practices</a> - Develop high-quality adapters</li>
 </ul>
 
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/en/developer-guide/modules/best-practices.html"><small>Previous</small><br>Module Development Best Practices</a>
-        <a class="doc-pager-next" href="/docs/en/developer-guide/adapters/core-concepts.html"><small>Next</small><br>Core Concepts of Adapters</a>
+        <a class="doc-pager-prev" href="/docs/en/developer-guide/modules/best-practices.html"><small>Previous</small><br>Best Practices for Module Development</a>
+        <a class="doc-pager-next" href="/docs/en/developer-guide/adapters/core-concepts.html"><small>Next</small><br>Core Adapter Concepts</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

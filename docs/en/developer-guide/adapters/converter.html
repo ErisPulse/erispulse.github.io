@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Event Converter Implementation Guide - ErisPulse 文档中心</title>
-    <meta name="description" content="The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse&#39;s unified On..." />
+    <meta name="description" content="When to read this: Required reading within the adapter development path (Event Converter). Skip if not needed, as it does not affect the use of other feature..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/converter.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/converter.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/converter.html" />
     <meta property="og:title" content="Event Converter Implementation Guide - ErisPulse 文档中心" />
-    <meta property="og:description" content="The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse&#39;s unified On..." />
+    <meta property="og:description" content="When to read this: Required reading within the adapter development path (Event Converter). Skip if not needed, as it does not affect the use of other feature..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Event Converter Implementation Guide","description":"The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse's unified On...","url":"https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Event Converter Implementation Guide","description":"When to read this: Required reading within the adapter development path (Event Converter). Skip if not needed, as it does not affect the use of other feature...","url":"https://www.erisdev.com/docs/en/developer-guide/adapters/converter.html","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,19 +73,22 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="event-converter-implementation-guide">Event Converter Implementation Guide</h1>
-<p>The Event Converter (Converter) is one of the core components of the adapter, responsible for transforming platform-native events into ErisPulse's unified OneBot12 standard event format.</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>When to read this</strong>: Required reading within the adapter development path (Event Converter). Skip if not needed, as it does not affect the use of other features.</p>
+</div>
+<p>The Event Converter (Converter) is one of the core components of the adapter, responsible for converting native platform events into ErisPulse's unified OneBot12 standard event format.</p>
 <h2 id="converter-responsibilities">Converter Responsibilities</h2>
-<pre><code>Platform-native event ──→ Converter.convert() ──→ OneBot12 standard event
+<pre><code>Platform-native events ──→ Converter.convert() ──→ OneBot12 standard events
 </code></pre>
-<p>The Converter is only responsible for <strong>forward conversion</strong> (receiving direction), transforming platform-native event data into the OneBot12 standard format. Reverse conversion (sending direction) is handled by the <code>Send.Raw_ob12()</code> method.</p>
+<p>The <code>Converter</code> is responsible only for <strong>forward conversion</strong> (inbound direction), which means converting platform-native event data into the OneBot12 standard format. Reverse conversion (outbound direction) is handled by the <code>Send.Raw_ob12()</code> method.</p>
 <h3 id="core-principles">Core Principles</h3>
 <ol>
-<li><strong>Lossless conversion</strong>: Original data must be fully retained in the <code>{platform}_raw</code> field</li>
-<li><strong>Standard compatibility</strong>: The converted event must conform to the OneBot12 standard format</li>
-<li><strong>Platform extension</strong>: Platform-specific data is stored in fields with the <code>{platform}_</code> prefix</li>
+<li><strong>Lossless Conversion</strong>: Original data must be fully preserved in the <code>{platform}_raw</code> field</li>
+<li><strong>Standard Compatibility</strong>: Converted events must conform to the OneBot12 standard format</li>
+<li><strong>Platform Extensions</strong>: Platform-specific data is stored in fields prefixed with <code>{platform}_</code></li>
 </ol>
 <h2 id="baseconverter-base-class-recommended">BaseConverter Base Class (Recommended)</h2>
-<p>Starting from version 2.7.0, the framework provides the <code>BaseConverter</code> base class (<code>ErisPulse.Core.Bases</code>), which encapsulates the <strong>common field construction</strong> and <strong>common message segment utilities</strong> for OneBot12 events, allowing converters to focus only on type mapping:</p>
+<p>Starting from version 2.7.0, the framework provides the <code>BaseConverter</code> base class (<code>ErisPulse.Core.Bases</code>), which encapsulates the <strong>common field construction</strong> and <strong>common message segment utilities</strong> for OneBot12 events. This allows converters to focus solely on type mapping:</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Bases <span class="token keyword">import</span> BaseConverter
 
 
@@ -107,7 +110,7 @@
             <span class="token keyword">return</span> base
         <span class="token keyword">return</span> <span class="token boolean">None</span>
 </code></pre>
-<p><code>build_base_event()</code> already fills the following common fields:</p>
+<p>The <code>build_base_event()</code> method already fills in the following common fields:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -117,15 +120,15 @@
 </thead>
 <tbody><tr>
 <td><code>id</code></td>
-<td><code>raw_event["event_id"]</code>, UUID generated if missing</td>
+<td><code>raw_event["event_id"]</code>, a UUID is generated if missing</td>
 </tr>
 <tr>
 <td><code>time</code></td>
-<td><code>raw_event["timestamp"]</code>, current time if missing</td>
+<td><code>raw_event["timestamp"]</code>, the current time is used if missing</td>
 </tr>
 <tr>
 <td><code>platform</code></td>
-<td><code>platform</code> passed during initialization</td>
+<td>Provided via the <code>platform</code> argument during initialization</td>
 </tr>
 <tr>
 <td><code>self</code></td>
@@ -133,36 +136,36 @@
 </tr>
 <tr>
 <td><code>{platform}_raw</code></td>
-<td>Raw event (satisfies "lossless conversion" principle)</td>
+<td>The original event (satisfying the "lossless conversion" principle)</td>
 </tr>
 <tr>
 <td><code>{platform}_raw_type</code></td>
-<td>Raw event type</td>
+<td>The original event type</td>
 </tr>
 </tbody></table></div>
-<p>Common message segment utility methods (all static methods, directly reusable):</p>
+<p>Common message segment utility methods (all are static methods, directly reusable):</p>
 <pre><code class="language-python">converter<span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"hi"</span><span class="token punctuation">)</span>          <span class="token comment"># {"type": "text", "data": {"text": "hi"}}</span>
 converter<span class="token punctuation">.</span>at<span class="token punctuation">(</span><span class="token string">"123456"</span><span class="token punctuation">)</span>        <span class="token comment"># {"type": "at", "data": {"user_id": "123456"}}</span>
 converter<span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"file.png"</span><span class="token punctuation">)</span>   <span class="token comment"># {"type": "image", "data": {"file": "file.png"}}</span>
 </code></pre>
 <blockquote>
-<p>When manually implementing, the common field construction in <code>build_base_event</code> is boilerplate code that must be repeatedly written. Using <code>BaseConverter</code> eliminates this, and naturally ensures "lossless conversion" (the raw event always goes into <code>{platform}_raw</code>).</p>
+<p>When implementing manually, the construction of common fields in <code>build_base_event</code> is boilerplate code that must be repeatedly written. Using <code>BaseConverter</code> eliminates this part and naturally satisfies "lossless conversion" (the original event is always included in <code>{platform}_raw</code>).</p>
 </blockquote>
 <h2 id="convert-method">convert() Method</h2>
 <h3 id="method-signature">Method Signature</h3>
 <pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">convert</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_event<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""
-    Converts platform-native event data to OneBot12 standard format.
+    Converts a platform-native event into OneBot12 standard format
 
     :param raw_event: Platform-native event data
-    :return: OneBot12 standard event dictionary
+    :return: Event dictionary in OneBot12 standard format
     """</span>
     <span class="token keyword">pass</span>
 </code></pre>
 <h3 id="return-value-structure">Return Value Structure</h3>
 <p>The converted event dictionary should include the following standard fields:</p>
 <pre><code class="language-python"><span class="token punctuation">{</span>
-    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique event ID"</span><span class="token punctuation">,</span>
+    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"Unique event ID"</span><span class="token punctuation">,</span>
     <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1234567890</span><span class="token punctuation">,</span>           <span class="token comment"># Unix timestamp (seconds)</span>
     <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>             <span class="token comment"># Event type</span>
     <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"private"</span><span class="token punctuation">,</span>      <span class="token comment"># Detailed type</span>
@@ -175,11 +178,11 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
     <span class="token comment"># Message event fields</span>
     <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"sender_id"</span><span class="token punctuation">,</span>
     <span class="token string">"message"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">]</span><span class="token punctuation">,</span>              <span class="token comment"># OneBot12 message segment list</span>
-    <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"plain text content"</span><span class="token punctuation">,</span>
+    <span class="token string">"alt_message"</span><span class="token punctuation">:</span> <span class="token string">"Plain text content"</span><span class="token punctuation">,</span>
 
-    <span class="token comment"># Original data must be preserved</span>
-    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>     <span class="token comment"># Platform-native event complete data</span>
-    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"native event type name"</span><span class="token punctuation">,</span>
+    <span class="token comment"># Must retain original data</span>
+    <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>     <span class="token comment"># Complete platform-native event data</span>
+    <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"Native event type name"</span><span class="token punctuation">,</span>
 <span class="token punctuation">}</span>
 </code></pre>
 <h2 id="required-field-mapping">Required Field Mapping</h2>
@@ -195,7 +198,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tbody><tr>
 <td><code>id</code></td>
 <td>str</td>
-<td>Unique event identifier</td>
+<td>Unique identifier for the event</td>
 </tr>
 <tr>
 <td><code>time</code></td>
@@ -215,7 +218,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tr>
 <td><code>platform</code></td>
 <td>str</td>
-<td>Platform name, consistent with adapter registration name</td>
+<td>Platform name, consistent with the adapter registration name</td>
 </tr>
 <tr>
 <td><code>self</code></td>
@@ -223,7 +226,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <td>Bot information: <code>{"platform": "...", "user_id": "..."}</code></td>
 </tr>
 </tbody></table></div>
-<h3 id="message-event-additional-fields">Message Event Additional Fields</h3>
+<h3 id="additional-fields-for-message-events">Additional Fields for Message Events</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -245,10 +248,10 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tr>
 <td><code>alt_message</code></td>
 <td>str</td>
-<td>Plain text fallback content</td>
+<td>Plain text alternative content</td>
 </tr>
 </tbody></table></div>
-<h3 id="notice-event-additional-fields">Notice Event Additional Fields</h3>
+<h3 id="additional-fields-for-notice-events">Additional Fields for Notice Events</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -260,7 +263,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <tbody><tr>
 <td><code>user_id</code></td>
 <td>str</td>
-<td>Related user ID</td>
+<td>Relevant user ID</td>
 </tr>
 <tr>
 <td><code>operator_id</code></td>
@@ -269,7 +272,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 </tr>
 </tbody></table></div>
 <h2 id="message-segment-conversion">Message Segment Conversion</h2>
-<p>OneBot12 standard defines the following message segment types:</p>
+<p>The OneBot12 specification defines the following message segment types:</p>
 <pre><code class="language-python"><span class="token comment"># Text</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"text"</span><span class="token punctuation">:</span> <span class="token string">"Hello"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 
@@ -285,18 +288,18 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <span class="token comment"># File</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"file"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"file"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/doc.pdf"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 
-<span class="token comment"># Mention</span>
+<span class="token comment"># @Mention</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 
-<span class="token comment"># Mention All</span>
+<span class="token comment"># @Everyone</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"mention_all"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 
 <span class="token comment"># Reply</span>
 <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"reply"</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"message_id"</span><span class="token punctuation">:</span> <span class="token string">"msg_123"</span><span class="token punctuation">}</span><span class="token punctuation">}</span>
 </code></pre>
-<p>If the platform does not support certain message segment types, you can omit the segment or convert it to the closest standard type.</p>
+<p>If a platform does not support a particular message segment type, it can omit that segment or convert it to the closest standard type.</p>
 <h2 id="platform-extension-fields">Platform Extension Fields</h2>
-<p>Platform-specific data should be stored using the <code>{platform}_</code> prefix to avoid conflicts with standard fields:</p>
+<p>Platform-specific data should be stored with a <code>{platform}_</code> prefix to avoid conflicts with standard fields:</p>
 <pre><code class="language-python"><span class="token punctuation">{</span>
     <span class="token comment"># Standard fields</span>
     <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"message"</span><span class="token punctuation">,</span>
@@ -313,7 +316,7 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 <span class="token punctuation">}</span>
 </code></pre>
 <blockquote>
-<p><strong>Important</strong>: The <code>{platform}_raw</code> field is required, as ErisPulse's event system and modules may depend on it to access platform-native data.</p>
+<p><strong>Important</strong>: The <code>{platform}_raw</code> field is required, as ErisPulse's event system and modules may depend on it to access raw platform data.</p>
 </blockquote>
 <h2 id="complete-example">Complete Example</h2>
 <p>Here is a complete implementation of a Converter:</p>
@@ -393,10 +396,10 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 
         <span class="token keyword">return</span> base
 </code></pre>
-<h2 id="rich-media-message-conversion-example">Rich Media Message Conversion Example</h2>
-<p>Platform messages often contain rich media such as images, mentions, and replies. Here is an example of <code>_convert_message_segments</code> handling multiple message types:</p>
+<h2 id="rich-media-message-conversion-examples">Rich Media Message Conversion Examples</h2>
+<p>Platform-specific messages typically contain rich media content such as images, @mentions, and replies. Below is an example of <code>_convert_message_segments</code> handling various message types:</p>
 <pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">_convert_message_segments</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> raw_content<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""Converts platform-native message segment list into OneBot12 standard message segments"""</span>
+    <span class="token triple-quoted-string string">"""Convert a list of platform-native message segments into OneBot12 standard message segments"""</span>
     segments <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
 
     <span class="token keyword">for</span> item <span class="token keyword">in</span> raw_content<span class="token punctuation">:</span>
@@ -440,43 +443,43 @@ converter<span class="token punctuation">.</span>image<span class="token punctua
 </code></pre>
 <h2 id="common-pitfalls">Common Pitfalls</h2>
 <h3 id="1-missing-platform_raw-field">1. Missing <code>{platform}_raw</code> Field</h3>
-<p>This is the most common mistake. Missing the raw data field will prevent modules from accessing platform-specific information.</p>
+<p>This is the most common mistake. Missing the raw data field prevents the module from accessing platform-specific information.</p>
 <pre><code class="language-python">base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw"</span><span class="token punctuation">]</span> <span class="token operator">=</span> raw_event        <span class="token comment"># Required!</span>
 base_event<span class="token punctuation">[</span><span class="token string">"myplatform_raw_type"</span><span class="token punctuation">]</span> <span class="token operator">=</span> event_type   <span class="token comment"># Required!</span>
 </code></pre>
 <h3 id="2-incorrect-timestamp-format">2. Incorrect Timestamp Format</h3>
-<p>OneBot12 requires the <code>time</code> field to be a Unix timestamp in seconds (integer). If your platform returns milliseconds or an ISO format string, you must convert it:</p>
+<p>The OneBot12 standard requires the <code>time</code> field to be a Unix second-level timestamp (integer). If your platform returns a millisecond timestamp or an ISO-formatted string, you need to convert it:</p>
 <pre><code class="language-python"><span class="token keyword">import</span> time
 
-<span class="token comment"># Milliseconds → seconds</span>
+<span class="token comment"># Milliseconds → Seconds</span>
 <span class="token string">"time"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"timestamp"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">//</span> <span class="token number">1000</span>
 
-<span class="token comment"># ISO string → seconds</span>
+<span class="token comment"># ISO String → Seconds</span>
 <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>mktime<span class="token punctuation">(</span>time<span class="token punctuation">.</span>strptime<span class="token punctuation">(</span>raw_event<span class="token punctuation">[</span><span class="token string">"created_at"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">"%Y-%m-%dT%H:%M:%S"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
 <h3 id="3-missing-self-field">3. Missing <code>self</code> Field</h3>
-<p>The <code>self</code> field contains bot information, with <code>user_id</code> being the bot's account ID. This field is crucial in multi-bot scenarios:</p>
+<p>The <code>self</code> field contains information about the bot itself, with <code>user_id</code> being the bot's account ID. This field is crucial in multi-Bot scenarios:</p>
 <pre><code class="language-python"><span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
     <span class="token string">"platform"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>platform<span class="token punctuation">,</span>
-    <span class="token string">"user_id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>   <span class="token comment"># Bot's own ID</span>
+    <span class="token string">"user_id"</span><span class="token punctuation">:</span> raw_event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span>   <span class="token comment"># The bot's own ID</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<h3 id="4-using-non-standard-detail_type-values">4. Using Non-standard <code>detail_type</code> Values</h3>
-<p><code>detail_type</code> must use the values defined by OneBot12, such as <code>private</code>, <code>group</code>, <code>friend_increase</code>, <code>group_member_increase</code>, etc. Do not use platform-specific naming.</p>
+<h3 id="4-use-of-non-standard-detail_type-values">4. Use of Non-standard <code>detail_type</code> Values</h3>
+<p>The <code>detail_type</code> must use values defined by the OneBot12 standard, such as <code>private</code>, <code>group</code>, <code>friend_increase</code>, <code>group_member_increase</code>, etc. Do not use platform-specific naming.</p>
 <h3 id="5-round-trip-consistency">5. Round-trip Consistency</h3>
-<p>Ensure that the message segment types generated by the Converter correspond to the methods supported by the Send end. For example, if the Converter converts a platform image message to <code>{"type": "image", ...}</code>, then the Send end's <code>Image()</code> method must be able to handle image sending.</p>
+<p>Ensure that the message segment types generated by the Converter correspond to the methods supported by the Send end. For example, if the Converter converts the platform's image message to <code>{"type": "image", ...}</code>, then the <code>Image()</code> method on the Send end must be able to handle image sending.</p>
 <h2 id="best-practices">Best Practices</h2>
 <ol>
-<li><strong>Always preserve raw data</strong>: The <code>{platform}_raw</code> field must not be omitted</li>
-<li><strong>Use standard message segments</strong>: Convert platform messages to OneBot12 standard message segments whenever possible</li>
-<li><strong>Set <code>detail_type</code> appropriately</strong>: Use standard types (<code>private</code>/<code>group</code>/<code>channel</code> etc.), do not define custom ones</li>
-<li><strong>Handle edge cases</strong>: Raw events may lack certain fields; use <code>.get()</code> with reasonable default values</li>
-<li><strong>Performance considerations</strong>: <code>convert()</code> is called for every event; avoid performing time-consuming operations within it</li>
+<li><strong>Always retain the original data</strong>: The <code>{platform}_raw</code> field must not be omitted.</li>
+<li><strong>Use standard message segments</strong>: Try to convert platform-specific messages into OneBot12 standard message segments.</li>
+<li><strong>Set <code>detail_type</code> appropriately</strong>: Use standard types (<code>private</code>/<code>group</code>/<code>channel</code>, etc.), and do not define custom types.</li>
+<li><strong>Handle edge cases</strong>: The original event may lack certain fields; use <code>.get()</code> and provide reasonable default values.</li>
+<li><strong>Performance considerations</strong>: The <code>convert()</code> method is called on each event, so avoid performing time-consuming operations within it.</li>
 </ol>
-<h2 id="related-documentation">Related Documentation</h2>
+<h2 id="related-documents">Related Documents</h2>
 <ul>
-<li><a href="/docs/en/developer-guide/adapters/core-concepts.html">Adapter Core Concepts</a> - Overall adapter architecture</li>
-<li><a href="/docs/en/developer-guide/adapters/send-dsl.html">SendDSL Guide</a> - Reverse conversion (sending direction)</li>
+<li><a href="/docs/en/developer-guide/adapters/core-concepts.html">Adapter Core Concepts</a> - Adapter overall architecture</li>
+<li><a href="/docs/en/developer-guide/adapters/send-dsl.html">SendDSL Explained</a> - Reverse transformation (send direction)</li>
 <li><a href="/docs/en/standards/event-conversion.html">Event Conversion Standard</a> - Formal event conversion specification</li>
 <li><a href="/docs/en/standards/session-types.html">Session Type System</a> - Session type mapping rules</li>
 </ul>

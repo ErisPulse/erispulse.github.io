@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Процесс запуска и ручное управление - ErisPulse 文档中心</title>
-    <meta name="description" content="Методы await sdk.run() / await sdk.init() ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс за..." />
+    <meta name="description" content="Когда нужно читать эту статью: когда требуется вручную управлять цепочкой запуска, настраивать порядок запуска или устранять проблемы с запуском. Если это не..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/startup.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/startup.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/startup.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/startup.html" />
     <meta property="og:title" content="Процесс запуска и ручное управление - ErisPulse 文档中心" />
-    <meta property="og:description" content="Методы await sdk.run() / await sdk.init() ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс за..." />
+    <meta property="og:description" content="Когда нужно читать эту статью: когда требуется вручную управлять цепочкой запуска, настраивать порядок запуска или устранять проблемы с запуском. Если это не..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/startup.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Процесс запуска и ручное управление","description":"Методы await sdk.run() / await sdk.init() ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс за...","url":"https://www.erisdev.com/docs/ru/advanced/startup.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Процесс запуска и ручное управление","description":"Когда нужно читать эту статью: когда требуется вручную управлять цепочкой запуска, настраивать порядок запуска или устранять проблемы с запуском. Если это не...","url":"https://www.erisdev.com/docs/ru/advanced/startup.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,10 +73,13 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="процесс-запуска-и-ручное-управление">Процесс запуска и ручное управление</h1>
-<p>Методы <code>await sdk.run()</code> / <code>await sdk.init()</code> ErisPulse объединяют весь процесс запуска в одну строку кода. Однако, если вам нужно полностью настроить процесс запуска (например, частичная загрузка, динамическая регистрация, горячая замена, встраивание пользовательской стратегии загрузки), вам нужно понимать, что происходит внутри этой цепочки, а также как вручную управлять каждым шагом.</p>
-<p>В этой статье мы разбиваем процесс запуска на отдельные этапы, объясняем их назначение и порядок вызова, а также приводим пример ручного полного запуска.</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>Когда нужно читать эту статью</strong>: когда требуется вручную управлять цепочкой запуска, настраивать порядок запуска или устранять проблемы с запуском. Если это не требуется, можно пропустить, это не повлияет на использование других функций.</p>
+</div>
+<p>В ErisPulse <code>await sdk.run()</code> / <code>await sdk.init()</code> объединяют всю цепочку запуска в "одну строку кода". Однако, когда требуется полностью настроить процесс запуска (например, частичная загрузка, динамическая регистрация, горячая замена, внедрение пользовательской стратегии загрузки), необходимо понимать, что происходит внутри этой цепочки и как вручную управлять каждым шагом.</p>
+<p>В этой статье цепочка запуска разбивается на отдельные этапы, описываются их обязанности, порядок вызова, а также приводится пример ручного полного запуска.</p>
 <blockquote>
-<p>В этой статье предполагается, что вы уже запустили <a href="/docs/ru/getting-started/first-bot.html">первого робота</a> и знакомы с двумя режимами <code>sdk.run(keep_running=True/False)</code>. В этой статье мы сосредоточимся на разборе внутренней цепочки <code>init()</code>, а также на более низкоуровневых входных точках, таких как <code>init()</code>/<code>init_task()</code>/<code>init_sync()</code>.</p>
+<p>В этой статье предполагается, что вы уже запустили <a href="/docs/ru/getting-started/first-bot.html">первого робота</a> и знакомы с двумя режимами <code>sdk.run(keep_running=True/False)</code>. В этой статье акцент делается на разборе внутренней цепочки <code>init()</code>, а также более низкоуровневых входных точек <code>init()</code>/<code>init_task()</code>/<code>init_sync()</code>.</p>
 </blockquote>
 <h2 id="обзор-верхнего-уровня-sdk">Обзор верхнего уровня SDK</h2>
 <p>Помимо двух режимов <code>keep_running</code> для <code>run()</code>, SDK предоставляет несколько более низкоуровневых точек входа, которые отличаются <strong>асинхронностью, возвращаемым значением и обработкой исключений</strong>:</p>
@@ -538,8 +541,8 @@ pm2 <span class="token builtin class-name">set</span> mybot.restart_delay <span 
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ru/advanced/connections.html"><small>Previous</small><br>Пул соединений и трансляция</a>
-        <a class="doc-pager-next" href="/docs/ru/advanced/transcript.html"><small>Next</small><br>Ящик для диалогов (Транскрипт)</a>
+        <a class="doc-pager-prev" href="/docs/ru/advanced/connections.html"><small>Previous</small><br>Пул подключений и трансляция</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/transcript.html"><small>Next</small><br>Транскрипт (Transcript)</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

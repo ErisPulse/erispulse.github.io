@@ -264,7 +264,7 @@
 </tr>
 <tr>
 <td>🟡 中等</td>
-<td>18</td>
+<td>26</td>
 </tr>
 <tr>
 <td>🟢 轻微</td>
@@ -272,7 +272,7 @@
 </tr>
 <tr>
 <td><strong>合计</strong></td>
-<td><strong>37</strong></td>
+<td><strong>45</strong></td>
 </tr>
 </tbody></table></div>
 <div class="table-wrapper"><table>
@@ -283,15 +283,15 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>适配器</td>
-<td>6</td>
+<td>事件系统</td>
+<td>12</td>
 </tr>
 <tr>
 <td>配置系统</td>
-<td>11</td>
+<td>12</td>
 </tr>
 <tr>
-<td>事件系统</td>
+<td>适配器</td>
 <td>7</td>
 </tr>
 <tr>
@@ -304,7 +304,7 @@
 </tr>
 <tr>
 <td>加载系统</td>
-<td>3</td>
+<td>4</td>
 </tr>
 <tr>
 <td>路由</td>
@@ -853,6 +853,79 @@
 <p><strong>回归测试</strong>: <code>tests/unit/test_unit_config.py::TestSectionAndDottedDirtyConsistency</code>（变体 A 两种插入序 / 变体 B 落盘与顺序无关 / 三层混合存活 / 隔离拷贝 / 祖先子树隔离）</p>
 <p><strong>严重性</strong>: 🟡 中等</p>
 <p><strong>类型</strong>: 配置系统</p>
+<h3 id="bug-040-平台切段消息的命令尾部参数静默丢失">[BUG-040] 平台切段消息的命令尾部参数静默丢失</h3>
+<p><strong>问题</strong>: 平台把一条消息切成多个 text 段（如 <code>/kick</code> 与参数之间夹着 mention 段、或输入法分段）时，命令分发只取第一个 text 段做匹配——<code>/艾特 @xxx 123</code> 解析为无参数的 <code>艾特</code>，声明了 <code>args=</code> 的命令直接报"参数缺失"，且无任何留痕。
+<strong>原因</strong>: <code>command.py</code> 的文本提取循环取到首个 <code>type=="text"</code> 段后 <code>break</code>，其余段（含全部非文本段）被丢弃。
+<strong>影响版本</strong>: 2.6.0（命令分发引入）- 2.10.0
+<strong>修复版本</strong>: 2.10.1-dev.0
+<strong>修复内容</strong>: 命令文本改为按段顺序收集全部 text 段空格拼接；mention/图片夹层不再导致命令整体无法解析；同步补齐畸形段容错（<code>message</code> 为 None/字符串/非 dict 段不再击穿分发器）。
+<strong>回归测试</strong>: tests/unit/test_unit_command_multiseg.py</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 事件系统</p>
+<h3 id="bug-041-被拒绝命令经-alt_message-整链重跑重复回复与权限函数副作用双触发">[BUG-041] 被拒绝命令经 alt_message 整链重跑：重复回复与权限函数副作用双触发</h3>
+<p><strong>问题</strong>: 适配器的 <code>alt_message</code> 与消息段文本不一致时（如 alt 含 @文本前缀），命中命令被 scope/ACL/master/permission 拒绝后，分发器用 alt_message 把整条链重跑一遍——用户收到两条"权限不足"回复，自定义权限函数（常带查库/计数副作用）被调用两次。
+<strong>原因</strong>: 拒绝路径 <code>return False</code> 与"未命中命令"共用同一返回值，分发器据此认为可尝试 alt 兜底；而事件在拒绝前已被认领，重跑仅多执行了回复与权限判定。
+<strong>影响版本</strong>: 2.9.0（治理/权限链成形）- 2.10.0
+<strong>修复版本</strong>: 2.10.1-dev.0
+<strong>修复内容</strong>: 文本处理改三态契约（unmatched/consumed/rejected）——命中注册命令后（无论拒绝与否）不再 alt 回退；仅未命中任何命令时保持 alt 兜底。
+<strong>回归测试</strong>: tests/unit/test_unit_command_multiseg.py::test_denied_command_not_rerun_via_alt</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 事件系统</p>
+<h3 id="bug-042-命令处理器内注册的-wait_reply-被同一条触发消息立即消费">[BUG-042] 命令处理器内注册的 wait_reply 被同一条触发消息立即消费</h3>
+<p><strong>问题</strong>: 命令执行体内调用 <code>wait_reply</code> / 注册交互等待时，等待被同一条命令消息立即命中——交互流首问被跳过，"用户回复"实为命令文本本身（答非所问/数据污染）。
+<strong>原因</strong>: <code>_handle_message</code> 在方法开头与结尾各调用一次 <code>interaction.resolve</code>，命令执行后结尾的二次 resolve 会命中执行期间新注册的等待；cmdpass 关闭时 alt 缺失场景判定为空串直接放行，加重了该问题。
+<strong>影响版本</strong>: 2.8.0（交互会话系统引入）- 2.10.0
+<strong>修复版本</strong>: 2.10.1-dev.0
+<strong>修复内容</strong>: 分发链收敛为单次 <code>interaction.resolve</code>（方法开头处），删除结尾二次调用；等待统一由下一条消息消费。
+<strong>回归测试</strong>: tests/unit/test_unit_command_multiseg.py::test_wait_reply_not_consumed_by_command_trigger</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 事件系统</p>
+<h3 id="bug-043-select-同键多路等待后者静默取消前者">[BUG-043] select() 同键多路等待后者静默取消前者</h3>
+<p><strong>问题</strong>: <code>event.select()</code> 的多条期望推导出同一会话键（同 user 不同 pattern、多条 session 期望等）时，后注册路把先注册路以"冲突"取消，select 直接抛 <code>InteractionCancelled</code> 而非文档承诺的超时返回 <code>(None, None)</code>。
+<strong>原因</strong>: 每路独立调用 <code>interaction.register</code>，其互斥语义对同键旧等待发 <code>REASON_CONFLICT</code> 取消；注释声称"同 user 多路因事件副本独立互不冲突"不成立——副本只改 user_id，同 user 多路的键完全相同。
+<strong>影响版本</strong>: 2.9.0（select 引入）- 2.10.0
+<strong>修复版本</strong>: 2.10.1-dev.0
+<strong>修复内容</strong>: select 改为聚合等待——全部期望合并为自定义 matcher 的单条目（按键集合登记、共享同一 future），任一路命中即返回对应下标；同键多路天然共存。
+<strong>回归测试</strong>: tests/unit/test_unit_command_multiseg.py::test_select_same_user_multi_branch</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 事件系统</p>
+<h3 id="bug-044-baseconverterat-产出-ob11-遗留-at-段全框架-mention-判定不识别">[BUG-044] BaseConverter.at() 产出 OB11 遗留 "at" 段，全框架 mention 判定不识别</h3>
+<p><strong>问题</strong>: 适配器用 <code>BaseConverter.at()</code> 组装入站事件时，<code>must_at_bot</code> / <code>has_mention()</code> / <code>on_at_message</code> 全部失明——@机器人命令在群里静默失效。
+<strong>原因</strong>: <code>at()</code> 产出 <code>{"type": "at"}</code>（OB11 形态），而框架全部 mention 判定与构建侧（MessageBuilder/发送修饰器）均为 OB12 的 <code>"mention"</code>，双轨并存且无任何告警。
+<strong>影响版本</strong>: 引入版本不早于 2.5.0 - 2.10.0
+<strong>修复版本</strong>: 2.10.1-dev.0
+<strong>修复内容</strong>: <code>at()</code> 改产 <code>{"type": "mention", "data": {"user_id": ...}}</code>（方法名保留别名，新增 <code>mention</code> 别名）。
+<strong>回归测试</strong>: tests/unit/test_unit_command_multiseg.py::test_converter_at_produces_mention</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 适配器</p>
+<h3 id="bug-045-无-alt_message-的适配器上交互原语永久超时命令穿透失效">[BUG-045] 无 alt_message 的适配器上交互原语永久超时、命令穿透失效</h3>
+<p><strong>问题</strong>: 适配器只填 message 段不填 <code>alt_message</code> 时：<code>confirm</code> / <code>choose</code> / <code>collect</code> 对用户明文回复（如"是"）永久等待；等待期间的已注册命令永远无法穿透执行；<code>Event.get_text()</code> 返回空串导致脚手架示例静默失效。
+<strong>原因</strong>: 上述路径全部直取 <code>alt_message</code> 字符串、无消息段回退——框架"alt_message 为适配器可选字段"的契约下，仅段填充是合法形态。
+<strong>影响版本</strong>: 各交互原语引入版本 - 2.10.0
+<strong>修复版本</strong>: 2.10.1-dev.0
+<strong>修复内容</strong>: 统一走 <code>alt_message</code> 优先 + text 段回退的 <code>extract_text</code> 口径（交互原语五处取值/校验点、cmdpass 判定、<code>Event.get_text()/get_message_text()</code>）。
+<strong>回归测试</strong>: tests/unit/test_unit_command_multiseg.py</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 事件系统</p>
+<h3 id="bug-046-声明式配置模板的嵌套子表头漂移为顶层表">[BUG-046] 声明式配置模板的嵌套子表头漂移为顶层表</h3>
+<p><strong>问题</strong>: 嵌套 dataclass 声明的配置（ConfigClass 内嵌 dataclass 字段）首次生成配置模板时，子表头 <code>[Nested]</code> 落在文件顶层而非组件节内——适配器读 <code>cfg.嵌套字段</code> 拿不到值；<code>config.full.example</code> 中同样错位。
+<strong>原因</strong>: 模板生成器对嵌套 dataclass 渲染相对表头（<code>[Nested]</code>），而 TOML 表头语义是从根算起的绝对路径；<code>setConfigTemplate</code> 旧实现把解析后的表对象搬进组件节、<code>full.example</code> 直接文本拼装，两条路径都未把相对表头重锚到组件路径下。
+<strong>影响版本</strong>: 2.10.0 - 2.10.1（嵌套 dataclass 模板渲染随该版本引入）
+<strong>修复版本</strong>: 2.10.2
+<strong>修复内容</strong>: <code>setConfigTemplate</code> 按模板解析出的子表路径集合精确重锚表头（<code>[Nested]</code> → <code>[组件名.Nested]</code>）；<code>config.full.example</code> 生成侧改传 <code>_prefix</code> 直接产出绝对表头。
+<strong>回归测试</strong>: tests/unit/test_unit_config.py::TestTomlclassEngineMigration::test_template_write_idempotent_and_nested_anchored</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 配置系统 / 适配器</p>
+<hr>
+<h3 id="bug-047-服务目录全量枚举漏掉懒加载模块">[BUG-047] 服务目录全量枚举漏掉懒加载模块</h3>
+<p><strong>问题</strong>: <code>sdk.module.services()</code> 全量目录对未实例化（懒加载）模块一律跳过——模块声明了 <code>meta.services</code> 也不出现在目录中，以目录为发现入口的消费方（AI 智能体、help 模块等）无法发现其服务；单模块精确查询 <code>services("Name")</code> 与拓扑 <code>get_topology()</code> 不受影响。
+<strong>原因</strong>: <code>ModuleManager.services()</code> 全量枚举分支对无契约缓存（未加载）的模块在<strong>现场解析契约之后</strong>仍无条件 <code>continue</code>——本意是跳过"未声明服务的模块"，实际把未加载模块整体跳过了；已加载模块因加载时写入契约缓存不受影响。
+<strong>影响版本</strong>: 2.9.0 - 2.10.1（模块 RPC 与服务目录随 2.9.0 引入）
+<strong>修复版本</strong>: 2.10.2
+<strong>修复内容</strong>: 删除无条件跳过，统一由"解析结果为空才跳过"裁决；未加载模块现场解析 <code>get_meta().services</code>（与 <code>module.call()</code> 白名单同口径），声明了服务的照常进入目录。
+<strong>回归测试</strong>: tests/unit/test_unit_module_rpc.py::TestServicesDirectory::test_lazy_declared_module_in_full_directory</p>
+<p><strong>严重性</strong>: 🟡 中等
+<strong>类型</strong>: 加载系统</p>
 
         </article>
         

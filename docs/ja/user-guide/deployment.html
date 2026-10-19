@@ -75,19 +75,19 @@
             <h1 id="部署ガイド">部署ガイド</h1>
 <p>ErisPulse ロボットを本番環境にデプロイするためのベストプラクティス。</p>
 <h2 id="docker-部署推奨">Docker 部署（推奨）</h2>
-<p>ErisPulse は公式の Docker イメージを提供しており、ErisPulse フレームワークと Dashboard 管理パネルが内蔵されています。<code>linux/amd64</code> および <code>linux/arm64</code> アーキテクチャをサポートしています。</p>
-<h3 id="速攻起動">速攻起動</h3>
-<pre><code class="language-bash"><span class="token comment"># イメージを取得</span>
+<p>ErisPulse は公式の Docker イメージを提供しており、ErisPulse フレームワークと Dashboard 管理パネルが内蔵されており、<code>linux/amd64</code> および <code>linux/arm64</code> アーキテクチャをサポートしています。</p>
+<h3 id="すぐに始める">すぐに始める</h3>
+<pre><code class="language-bash"><span class="token comment"># イメージの取得</span>
 <span class="token function">docker</span> pull erispulse/erispulse:latest
 
-<span class="token comment"># docker-compose.yml をダウンロード</span>
+<span class="token comment"># docker-compose.yml のダウンロード</span>
 <span class="token function">curl</span> <span class="token parameter variable">-O</span> https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/docker-compose.yml
 
 <span class="token comment"># Dashboard のログイントークンを設定して起動</span>
 <span class="token assign-left variable">ERISPULSE_DASHBOARD_TOKEN</span><span class="token operator">=</span>your-token <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
 <p>起動後、<code>http://localhost:8000/Dashboard</code> にアクセスし、設定したトークンをパスワードとしてログインします。</p>
-<h3 id="国内用のイメージ加速">国内用のイメージ加速</h3>
+<h3 id="国内向けのイメージ加速">国内向けのイメージ加速</h3>
 <p>Docker Hub にアクセスできない場合は、GitHub Container Registry を使用してイメージを取得できます：</p>
 <pre><code class="language-bash"><span class="token function">docker</span> pull ghcr.io/erispulse/erispulse:latest
 </code></pre>
@@ -115,7 +115,7 @@
     <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
 </code></pre>
 <blockquote>
-<p>上記の設定および健全性チェック、タイムゾーンと言語環境変数が含まれている、リポジトリのルートにある <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> を直接使用することを推奨します。</p>
+<p>推奨されるのは、リポジトリのルートにある <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> を直接使用することです。これには、上記の設定とヘルスチェック、タイムゾーン、言語環境変数が含まれています。</p>
 </blockquote>
 <h3 id="環境変数">環境変数</h3>
 <div class="table-wrapper"><table>
@@ -144,26 +144,26 @@
 <tr>
 <td><code>LANG</code></td>
 <td><code>en_US.UTF-8</code></td>
-<td>システム言語、起動時の言語を自動検出</td>
+<td>システム言語、起動画面の言語を自動検出</td>
 </tr>
 <tr>
 <td><code>ERISPULSE_LANG</code></td>
 <td>空</td>
-<td>起動時の言語を強制指定：<code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code>（<code>LANG</code> を上書き）</td>
+<td>起動画面の言語を強制指定：<code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code>（<code>LANG</code> を上書き）</td>
 </tr>
 </tbody></table></div>
 <h3 id="データの永続化">データの永続化</h3>
-<p><code>./config</code> ディレクトリは設定ファイルとデータベースをマウントしており、以下の内容を含んでいます：</p>
+<p><code>./config</code> ディレクトリは設定ファイルとデータベースをマウントしており、以下の内容を含みます：</p>
 <ul>
 <li><code>config/config.toml</code> — 設定ファイル</li>
 <li><code>config/config.db</code> — SQLite ストレージデータベース</li>
-<li><code>config/.packages</code> — Python site-packages の永続化ボリューム、フレームワーク、アダプター、およびインストールされたモジュールを保存（初期起動時にエントリポイントがイメージ内に含まれるバックアップから自動的に初期化し、その後のモジュールインストールやフレームワークのホットアップデートはこのディレクトリに書き込まれます）</li>
+<li><code>config/.packages</code> — Python site-packages の永続化ボリューム、フレームワーク、アダプタ、およびインストールされたモジュールを保存します（初期起動時にエントリポイントがイメージに含まれるバックアップから自動的に初期化され、以降のモジュールインストールとフレームワークのホットアップデートはこのディレクトリに書き込まれます）</li>
 </ul>
 <blockquote>
-<p><strong>フレームワークのアップグレード（pre/rc を含む）とイメージの自己修復</strong>：エントリポイントは、各コンテナ起動時に、コアパッケージの整合性を自動的にチェックします。破損した場合、"ユーザーがインストールしたバージョンを優先"する原則に基づき、修復が行われます。永続ボリューム内に明示的にインストール/アップグレードされたバージョン（例：Dashboard でインストールされた pre バージョン）は、PyPI から<strong>同バージョンを再インストール</strong>されます。静かにイメージ内に含まれるバージョンに戻ることはありません。したがって、Dashboard でフレームワークをアップグレードした後、任意回のコンテナ再起動でも、目標バージョンを維持することができます。</p>
+<p><strong>フレームワークのアップグレード（pre/rcを含む）とイメージの自己修復</strong>：エントリポイントは、各コンテナ起動時にコアパッケージの整合性を自己チェックし、損傷した場合は「ユーザーがインストールしたバージョンを優先」する原則で修復します — 損傷した場合、PyPIから<strong>同じバージョン</strong>を再インストールし、イメージに含まれるバージョンに静かにロールバックすることはありません。したがって、Dashboard でフレームワークをアップグレードした後、任意回のコンテナ再起動でも目標バージョンが維持されます。</p>
 </blockquote>
-<h2 id="dashboard-管理面板">Dashboard 管理面板</h2>
-<p>ErisPulse Docker イメージには、Web による視覚化管理インターフェースを提供する Dashboard モジュールが内蔵されています。</p>
+<h2 id="dashboard-管理パネル">Dashboard 管理パネル</h2>
+<p>ErisPulse Docker イメージには、Web 可視化管理インターフェースを提供する Dashboard モジュールが内蔵されています。</p>
 <h3 id="機能概要">機能概要</h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -173,24 +173,24 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>仪表盘</td>
-<td>システム概要、CPU/メモリ監視、稼働時間、イベント統計</td>
+<td>ダッシュボード</td>
+<td>システム概要、CPU/メモリ監視、実行時間、イベント統計</td>
 </tr>
 <tr>
 <td>ロボット管理</td>
 <td>各プラットフォームのロボットのオンライン状態と情報を表示</td>
 </tr>
 <tr>
-<td>事件表示</td>
-<td>実時イベントストリーム、タイプやプラットフォームでフィルタリング可能</td>
+<td>イベントの表示</td>
+<td>実時イベントストリーム、タイプとプラットフォームでフィルタリング可能</td>
 </tr>
 <tr>
-<td>ログ表示</td>
-<td>モジュールとレベルでフィルタリング可能なログビューア</td>
+<td>ログの表示</td>
+<td>モジュールとレベルでフィルタリングされたログビューアー</td>
 </tr>
 <tr>
 <td>モジュール管理</td>
-<td>インストール済みのモジュールとアダプターの表示、読み込み、アンロード</td>
+<td>インストールされたモジュールとアダプタを表示、ロード、アンロード</td>
 </tr>
 <tr>
 <td>モジュールストア</td>
@@ -213,30 +213,30 @@
 <td>すべての管理操作を記録</td>
 </tr>
 </tbody></table></div>
-<h3 id="dashboard-によるモジュールのインストール">Dashboard によるモジュールのインストール</h3>
-<p>Dashboard にはモジュールストア機能が統合されており、以下の方法でモジュールをインストールできます。</p>
+<h3 id="dashboard-からモジュールをインストール">Dashboard からモジュールをインストール</h3>
+<p>Dashboard にはモジュールストア機能が統合されており、以下の方法でモジュールをインストールできます：</p>
 <ol>
-<li><strong>ストアからインストール</strong>：リモートのモジュールリストを閲覧し、必要なモジュールを選択してワンクリックでインストール</li>
-<li><strong>ローカルのパッケージをアップロード</strong>：<code>.whl</code> または <code>.zip</code> ファイルを直接アップロードしてインストール。個人開発のモジュールをテストする際に便利です。</li>
+<li><strong>ストアからインストール</strong>：リモートのモジュールリストを閲覧し、必要なモジュールをワンクリックでインストール</li>
+<li><strong>ローカルパッケージのアップロード</strong>：<code>.whl</code> または <code>.zip</code> ファイルを直接アップロードしてインストールし、開発中のモジュールをテストするのに便利です</li>
 </ol>
 <blockquote>
-<p><strong>モジュール開発者のための迅速なテストフロー</strong>：Docker でデプロイ後、Dashboard の「ローカルパッケージのアップロード」機能を使って、ビルドした <code>.whl</code> ファイルを直接アップロードしてテストを行えます。コンテナの手動操作は不要です。</p>
+<p><strong>モジュール開発者の高速テストフロー</strong>：Docker 部署後、Dashboard の「ローカルパッケージのアップロード」機能を使って、ビルドした <code>.whl</code> ファイルを直接アップロードしてテストできます。コンテナの手動操作は不要です。</p>
 </blockquote>
 <h2 id="プロセス監督とハードリスタート">プロセス監督とハードリスタート</h2>
-<p>ErisPulse のハードリスタート（<code>sdk.hard_restart()</code>）は、<strong>外部監督者</strong>がプロセスの終了コードが 42 のときにプロセスを再起動することに依存しています。SDK 自体は新しいプロセスを起動しません。本番環境では監督者の設定を必須とし、そうでなければハードリスタート後にプロセスが自動的に復旧しません。</p>
+<p>ErisPulse のハードリスタート（<code>sdk.hard_restart()</code>）は、<strong>外部監督者</strong>がプロセスの終了コードが 42 のときにプロセスを再起動することに依存します — SDK 自体は新しいプロセスを起動しません。本番環境では、監督者を設定する必要があります。そうでなければ、ハードリスタート後にプロセスは自動的に復元されません：</p>
 <ul>
-<li>Docker: <code>restart: unless-stopped</code>（終了コードが何であれ、42 を含むすべての終了コードで再起動）</li>
+<li>Docker: <code>restart: unless-stopped</code>（終了コード 42 を含むすべての終了コードで再起動）</li>
 <li>systemd: <code>Restart=on-failure</code> + <code>RestartForceExitStatus=42</code></li>
 <li>PM2 / supervisord: 42 を再起動可能な終了コードに追加</li>
-<li>純粋な Python によるカスタム監督者: <code>Popen</code> のループ + <code>returncode == 42</code> の検出</li>
+<li>純粋な Python の独自監督者: ループ <code>Popen</code> + <code>returncode == 42</code> の検出</li>
 </ul>
 <p>各監督者の完全な設定例と終了コード 42 の契約に関する説明は、<a href="/docs/ja/advanced/startup.html#%E7%9B%A3%E7%9D%A3%E8%80%85%E3%82%AC%E3%82%A4%E3%83%89">起動フロー → 監督者ガイド</a>をご覧ください。</p>
 <h2 id="ヘルスチェック">ヘルスチェック</h2>
-<p>SDK には、ヘルスチェック用エンドポイントが内蔵されています：</p>
+<p>SDK にはヘルスチェックエンドポイントが内蔵されています：</p>
 <pre><code class="language-bash"><span class="token comment"># ヘルスチェック</span>
 <span class="token function">curl</span> http://localhost:8000/health
 </code></pre>
-<p>Docker でのヘルスチェックは、<code>docker-compose.yml</code> に追加することで設定できます：</p>
+<p>Docker のヘルスチェックは <code>docker-compose.yml</code> に追加できます：</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">healthcheck</span><span class="token punctuation">:</span>
@@ -247,7 +247,7 @@
       <span class="token key atrule">retries</span><span class="token punctuation">:</span> <span class="token number">3</span>
 </code></pre>
 <h2 id="リバースプロキシ">リバースプロキシ</h2>
-<p>Nginx などのリバースプロキシを使用してダッシュボードを公開する必要がある場合：</p>
+<p>Nginx などのリバースプロキシを使用して Dashboard を公開する必要がある場合：</p>
 <pre><code class="language-nginx">server {
     listen 80;
     server_name bot.example.com;
@@ -259,7 +259,7 @@
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # WebSocket のサポート（ダッシュボードのリアルタイムイベントストリームが必要）
+    # WebSocket 支援（Dashboard の実時イベントストリームが必要）
     location /Dashboard/ws {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -272,7 +272,7 @@
 <pre><code class="language-bash"><span class="token function">sudo</span> certbot <span class="token parameter variable">--nginx</span> <span class="token parameter variable">-d</span> bot.example.com
 </code></pre>
 <h2 id="手動デプロイpip">手動デプロイ（pip）</h2>
-<p>Docker を使わずに、手動でデプロイすることも可能です。</p>
+<p>Docker を使用しない場合、手動でデプロイすることも可能です。</p>
 <h3 id="本番環境の設定">本番環境の設定</h3>
 <pre><code class="language-toml"><span class="token comment"># config/config.toml</span>
 
@@ -289,7 +289,7 @@
 <span class="token key property">enable_lazy_loading</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
 </code></pre>
 <h3 id="systemd-linux">systemd (Linux)</h3>
-<p><code>/etc/systemd/system/erispulse-bot.service</code> を作成します：</p>
+<p><code>/etc/systemd/system/erispulse-bot.service</code> を作成：</p>
 <pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Unit</span><span class="token punctuation">]</span></span>
 <span class="token key attr-name">Description</span><span class="token punctuation">=</span><span class="token value attr-value">ErisPulse Bot</span>
 <span class="token key attr-name">After</span><span class="token punctuation">=</span><span class="token value attr-value">network.target</span>
@@ -307,14 +307,14 @@
 <span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Install</span><span class="token punctuation">]</span></span>
 <span class="token key attr-name">WantedBy</span><span class="token punctuation">=</span><span class="token value attr-value">multi-user.target</span>
 </code></pre>
-<p>管理コマンド：</p>
+<p>管理：</p>
 <pre><code class="language-bash"><span class="token function">sudo</span> systemctl daemon-reload
 <span class="token function">sudo</span> systemctl start erispulse-bot
 <span class="token function">sudo</span> systemctl <span class="token builtin class-name">enable</span> erispulse-bot
 <span class="token function">sudo</span> journalctl <span class="token parameter variable">-u</span> erispulse-bot <span class="token parameter variable">-f</span>
 </code></pre>
 <h3 id="supervisor">Supervisor</h3>
-<p><code>/etc/supervisor/conf.d/erispulse-bot.conf</code> を作成します：</p>
+<p><code>/etc/supervisor/conf.d/erispulse-bot.conf</code> を作成：</p>
 <pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">program:erispulse-bot</span><span class="token punctuation">]</span></span>
 <span class="token key attr-name">command</span><span class="token punctuation">=</span><span class="token value attr-value">/opt/erispulse-bot/venv/bin/python -m ErisPulse run main.py</span>
 <span class="token key attr-name">directory</span><span class="token punctuation">=</span><span class="token value attr-value">/opt/erispulse-bot</span>
@@ -324,23 +324,43 @@
 <span class="token key attr-name">stderr_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/err.log</span>
 <span class="token key attr-name">stdout_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/out.log</span>
 </code></pre>
-<h2 id="セキュリティに関する推奨事項">セキュリティに関する推奨事項</h2>
+<h3 id="uv-tool-による分離デプロイcli-とプロジェクト環境の分離">uv tool による分離デプロイ（CLI とプロジェクト環境の分離）</h3>
+<p><code>uv tool install</code> は <code>epsdk</code> を<strong>独立したツール環境</strong>としてインストールし、CLI 自身とプロジェクト依存関係を完全に分離します：CLI のアップグレードはプロジェクトの <code>.venv</code> に影響を与えず、プロジェクトの依存関係の変更も CLI に影響を与えません。</p>
+<pre><code class="language-bash"><span class="token comment"># 1. グローバルに CLI をインストール（自動的に epsdk / ep コマンドを公開）</span>
+uv tool <span class="token function">install</span> ErisPulse
+
+<span class="token comment"># 2. プロジェクト内にロボットの依存関係のみを配置（.venv は uv で管理）</span>
+<span class="token builtin class-name">cd</span> /opt/erispulse-bot
+uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># 必要に応じてアダプタを追加</span>
+
+<span class="token comment"># 3. CLI を使用して実行（プロジェクトの .venv に含まれる解釈子を自動的に検出）</span>
+epsdk run main.py
+</code></pre>
+<p>動作の要点：</p>
+<ul>
+<li><code>epsdk run</code> の対象解釈子の検出順序：<code>ERISPULSE_PYTHON</code> 環境変数 → プロジェクトの <code>.venv</code> → 現在の解釈子；ツール環境自体は CLI にのみ対応し、コンポーネント（アダプタ/モジュール）はプロジェクトの <code>.venv</code> にインストールする必要があります</li>
+<li><code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> はすべてプロジェクトの <code>.venv</code> に作用し、ツール環境を汚染しません</li>
+<li>CLI のアップグレード：<code>uv tool upgrade ErisPulse</code>（または <code>epsdk self-update</code> を直接実行し、uv tool 環境では自動的に <code>uv tool upgrade</code> に切り替わります）；プロジェクトの依存関係のアップグレード：プロジェクトディレクトリ内で <code>uv sync</code> / <code>uv add</code> を実行し、互いに影響しません</li>
+<li>サーバー環境では、ツール環境は uv で統一管理されます（<code>uv tool list</code> で確認、<code>uv tool upgrade --all</code> で一括アップグレード）；グローバルな pip パッケージの手動管理は不要です</li>
+<li>プロジェクトのないディレクトリで <code>uv run epsdk ...</code> を実行した場合、一時的な隔離環境に移行し、インストールされたコンポーネントは永続化されません；サーバーでは常に <code>epsdk</code> を直接呼び出すか、まず <code>cd</code> でプロジェクトディレクトリに移動してください</li>
+</ul>
+<h2 id="セキュリティの推奨事項">セキュリティの推奨事項</h2>
 <ol>
-<li><strong>Dashboard トークンの設定</strong>：強力なランダムトークンを使用し、デフォルト値を使用しないでください。</li>
-<li><strong>ポートをパブリックに公開しない</strong>：リバースプロキシ + SSL を使用しない限り、Dashboard のポートをローカルネットワークに制限してください。</li>
-<li><strong>データディレクトリを保護する</strong>：<code>config/</code> ディレクトリには設定とデータベースが含まれているため、適切なファイル権限を設定してください。</li>
-<li><strong>定期的なアップデート</strong>：<code>epsdk self-update</code> を使用するか、最新の Docker イメージを取得してください。</li>
-<li><strong>root で実行しない</strong>：手動でデプロイする場合は、専用のユーザーを作成してください。</li>
-<li><strong>Docker のリスタートポリシーを使用する</strong>：<code>restart: unless-stopped</code> を使用して、異常終了後に自動的に再起動するようにしてください。</li>
+<li><strong>Dashboard トークンの設定</strong>：強力なランダムトークンを使用し、デフォルト値を使用しないでください</li>
+<li><strong>ポートをパブリックに公開しない</strong>：リバースプロキシ + SSL を使用しない限り、Dashboard のポートをローカルネットワークに制限してください</li>
+<li><strong>データディレクトリの保護</strong>：<code>config/</code> ディレクトリには設定とデータベースが含まれており、適切なファイル権限を設定してください</li>
+<li><strong>定期的な更新</strong>：<code>epsdk self-update</code> または最新の Docker イメージを取得して更新してください</li>
+<li><strong>root で実行しない</strong>：手動デプロイ時は専用ユーザーを作成してください</li>
+<li><strong>Docker のリスタートポリシーを使用する</strong>：<code>restart: unless-stopped</code> を使用して、異常終了後に自動的に再起動できるようにしてください</li>
 </ol>
-<h2 id="多インスタンスデプロイ">多インスタンスデプロイ</h2>
+<h2 id="複数インスタンスのデプロイ">複数インスタンスのデプロイ</h2>
 <p>複数のロボットインスタンスを実行する場合：</p>
 <ol>
-<li>各インスタンスは独立したプロジェクトディレクトリと <code>docker-compose.yml</code> を使用します。</li>
-<li>異なるポート番号を使用します：<code>ERISPULSE_PORT=8001</code></li>
-<li>異なるコンテナ名を使用します：<code>container_name: erispulse-bot2</code></li>
+<li>各インスタンスは独立したプロジェクトディレクトリと <code>docker-compose.yml</code> を使用する</li>
+<li>異なるポート番号を使用する：<code>ERISPULSE_PORT=8001</code></li>
+<li>異なるコンテナ名を使用する：<code>container_name: erispulse-bot2</code></li>
 </ol>
-<h2 id="更新と保守">更新と保守</h2>
+<h2 id="更新とメンテナンス">更新とメンテナンス</h2>
 <h3 id="docker-方式">Docker 方式</h3>
 <pre><code class="language-bash"><span class="token comment"># 最新のイメージを取得</span>
 <span class="token function">docker</span> compose pull
@@ -352,32 +372,36 @@
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
-<h3 id="実行時のサーバー設定のホットリロード">実行時のサーバー設定のホットリロード</h3>
-<p>監視アドレス / ポート / SSL証明書を変更した後、プロセスを再起動する必要はありません。任意のコルーチン内で <code>router.reload()</code> を呼び出してください：</p>
+<h3 id="uv-tool-方式">uv tool 方式</h3>
+<pre><code class="language-bash"><span class="token comment"># CLI ツール環境をアップグレード</span>
+uv tool upgrade ErisPulse
+
+<span class="token comment"># プロジェクト依存関係のアップグレード（プロジェクトディレクトリ内で実行）</span>
+uv <span class="token function">sync</span>
+</code></pre>
+<h3 id="実行時ホットリロードでサーバーの設定を再読み込み">実行時ホットリロードでサーバーの設定を再読み込み</h3>
+<p>リスニングアドレス / ポート / SSL 証明書を変更した後、プロセスを再起動せずに実行できます。任意のコルーチン内で <code>router.reload()</code> を呼び出します：</p>
 <pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># ポートを変更</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 証明書のホット交換（証明書の更新など）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 証明書のホット交換（証明書の更新シナリオ）</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 省略されたパラメータは現在の設定を引き継ぐ</span>
 </code></pre>
 <ul>
-<li>同一の FastAPI アプリケーションを再利用し、モジュール登録された HTTP / WebSocket / SSE ルートはすべて保持されます。</li>
-<li>新しい設定（証明書の構築、ポートの利用可能）を先に検証してから切り替えます。失敗した場合は、以前の設定でサービスを復元して <code>False</code> を返します。<ul>
-<li><code>False</code> が返された場合、以前のサービスは利用可能です。</li>
-</ul>
-</li>
-<li>サーバーが実行されていない場合は <code>False</code> を返します（最初の起動は <code>sdk.router.start()</code> を使用してください）。</li>
+<li>同じ FastAPI アプリケーションを再利用し、モジュールが登録した HTTP / WebSocket / SSE ルートはすべて保持されます</li>
+<li>新しい設定（証明書の構築、ポートの利用可能）を検証してから切り替えます。失敗した場合は、古い設定でサービスを復元して <code>False</code> を返し、<code>False</code> の返却は古いサービスが利用可能であることを保証します</li>
+<li>サーバーが実行されていない場合は <code>False</code> を返します（最初の起動は <code>sdk.router.start()</code> を使用してください）</li>
 </ul>
 <h3 id="バックアップ">バックアップ</h3>
-<p>定期的に <code>config/</code> ディレクトリをバックアップしてください：</p>
+<p>定期的に <code>config/</code> ディレクトリをバックアップします：</p>
 <pre><code class="language-bash"><span class="token comment"># Docker 部署の場合</span>
 <span class="token function">tar</span> czf erispulse-backup-<span class="token variable"><span class="token variable">$(</span><span class="token function">date</span> +%Y%m%d<span class="token variable">)</span></span>.tar.gz config/
 
-<span class="token comment"># または Dashboard で「バックアップ」機能を使用してエクスポート</span>
+<span class="token comment"># または Dashboard の「バックアップ」機能を使用してエクスポート</span>
 </code></pre>
 
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ja/user-guide/cli-reference.html"><small>Previous</small><br>CLIコマンドリファレンス</a>
+        <a class="doc-pager-prev" href="/docs/ja/user-guide/cli-reference.html"><small>Previous</small><br>CLI コマンドリファレンス</a>
         <a class="doc-pager-next" href="/docs/ja/developer-guide/README.html"><small>Next</small><br>開発者ガイド</a>
     </nav>
     </main>

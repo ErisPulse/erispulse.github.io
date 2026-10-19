@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>適配器開發入門 - ErisPulse 文档中心</title>
-    <meta name="description" content="本指南幫助你開始開發 ErisPulse 適配器，以連接新的訊息平台。" />
+    <meta name="description" content="何時需要閱讀這篇：適配器開發路徑的入門篇（必讀）。從零開始寫一個適配器、了解適配器的職責邊界與專案結構都在這裡；讀完後再按需進入 事件轉換器 與 SendDSL 詳解。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/developer-guide/adapters/getting-started.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/developer-guide/adapters/getting-started.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/developer-guide/adapters/getting-started.html" />
     <meta property="og:title" content="適配器開發入門 - ErisPulse 文档中心" />
-    <meta property="og:description" content="本指南幫助你開始開發 ErisPulse 適配器，以連接新的訊息平台。" />
+    <meta property="og:description" content="何時需要閱讀這篇：適配器開發路徑的入門篇（必讀）。從零開始寫一個適配器、了解適配器的職責邊界與專案結構都在這裡；讀完後再按需進入 事件轉換器 與 SendDSL 詳解。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/getting-started.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"適配器開發入門","description":"本指南幫助你開始開發 ErisPulse 適配器，以連接新的訊息平台。","url":"https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/getting-started.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"適配器開發入門","description":"何時需要閱讀這篇：適配器開發路徑的入門篇（必讀）。從零開始寫一個適配器、了解適配器的職責邊界與專案結構都在這裡；讀完後再按需進入 事件轉換器 與 SendDSL 詳解。","url":"https://www.erisdev.com/docs/zh-TW/developer-guide/adapters/getting-started.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,17 +73,20 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="適配器開發入門">適配器開發入門</h1>
-<p>本指南幫助你開始開發 ErisPulse 適配器，以連接新的訊息平台。</p>
-<h2 id="适配器簡介">适配器簡介</h2>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>何時需要閱讀這篇</strong>：適配器開發路徑的入門篇（必讀）。從零開始寫一個適配器、了解適配器的職責邊界與專案結構都在這裡；讀完後再按需進入 <a href="/docs/zh-TW/developer-guide/adapters/converter.html">事件轉換器</a> 與 <a href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a>。</p>
+</div>
+<p>本指南幫助你開始開發 ErisPulse 適配器，連接新的訊息平台。</p>
+<h2 id="適配器簡介">適配器簡介</h2>
 <h3 id="什麼是適配器">什麼是適配器</h3>
 <p>適配器是 ErisPulse 與各個訊息平台之間的橋樑，負責：</p>
 <ol>
 <li><strong>正向轉換</strong>：接收平台事件並轉換為 OneBot12 標準格式（Converter）</li>
 <li><strong>反向轉換</strong>：將 OneBot12 訊息段轉換為平台 API 調用（<code>Raw_ob12</code>）</li>
 <li>管理與平台的連接（WebSocket/WebHook）</li>
-<li>提供統一的 SendDSL 訊息傳送介面</li>
+<li>提供統一的 SendDSL 訊息發送介面</li>
 </ol>
-<h3 id="适配器架构">适配器架构</h3>
+<h3 id="適配器架構">適配器架構</h3>
 <pre><code class="language-mermaid">flowchart LR
     subgraph receive["正向轉換（接收）"]
         direction TB
@@ -91,15 +94,15 @@
     end
     subgraph send["反向轉換（發送）"]
         direction TB
-        M2["模組建構訊息"] --&gt; R1["Send.Raw_ob12()"] --&gt; N1["平台原生 API 調用"] --&gt; R2["標準回應格式"]
+        M2["模組構建訊息"] --&gt; R1["Send.Raw_ob12()"] --&gt; N1["平台原生 API 調用"] --&gt; R2["標準回應格式"]
     end
 </code></pre>
 <h2 id="目錄結構">目錄結構</h2>
 <p>標準的適配器包結構：</p>
 <pre><code>MyAdapter/
-├── pyproject.toml          # 項目配置
-├── README.md               # 項目說明
-├── LICENSE                 # 授權條款
+├── pyproject.toml          # 專案配置
+├── README.md               # 專案說明
+├── LICENSE                 # 授權證
 └── MyAdapter/
     ├── __init__.py          # 包入口
     ├── Core.py               # 適配器主類
@@ -107,6 +110,14 @@
 </code></pre>
 <h2 id="快速開始">快速開始</h2>
 <h3 id="1-建立專案">1. 建立專案</h3>
+<p>建議直接使用腳手架生成完整骨架（含 pyproject、主類、轉換器）：</p>
+<pre><code class="language-bash"><span class="token comment"># 標準專案（打包發佈用）</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter
+
+<span class="token comment"># 本地適配器插件（免打包，放入 plugins/ 目錄即可被自動加載，見下方"本地開發"）</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter <span class="token parameter variable">--local</span>
+</code></pre>
+<p>也可以手動建立：</p>
 <pre><code class="language-bash"><span class="token function">mkdir</span> MyAdapter <span class="token operator">&amp;&amp;</span> <span class="token builtin class-name">cd</span> MyAdapter
 </code></pre>
 <h3 id="2-建立-pyprojecttoml">2. 建立 pyproject.toml</h3>
@@ -130,10 +141,10 @@
 <span class="token key property">"MyAdapter"</span> <span class="token punctuation">=</span> <span class="token string">"MyAdapter:MyAdapter"</span>
 </code></pre>
 <h3 id="3-建立適配器主類">3. 建立適配器主類</h3>
-<p>框架提供了 <code>ConfigClass</code> / <code>AccountConfigClass</code> 宣告式配置管理，適配器只需宣告配置類即可自動載入、驗證和產生配置範本。</p>
+<p>框架提供了 <code>ConfigClass</code> / <code>AccountConfigClass</code> 宣告式配置管理，適配器只需宣告配置類即可自動加載、驗證和生成配置範本。</p>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/Core.py</span>
 <span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass<span class="token punctuation">,</span> field
-<span class="token comment"># 推薦根導入（2.10+）：常用符號直接從根包導入，深路徑仍相容</span>
+<span class="token comment"># 推薦根匯入（2.10+）：常用符號直接從根包匯入，深路徑仍相容</span>
 <span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> BaseConfig
 
 <span class="token decorator annotation punctuation">@dataclass</span>
@@ -142,7 +153,7 @@
     api_endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> field<span class="token punctuation">(</span>
         default<span class="token operator">=</span><span class="token string">"https://api.example.com"</span><span class="token punctuation">,</span>
         metadata<span class="token operator">=</span><span class="token punctuation">{</span>
-            <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.api_endpoint"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"API 位址"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+            <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"my_adapter.api_endpoint"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"API 地址"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
             <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span>
             <span class="token string">"ui"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"widget"</span><span class="token punctuation">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"group"</span><span class="token punctuation">:</span> <span class="token string">"connection"</span><span class="token punctuation">,</span> <span class="token string">"order"</span><span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
         <span class="token punctuation">}</span><span class="token punctuation">,</span>
@@ -170,7 +181,7 @@
         <span class="token keyword">return</span> MyPlatformConverter<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>⚠️ **關於 <code>__init__</code><strong>：新版本中 <code>BaseAdapter.__init__(self, sdk=None)</code> 會自動處理 SDK 引用、日誌初始化和配置載入。大多數適配器</strong>不再需要覆寫 <code>__init__</code>**。詳見 <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85"><strong>init</strong> 注意事項</a>。</p>
+<p>⚠️ **關於 <code>__init__</code><strong>：新版本中 <code>BaseAdapter.__init__(self, sdk=None)</code> 會自動處理 SDK 引用、日誌初始化和配置加載。大多數適配器</strong>不再需要覆寫 <code>__init__</code>**。詳見 <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85"><strong>init</strong> 注意事項</a>。</p>
 </blockquote>
 <blockquote>
 <p>⚠️ **關於 <code>super().__init__()</code>**：<code>BaseAdapter.__init__()</code> 負責建立 <code>Send</code> 和 <code>Request</code> 工廠實例。如果忘記呼叫，所有訊息發送和請求操作都會報 <code>AttributeError</code>。詳見 <a href="#init-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85"><strong>init</strong> 注意事項</a>。</p>
@@ -180,7 +191,7 @@
     <span class="token comment"># ... __init__ 代碼 ...</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""啟動適配器（必須實現）"""</span>
+        <span class="token triple-quoted-string string">"""啟動適配器（必須實作）"""</span>
         <span class="token comment"># 註冊 WebSocket 或 WebHook 路由</span>
         router<span class="token punctuation">.</span>register_websocket<span class="token punctuation">(</span>
             module_name<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span>
@@ -190,7 +201,7 @@
         self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"適配器已啟動"</span><span class="token punctuation">)</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""關閉適配器（必須實現）"""</span>
+        <span class="token triple-quoted-string string">"""關閉適配器（必須實作）"""</span>
         router<span class="token punctuation">.</span>unregister_websocket<span class="token punctuation">(</span>
             module_name<span class="token operator">=</span><span class="token string">"myplatform"</span><span class="token punctuation">,</span>
             path<span class="token operator">=</span><span class="token string">"/ws"</span>
@@ -199,8 +210,8 @@
         self<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string">"適配器已關閉"</span><span class="token punctuation">)</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""呼叫平台 API（必須實現）"""</span>
-        <span class="token keyword">raise</span> NotImplementedError<span class="token punctuation">(</span><span class="token string">"需要實現 call_api"</span><span class="token punctuation">)</span>
+        <span class="token triple-quoted-string string">"""呼叫平台 API（必須實作）"""</span>
+        <span class="token keyword">raise</span> NotImplementedError<span class="token punctuation">(</span><span class="token string">"需要實作 call_api"</span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="主動發送-meta-事件">主動發送 Meta 事件</h4>
 <p>適配器應主動發送 meta 事件，讓框架追蹤 Bot 的線上狀態。使用 <code>emit_meta()</code> 一行即可完成：</p>
@@ -224,14 +235,14 @@
             <span class="token keyword">await</span> self<span class="token punctuation">.</span>emit_meta<span class="token punctuation">(</span><span class="token string">"disconnect"</span><span class="token punctuation">,</span> bot_id<span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>詳細的 Bot 狀態管理和 Meta 事件說明請參閱 <a href="/docs/zh-TW/developer-guide/adapters/best-practices.html#bot-%E7%8B%80%E6%85%8B%E7%AE%A1%E7%90%86%E8%88%87-meta-%E4%BA%8B%E4%BB%B6">適配器最佳實踐 - Bot 狀態管理與-meta-事件</a>。</p>
+<p>詳細的 Bot 狀態管理和 Meta 事件說明請參閱 <a href="/docs/zh-TW/developer-guide/adapters/best-practices.html#bot-%E7%8B%80%E6%85%8B%E7%AE%A1%E7%90%86%E8%88%87-meta-%E4%BA%8B%E4%BB%B6">適配器最佳實踐 - Bot 狀態管理</a>。</p>
 </blockquote>
 <h3 id="5-實現-send-類">5. 實現 Send 類</h3>
-<p><code>At</code>/<code>AtAll</code>/<code>Reply</code> 修飾器已由框架 SendDSL 基類內建實現，適配器只需實現 <code>Raw_ob12</code> 和具體的發送方法即可。</p>
+<p><code>At</code>/<code>AtAll</code>/<code>Reply</code> 修飾器已由框架 SendDSL 基類內建實作，適配器只需實作 <code>Raw_ob12</code> 和具體的發送方法即可。</p>
 <p>框架提供兩個關鍵輔助方法：</p>
 <ul>
 <li><code>self._apply_modifiers(message)</code> — 自動合併 At/AtAll/Reply 修飾器到訊息段</li>
-<li><code>self.send_context</code> — 獲取發送上下文字典（<code>target_type</code>、<code>target_id</code>、<code>account_id</code>）</li>
+<li><code>self.send_context</code> — 取得發送上下文字典（<code>target_type</code>、<code>target_id</code>、<code>account_id</code>）</li>
 </ul>
 <pre><code class="language-python"><span class="token keyword">import</span> asyncio
 
@@ -242,10 +253,10 @@
 
         <span class="token keyword">def</span> <span class="token function">Raw_ob12</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> message<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
             <span class="token triple-quoted-string string">"""
-            發送 OneBot12 格式訊息（必須實現）
+            發送 OneBot12 格式訊息（必須實作）
 
             使用 _apply_modifiers 自動合併修飾器狀態，
-            使用 send_context 獲取發送上下文。
+            使用 send_context 取得發送上下文。
             """</span>
             <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">_do_send</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
                 segments <span class="token operator">=</span> self<span class="token punctuation">.</span>_apply_modifiers<span class="token punctuation">(</span>message<span class="token punctuation">)</span>
@@ -258,22 +269,22 @@
             <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>_do_send<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 
         <span class="token comment"># Text/Image/Voice/Video/File 已從 SendDSL 基類繼承，</span>
-        <span class="token comment"># 預設委託給 Raw_ob12，無需重複實現。</span>
+        <span class="token comment"># 預設委託給 Raw_ob12，無需重複實作。</span>
         <span class="token comment"># 如需平台特定邏輯，可覆蓋單個方法：</span>
         <span class="token comment"># def Text(self, text: str):</span>
         <span class="token comment">#     return self.Raw_ob12([{"type": "text", "data": {"text": text}}])</span>
 </code></pre>
-<p><strong>媒體類發送方法（Image/Video/File）實現要點：</strong></p>
+<p><strong>媒體類發送方法（Image/Video/File）實作要點：</strong></p>
 <ul>
-<li>基類的預設實現會將 <code>file</code> 參數封裝為 OneBot12 訊息段傳給 <code>Raw_ob12</code>，適配器需在 <code>Raw_ob12</code> 中處理下載/上傳</li>
-<li><code>file</code> 參數應同時支援 <code>bytes</code> 二進位資料和 <code>str</code> URL 兩種型別</li>
+<li>基類的預設實作會將 <code>file</code> 參數封裝為 OneBot12 訊息段傳給 <code>Raw_ob12</code>，適配器需在 <code>Raw_ob12</code> 中處理下載/上傳</li>
+<li><code>file</code> 參數應同時支援 <code>bytes</code> 二進位資料和 <code>str</code> URL 兩種類型</li>
 <li>當傳入 URL 時，需先下載檔案再上傳到平台</li>
-<li>平台通常需要先呼叫上傳接口獲取檔案標識，再呼叫發送接口</li>
+<li>平台通常需要先呼叫上傳介面取得檔案標識，再呼叫發送介面</li>
 </ul>
 <p><strong><code>__getattr__</code> 魔術方法：</strong></p>
 <ul>
 <li>實現方法名大小寫不敏感（<code>Text</code>、<code>text</code>、<code>TEXT</code> 都能呼叫）</li>
-<li>未定義的方法應返回提示資訊而非報錯</li>
+<li>未定義的方法應返回提示訊息而非報錯</li>
 </ul>
 <p><strong><code>Raw_ob12</code> 方法：</strong></p>
 <ul>
@@ -321,14 +332,14 @@
         <span class="token keyword">return</span> <span class="token string">"private"</span>  <span class="token comment"># 簡化示例</span>
 </code></pre>
 <h3 id="7-實現-request-類請求操作">7. 實現 Request 類（請求操作）</h3>
-<p>如果你的平台支援好友請求、群邀請等需要 Bot 做出決策的請求，可以實現 <code>Request</code> 內部類：</p>
+<p>如果你的平台支援好友請求、群邀請等需要 Bot 做出決策的請求，可以實作 <code>Request</code> 內部類：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> BaseAdapter<span class="token punctuation">,</span> RequestDSL
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token comment"># ... Send 和其他代碼 ...</span>
 
     <span class="token keyword">class</span> <span class="token class-name">Request</span><span class="token punctuation">(</span>RequestDSL<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""請求操作實現（好友請求、群邀請等）"""</span>
+        <span class="token triple-quoted-string string">"""請求操作實作（好友請求、群邀請等）"""</span>
 
         <span class="token keyword">def</span> <span class="token function">accept</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> <span class="token operator">**</span>kwargs<span class="token punctuation">)</span><span class="token punctuation">:</span>
             <span class="token triple-quoted-string string">"""同意請求"""</span>
@@ -377,14 +388,41 @@
     <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>myplatform<span class="token punctuation">.</span>Request<span class="token punctuation">(</span><span class="token string">"req_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>accept<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>如果平台不支援請求操作，可以不實現 <code>Request</code> 內部類。基類預設回傳 <code>retcode=10002</code>（不支援的操作）。詳見 <a href="/docs/zh-TW/standards/request-action-spec.html">請求操作規範</a>。</p>
+<p>如果平台不支援請求操作，可以不實作 <code>Request</code> 內部類。基類預設返回 <code>retcode=10002</code>（不支援的操作）。詳見 <a href="/docs/zh-TW/standards/request-action-spec.html">請求操作規範</a>。</p>
 </blockquote>
-<h3 id="8-建立套件入口">8. 建立套件入口</h3>
+<h3 id="8-建立包入口">8. 建立包入口</h3>
 <pre><code class="language-python"><span class="token comment"># MyAdapter/__init__.py</span>
 <span class="token keyword">from</span> <span class="token punctuation">.</span>Core <span class="token keyword">import</span> MyAdapter
 </code></pre>
-<h2 id="依賴聲明可選280">依賴聲明（可選，2.8.0+）</h2>
-<p>適配器可以聲明對其它適配器或模組的依賴，實現適配器間的聯動與可選功能：</p>
+<h2 id="本地開發免打包">本地開發（免打包）</h2>
+<p>與模組一致，適配器也可以放入專案的本地插件目錄（預設 <code>plugins/</code>，可透過 <code>ErisPulse.framework.plugins_dir</code> 配置）直接開發，**無需 <code>pip install -e .</code>**：</p>
+<pre><code class="language-bash"><span class="token comment"># 生成本地適配器插件</span>
+epsdk create adapter <span class="token parameter variable">-n</span> MyAdapter <span class="token parameter variable">--local</span>
+<span class="token comment"># 生成結構：</span>
+<span class="token comment"># plugins/</span>
+<span class="token comment"># └── MyAdapter/</span>
+<span class="token comment">#     ├── __init__.py</span>
+<span class="token comment">#     ├── Core.py</span>
+<span class="token comment">#     └── Converter.py</span>
+</code></pre>
+<p>框架啟動時自動掃描插件目錄並加載其中的模組與適配器（與 entry-point 安裝包同等待遇：啟用狀態、配置宣告、熱更新、卸載清理全部一致）：</p>
+<ul>
+<li><strong>識別規則</strong>：包目錄（含 <code>__init__.py</code>）或單 <code>.py</code> 檔案均可；優先識別 <code>Main</code> 命名類，否則取插件內首個 <code>BaseAdapter</code> / <code>BaseModule</code> 子類</li>
+<li><strong>同名覆蓋</strong>：本地插件與 PyPI 安裝的適配器同名時，本地插件優先（便於覆蓋調試）</li>
+<li><strong>熱重載</strong>：<code>sdk.enable_plugin_hot_reload()</code> 開啟的插件目錄監控同樣覆蓋適配器；適配器代碼級熱重載將在 2.11 提供（目前版本修改適配器代碼後需重啟框架生效）</li>
+</ul>
+<h3 id="從本地插件到發布">從本地插件到發布</h3>
+<p>本地驗證完成後，用 <code>pack</code> 子命令把插件一鍵轉換為可發布的標準專案（互動式選擇插件、補全元資訊，生成含 entry-point 的 pyproject）：</p>
+<pre><code class="language-bash">epsdk create pack
+<span class="token comment"># 選擇插件目錄中的插件 → 輸入專案名/描述/作者 → 生成 MyAdapter/ 專案目錄</span>
+<span class="token builtin class-name">cd</span> MyAdapter
+pip <span class="token function">install</span> <span class="token parameter variable">-e</span> <span class="token builtin class-name">.</span>   <span class="token comment"># 轉為標準安裝；隨後按發布流程上傳 PyPI</span>
+</code></pre>
+<blockquote>
+<p><strong>提示</strong>：轉換完成後建議移除 <code>plugins/</code> 中的原件，避免本地插件與安裝包重複加載（兩者同名時本地優先，會讓你誤以為安裝包生效）。</p>
+</blockquote>
+<h2 id="依賴宣告可選280">依賴宣告（可選，2.8.0+）</h2>
+<p>適配器可以宣告對其他適配器或模組的依賴，實現適配器間聯動與可選功能：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> typing <span class="token keyword">import</span> ClassVar
 
 <span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -397,8 +435,8 @@
     optional_modules<span class="token punctuation">:</span> ClassVar<span class="token punctuation">[</span><span class="token builtin">list</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">"TranslateEngine"</span><span class="token punctuation">]</span>
 </code></pre>
 <ul>
-<li><strong>啟動順序</strong>：聲明了模組硬依賴的適配器會<strong>延遲到模組初始化完成後</strong>再啟動</li>
-<li><strong>軟依賴通知</strong>：<code>optional_modules</code>（或模組硬依賴）中的模組被加載時調用 <code>on_dependency_ready(module_name)</code>；被卸載時調用 <code>on_dependency_lost(module_name)</code>（預設空實現，可覆寫）——覆蓋晚加載與熱重載場景：</li>
+<li><strong>啟動順序</strong>：宣告了模組硬依賴的適配器會<strong>延遲到模組初始化完成後</strong>再啟動</li>
+<li><strong>軟依賴通知</strong>：<code>optional_modules</code>（或模組硬依賴）中的模組被加載時呼叫 <code>on_dependency_ready(module_name)</code>；被卸載時呼叫 <code>on_dependency_lost(module_name)</code>（預設空實作，可覆寫）——覆蓋晚加載與熱重載場景：</li>
 </ul>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_dependency_ready</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> module_name<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token triple-quoted-string string">"""軟依賴模組就緒：啟用對應可選功能"""</span>
@@ -414,20 +452,20 @@
 <p>本特性需要 ErisPulse **2.8.0+**。</p>
 </div>
 <h2 id="__init__-注意事項"><code>__init__</code> 注意事項</h2>
-<p>在適配器開發中，有三個層面可能涉及 <code>__init__</code> 的重寫。以下是每個層面的正確做法。</p>
+<p>適配器開發中有三個層面可能涉及 <code>__init__</code> 重寫。以下是每個層面的正確做法。</p>
 <h3 id="1-baseadapter-層大多數情況不需要重寫">1. BaseAdapter 層（大多數情況不需要重寫）</h3>
 <p><code>BaseAdapter.__init__(self, sdk=None)</code> 負責建立 <code>Send</code> / <code>Request</code> 工廠實例，並自動完成以下工作：</p>
 <ul>
 <li>接受 <code>sdk</code> 參數並設定 <code>self.sdk</code>、<code>self.logger</code></li>
-<li>如果宣告了 <code>ConfigClass</code>，可透過 <code>self.cfg</code> 即時讀取全域配置</li>
-<li>如果宣告了 <code>AccountConfigClass</code>，可透過 <code>self.accounts</code> 即時讀取多帳戶配置</li>
+<li>如果宣告了 <code>ConfigClass</code>，可透過 <code>self.cfg</code> 實時讀取全域配置</li>
+<li>如果宣告了 <code>AccountConfigClass</code>，可透過 <code>self.accounts</code> 實時讀取多帳號配置</li>
 </ul>
 <p>**大多數情況下不需要覆寫 <code>__init__</code>**，只需宣告 <code>ConfigClass</code> 即可：</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     ConfigClass <span class="token operator">=</span> MyAdapterConfig  <span class="token comment"># 宣告後框架自動管理配置</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        cfg <span class="token operator">=</span> self<span class="token punctuation">.</span>cfg  <span class="token comment"># 類型安全，即時讀取</span>
+        cfg <span class="token operator">=</span> self<span class="token punctuation">.</span>cfg  <span class="token comment"># 類型安全，實時讀取</span>
         <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
 <p>如果確實需要自定義初始化，呼叫 <code>super().__init__(sdk)</code> 即可：</p>
@@ -440,8 +478,8 @@
         self<span class="token punctuation">.</span>convert <span class="token operator">=</span> self<span class="token punctuation">.</span>converter<span class="token punctuation">.</span>convert
 </code></pre>
 <h3 id="2-send-內部類大多數情況不需要重寫">2. Send 內部類（大多數情況不需要重寫）</h3>
-<p><code>SendDSL.__init__</code> 負責鏈式呼叫的狀態傳遞（目標類型、目標 ID、帳號等）。<strong>大多數情況下，你只需要重寫方法</strong>（<code>Raw_ob12</code>、<code>Text</code> 等），不需要重寫 <code>__init__</code>。</p>
-<p>如果確實需要（例如初始化平台特有的狀態），<strong>必須透傳所有參數</strong>：</p>
+<p><code>SendDSL.__init__</code> 負責鏈式呼叫的狀態傳遞（目標類型、目標ID、帳號等）。<strong>大多數情況下，你只需要重寫方法</strong>（<code>Raw_ob12</code>、<code>Text</code> 等），不需要重寫 <code>__init__</code>。</p>
+<p>如果確實需要（比如初始化平台特有的狀態），<strong>必須透傳所有參數</strong>：</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token comment"># 參數：adapter, target_type, target_id, account_id</span>
@@ -449,11 +487,11 @@
             <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>adapter<span class="token punctuation">,</span> target_type<span class="token punctuation">,</span> target_id<span class="token punctuation">,</span> account_id<span class="token punctuation">)</span>  <span class="token comment"># ← 必須透傳</span>
             self<span class="token punctuation">.</span>_my_state <span class="token operator">=</span> <span class="token boolean">None</span>  <span class="token comment"># 平台特有初始化</span>
 </code></pre>
-<p><strong>為什麼必須透傳？</strong> 鏈式呼叫的每一步都透過 <code>self.__class__(...)</code> 創建新實例：</p>
+<p><strong>為什麼必須透傳？</strong> 鏈式呼叫的每一步都透過 <code>self.__class__(...)</code> 建立新實例：</p>
 <pre><code class="language-python">adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span>               <span class="token comment"># → Send(adapter, "user", "123", None)</span>
 adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot1"</span><span class="token punctuation">)</span>  <span class="token comment"># → Send(adapter, "user", "123", "bot1")</span>
 </code></pre>
-<p>如果 <code>__init__</code> 簽名不匹配或沒調 <code>super()</code>，鏈式呼叫就會中斷。</p>
+<p>如果 <code>__init__</code> 簽名不匹配或沒呼叫 <code>super()</code>，鏈式呼叫就會中斷。</p>
 <h3 id="3-request-內部類大多數情況不需要重寫">3. Request 內部類（大多數情況不需要重寫）</h3>
 <p>與 Send 同理。參數為 <code>adapter</code>, <code>request_id</code>, <code>account_id</code>：</p>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -497,7 +535,7 @@ adapter<span class="token punctuation">.</span>Send<span class="token punctuatio
 <p>適配器註冊路由後，框架會記錄所有路由資訊。使用者可以透過以下 API 查看適配器的連接地址：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
-<span class="token comment"># 獲取適配器完整連接資訊</span>
+<span class="token comment"># 取得適配器完整連接資訊</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_connection_info<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {</span>
 <span class="token comment">#   "platform": "myplatform",</span>
@@ -519,17 +557,17 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 namespaces <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>list_namespaces<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {"myplatform": {"http": ["/myplatform/webhook"], "websocket": ["/myplatform/ws"]}}</span>
 
-<span class="token comment"># 獲取命名空間的完整連接 URL</span>
+<span class="token comment"># 取得命名空間的完整連接 URL</span>
 urls <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"base_url": "http://localhost:8080", "http": [...], "websocket": [...]}</span>
 
-<span class="token comment"># 獲取命名空間的詳細路由資訊</span>
+<span class="token comment"># 取得命名空間的詳細路由資訊</span>
 routes <span class="token operator">=</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"myplatform"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"http": [{"path": "/myplatform/webhook", "methods": ["POST"]}],</span>
 <span class="token comment">#  "websocket": [{"path": "/myplatform/ws", "auth": false}]}</span>
 </code></pre>
 <blockquote>
-<p><strong>提示</strong>：<code>get_connection_info()</code> 回傳的資訊適合展示給使用者（例如 WebUI），幫助使用者設定平台端的回調地址或 WebSocket 連接地址。路由註冊時的 <code>module_name</code> 必須與適配器在 ErisPulse 中註冊的 <code>platform</code> 名稱完全一致，否則路由發現將無法正確關聯。</p>
+<p><strong>提示</strong>：<code>get_connection_info()</code> 返回的資訊適合展示給使用者（如 WebUI），幫助使用者配置平台側的回調地址或 WebSocket 連接地址。路由註冊時的 <code>module_name</code> 必須與適配器在 ErisPulse 中註冊的 <code>platform</code> 名稱完全一致，否則路由發現將無法正確關聯。</p>
 </blockquote>
 <h3 id="10-sse-server-sent-events-支援">10. SSE (Server-Sent Events) 支援</h3>
 <p>ErisPulse 內建了伺服器無關的 SSE 支援，模組和適配器可以透過 <code>@sdk.router.sse()</code> 註冊 SSE 端點。</p>
@@ -547,7 +585,7 @@ routes <span class="token operator">=</span> sdk<span class="token punctuation">
         <span class="token keyword">await</span> asyncio<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="使用請求參數">使用請求參數</h4>
-<p>處理器可以宣告 <code>request</code> 參數來存取客戶端請求資訊：</p>
+<p>處理器可以宣告 <code>request</code> 參數來存取用戶端請求資訊：</p>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>sse</span><span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">,</span> <span class="token string">"/events"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">event_stream</span><span class="token punctuation">(</span>request<span class="token punctuation">,</span> sse<span class="token punctuation">)</span><span class="token punctuation">:</span>
     token <span class="token operator">=</span> request<span class="token punctuation">.</span>query_params<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"token"</span><span class="token punctuation">)</span>
@@ -602,18 +640,18 @@ sdk<span class="token punctuation">.</span>router<span class="token punctuation"
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_routes<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"http": [...], "websocket": [...], "sse": [{"path": "/MyModule/events", "streaming": true}]}</span>
 
-<span class="token comment"># get_module_urls 會產生完整 URL</span>
+<span class="token comment"># get_module_urls 會生成完整 URL</span>
 sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span>get_module_urls<span class="token punctuation">(</span><span class="token string">"MyModule"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"sse": [{"path": "/MyModule/events", "url": "http://localhost:8080/MyModule/events"}]}</span>
 </code></pre>
 <blockquote>
-<p><strong>伺服器無關設計</strong>：<code>SseEmitter</code> 透過回調與底層 HTTP 框架解耦。框架提供了 <code>register_sse()</code> 和 <code>@sse</code> 裝飾器作為統一的註冊入口，適配器無需直接依賴任何底層 HTTP 框架即可實現 SSE 端點。</p>
+<p><strong>伺服器無關設計</strong>：<code>SseEmitter</code> 透過回呼與底層 HTTP 框架解耦。框架提供了 <code>register_sse()</code> 和 <code>@sse</code> 裝飾器作為統一的註冊入口，適配器無需直接依賴任何底層 HTTP 框架即可實現 SSE 端點。</p>
 </blockquote>
 <h2 id="下一步">下一步</h2>
 <ul>
 <li><a href="/docs/zh-TW/developer-guide/adapters/core-concepts.html">適配器核心概念</a> - 了解適配器架構</li>
-<li><a href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a> - 學習訊息傳送</li>
-<li><a href="/docs/zh-TW/developer-guide/adapters/converter.html">轉換器實現</a> - 了解事件轉換</li>
+<li><a href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a> - 學習訊息發送</li>
+<li><a href="/docs/zh-TW/developer-guide/adapters/converter.html">轉換器實作</a> - 了解事件轉換</li>
 <li><a href="/docs/zh-TW/developer-guide/adapters/best-practices.html">適配器最佳實踐</a> - 開發高品質適配器</li>
 </ul>
 

@@ -251,9 +251,9 @@
 <p><strong>注意</strong>：這些方法<strong>不是</strong>基類提供的預設方法，也不強制要求實現。它們僅作為命名約定，適配器可依需要自行定義。如果適配器不支援這些格式，則無需定義。</p>
 <p><strong>訊息建構器（MessageBuilder）</strong>：ErisPulse 提供了 <code>MessageBuilder</code> 工具類，用於方便地建構 OneBot12 訊息段列表，配合 <code>Raw_ob12</code> 使用。詳見 <a href="#11-%E8%A8%8A%E6%81%AF%E5%BB%BA%E6%A7%8B%E5%99%A8-messagebuilder">訊息建構器</a> 章節。</p>
 <h2 id="2-參數規範詳解">2. 參數規範詳解</h2>
-<h3 id="21-媒體訊息發送協定image-voice-video-file">2.1 媒體訊息發送協定（<code>Image</code> / <code>Voice</code> / <code>Video</code> / <code>File</code>）</h3>
-<p>本節是媒體發送的<strong>統一協定標準</strong>：模組以同一份程式碼呼叫四個媒體方法，適配器負責將
-<code>file</code> 參數的各種形態轉換為平台原生的上傳/發送行為。</p>
+<h3 id="21-媒體訊息發送協議image-voice-video-file">2.1 媒體訊息發送協議（<code>Image</code> / <code>Voice</code> / <code>Video</code> / <code>File</code>）</h3>
+<p>本節是媒體發送的<strong>統一協議標準</strong>：模組以同一份程式碼呼叫四個媒體方法，適配器負責將
+<code>file</code> 參數的各種形態轉換為平台原生上傳/發送行為。</p>
 <h4 id="211-file-參數的合法形態">2.1.1 <code>file</code> 參數的合法形態</h4>
 <div class="table-wrapper"><table>
 <thead>
@@ -274,7 +274,7 @@
 <td><strong>必須</strong>接受</td>
 </tr>
 <tr>
-<td>二進位數據</td>
+<td>二進位元數據</td>
 <td><code>b"\x89PNG..."</code></td>
 <td><strong>必須</strong>接受</td>
 </tr>
@@ -295,7 +295,7 @@
 由適配器自行下載/讀取後上傳，<strong>不得</strong>要求模組換形態重試。</p>
 </blockquote>
 <h4 id="212-形態判定順序">2.1.2 形態判定順序</h4>
-<p>適配器實作媒體參數處理時，<strong>應當</strong>按以下順序判定形態：</p>
+<p>適配器實現媒體參數處理時，<strong>應當</strong>按以下順序判定形態：</p>
 <ol>
 <li><code>bytes</code> 類型 → 直接上傳</li>
 <li>字串以 <code>http://</code> / <code>https://</code> 開頭 → 按 URL 處理（直接引用或下載後上傳，按平台能力）</li>
@@ -313,7 +313,7 @@
     <span class="token keyword">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span><span class="token builtin">file</span><span class="token punctuation">,</span> <span class="token string">"rb"</span><span class="token punctuation">)</span> <span class="token keyword">as</span> f<span class="token punctuation">:</span>              <span class="token comment"># 本地路徑</span>
         <span class="token keyword">return</span> f<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
-<h4 id="213-file-的檔案名語義">2.1.3 <code>File</code> 的檔案名語義</h4>
+<h4 id="213-file-的檔案名語意">2.1.3 <code>File</code> 的檔案名語意</h4>
 <p><code>File</code> 方法簽名：<code>File(file, filename=None)</code>（<code>filename</code> 為可選參數，基類已內建）。</p>
 <p>檔案名<strong>推導順序</strong>（適配器在未顯式提供 <code>filename</code> 時按此生成）：</p>
 <ol>
@@ -325,14 +325,14 @@
 </ol>
 <blockquote>
 <p><code>Image</code> / <code>Voice</code> / <code>Video</code> 同樣<strong>可以</strong>接受 <code>filename</code>（經訊息段 <code>data.filename</code> 傳遞），
-但僅 <code>File</code> 的檔案名有跨平台語義保證。</p>
+但僅 <code>File</code> 的檔案名有跨平台語意保證。</p>
 </blockquote>
 <h4 id="214-平台限制的聲明義務">2.1.4 平台限制的聲明義務</h4>
-<p>各平台對媒體的大小上限、格式（MIME）、時長（音訊/視訊）等限制不同。適配器<strong>應當</strong>：</p>
+<p>各平台對媒體的大小上限、格式（MIME）、時長（音視頻）等約束不同。適配器<strong>應當</strong>：</p>
 <ul>
 <li>在適配器文件中聲明支援的媒體類型與限制範圍</li>
 <li>超限或不支援的輸入返回<strong>標準錯誤回應</strong>（<code>status: "failed"</code>；<code>retcode</code> 使用
-<code>10002</code> 或平台語義化錯誤碼，<code>message</code> 說明原因），<strong>不得</strong>拋出例外中斷模組邏輯</li>
+<code>10002</code> 或平台語意化錯誤碼，<code>message</code> 說明原因），<strong>不得</strong>拋出異常中斷模組邏輯</li>
 </ul>
 <h4 id="215-能力降級階梯">2.1.5 能力降級階梯</h4>
 <p>平台不支援某個媒體<strong>類型</strong>時，按以下階梯降級（遵循總綱"能力降級不報錯"原則）：</p>
@@ -360,7 +360,7 @@
 <td>返回 <code>retcode=10002</code>，<strong>可以</strong>在 <code>message</code> 中提示模組改用 URL/bytes</td>
 </tr>
 </tbody></table></div>
-<p><strong>禁止</strong>的行為：靜默丟棄（無回應）、拋出例外、要求模組編寫平台分支處理。</p>
+<p><strong>禁止</strong>的行為：靜默丟棄（無回應）、拋出異常、要求模組編寫平台分支處理。</p>
 <h3 id="22-使用者參數規範">2.2 @使用者參數規範</h3>
 <p><strong>方法：</strong> <code>At</code>（修飾方法）</p>
 <p><strong>參數：</strong> <code>user_id</code> (<code>str</code>)</p>
@@ -390,6 +390,62 @@ send<span class="token punctuation">.</span>To<span class="token punctuation">(<
 <p><strong>示例：</strong></p>
 <pre><code class="language-python">send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"g123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_123456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"收到"</span><span class="token punctuation">)</span>
 </code></pre>
+<h3 id="24-合併轉發能力mergeforward可選">2.4 合併轉發能力（<code>MergeForward</code>，可選）</h3>
+<p><code>MergeForward(nodes)</code> 是<strong>可選的能力方法</strong>：把多段內容打包為「合併轉發 / 富文本摺疊」形式發送，
+由適配器按平台能力決定最佳呈現。與 §1.1 的 <code>Forward(from_chat_id, message_id)</code>（轉發<strong>已有</strong>訊息）
+語意不同，二者並存。</p>
+<blockquote>
+<p><strong>標準背景</strong>：OneBot12 核心標準沒有 node 訊息段，也沒有合併轉發 API——"訊息結點"是 OneBot v11
+生態（go-cqhttp 扩展）的實現層概念，v12 把這類平台特有能力下放給擴展機制。ErisPulse 的落地方式
+即擴展機制等價物：<strong>不新增標準訊息段，而是可選能力方法 + <code>list_sends</code> 運行時探測</strong>——實現了
+<code>MergeForward</code> 的適配器自動獲得能力，未實現的呼叫方自動回退普通文字，模組零變動。</p>
+</blockquote>
+<p><strong>方法簽名：</strong></p>
+<pre><code class="language-python"><span class="token keyword">def</span> <span class="token function">MergeForward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> nodes<span class="token punctuation">:</span> List<span class="token punctuation">[</span>Dict<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> asyncio<span class="token punctuation">.</span>Task<span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""
+    發送合併轉發 / 富文本摺疊訊息
+
+    :param nodes: 合併轉發結點陣列（go-cqhttp 扩展的 OneBot v11 結點格式）：
+        [
+            {
+                "type": "node",
+                "data": {
+                    "user_id": "10000",     # 展示用發送者 id
+                    "nickname": "QvQChat",  # 展示用發送者暱稱
+                    "content": [            # 訊息段陣列，目前為 text 段
+                        {"type": "text", "data": {"text": "【1/3】標題\n正文…"}}
+                    ],
+                },
+            },
+        ]
+    :return: asyncio.Task，await 後返回標準回應格式
+    """</span>
+</code></pre>
+<p><strong>實現要求：</strong></p>
+<ol>
+<li><strong>平台有原生合併轉發</strong>（OneBot11 系）：<strong>必須</strong>呼叫協議端專用端點
+（<code>send_group_forward_msg</code> / <code>send_private_forward_msg</code>）——NapCat 等實現會拒絕
+<code>send_msg</code> 攜帶的 node 段（retcode 1400）；專用端點失敗時<strong>可以</strong>回退 <code>send_msg</code> 直發 node 段</li>
+<li><strong>平台無原生轉發但有富文本</strong>（雲湖 / Telegram / Kook / Discord / Matrix 等）：
+<strong>應當</strong>將結點渲染為平台的富文本摺疊形態（HTML 摺疊卡 / Card / Embed / blockquote 列表），
+參考樣式與逐適配器任務清單見 <code>SDK/Adapter/ADAPTER_FORWARD_GUIDE.md</code></li>
+<li><strong>兩者皆無</strong>：<strong>不得</strong>實現本方法（更不得返回成功卻把 node 字典當純文字發出）——
+不實現時 <code>list_sends</code> 不含 <code>MergeForward</code>，呼叫方自動回退普通文字</li>
+<li><strong>失敗語意</strong>：返回標準錯誤回應（<code>status: "failed"</code>）或拋出異常均可，呼叫方會回退純文字發送，內容不遺失</li>
+<li><strong>不得</strong>在 <code>MergeForward</code> 內部再呼叫 <code>Raw_ob12</code> 發送同樣的 nodes（OneBot11 的 <code>Raw_ob12</code>
+已內建純 node 段自動路由，會成環）</li>
+</ol>
+<p><strong>呼叫方探測示例：</strong></p>
+<pre><code class="language-python">sends <span class="token operator">=</span> adapter<span class="token punctuation">.</span>list_sends<span class="token punctuation">(</span>platform<span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token string">"MergeForward"</span> <span class="token keyword">in</span> sends<span class="token punctuation">:</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>MergedForward<span class="token punctuation">(</span>nodes<span class="token punctuation">)</span>
+<span class="token keyword">else</span><span class="token punctuation">:</span>
+    <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span>plain_text<span class="token punctuation">)</span>
+</code></pre>
+<blockquote>
+<p>參考實現：<code>ErisPulse-OneBot11Adapter</code>（專用端點 → <code>send_msg</code> 回退）；渲染模板與各適配器任務清單見
+<code>SDK/Adapter/ADAPTER_FORWARD_GUIDE.md</code>。</p>
+</blockquote>
 <h2 id="3-平台特有方法命名">3. 平台特有方法命名</h2>
 <p><strong>不建議</strong>在 Send 類中直接添加平台前綴方法。建議使用通用方法名或 <code>Raw_{協議}</code> 方法。</p>
 <p><strong>不建議：</strong></p>
@@ -688,18 +744,25 @@ info <span class="token operator">=</span> adapter<span class="token punctuation
 <ul>
 <li><input disabled type="checkbox"> <code>file</code> 參數<strong>必須形態</strong>全部支援：HTTP(S) URL / 本地路徑 / <code>bytes</code>（見 §2.1.1）</li>
 <li><input disabled type="checkbox"> 形態判定順序符合 §2.1.2（bytes → URL → <code>file://</code> → 路徑）</li>
-<li><input disabled type="checkbox"> <code>File</code> 的檔案名推導順序符合 §2.1.3（顯式 <code>filename</code> &gt; URL basename &gt; 路徑 basename &gt; 平台預設）</li>
+<li><input disabled type="checkbox"> <code>File</code> 的文件名推導順序符合 §2.1.3（顯式 <code>filename</code> &gt; URL basename &gt; 路徑 basename &gt; 平台預設）</li>
 <li><input disabled type="checkbox"> 平台的媒體限制（大小 / MIME / 時長）已在適配器文件中聲明（§2.1.4）</li>
 <li><input disabled type="checkbox"> 不支援的媒體類型按 §2.1.5 降級階梯處理：近緣類型降級或返回 <code>retcode=10002</code>，不拋異常、不靜默丟棄</li>
+</ul>
+<h3 id="合併轉發可選見-24">合併轉發（可選，見 §2.4）</h3>
+<ul>
+<li><input disabled type="checkbox"> 平台有原生合併轉發時，<code>MergeForward</code> 走協議專用端點，失敗回退 <code>send_msg</code>（OneBot11 系）</li>
+<li><input disabled type="checkbox"> 平台無原生轉發但有富文本時，<code>MergeForward</code> 渲染為平台摺疊形態（HTML 卡 / Card / Embed / blockquote）</li>
+<li><input disabled type="checkbox"> 兩者皆無時<strong>不實現</strong> <code>MergeForward</code>，不返回成功卻發出 node 字典純文字</li>
+<li><input disabled type="checkbox"> <code>MergeForward</code> 內部不再調 <code>Raw_ob12</code> 轉發同樣 nodes</li>
 </ul>
 <h3 id="反向轉換">反向轉換</h3>
 <ul>
 <li><input disabled type="checkbox"> <code>Raw_ob12</code> <strong>已實現</strong>（必須，不可跳過）</li>
-<li><input disabled type="checkbox"> <code>Raw_ob12</code> 能處理所有標準訊息段（<code>text</code>, <code>image</code>, <code>audio</code>, <code>video</code>, <code>file</code>, <code>mention</code>, <code>reply</code>）</li>
-<li><input disabled type="checkbox"> <code>Raw_ob12</code> 能處理平台擴展訊息段（<code>{platform}_xxx</code> 類型）</li>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code> 能處理所有標準消息段（<code>text</code>, <code>image</code>, <code>audio</code>, <code>video</code>, <code>file</code>, <code>mention</code>, <code>reply</code>）</li>
+<li><input disabled type="checkbox"> <code>Raw_ob12</code> 能處理平台擴展消息段（<code>{platform}_xxx</code> 類型）</li>
 <li><input disabled type="checkbox"> 標準發送方法（<code>Text</code>, <code>Image</code> 等）內部委託給 <code>Raw_ob12</code>，而非獨立實現轉換邏輯</li>
-<li><input disabled type="checkbox"> 不支援的訊息段跳過並記錄警告，不拋出異常</li>
-<li><input disabled type="checkbox"> 複合訊息段正確處理（合併或按序拆分）</li>
+<li><input disabled type="checkbox"> 不支援的消息段跳過並記錄警告，不拋出異常</li>
+<li><input disabled type="checkbox"> 複合消息段正確處理（合併或按序拆分）</li>
 </ul>
 <h2 id="11-消息建構器messagebuilder">11. 消息建構器（MessageBuilder）</h2>
 <p><code>MessageBuilder</code> 是 ErisPulse 提供的消息段建構工具，配合 <code>Raw_ob12</code> 使用，簡化 OneBot12 消息段的建構過程。</p>

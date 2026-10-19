@@ -324,6 +324,26 @@
 <span class="token key attr-name">stderr_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/err.log</span>
 <span class="token key attr-name">stdout_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/out.log</span>
 </code></pre>
+<h3 id="uv-tool-分離部署cli-與項目環境隔離">uv tool 分離部署（CLI 與項目環境隔離）</h3>
+<p><code>uv tool install</code> 將 <code>epsdk</code> 安裝為<strong>獨立的工具環境</strong>，CLI 自身與項目依賴徹底隔離：升級 CLI 不會觸碰項目 <code>.venv</code>，項目依賴變動也不會影響 CLI。</p>
+<pre><code class="language-bash"><span class="token comment"># 1. 全域安裝 CLI（自動暴露 epsdk / ep 命令）</span>
+uv tool <span class="token function">install</span> ErisPulse
+
+<span class="token comment"># 2. 項目內只放機器人依賴（.venv 由 uv 管理）</span>
+<span class="token builtin class-name">cd</span> /opt/erispulse-bot
+uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># 按需追加適配器</span>
+
+<span class="token comment"># 3. 用 CLI 運行（自動探測並使用項目 .venv 中的解釋器）</span>
+epsdk run main.py
+</code></pre>
+<p>行為要點：</p>
+<ul>
+<li><code>epsdk run</code> 的目標解釋器解析順序：<code>ERISPULSE_PYTHON</code> 環境變數 → 項目 <code>.venv</code> → 當前解釋器；工具環境本身只承載 CLI，組件（適配器/模組）應裝進項目 <code>.venv</code></li>
+<li><code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> 同樣作用於項目 <code>.venv</code>，不會污染工具環境</li>
+<li>升級 CLI：<code>uv tool upgrade ErisPulse</code>（或直接 <code>epsdk self-update</code>，uv tool 環境下自動改走 <code>uv tool upgrade</code>）；升級項目依賴：在項目目錄執行 <code>uv sync</code> / <code>uv add</code>，兩者互不影響</li>
+<li>伺服器場景下工具環境由 uv 統一管理（<code>uv tool list</code> 查看、<code>uv tool upgrade --all</code> 批量升級），無需手動維護全域 pip 包</li>
+<li>若在無項目的目錄用 <code>uv run epsdk ...</code> 執行，會落入<strong>一次性隔離環境</strong>（安裝的組件不持久化）；伺服器上請始終用 <code>epsdk</code> 直接呼叫，或先 <code>cd</code> 進項目目錄</li>
+</ul>
 <h2 id="安全建議">安全建議</h2>
 <ol>
 <li><strong>設定 Dashboard 令牌</strong>：使用強大的隨機令牌，不要使用預設值</li>
@@ -352,24 +372,31 @@
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
-<h3 id="運行時熱重載伺服器配置">運行時熱重載伺服器配置</h3>
-<p>修改監聽地址 / 端口 / SSL 證書後無需重啟進程，在任意協程中呼叫 <code>router.reload()</code>：</p>
-<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># 更換端口</span>
+<h3 id="uv-tool-方式">uv tool 方式</h3>
+<pre><code class="language-bash"><span class="token comment"># 升級 CLI 工具環境</span>
+uv tool upgrade ErisPulse
+
+<span class="token comment"># 升級專案相依性（於專案目錄內執行）</span>
+uv <span class="token function">sync</span>
+</code></pre>
+<h3 id="運行時熱重載伺服器設定">運行時熱重載伺服器設定</h3>
+<p>修改監聽位址 / 端口 / SSL 證書後無需重新啟動程序，在任意協程中呼叫 <code>router.reload()</code>：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># 更改端口</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 熱更換證書（證書續期場景）</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 缺省參數沿用當前配置</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 缺省參數沿用當前設定</span>
 </code></pre>
 <ul>
 <li>重用同一 FastAPI 應用，模組註冊的 HTTP / WebSocket / SSE 路由全部保留</li>
-<li>先驗證新配置（證書可構建、端口可用）再切換；失敗時以舊配置恢復服務並返回 <code>False</code>，
-保證返回 <code>False</code> = 舊服務保持可用</li>
-<li>伺服器未運行時返回 <code>False</code>（首次啟動請使用 <code>sdk.router.start()</code>）</li>
+<li>先驗證新設定（證書可建立、端口可用）再切換；失敗時以舊設定恢復服務並回傳 <code>False</code>，
+保證回傳 <code>False</code> = 舊服務保持可用</li>
+<li>伺服器未運行時回傳 <code>False</code>（首次啟動請使用 <code>sdk.router.start()</code>）</li>
 </ul>
 <h3 id="備份">備份</h3>
 <p>定期備份 <code>config/</code> 目錄：</p>
 <pre><code class="language-bash"><span class="token comment"># Docker 部署</span>
 <span class="token function">tar</span> czf erispulse-backup-<span class="token variable"><span class="token variable">$(</span><span class="token function">date</span> +%Y%m%d<span class="token variable">)</span></span>.tar.gz config/
 
-<span class="token comment"># 或在 Dashboard 中使用「備份」功能導出</span>
+<span class="token comment"># 或在 Dashboard 中使用「備份」功能匯出</span>
 </code></pre>
 
         </article>

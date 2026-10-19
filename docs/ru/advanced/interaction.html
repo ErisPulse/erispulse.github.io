@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Система интерактивных сессий - ErisPulse 文档中心</title>
-    <meta name="description" content="В этой главе требуется ErisPulse 2.8.0+." />
+    <meta name="description" content="Когда нужно читать эту статью: если вам нужны wait_reply, многоконтактные диалоги, периодические напоминания, взаимное исключение сессий или трассировка цепо..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/interaction.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/interaction.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/interaction.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/interaction.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/interaction.html" />
     <meta property="og:title" content="Система интерактивных сессий - ErisPulse 文档中心" />
-    <meta property="og:description" content="В этой главе требуется ErisPulse 2.8.0+." />
+    <meta property="og:description" content="Когда нужно читать эту статью: если вам нужны wait_reply, многоконтактные диалоги, периодические напоминания, взаимное исключение сессий или трассировка цепо..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/interaction.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система интерактивных сессий","description":"В этой главе требуется ErisPulse 2.8.0+.","url":"https://www.erisdev.com/docs/ru/advanced/interaction.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система интерактивных сессий","description":"Когда нужно читать эту статью: если вам нужны wait_reply, многоконтактные диалоги, периодические напоминания, взаимное исключение сессий или трассировка цепо...","url":"https://www.erisdev.com/docs/ru/advanced/interaction.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,20 +73,23 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="система-интерактивных-сессий">Система интерактивных сессий</h1>
-<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p>В этой главе требуется ErisPulse <strong>2.8.0+</strong>.</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>Когда нужно читать эту статью</strong>: если вам нужны <code>wait_reply</code>, многоконтактные диалоги, периодические напоминания, взаимное исключение сессий или трассировка цепочки событий. Если не нужны — можете пропустить, это не повлияет на использование других функций.</p>
 </div>
-<p>ErisPulse реализует "постоянное взаимодействие с пользователем" на уровне фреймворка: от одной <code>wait_reply</code> до периодических напоминаний, ожидания нескольких потоков, взаимоисключающих сессий и восстановления после перезапуска — всё это управляется единым <strong>менеджером интерактивных сессий</strong> (<code>Core/Event/interaction.py</code>, <code>sdk.interaction</code>).</p>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>Содержание этой главы доступно только в ErisPulse <strong>2.8.0+</strong>.</p>
+</div>
+<p>ErisPulse реализовал "непрерывное взаимодействие с пользователем" на уровне фреймворка: от одной команды <code>wait_reply</code> до периодических напоминаний, ожидания нескольких событий, взаимного исключения сессий и восстановления после перезапуска — всё это управляется единым <strong>менеджером интерактивных сессий</strong> (<code>Core/Event/interaction.py</code>, <code>sdk.interaction</code>).</p>
 <p>{!--&lt; tips &gt;!--}
-Каждая из описанных в этой статье возможностей имеет <strong>владельца (owner)</strong>: ожидание, аренды, таймеры все записывают имя модуля, при регистрации, и при выгрузке модуля / отключении адаптера фреймворк автоматически очищает ожидания и уведомляет ожидаемую сторону, а не заставляет ждать истечения таймаута — это расширение системы владения в контексте взаимодействия (см. <a href="/docs/ru/advanced/ownership.html">Система владения</a>).
+Каждая из описанных в этой статье возможностей имеет <strong>владельца (owner)</strong>: интерактивные ожидания, аренды, таймеры — все они регистрируются с указанием имени модуля, и при отключении модуля или адаптера фреймворк автоматически очищает их, уведомляя сторону ожидания сразу, а не заставляя ждать истечения таймаута. Это расширение системы владения на интерактивные сессии (см. <a href="/docs/ru/advanced/ownership.html">Система владения</a>). 
 {!--&lt; /tips &gt;!--}</p>
 <h2 id="ожидание-ответа-wait_reply">Ожидание ответа: wait_reply</h2>
-<p><code>wait_reply</code> — основа интерактивных сессий: приостанавливает текущую корутину, ожидая ответа от пользователя в следующем сообщении.</p>
+<p><code>wait_reply</code> является основой интерактивных сессий — приостанавливает текущий корутин, ожидая ответа от целевого пользователя в следующем сообщении.</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> command
 
 <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ask"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ask_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>prompt<span class="token operator">=</span><span class="token string">"Введите ваше имя:"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
+    reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>prompt<span class="token operator">=</span><span class="token string">"Пожалуйста, введите ваше имя:"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
     <span class="token keyword">if</span> reply <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
         <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Таймаут"</span><span class="token punctuation">)</span>
         <span class="token keyword">return</span>
@@ -103,7 +106,7 @@
 </thead>
 <tbody><tr>
 <td><code>prompt</code></td>
-<td>Сообщение-подсказка, отправляемое до приостановки</td>
+<td>Сообщение-подсказка, отправляемое перед приостановкой</td>
 <td>None</td>
 </tr>
 <tr>
@@ -113,22 +116,22 @@
 </tr>
 <tr>
 <td><code>pattern</code></td>
-<td>Фильтр шаблонов (glob: <code>*</code> / <code>?</code> / <code>[seq]</code>), если не совпадает — продолжить ожидание</td>
+<td>Фильтр по шаблону (glob: <code>*</code> / <code>?</code> / <code>[seq]</code>), если не совпадает, продолжает ожидание</td>
 <td>None</td>
 </tr>
 <tr>
 <td><code>regex</code></td>
-<td>Регулярное выражение (должно совпадать с pattern, если заданы оба), если не совпадает — продолжить ожидание</td>
+<td>Фильтр по регулярному выражению (должен совпадать, если задан и <code>pattern</code>), если не совпадает, продолжает ожидание</td>
 <td>None</td>
 </tr>
 <tr>
 <td><code>validator</code></td>
-<td>Функция проверки (принимает Event, возвращает bool), если не проходит — продолжить ожидание</td>
+<td>Функция-валидатор (принимает Event, возвращает bool), если не проходит, продолжает ожидание</td>
 <td>None</td>
 </tr>
 <tr>
 <td><code>callback</code></td>
-<td>Колбэк при получении ответа (альтернатива возвращаемому значению)</td>
+<td>Колбэк, вызываемый при получении ответа (альтернативный способ вместо возврата значения)</td>
 <td>None</td>
 </tr>
 <tr>
@@ -138,82 +141,84 @@
 </tr>
 <tr>
 <td><code>session</code></td>
-<td><strong>Сессионное ожидание</strong>: ответ любого участника той же сессии (группы / канала) может быть захвачен</td>
+<td><strong>Сессионное ожидание</strong>: любой ответ в рамках сессии (группа / канал) будет считаться ответом</td>
 <td>False</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python"><span class="token comment"># Принимает только цифровые суммы, иначе продолжает ожидание</span>
+<pre><code class="language-python"><span class="token comment"># Принимает только цифровую сумму, иначе продолжает ожидание</span>
 reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span><span class="token string">"Введите сумму:"</span><span class="token punctuation">,</span> regex<span class="token operator">=</span><span class="token string">r"\d+\s*元"</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Сессионное ожидание: в сценариях совместной работы в группе, любой участник может ответить</span>
-reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> prompt<span class="token operator">=</span><span class="token string">"Кто-нибудь может ответить?"</span><span class="token punctuation">)</span>
+<span class="token comment"># Сессионное ожидание: сценарий совместной работы в группе, любой участник может ответить</span>
+reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>session<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> prompt<span class="token operator">=</span><span class="token string">"Кто-нибудь может помочь ответить?"</span><span class="token punctuation">)</span>
 </code></pre>
-<h3 id="когда-ожидание-будет-отменено">Когда ожидание будет отменено</h3>
-<p>Ожидание больше не приводит к "только ожиданию истечения таймаута" — следующие условия немедленно приводят к <strong>прекращению</strong> (возврат <code>None</code> из <code>wait_reply</code>), а не к ожиданию истечения таймаута:</p>
+<h3 id="границы-ожидания-и-команд">Границы ожидания и команд</h3>
+<p>Во время ожидания, если поступает сообщение с <strong>зарегистрированной командой</strong> (например, <code>/cancel</code>), по умолчанию оно передается обработчику команд и <strong>не считается ответом</strong> (настройка <code>ErisPulse.event.wait_reply.cmdpass</code>, при <code>True</code> — сообщение всегда считается ответом). Проверка текста происходит по тому же принципу, что и при распределении команд: <code>alt_message</code> имеет приоритет, если отсутствует, используется объединение сообщений (с 2.10.1 поддерживается для адаптеров, использующих только <code>message</code>).</p>
+<h3 id="когда-ожидание-может-быть-отменено">Когда ожидание может быть отменено</h3>
+<p>Ожидание больше не ограничено только таймаутом — следующие ситуации немедленно приводят к <strong>отмене</strong> (возврат <code>None</code> из <code>wait_reply</code>), а не к ожиданию таймаута:</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>Триггер</th>
+<th>Событие</th>
 <th>Причина отмены (<code>InteractionCancelled.reason</code>)</th>
 <th>Описание</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>Модуль-владелец выгружен / отключен</td>
+<td>Модуль, зарегистрировавший ожидание, был отключен / отключен</td>
 <td><code>owner_unload</code></td>
-<td>Очистка владения: кто зарегистрировал ожидание, тот и удаляет его</td>
+<td>Очистка принадлежности: ожидание отменяется, когда исчезает модуль</td>
 </tr>
 <tr>
-<td>Адаптер остановлен / перезапущен</td>
+<td>Адаптер был остановлен / перезапущен</td>
 <td><code>platform_stop</code></td>
 <td>Все ожидания, связанные с платформой, отменяются</td>
 </tr>
 <tr>
-<td>В той же сессии появилось новое ожидание / аренда</td>
+<td>В той же сессии было зарегистрировано новое ожидание / аренда</td>
 <td><code>conflict</code></td>
-<td>См. ниже "Арбитраж сессий"</td>
+<td>См. раздел "Арбитраж сессий"</td>
 </tr>
 <tr>
-<td>Ответивший пользователь заблокирован / модуль-владелец отвязан</td>
+<td>Ответивший пользователь был заблокирован / модуль был откреплен</td>
 <td><code>revoked</code></td>
-<td>Повторная проверка прав: по scope и владельцу</td>
+<td>Проверка прав доступа: по идентификатору пользователя и по модулю</td>
 </tr>
 <tr>
-<td>Ответ пользователя совпадает</td>
+<td>Ответ был получен</td>
 <td>—</td>
-<td>Нормальный путь, возвращает событие ответа</td>
+<td>Нормальный путь, возвращается событие ответа</td>
 </tr>
 </tbody></table></div>
-<p>Нижележащее исключение — <code>InteractionCancelled</code> (входит в иерархию <code>InteractionError</code>), <code>wait_reply</code> уже преобразует его в возврат <code>None</code>; вызывающие, которым нужна причина, могут использовать низкоуровневый API <code>sdk.interaction.register()</code>.</p>
-<h3 id="полная-цепочка-проверки-при-ответе">Полная цепочка проверки при ответе</h3>
-<p>Когда приходит сообщение с ответом, менеджер взаимодействия проверяет его по следующей последовательности (выполняется <strong>до</strong> сопоставления команд, приоритет сохраняется — даже если сообщение уже обработано другим процессором, приостановленный диалог может быть завершен):</p>
-<pre><code>Соответствие сессионному ключу (точная пользовательская мера → сессионная отмена)
-  → Фильтрация текста по pattern / regex (не совпадает — продолжить ожидание)
-  → Проверка validator (не проходит — продолжить ожидание)
-  → Повторная проверка прав (по scope и владельцу, не проходит — завершить ожидание)
-  → Пробуждение ожидающей стороны + признание события (mark_processed)
+<p>Внутреннее исключение — <code>InteractionCancelled</code> (входит в систему исключений <code>InteractionError</code>), <code>wait_reply</code> уже преобразует его в возврат <code>None</code>; при необходимости причины можно использовать низкоуровневый API <code>sdk.interaction.register()</code>.</p>
+<h3 id="полная-цепочка-проверки-ответа">Полная цепочка проверки ответа</h3>
+<p>Когда поступает сообщение с ответом, менеджер интерактивных сессий проверяет его по следующей последовательности (выполняется <strong>до</strong> командного распределения, приоритет сохранения диалога — даже если сообщение уже было распознано другим обработчиком, приостановленный диалог может быть завершен):</p>
+<pre><code>Соответствие сессионного ключа (точный идентификатор пользователя → сессионный ответ)
+  → Фильтрация по шаблону / регулярному выражению (если не совпадает, продолжает ожидание)
+  → Валидация (если не проходит, продолжает ожидание)
+  → Проверка прав доступа (по идентификатору пользователя и по модулю, если не проходит, отменяет ожидание)
+  → Пробуждение ожидающей стороны + подтверждение события (mark_processed)
 </code></pre>
 <h2 id="сессионные-таймеры-remind-escalate">Сессионные таймеры: remind / escalate</h2>
-<p>Превращает "таймаут" из возвращаемого значения в управляемый примитив. Таймеры привязаны к сессии взаимодействия и автоматически отменяются при выгрузке модуля / остановке адаптера, лимит активных remind на одну сессию — 5 шт.</p>
-<h3 id="remind-напоминание-при-отсутствии-ответа">remind: напоминание при отсутствии ответа</h3>
+<p>Превращает "таймаут" из возвращаемого значения в управляемый примитив. Таймеры привязаны к интерактивной сессии и автоматически отменяются при отключении модуля или остановке адаптера, в одной сессии одновременно может быть активно до 5 таймеров.</p>
+<h3 id="remind-напоминание-при-отсутствии-ответа">remind: Напоминание при отсутствии ответа</h3>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"ticket"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">ticket_command</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Заявка создана, результат будет здесь"</span><span class="token punctuation">)</span>
-    <span class="token comment"># Если нет ответа за 5 минут, мягко напомнить; любой ответ от пользователя автоматически отменяет напоминание</span>
-    event<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">,</span> <span class="token string">"Есть ли кто-нибудь? С результатом свяжемся"</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Заявка создана, результат будет здесь уведомлен"</span><span class="token punctuation">)</span>
+    <span class="token comment"># Если нет ответа в течение 5 минут, мягко напомнить один раз; любой ответ от пользователя автоматически отменяет таймер</span>
+    event<span class="token punctuation">.</span>remind<span class="token punctuation">(</span><span class="token number">300</span><span class="token punctuation">,</span> <span class="token string">"Вы еще здесь? Результат будет сообщён как только появится"</span><span class="token punctuation">)</span>
     reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">3600</span><span class="token punctuation">)</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
 <ul>
-<li><code>event.remind(delay, text=None, *, callback=None)</code>: отправляет <code>text</code> (или вызывает <code>callback(event)</code>, поддерживает синхронные и асинхронные) по истечении <code>delay</code>. <strong>Обязательно</strong>: <code>text</code> и <code>callback</code> должны быть выбраны (если не указаны — выброс <code>ValueError</code>)</li>
-<li>Возвращает <code>Reminder</code>-дескриптор: <code>reminder.cancel()</code> для ручной отмены, <code>reminder.expired</code> для проверки состояния</li>
-<li>Автоматически отменяется при ответе пользователя — это и есть семантика "напоминания": напоминание появляется только при молчании пользователя</li>
-<li>В <code>Conversation</code> также доступно: <code>conv.remind(120, "Еще думаете?")</code></li>
+<li><code>event.remind(delay, text=None, *, callback=None)</code>: При истечении времени отправляет сообщение <code>text</code> (или выполняет <code>callback(event)</code>, поддерживает синхронные и асинхронные функции) в текущую сессию. <strong>Обязательная проверка</strong>: <code>text</code> и <code>callback</code> должны быть выбраны (если не указано, выбрасывается <code>ValueError</code>)</li>
+<li>Возвращает объект <code>Reminder</code>: <code>reminder.cancel()</code> для ручного отменения, <code>reminder.expired</code> для проверки состояния</li>
+<li>Автоматически отменяется при любом ответе пользователя — это и есть смысл "напоминания": напоминание появляется только при молчании пользователя</li>
+<li>В <code>Conversation</code> также можно использовать: <code>conv.remind(120, "Ещё думаете?")</code></li>
 </ul>
-<h3 id="escalate-обязательное-уведомление-по-истечении-времени">escalate: обязательное уведомление по истечении времени</h3>
+<h3 id="escalate-обязательное-уведомление-по-истечении-времени">escalate: Обязательное уведомление по истечении времени</h3>
 <pre><code class="language-python">event<span class="token punctuation">.</span>escalate<span class="token punctuation">(</span><span class="token number">1800</span><span class="token punctuation">,</span> <span class="token keyword">lambda</span> e<span class="token punctuation">:</span> notify_master<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Заявка не обработана 30 минут: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>get_command_args<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span><span class="token punctuation">)</span>
 </code></pre>
-<p>Единственное отличие от <code>remind</code>: <strong>не отменяется ответом пользователя</strong> — действие "повышения" (уведомление владельца, передача в ручной обход) — это обязательное уведомление по истечении времени, отменяется только вручную <code>cancel()</code> / выгрузкой модуля / остановкой адаптера.</p>
+<p>Единственное отличие от <code>remind</code>: <strong>не отменяется ответом пользователя</strong> — действие "повышения" (уведомление владельца, передача в ручной режим) — это обязательное уведомление по истечении времени, отменяется только ручным <code>cancel()</code> / отключением модуля / остановкой адаптера.</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -223,28 +228,28 @@ reply <span class="token operator">=</span> <span class="token keyword">await</s
 </tr>
 </thead>
 <tbody><tr>
-<td>Действие по истечении</td>
+<td>Действие по истечении времени</td>
 <td>Отправка текста / выполнение callback</td>
 <td>Выполнение callback</td>
 </tr>
 <tr>
 <td>Ответ пользователя</td>
-<td><strong>Автоматически отменяется</strong></td>
+<td><strong>Автоматически отменяет</strong></td>
 <td>Не влияет</td>
 </tr>
 <tr>
-<td>Очистка владения (выгрузка / остановка платформы)</td>
-<td>Отменяется</td>
-<td>Отменяется</td>
+<td>Очистка при отключении / остановке платформы</td>
+<td>Отменяет</td>
+<td>Отменяет</td>
 </tr>
 <tr>
-<td>Лимит на сессию</td>
+<td>Ограничение на одну сессию</td>
 <td>5</td>
-<td>Не ограничен (очистка по владению в качестве резерва)</td>
+<td>Не ограничено (очистка по принадлежности)</td>
 </tr>
 </tbody></table></div>
 <h2 id="многопоточное-ожидание-expect-select">Многопоточное ожидание: expect + select</h2>
-<p>Ожидание нескольких условий одновременно, <strong>первое поступившее</strong> — выполняется — типичный сценарий: ожидание одобрения администратором и одновременно ожидание отмены пользователем, голосование между участниками.</p>
+<p>Ожидание нескольких путей одновременно, <strong>первый поступивший ответ</strong> — и всё. Типичный сценарий: ожидание одобрения администратора и одновременно ожидание отзыва пользователя, совместное голосование.</p>
 <pre><code class="language-python">which<span class="token punctuation">,</span> reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>select<span class="token punctuation">(</span>
     event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"同意*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10001"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
     event<span class="token punctuation">.</span>expect<span class="token punctuation">(</span>pattern<span class="token operator">=</span><span class="token string">"拒绝*"</span><span class="token punctuation">,</span> user<span class="token operator">=</span><span class="token string">"10002"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
@@ -252,28 +257,32 @@ reply <span class="token operator">=</span> <span class="token keyword">await</s
     timeout<span class="token operator">=</span><span class="token number">60</span><span class="token punctuation">,</span>
 <span class="token punctuation">)</span>
 <span class="token keyword">if</span> which <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"В течение 60 секунд не было ответов"</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"В течение 60 секунд не получено ни одного результата одобрения"</span><span class="token punctuation">)</span>
 <span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">:</span>
     <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Одобрено"</span><span class="token punctuation">)</span>
 <span class="token keyword">elif</span> which <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">:</span>
     <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Отклонено"</span><span class="token punctuation">)</span>
 </code></pre>
 <ul>
-<li><code>event.expect(...)</code> создаёт <strong>описание ожидания</strong> (не регистрирует ожидание): поддерживает <code>pattern</code> / <code>regex</code> / <code>validator</code> / <code>user</code> (ограничение пользователя, отвечающего) / <code>session</code> (любой может ответить)</li>
-<li><code>event.select(*expectations, timeout=60)</code>: регистрирует все ожидания → возвращает <code>(индекс, событие ответа)</code> при первом совпадении → несовпадающие ожидания автоматически отменяются; при истечении таймаута возвращаются <code>(None, None)</code>. <strong>Обязательно</strong>: передать хотя бы одно ожидание, иначе выброс <code>ValueError</code></li>
-<li>Событие, которое было захвачено, уже признано фреймворком (mark_processed), не будет повторно обработано другими процессорами</li>
+<li><code>event.expect(...)</code> создает <strong>описание ожидания</strong> (не регистрирует ожидание): поддерживает <code>pattern</code> / <code>regex</code> / <code>validator</code> / <code>user</code> (ограничение ответившего) / <code>session</code> (любой может ответить)</li>
+<li><code>event.select(*expectations, timeout=60)</code>: регистрирует все ожидания → при первом совпадении возвращает <code>(индекс, событие ответа)</code> → несовпавшие ожидания автоматически отменяются; по истечении времени возвращается <code>(None, None)</code>. <strong>Обязательная проверка</strong>: хотя бы одно ожидание должно быть указано, иначе выбрасывается <code>ValueError</code></li>
+<li>Соответствующее событие уже признано фреймворком (mark_processed), не будет повторно обработано другими обработчиками</li>
 </ul>
 <p>{!--&lt; tips &gt;!--}
-<code>select</code> по сравнению с ручной обработкой <code>asyncio.wait</code> в многопоточном режиме: автоматическая очистка несовпадающих ожиданий, автоматическое признание захваченного события, все проверки прав и очистка владения автоматически выполняются — не нужно управлять Future вручную.
+<code>select</code> и ручная обработка с <code>asyncio.wait</code> в многопоточном режиме: автоматическая очистка несовпавших ожиданий, автоматическое подтверждение соответствующего события, автоматическая проверка прав доступа и очистка по принадлежности — не нужно вручную управлять Future.
 {!--&lt; /tips &gt;!--}</p>
-<h2 id="взаимоисключающие-сессии-acquire-hold-get_owner_of">Взаимоисключающие сессии: acquire / hold / get_owner_of</h2>
-<p>Владение переходит от "ресурсов" к "сессиям" — "кто сейчас занят этим пользователем" становится первостепенным вопросом.</p>
-<pre><code class="language-python"><span class="token comment"># Запрос: кто сейчас взаимодействует с этой сессией? (если свободна — возвращает None)</span>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p><br>Начиная с версии 2.10.1, <code>select</code> стал <strong>агрегирующим ожиданием</strong>: все ожидания объединяются в один элемент + пользовательская логика определения совпадения, одновременное ожидание нескольких путей (например, один пользователь ожидает два разных шаблона) больше не отменяют друг друга, первый поступивший ответ возвращает результат. Проверка текста ответа происходит по тому же принципу, что и при распределении команд (<code>alt_message</code> имеет приоритет + возврат сообщения, если <code>alt_message</code> отсутствует).</p>
+<p>Уточнение границ: <code>event.wait_for(...)</code> регистрируется напрямую на событийной линии адаптера, <strong>не проходит</strong> через промежуточные обработчики и фильтры по <code>detail_type</code> (входные права доступа проверяются на уровне входа в распределение); для полной цепочки ожидания используйте <code>wait_reply</code> / <code>select</code>.</p>
+</div>
+<h2 id="взаимоисключение-сессий-acquire-hold-get_owner_of">Взаимоисключение сессий: acquire / hold / get_owner_of</h2>
+<p>Принадлежность расширяется с "ресурсов" на "сессии" — "кто сейчас взаимодействует с этим пользователем" становится важным запросом.</p>
+<pre><code class="language-python"><span class="token comment"># Запрос: кто сейчас взаимодействует с этой сессией? (если свободна, возвращает None)</span>
 owner <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>get_owner_of<span class="token punctuation">(</span>event<span class="token punctuation">)</span>
 <span class="token keyword">if</span> owner <span class="token keyword">and</span> owner <span class="token operator">!=</span> <span class="token string">"MyModule"</span><span class="token punctuation">:</span>
-    <span class="token keyword">return</span>  <span class="token comment"># Другой модуль уже в диалоге, избегаем мешать</span>
+    <span class="token keyword">return</span>  <span class="token comment"># Другой модуль уже взаимодействует, избегаем конфликта</span>
 
-<span class="token comment"># Взаимоисключающая аренда: эксклюзивная сессия (политика deny, если занята — возвращает None)</span>
+<span class="token comment"># Взаимоисключающая аренда: эксклюзивное владение сессией (стратегия deny, если занята возвращает None)</span>
 lease <span class="token operator">=</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>acquire<span class="token punctuation">(</span>event<span class="token punctuation">)</span>          <span class="token comment"># По умолчанию TTL 1 час, можно передать ttl=</span>
 <span class="token keyword">if</span> lease <span class="token keyword">is</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
     <span class="token keyword">return</span>  <span class="token comment"># Уже занята</span>
@@ -286,60 +295,60 @@ lease <span class="token operator">=</span> sdk<span class="token punctuation">.
 <pre><code class="language-python"><span class="token keyword">with</span> sdk<span class="token punctuation">.</span>interaction<span class="token punctuation">.</span>hold<span class="token punctuation">(</span>event<span class="token punctuation">)</span> <span class="token keyword">as</span> lease<span class="token punctuation">:</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>  <span class="token comment"># Автоматически освобождается при выходе</span>
 </code></pre>
-<p>Аренда поддерживает <code>renew(ttl)</code> для продления; TTL ленивый — просроченная аренда автоматически удаляется при следующем обращении.</p>
-<p><code>Conversation.resume()</code> при возобновлении диалога автоматически приобретает аренду (см. <a href="/docs/ru/advanced/conversation.html">Многошаговый диалог</a> "Восстановление = захват") — восстановленный диалог автоматически владеет сессией, другие модули не могут вмешаться.</p>
-<h2 id="ящик-для-диалогов-eventhistory">Ящик для диалогов: event.history</h2>
+<p>Аренда поддерживает <code>renew(ttl)</code> для продления; TTL лениво истекает — просроченная аренда автоматически очищается при следующем обращении.</p>
+<p>При восстановлении диалога (<code>Conversation.resume()</code>) фреймворк автоматически приобретает аренду (см. <a href="/docs/ru/advanced/conversation.html">Многошаговые диалоги</a> "Восстановление = Захват") — восстановленный диалог автоматически владеет сессией, другие модули не могут вмешаться.</p>
+<h2 id="почтовый-ящик-сессии-eventhistory">Почтовый ящик сессии: event.history</h2>
 <blockquote>
-<p>Стратегия сохранения (7 дней / ограничение на количество) и API для перезаписи во время выполнения, риски и аудит см. в специальной теме <a href="/docs/ru/advanced/transcript.html">Ящик для диалогов</a>.</p>
+<p>Стратегия хранения (7 дней / ограничение по количеству) и API для изменения во время выполнения, риски и аудит см. в специальной статье <a href="/docs/ru/advanced/transcript.html">Почтовый ящик сессии</a>.</p>
 </blockquote>
-<p>Единая запись недавнего потока сообщений для каждого диалога (обе стороны: пользователь и робот), используемая как <strong>общая база фактов</strong> для модулей контекста ИИ, предотвращения дублирования и анализа поведения — модули больше не хранят историю отдельно.</p>
-<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># Последние 20 сообщений текущего диалога, по возрастанию времени</span>
+<p>Единая запись недавних сообщений для каждой сессии (сообщения от пользователя и бота), служит <strong>общей базой фактов</strong> для модулей, использующих контекст, предотвращения повторений, анализа поведения — каждый модуль больше не хранит историю по отдельности.</p>
+<pre><code class="language-python">messages <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>history<span class="token punctuation">(</span><span class="token number">20</span><span class="token punctuation">)</span>   <span class="token comment"># Последние 20 сообщений текущей сессии, по возрастанию времени</span>
 <span class="token keyword">for</span> m <span class="token keyword">in</span> messages<span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span>m<span class="token punctuation">[</span><span class="token string">"role"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token string">":"</span><span class="token punctuation">,</span> m<span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>  <span class="token comment"># role: "user" / "bot"</span>
 </code></pre>
 <ul>
-<li>Автоматическая запись: входящие сообщения (role=user) + текстовые ответы робота (role=bot)</li>
-<li>Хранение: отдельная таблица SQLite, стратегия сохранения = верхний предел на диалог (по умолчанию 50) + глобальный TTL (по умолчанию 7 дней)</li>
-<li>Способ записи: буфер в памяти + фоновая пакетная запись на диск (задержка до 1 секунды), интерфейс запроса автоматически объединяет незаписанные строки из буфера — чтение из того же процесса не затрагивается; нормальное завершение (sdk.uninit / выход из процесса) автоматически записывает на диск. <strong>При сильном сбое / принудительном завершении могут быть потеряны последние около 1 секунды записей</strong>: эта база предназначена для кэширования недавнего контекста, а не для аудита и длительного хранения</li>
+<li>Автоматическая запись: входящие сообщения (role=user) + исходящие сообщения бота (role=bot)</li>
+<li>Хранение: отдельная таблица SQLite, стратегия хранения = ограничение по количеству сообщений (по умолчанию 50) + глобальный TTL (по умолчанию 7 дней)</li>
+<li>Запись: буфер в памяти + фоновая выгрузка на диск (задержка до 1 секунды), интерфейс запроса автоматически объединяет несохранённые записи из буфера — чтение из буфера в том же процессе не влияет. При нормальном завершении (<code>sdk.uninit</code> / выход из процесса) происходит выгрузка. <strong>При жестком сбое / принудительном завершении могут быть потеряны последние около 1 секунды записей</strong>: эта база данных предназначена для кэширования недавнего контекста, не подходит для аудита или долгосрочного хранения</li>
 <li>Конфигурация: <code>ErisPulse.transcript = {enabled = true, max_per_session = 50, ttl_hours = 168}</code></li>
-<li>API менеджера: <code>sdk.transcript.append() / get() / clear()</code>, <code>aflush()</code> / <code>flush()</code> для ручной записи на диск</li>
+<li>Интерфейс менеджера: <code>sdk.transcript.append() / get() / clear()</code>, <code>aflush()</code> / <code>flush()</code> для ручной выгрузки</li>
 </ul>
 <h2 id="транзакции-сообщений-message_tx">Транзакции сообщений: message_tx</h2>
-<p>Все исходящие отправки в транзакции автоматически записываются; <strong>при исключительном выходе автоматически отменяются отправленные сообщения</strong> (если адаптер не реализует <code>delete_message</code>, пропускается, но журнал записей остаётся).</p>
+<p>Все исходящие сообщения в транзакции автоматически записываются; <strong>при исключительном выходе транзакции автоматически отменяются отправленные ранее сообщения</strong> (если адаптер не реализует <code>delete_message</code>, отмена пропускается, но запись в журнале сохраняется).</p>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">with</span> event<span class="token punctuation">.</span>message_tx<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Обрабатываю, подождите"</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"Обработка, пожалуйста, подождите"</span><span class="token punctuation">)</span>
     result <span class="token operator">=</span> <span class="token keyword">await</span> do_something<span class="token punctuation">(</span><span class="token punctuation">)</span>          <span class="token comment"># Здесь выбрасывается исключение →</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Готово: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>   <span class="token comment"># Сообщение "Обрабатываю..." автоматически удаляется</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Завершено: </span><span class="token interpolation"><span class="token punctuation">{</span>result<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>   <span class="token comment"># Сообщение "Обработка" автоматически отменяется</span>
 </code></pre>
-<p>Отправка вне транзакции не записывается (нулевой накладной расход); <code>get_send_receipts()</code> позволяет просмотреть отправленные в текущей транзакции сообщения.</p>
+<p>Сообщения, отправленные вне транзакции, не записываются (нулевые накладные расходы); <code>get_send_receipts()</code> позволяет просмотреть уже отправленные в текущей транзакции сообщения.</p>
 <h2 id="трассировка-цепочки-trace-id">Трассировка цепочки: trace-id</h2>
-<p>Каждое входящее событие автоматически получает идентификатор трассировки (используется <code>event["id"]</code>, если отсутствует — генерируется), который проходит через:</p>
+<p>Каждое входящее событие автоматически получает идентификатор трассировки (использует <code>event["id"]</code>, если отсутствует, генерируется), который проходит через:</p>
 <ul>
-<li>Контекст обработчика (<code>get_current_trace_id()</code> для чтения)</li>
-<li>Исходящие отправки (строки лога <code>[Send]</code> с дополнением <code>[trace:...]</code>, поле <code>trace_id</code> в хуках <code>message.sending/sent</code>)</li>
-<li>Данные жизненного цикла (dict автоматически дополняется <code>_trace_id</code>)</li>
-<li>Направленные события (<code>lifecycle.emit(..., to=...)</code>) и транзакционные подтверждения сообщений</li>
+<li>контекст обработчика (<code>get_current_trace_id()</code> для чтения)</li>
+<li>исходящие отправки (строки лога <code>[Send]</code> с <code>[trace:...]</code>, поле <code>trace_id</code> в хуках <code>message.sending/sent</code>)</li>
+<li>данные жизненного цикла (словарь автоматически дополняется <code>_trace_id</code>)</li>
+<li>направленные события (<code>lifecycle.emit(..., to=...)</code>) и транзакционные подтверждения сообщений</li>
 </ul>
-<p>При обработке сообщения несколькими модулями, один и тот же ID можно использовать для объединения всей цепочки (логи / медленные запросы / аудит).</p>
+<p>При обработке сообщения несколькими модулями, вся цепочка может быть прослежена по одному и тому же ID (для логов, медленных запросов, аудита).</p>
 <h2 id="связь-с-другими-системами">Связь с другими системами</h2>
 <ul>
-<li><strong>Владение</strong>: ожидания / аренды / таймеры все записывают owner, при выгрузке — очищаются (<a href="/docs/ru/advanced/ownership.html">Система владения</a>)</li>
-<li><strong>Область видимости</strong>: проверка прав при совпадении ответа + по модулю; аудит при межмодульных вызовах — по направлению отправки (<a href="/docs/ru/advanced/scope.html">Область видимости</a>)</li>
-<li><strong>Conversation</strong>: многошаговый диалог — это конечный автомат на уровне сессии взаимодействия (<a href="/docs/ru/advanced/conversation.html">Conversation</a>), его ожидания также имеют все отмены / проверки / владения, описанные на этой странице</li>
+<li><strong>Принадлежность</strong>: ожидание / аренда / таймеры все регистрируются с указанием owner, при отключении модуля — очистка (см. <a href="/docs/ru/advanced/ownership.html">Система принадлежности</a>)</li>
+<li><strong>Область видимости</strong>: проверка прав доступа при совпадении ответа + по модулю; аудит при межмодульных вызовах — по направлению исходящих сообщений (см. <a href="/docs/ru/advanced/scope.html">Область видимости</a>)</li>
+<li><strong>Conversation</strong>: многошаговые диалоги — это конечный автомат на основе интерактивных сессий (см. <a href="/docs/ru/advanced/conversation.html">Conversation</a>), ожидания также имеют все семантики отмены / проверки / принадлежности, описанные на этой странице</li>
 </ul>
 <h2 id="связанные-документы">Связанные документы</h2>
 <ul>
-<li><a href="/docs/ru/advanced/conversation.html">Многошаговый диалог (Conversation)</a> — конечный автомат, автоматические контрольные точки и восстановление после перезапуска</li>
-<li><a href="/docs/ru/advanced/ownership.html">Система владения (owner)</a> — обзор и границы дизайна очистки владения</li>
-<li><a href="/docs/ru/advanced/scope.html">Область видимости (scope)</a> — конфигурация проверки прав и аудита при отправке</li>
-<li><a href="/docs/ru/advanced/module-communication.html">Взаимодействие между модулями</a> — межмодульные вызовы и направленные события</li>
+<li><a href="/docs/ru/advanced/conversation.html">Многошаговые диалоги (Conversation)</a> — конечный автомат, автоматические контрольные точки и восстановление после перезапуска</li>
+<li><a href="/docs/ru/advanced/ownership.html">Система принадлежности (owner)</a> — полная картина и границы очистки принадлежности</li>
+<li><a href="/docs/ru/advanced/scope.html">Область видимости (scope)</a> — настройка проверки прав доступа и аудита исходящих сообщений</li>
+<li><a href="/docs/ru/advanced/module-communication.html">Межмодульная коммуникация</a> — межмодульные вызовы и направленные события</li>
 </ul>
 
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ru/advanced/ownership.html"><small>Previous</small><br>Система принадлежности (owner)</a>
-        <a class="doc-pager-next" href="/docs/ru/advanced/shadow.html"><small>Next</small><br>Теневые модули и постепенный переход на новый вариант</a>
+        <a class="doc-pager-prev" href="/docs/ru/advanced/ownership.html"><small>Previous</small><br>Система собственности (owner)</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/shadow.html"><small>Next</small><br>Теневые модули и постепенный переход</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

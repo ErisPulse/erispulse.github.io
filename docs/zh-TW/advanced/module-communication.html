@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>模組間通信 - ErisPulse 文档中心</title>
-    <meta name="description" content="ErisPulse 的模組之間有三層通訊模型，依「點對點 → 定向 → 廣播」排列：" />
+    <meta name="description" content="什麼時候需要閱讀本章：需要跨模組呼叫（RPC）、服務契約、定向事件或冷啟動回放時。不需要則跳過，不影響其他功能的使用。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/module-communication.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/module-communication.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/module-communication.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/module-communication.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/module-communication.html" />
     <meta property="og:title" content="模組間通信 - ErisPulse 文档中心" />
-    <meta property="og:description" content="ErisPulse 的模組之間有三層通訊模型，依「點對點 → 定向 → 廣播」排列：" />
+    <meta property="og:description" content="什麼時候需要閱讀本章：需要跨模組呼叫（RPC）、服務契約、定向事件或冷啟動回放時。不需要則跳過，不影響其他功能的使用。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/module-communication.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"模組間通信","description":"ErisPulse 的模組之間有三層通訊模型，依「點對點 → 定向 → 廣播」排列：","url":"https://www.erisdev.com/docs/zh-TW/advanced/module-communication.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"模組間通信","description":"什麼時候需要閱讀本章：需要跨模組呼叫（RPC）、服務契約、定向事件或冷啟動回放時。不需要則跳過，不影響其他功能的使用。","url":"https://www.erisdev.com/docs/zh-TW/advanced/module-communication.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,16 +73,19 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="模組間通信">模組間通信</h1>
-<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
-<p><br>本章內容需要 ErisPulse **2.8.0+**。</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>什麼時候需要閱讀本章</strong>：需要跨模組呼叫（RPC）、服務契約、定向事件或冷啟動回放時。不需要則跳過，不影響其他功能的使用。</p>
 </div>
-<p>ErisPulse 的模組之間有<strong>三層通訊模型</strong>，依「點對點 → 定向 → 廣播」排列：</p>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p>本章內容需要 ErisPulse **2.8.0+**。</p>
+</div>
+<p>ErisPulse 的模組之間有<strong>三層通信模型</strong>，依「點對點 → 定向 → 廣播」排列：</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>層</th>
 <th>API</th>
-<th>語義</th>
+<th>語意</th>
 <th>典型場景</th>
 </tr>
 </thead>
@@ -90,13 +93,13 @@
 <td><strong>RPC</strong></td>
 <td><code>await sdk.module.call("Chat", "get_history", ...)</code></td>
 <td>點對點請求-回應，帶契約 / 審計 / 超時</td>
-<td>調用另一模組的能力（查詢歷史、翻譯、退款）</td>
+<td>呼叫另一模組的能力（查詢歷史、翻譯、退款）</td>
 </tr>
 <tr>
 <td><strong>定向事件</strong></td>
 <td><code>await lifecycle.emit("message_received", {...}, to="Chat")</code></td>
 <td>僅分發給指定模組註冊的生命周期鉤子</td>
-<td>上游狀態變更通知下游（「收到新訊息了」）</td>
+<td>上游狀態變化通知下游（「收到新訊息了」）</td>
 </tr>
 <tr>
 <td><strong>廣播</strong></td>
@@ -169,8 +172,8 @@
         <span class="token keyword">return</span> ModuleMeta<span class="token punctuation">(</span>
             name<span class="token operator">=</span><span class="token string">"聊天"</span><span class="token punctuation">,</span>
             services<span class="token operator">=</span><span class="token punctuation">[</span>
-                <span class="token string">"get_history"</span><span class="token punctuation">,</span>                                       <span class="token comment"># 簡單形式</span>
-                <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"translate"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"把文本翻譯成指定語言"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>  <span class="token comment"># 帶說明</span>
+                <span class="token string">"get_history"</span><span class="token punctuation">,</span>                                       <span class="token comment"># 簡單形態</span>
+                <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"translate"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"把文本翻譯成指定語言"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>  <span class="token comment"># 帶介紹</span>
             <span class="token punctuation">]</span><span class="token punctuation">,</span>
         <span class="token punctuation">)</span>
 
@@ -182,40 +185,60 @@
 <ul>
 <li>未宣告 <code>services</code> → 所有<strong>公開</strong>方法天然可被 <code>module.call()</code> 呼叫（與裸屬性存取一致），
 無需任何宣告</li>
-<li>宣告後 → 收緊為白名單，越界呼叫拋出 <code>ServiceNotProvidedError</code>——用於標記
+<li>宣告後 → 收緊為白名單，越界呼叫拋 <code>ServiceNotProvidedError</code>——用於標記
 "這些方法才是對外承諾"</li>
-<li>限制的<strong>主控制權在使用者端</strong>：<code>scope.actions</code> 配置決定「誰能呼叫誰」（見下文審計），
-模組作者的 <code>services</code> 僅是服務面宣告，兩層互不替代</li>
+<li>限制的<strong>主控制權在用戶端</strong>：<code>scope.actions</code> 配置決定"誰能呼叫誰"（見下文審計），
+模組作者的 <code>services</code> 只是服務面宣告，兩層互不替代</li>
 </ul>
-<p><strong>服務說明</strong>：為每個服務配上人類 / AI 可讀的描述——不需要就不寫，
-說明自動取<strong>方法 docstring 首行</strong>（框架本就要求 docstring 風格）：</p>
+<p><strong>服務介紹</strong>：為每個服務配上人類 / AI 可讀的描述——不需要就什麼都不寫，
+介紹自動取<strong>方法 docstring 首行</strong>（框架本就要求 docstring 風格）：</p>
 <pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">translate</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">,</span> target_lang<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""把文本翻譯成指定語言"""</span>    <span class="token comment"># ← 這一行自動成為服務說明</span>
+    <span class="token triple-quoted-string string">"""把文本翻譯成指定語言"""</span>    <span class="token comment"># ← 這一行自動成為服務介紹</span>
     <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 </code></pre>
-<p>需要精細控制（覆蓋 docstring / 多語言）時用 dict 形式宣告 description（支援 i18n 字典）：</p>
+<p><strong>參數提示</strong>：呼叫方（尤其是 AI 智能體）需要知道每個參數的含義。不需要就什麼都不寫，
+提示自動取方法 docstring 的 <strong><code>:param:</code> 行</strong>：</p>
+<pre><code class="language-python"><span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">render_card</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> html<span class="token punctuation">,</span> width<span class="token operator">=</span><span class="token number">800</span><span class="token punctuation">,</span> height<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""渲染 HTML 為圖片檔案
+
+    :param html: 要渲染的 HTML 文本          ← 自動成為參數提示
+    :param width: 畫布寬度像素，0 為按內容自適應
+    :param height: 畫布高度像素，0 為按內容自適應
+    """</span>
+</code></pre>
+<p>需要精細控制（覆蓋 docstring / 多語言）時用 dict 形態宣告 description 與 parameters
+（均支援 i18n 字典；<code>parameters</code> 按<strong>參數</strong>與 docstring 合併，單參數內顯式宣告優先，
+宣告了簽名中不存在的參數會被過濾）：</p>
 <pre><code class="language-python">services<span class="token operator">=</span><span class="token punctuation">[</span>
     <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"translate"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"把文本翻譯成指定語言"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
     <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"summarize"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"i18n"</span><span class="token punctuation">:</span> <span class="token string">"Chat.meta.svc.summarize"</span><span class="token punctuation">,</span> <span class="token string">"default"</span><span class="token punctuation">:</span> <span class="token string">"摘要對話"</span><span class="token punctuation">}</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+        <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"render_card"</span><span class="token punctuation">,</span>
+        <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"渲染 HTML 為圖片檔案"</span><span class="token punctuation">,</span>
+        <span class="token string">"parameters"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"html"</span><span class="token punctuation">:</span> <span class="token string">"HTML 文本"</span><span class="token punctuation">,</span> <span class="token string">"width"</span><span class="token punctuation">:</span> <span class="token string">"寬度像素，0 為自適應"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
 <span class="token punctuation">]</span>
 </code></pre>
 <h2 id="服務目錄services">服務目錄：services()</h2>
 <pre><code class="language-python">sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {'Chat': [{'name': 'get_history', 'signature': '(session_id, n=20)',</span>
-<span class="token comment">#            'description': '把文本翻譯成指定語言'}]}</span>
+<span class="token comment">#            'description': '把文本翻譯成指定語言',</span>
+<span class="token comment">#            'parameters': {'session_id': '會話 ID', 'n': '返回條數'}}]}</span>
 
 sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>services<span class="token punctuation">(</span><span class="token string">"Chat"</span><span class="token punctuation">)</span>   <span class="token comment"># 僅查詢指定模組</span>
 </code></pre>
 <ul>
-<li>僅列出<strong>明確宣告</strong> <code>meta.services</code> 的模組（未宣告的模組不出現在目錄中）</li>
-<li>每個服務帶有方法簽名字串（使用 <code>inspect.signature</code> 提取）與介紹文字</li>
-<li>同時進入拓撲：<code>sdk.module.get_topology()</code> 的各模組條目帶有 <code>services</code> 欄位</li>
+<li>僅列出<strong>明確聲明</strong> <code>meta.services</code> 的模組（未聲明模組不出現在目錄中）</li>
+<li>每個服務帶有方法簽名字串（由 <code>inspect.signature</code> 提取）、介紹文字與參數提示</li>
+<li><strong>懶加載模組同樣會進入目錄</strong>（服務發現先於加載發生）——呼叫方可據此決定是否
+<code>call()</code> 喚醒目標模組</li>
+<li>同時進入拓撲：<code>sdk.module.get_topology()</code> 的各模組條目帶有 <code>services</code> 字段</li>
 </ul>
 <p>{!--&lt; tips &gt;!--}
-<strong>MCP 化路線</strong>：服務目錄（名稱 + 簽名 + 描述）即為 MCP tool 的形狀——
-每個服務自然地長成 <code>{"name", "description", "parameters"}</code>。
-未來框架可將 <code>services()</code> 直接暴露為 MCP server 端點，讓 AI 發現並呼叫模組能力；
-<code>scope.actions.call</code> 審計自然成為 AI 呼叫的安全閘口。
+<strong>MCP 化路線</strong>：服務目錄（名稱 + 簽名 + 描述 + 參數提示）即 MCP tool 的形狀——
+每個服務天然長成 <code>{"name", "description", "parameters"}</code>。
+未來框架可把 <code>services()</code> 直接暴露為 MCP server 端點，讓 AI 發現並呼叫模組能力；
+<code>scope.actions.call</code> 審計天然成為 AI 調用的安全閘口。
 {!--&lt; /tips &gt;!--}</p>
 <h2 id="出站審計誰能呼叫誰">出站審計：誰能呼叫誰</h2>
 <p>每次 <code>module.call()</code> 都會以<strong>呼叫方模組</strong>的身份過<strong>出站閘口</strong>的審計：</p>

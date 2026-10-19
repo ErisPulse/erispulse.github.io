@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>接続プールとブロードキャスト - ErisPulse 文档中心</title>
-    <meta name="description" content="ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）はフレームワークレベルの一等リソースです。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュール..." />
+    <meta name="description" content="この記事を読む必要があるのは：WebSocket/SSE の接続プール、ブロードキャストのグループ化、モジュール間での通知、または接続を確認する必要がある場合です。それ以外の場合はスキップしても、他の機能の使用に影響はありません。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/connections.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/connections.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/connections.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/connections.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/connections.html" />
     <meta property="og:title" content="接続プールとブロードキャスト - ErisPulse 文档中心" />
-    <meta property="og:description" content="ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）はフレームワークレベルの一等リソースです。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュール..." />
+    <meta property="og:description" content="この記事を読む必要があるのは：WebSocket/SSE の接続プール、ブロードキャストのグループ化、モジュール間での通知、または接続を確認する必要がある場合です。それ以外の場合はスキップしても、他の機能の使用に影響はありません。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/connections.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"接続プールとブロードキャスト","description":"ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）はフレームワークレベルの一等リソースです。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュール...","url":"https://www.erisdev.com/docs/ja/advanced/connections.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"接続プールとブロードキャスト","description":"この記事を読む必要があるのは：WebSocket/SSE の接続プール、ブロードキャストのグループ化、モジュール間での通知、または接続を確認する必要がある場合です。それ以外の場合はスキップしても、他の機能の使用に影響はありません。","url":"https://www.erisdev.com/docs/ja/advanced/connections.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,10 +73,12 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="接続プールとブロードキャスト">接続プールとブロードキャスト</h1>
-<p>ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出向 WebSocket）は<strong>フレームワークレベルの一等リソース</strong>です。接続が確立すると自動的に統一登録表に登録され、ブロードキャスト、業務グループサブスクリプション、モジュール間の渡し渡しや再利用が可能になります。モジュールのアンロード時にはフレームワークが自動的に接続を閉じて回収します。これにより、業務側が <code>_ws_clients</code> 集合を自前で作成する必要がなく、忘れずにクリーンアップすることでリソースリークを防げます。</p>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><br><strong>この記事を読む必要があるのは</strong>：WebSocket/SSE の接続プール、ブロードキャストのグループ化、モジュール間での通知、または接続を確認する必要がある場合です。それ以外の場合はスキップしても、他の機能の使用に影響はありません。</p>
+</div>
+<p>ErisPulse における接続（サーバ側 WebSocket / SSE / クライアント出力 WebSocket）は<strong>フレームワークレベルの第一級リソース</strong>です。<br>接続の確立に伴い、自動的に統一されたレジストリに登録され、ブロードキャスト、業務用のグループサブスクリプション、モジュール間での転送/再利用がサポートされています。<br>モジュールのアンロード時には、フレームワークが自動的に接続を閉じてリソースを回収します。<br>これにより、業務コードで <code>_ws_clients</code> のような集合を手動で管理する必要がなくなり、忘れずにクリーンアップしないためのリソースリークの懸念も解消されます。</p>
 <blockquote>
-<p>本文ドキュメントの例はすべて<strong>ルートインポート</strong>の書き方を前提としています（2.10以降推奨）：
-<code>from ErisPulse import connections, router, client, WebSocketConnection</code></p>
+<p>本文の例はすべて<strong>ルートインポート</strong>の書き方を前提としています（2.10 以降で推奨）：<br><code>from ErisPulse import connections, router, client, WebSocketConnection</code></p>
 </blockquote>
 <h2 id="概要">概要</h2>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> connections<span class="token punctuation">,</span> router<span class="token punctuation">,</span> WebSocketConnection
@@ -295,8 +297,8 @@ spawn_later<span class="token punctuation">(</span><span class="token number">30
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ja/advanced/errors.html"><small>Previous</small><br>エラーシステムとキャッチガイド</a>
-        <a class="doc-pager-next" href="/docs/ja/advanced/startup.html"><small>Next</small><br>スタートフローと手動制御</a>
+        <a class="doc-pager-prev" href="/docs/ja/advanced/errors.html"><small>Previous</small><br>エラー体系とキャッチのガイド</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/startup.html"><small>Next</small><br>起動フローと手動制御</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">

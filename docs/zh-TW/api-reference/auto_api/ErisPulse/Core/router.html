@@ -916,6 +916,25 @@ router<span class="token punctuation">.</span>get_module_urls_matching<span clas
 </ul>
 <p><strong>返回值</strong>: ssl.SSLContext</p>
 <hr>
+<h5 id="_create_uvicorn_serverconfig-uvicornconfig---tupleuvicornserver-callable-any"><code>_create_uvicorn_server(config: uvicorn.Config) -&gt; tuple[uvicorn.Server, Callable[[], Any]]</code></h5>
+<p>构建 uvicorn.Server 并解析内嵌启动入口（私有接口缺失时告警回退）</p>
+<p><strong>内部方法</strong>
+内嵌启动优先调用私有方法 <code>Server._serve()</code>（跳过 <code>serve()</code> 的
+<code>capture_signals</code>——后者会抢注进程信号并在退出时重抛，与 SDK 的
+信号管理冲突），该接口自 uvicorn 0.34.0 引入且属私有 API。</p>
+<p>兼容性按<strong>能力探测</strong>判定（仅检查接口是否存在、不比较版本）：
+接口存在即直接使用，上游大版本更新若保留该接口则无需跟进发版；
+缺失时仅告警并回退公开 <code>serve()</code>（服务期间进程信号由 uvicorn
+暂时接管，属可接受的降级），建议用户前往 uvicorn 仓库确认其正式
+支持情况。已验证范围见 :data:<code>UVICORN_COMPAT_RANGE</code>（与
+pyproject.toml 锁定一致）。</p>
+<ul>
+<li><strong>config</strong>: 已构建的 :class:<code>uvicorn.Config</code></li>
+</ul>
+<p><strong>返回值</strong>: <code>(server, serve_entry)</code> 二元组——Server 实例与启动协程</p>
+<pre><code>     工厂（调用即返回待调度协程，供 ``asyncio.create_task`` 使用）
+</code></pre>
+<hr>
 <h5 id="async-starthost-str-default_server_host-port-int-default_server_port-ssl_certfile-str-none-none-ssl_keyfile-str-none-none-ssl_cert-str-none-none-ssl_key-str-none-none---none"><code>async start(host: str = DEFAULT_SERVER_HOST, port: int = DEFAULT_SERVER_PORT, ssl_certfile: str | None = None, ssl_keyfile: str | None = None, *, ssl_cert: str | None = None, ssl_key: str | None = None) -&gt; None</code></h5>
 <p>启动路由服务器</p>
 <p>SSL 支持两种配置方式（内容优先于路径）：</p>

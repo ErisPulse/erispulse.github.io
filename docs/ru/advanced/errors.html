@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Система исключений и руководство по обработке - ErisPulse 文档中心</title>
-    <meta name="description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймво..." />
+    <meta name="description" content="Обязательное к прочтению на уровне L1 — одна из пяти ключевых статей в &quot;пути чтения&quot; на главной странице, обязательна для разработки модулей." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/errors.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/errors.html" />
@@ -12,11 +12,11 @@
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/errors.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/errors.html" />
     <meta property="og:title" content="Система исключений и руководство по обработке - ErisPulse 文档中心" />
-    <meta property="og:description" content="Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймво..." />
+    <meta property="og:description" content="Обязательное к прочтению на уровне L1 — одна из пяти ключевых статей в &quot;пути чтения&quot; на главной странице, обязательна для разработки модулей." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ru/advanced/errors.html" />
     <meta property="og:type" content="article" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система исключений и руководство по обработке","description":"Все пользовательские исключения ErisPulse наследуются от ErisPulseError, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймво...","url":"https://www.erisdev.com/docs/ru/advanced/errors.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Система исключений и руководство по обработке","description":"Обязательное к прочтению на уровне L1 — одна из пяти ключевых статей в \"пути чтения\" на главной странице, обязательна для разработки модулей.","url":"https://www.erisdev.com/docs/ru/advanced/errors.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -73,12 +73,15 @@
         </div>
         <article class="markdown-content" id="docs-content">
             <h1 id="система-исключений-и-руководство-по-обработке">Система исключений и руководство по обработке</h1>
-<p>Все пользовательские исключения ErisPulse наследуются от <code>ErisPulseError</code>, а исключения底层-библиотек (aiohttp, aiomysql и т.д.) будут перехвачены внутри фреймворка и преобразованы в соответствующие исключения ErisPulse — код бизнес-логики <strong>не должен зависеть от типов исключений底层-библиотек</strong>.</p>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><i class="fas fa-circle-info" aria-hidden="true"></i>Note</p>
+<p><strong>Обязательное к прочтению на уровне L1</strong> — одна из пяти ключевых статей в "пути чтения" на главной странице, обязательна для разработки модулей.</p>
+</div>
+<p>Все пользовательские исключения ErisPulse наследуются от <code>ErisPulseError</code>. Исключения底层 библиотек (например, aiohttp, aiomysql и др.) будут перехвачены внутри фреймворка и преобразованы в соответствующие исключения ErisPulse. В коде бизнес-логики <strong>не следует зависеть от типов исключений底层 библиотек</strong>.</p>
 <p>{!--&lt; tips &gt;!--}</p>
 <ol>
 <li>Для широкого перехвата: перехватите <code>ErisPulseError</code> (базовый класс всех исключений фреймворка)</li>
-<li>Для точной обработки: перехватите по модулям (например, <code>ModuleCallTimeoutError</code>, <code>StorageUnreachableError</code>)</li>
-<li>Операции хранения по умолчанию не выбрасывают исключения: при сбое записывается в лог и возвращается <code>False / None / default</code>; подписывайтесь на события <code>storage.unreachable</code> / <code>storage.recovered</code> для отслеживания изменения состояния подключения
+<li>Для точной обработки: перехватывайте по модулям (например, <code>ModuleCallTimeoutError</code>, <code>StorageUnreachableError</code>)</li>
+<li>Операции с хранилищем по умолчанию не выбрасывают исключения: при сбое записывается в лог и возвращается <code>False / None / default</code>; для отслеживания изменений состояния подключений подписывайтесь на события <code>storage.unreachable</code> / <code>storage.recovered</code>
 {!--&lt; /tips &gt;!--}</li>
 </ol>
 <h2 id="обзор-исключений">Обзор исключений</h2>
@@ -416,8 +419,8 @@
         </article>
         
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ru/advanced/storage-backends.html"><small>Previous</small><br>Хранилище</a>
-        <a class="doc-pager-next" href="/docs/ru/advanced/connections.html"><small>Next</small><br>Пул соединений и трансляция</a>
+        <a class="doc-pager-prev" href="/docs/ru/advanced/storage-backends.html"><small>Previous</small><br>Хранилище данных</a>
+        <a class="doc-pager-next" href="/docs/ru/advanced/connections.html"><small>Next</small><br>Пул подключений и трансляция</a>
     </nav>
     </main>
     <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
