@@ -1,10 +1,12 @@
 <div align="center">
 
+<img src=".github/assets/banner.png" alt="ErisPulse · 事件驱动的多平台机器人框架" width="100%" />
+
 <img src=".github/assets/ErisPulseLogo.png" width="180" alt="ErisPulse" />
 
 # ErisPulse 官网
 
-**ErisPulse 官方网站与文档中心 · 高性能异步机器人开发框架**
+**ErisPulse 官方网站与文档中心 · 事件驱动的模块化异步机器人框架——一次编写，多平台部署**
 
 <p>
   <a href="https://github.com/ErisPulse/erispulse.github.io"><img src="https://img.shields.io/github/stars/ErisPulse/erispulse.github.io?style=for-the-badge&logo=github&color=brightgreen" alt="Stars"></a>
@@ -24,7 +26,7 @@
 | 官方网站 | [www.erisdev.com](https://www.erisdev.com) | 首页 |
 | 文档中心 | [docs.html](https://www.erisdev.com/docs.html) | 完整的开发文档 |
 | 模块市场 | [market.html](https://www.erisdev.com/market.html) | 发现和分享模块 |
-| 模块构建器 | [builder.erisdev.com](https://builder.erisdev.com) | 可视化创建模块（独立站点） |
+| AI Builder 模块构建器 | [builder.erisdev.com](https://builder.erisdev.com) | 自然语言生成可用模块（独立站点） |
 | 关于我们 | [about.html](https://www.erisdev.com/about.html) | 团队和贡献者 |
 
 ## 快速开始
