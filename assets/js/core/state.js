@@ -15,7 +15,6 @@ export const state = {
      
     allModules: [],
     allAdapters: [],
-    allCliExtensions: [],
      
     versionNotified: false,
 };

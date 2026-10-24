@@ -36,10 +36,9 @@ function categoryLabel(id) {
 
  
 const CATEGORY_SOURCE = {
-    all: () => [...state.allModules, ...state.allAdapters, ...state.allCliExtensions],
+    all: () => [...state.allModules, ...state.allAdapters],
     modules: () => state.allModules,
-    adapters: () => state.allAdapters,
-    cli_extensions: () => state.allCliExtensions
+    adapters: () => state.allAdapters
 };
 
  
@@ -222,7 +221,6 @@ export async function loadModuleData() {
 
         state.allModules = mapCategory(data.modules, 'module');
         state.allAdapters = mapCategory(data.adapters, 'adapter');
-        state.allCliExtensions = mapCategory(data.cli_extensions, 'cli');
 
         updateStats();
         buildFilterUI();
@@ -265,28 +263,14 @@ function mapCategory(source, type) {
 export function updateStats() {
     const modules = state.allModules.filter(pkg => !pkg.hidden);
     const adapters = state.allAdapters.filter(pkg => !pkg.hidden);
-    const cliExtensions = state.allCliExtensions.filter(pkg => !pkg.hidden);
-
-    setText('total-all-modules', modules.length + adapters.length + cliExtensions.length);
+    setText('total-all-modules', modules.length + adapters.length);
     setText('total-modules', modules.length);
     setText('adapter-count', adapters.length);
-    setText('cli-count', cliExtensions.length);
      
-    setText('category-count-all', modules.length + adapters.length + cliExtensions.length);
+    setText('category-count-all', modules.length + adapters.length);
     setText('category-count-modules', modules.length);
     setText('category-count-adapters', adapters.length);
     setText('contributors-count', '--');
-
-     
-    toggleHidden('cli-stat-card', cliExtensions.length === 0);
-    toggleHidden('category-cli-btn', cliExtensions.length === 0);
-
-    if (cliExtensions.length === 0 && activeCategory === 'cli_extensions') {
-        activeCategory = 'all';
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.category === 'all');
-        });
-    }
 }
 
 function setText(id, value) {
