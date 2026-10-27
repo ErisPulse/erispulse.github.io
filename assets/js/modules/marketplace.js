@@ -523,11 +523,15 @@ function cardHtml(pkg, index) {
             : `<span class="module-badge badge-unverified"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="market.unverified">${I18n.t('market.unverified')}</span></span>`
     ].join('');
 
+    const logoHtml = pkg.logo
+        ? `<img src="${escapeHtml(pkg.logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${escapeHtml(pkg.name.charAt(0).toUpperCase())}',className:'module-logo-fallback'}))">`
+        : `<span class="module-logo-fallback">${escapeHtml(pkg.name.charAt(0).toUpperCase())}</span>`;
+
     return `
         <div class="module-card${pkg.featured ? ' is-featured' : ''}" data-package="${escapeHtml(pkg.package)}" style="animation-delay: ${index * 0.05}s">
             <div class="module-header">
-                <div class="module-icon">
-                    ${getIconByType(pkg.type)}
+                <div class="module-icon module-logo">
+                    ${logoHtml}
                 </div>
                 <div>
                     <h3 class="module-name">${escapeHtml(pkg.name)}</h3>

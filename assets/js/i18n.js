@@ -33,6 +33,7 @@ export const I18n = (function () {
       "nav.market": "模块市场",
       "nav.docs": "文档中心",
       "footer.builder": "构建器",
+      "footer.workbench": "工作台",
       "footer.demo": "仪表盘演示",
       "submit.unifiedHint": "支持 GitHub / Codeberg OAuth 与邮箱验证码；登录后可在设置页绑定多种身份",
       "nav.settings": "设置",
@@ -97,6 +98,7 @@ export const I18n = (function () {
       "guide.ai.title": "AI 辅助开发",
       "guide.ai.desc": "把开发物料投喂给 AI，直接生成可用模块",
       "guide.app.title": "在手机上运行",
+      "guide.workbench.title": "在线工作台",
       "guide.app.desc": "免 root、免电脑，一个 App 管理多个实例",
 
 
@@ -502,6 +504,7 @@ export const I18n = (function () {
       "nav.market": "Market",
       "nav.docs": "Docs",
       "footer.builder": "Builder",
+      "footer.workbench": "Workbench",
       "footer.demo": "Dashboard Demo",
       "submit.unifiedHint": "GitHub / Codeberg OAuth and email codes supported; link multiple identities in Settings after login.",
       "nav.settings": "Settings",
@@ -564,6 +567,7 @@ export const I18n = (function () {
       "guide.ai.title": "AI-Assisted Development",
       "guide.ai.desc": "Feed ErisPulse docs to AI and get working modules",
       "guide.app.title": "Run on Your Phone",
+      "guide.workbench.title": "Workbench",
       "guide.app.desc": "No root, no PC — manage multiple instances from one app",
 
 
@@ -981,6 +985,7 @@ export const I18n = (function () {
       "nav.settings": "設定",
       "nav.about": "關於",
       "footer.builder": "構建器",
+      "footer.workbench": "工作台",
       "footer.demo": "儀表盤演示",
       "submit.unifiedHint": "支援 GitHub / Codeberg OAuth 與郵箱驗證碼；登入後可在設定頁綁定多種身份",
 
@@ -1042,6 +1047,7 @@ export const I18n = (function () {
       "guide.ai.title": "AI 輔助開發",
       "guide.ai.desc": "把開發物料餵給 AI，直接生成可用模組",
       "guide.app.title": "在手機上執行",
+      "guide.workbench.title": "線上工作台",
       "guide.app.desc": "免 root、免電腦，一個 App 管理多個實例",
 
 
@@ -1436,6 +1442,7 @@ export const I18n = (function () {
       "nav.settings": "設定",
       "nav.about": "私たちについて",
       "footer.builder": "ビルダー",
+      "footer.workbench": "ワークベンチ",
       "footer.demo": "ダッシュボードデモ",
       "submit.unifiedHint": "GitHub / Codeberg OAuth とメール認証コードに対応。ログイン後、設定で複数の ID を連携できます",
 
@@ -1497,6 +1504,7 @@ export const I18n = (function () {
       "guide.ai.title": "AI 支援開発",
       "guide.ai.desc": "開発資料を AI に与えて、そのまま使えるモジュールを生成",
       "guide.app.title": "スマホで実行",
+      "guide.workbench.title": "オンラインワークベンチ",
       "guide.app.desc": "root 不要・PC 不要、1 つのアプリで複数インスタンスを管理",
 
 
@@ -1903,6 +1911,7 @@ export const I18n = (function () {
       "nav.settings": "Настройки",
       "nav.about": "О нас",
       "footer.builder": "Конструктор",
+      "footer.workbench": "Рабочая станция",
       "footer.demo": "Демо дашборда",
       "submit.unifiedHint": "Поддерживаются GitHub / Codeberg OAuth и коды по почте; после входа привяжите идентичности в настройках",
 
@@ -1964,6 +1973,7 @@ export const I18n = (function () {
       "guide.ai.title": "Разработка с ИИ",
       "guide.ai.desc": "Скармливайте материалы ИИ — получайте готовые модули",
       "guide.app.title": "Запуск на телефоне",
+      "guide.workbench.title": "Рабочая станция",
       "guide.app.desc": "Без root и ПК — одно приложение для нескольких инстансов",
 
 
