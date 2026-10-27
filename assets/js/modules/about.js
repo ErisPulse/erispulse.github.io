@@ -61,7 +61,9 @@ export async function loadContributors() {
     try {
         const response = await fetch(CONFIG.API.contributors);
         if (!response.ok) throw new Error('贡献者API请求失败');
-        const contributors = await response.json();
+         
+        const contributors = (await response.json())
+            .filter(c => c && c.login && !/\[bot\]$/i.test(c.login) && c.login.toLowerCase() !== 'ghost');
 
         document.getElementById('contributors-count').textContent = contributors.length;
 
