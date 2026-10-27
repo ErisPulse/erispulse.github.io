@@ -10,8 +10,6 @@
  */
 
 const REVEAL_SELECTORS = [
-  "#home-community-grid > *",
-  ".community-boards > *",
 ];
 
 export function initReveal() {

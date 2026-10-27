@@ -1,6 +1,23 @@
-addEventListener('fetch', event => {
-    event.respondWith(handleRequest(event.request))
-})
+// ES Module Worker 入口：dashboard 部署时全部变量/绑定经 env 传入，
+// 合并进 globalThis 使既有 globalThis.X 引用零改动继续工作
+
+export default {
+    async fetch(request, env) {
+        try {
+            if (env && typeof env === 'object') {
+                for (const key of Object.keys(env)) {
+                    try { if (globalThis[key] === undefined) globalThis[key] = env[key]; } catch (e) { /* 只读属性跳过 */ }
+                }
+            }
+            return await handleRequest(request);
+        } catch (e) {
+            return new Response(JSON.stringify({ error: 'Worker error', message: e && e.message }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+    },
+};
 
 const ALLOWED_ORIGIN = 'https://www.erisdev.com';
 const SUBMIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -280,6 +297,11 @@ async function handleRequest(request) {
         if (!avatarUrl) {
             return jsonResponse({ error: 'Missing url parameter' }, 400);
         }
+        // 域名白名单：仅代理已知头像源（开放代理会被滥用于 SSRF）
+        const AVATAR_HOST_RE = /^https:\/\/([a-z0-9-]+\.)*(githubusercontent\.com|github\.com|codeberg\.org|jwznb\.com|jwzhd\.com|gravatar\.com|erisdev\.com)\//i;
+        if (!AVATAR_HOST_RE.test(avatarUrl)) {
+            return jsonResponse({ error: 'Avatar host not allowed' }, 403);
+        }
         try {
             const avatarResponse = await fetch(avatarUrl, {
                 headers: {
@@ -310,27 +332,7 @@ async function handleRequest(request) {
         return handleManageModule(request);
     }
 
-    // ── 社区（GitHub Discussions）──
-    if (path === '/api/discussions' && request.method === 'GET') {
-        return handleListDiscussions(url);
-    }
-
-    if (path === '/api/discussions/categories' && request.method === 'GET') {
-        return handleDiscussionCategories();
-    }
-
-    if (path === '/api/discussions/detail' && request.method === 'GET') {
-        return handleDiscussionDetail(url);
-    }
-
-    if (path === '/api/discussions/create' && request.method === 'POST') {
-        return handleCreateDiscussion(request);
-    }
-
-    if (path === '/api/discussions/comment' && request.method === 'POST') {
-        return handleDiscussionComment(request);
-    }
-
+    // ── 社区（GitHub Discussions，旧镜像）──
     if (path === '/api/stats' && request.method === 'GET') {
         return handleSiteStats();
     }
@@ -902,9 +904,6 @@ const DISCUSSIONS_REPO = 'ErisPulse/ErisPulse';
 const GH_API = 'https://api.github.com';
 
 // 社区发帖限流：按 uid 的每日配额（与模块提交的 checkRateLimit 分开，互不挤占）
-const COMMUNITY_CREATE_DAILY = 3;
-const COMMUNITY_COMMENT_DAILY = 30;
-const COMMUNITY_BUCKET_MS = 24 * 60 * 60 * 1000;
 
 function ghApiHeaders(accessToken) {
     const h = {
@@ -995,312 +994,11 @@ function parseLastPage(linkHeader) {
     return m ? parseInt(m[1], 10) : null;
 }
 
-async function checkCommunityQuota(uid, bucket, max) {
-    if (!uid) return { allowed: true };
-    const dateKey = new Date().toISOString().split('T')[0];
-    const key = `community:${bucket}:${dateKey}:${uid}`;
-    const kv = await getRateLimitKV();
-    if (kv) {
-        try {
-            const v = await kv.get(key);
-            return { allowed: (parseInt(v, 10) || 0) < max };
-        } catch (e) {
-            return { allowed: true };
-        }
-    }
-    try {
-        const cached = await caches.default.match(new Request(`community-quota:${key}`));
-        if (cached) {
-            const data = await cached.json();
-            const now = Date.now();
-            const times = ((data && data.times) || []).filter(function (t) { return now - t < COMMUNITY_BUCKET_MS; });
-            return { allowed: times.length < max };
-        }
-    } catch (e) {}
-    return { allowed: true };
-}
-
-async function recordCommunityAction(uid, bucket) {
-    if (!uid) return;
-    const dateKey = new Date().toISOString().split('T')[0];
-    const key = `community:${bucket}:${dateKey}:${uid}`;
-    const kv = await getRateLimitKV();
-    if (kv) {
-        try {
-            const v = await kv.get(key);
-            await kv.put(key, String((parseInt(v, 10) || 0) + 1), { expirationTtl: 172800 });
-        } catch (e) {}
-        return;
-    }
-    try {
-        const cache = caches.default;
-        const cacheKey = new Request(`community-quota:${key}`);
-        let data = { times: [] };
-        const cached = await cache.match(cacheKey);
-        if (cached) data = await cached.json();
-        const now = Date.now();
-        data.times = ((data && data.times) || []).filter(function (t) { return now - t < COMMUNITY_BUCKET_MS; });
-        data.times.push(now);
-        await cache.put(cacheKey, new Response(JSON.stringify(data), {
-            headers: { 'Content-Type': 'application/json', 'Cache-Ttl': String(COMMUNITY_BUCKET_MS / 1000) },
-        }));
-    } catch (e) {}
-}
-
-async function handleListDiscussions(url) {
-    const perPage = Math.min(Math.max(parseInt(url.searchParams.get('per_page'), 10) || 30, 1), 50);
-    const page = Math.min(Math.max(parseInt(url.searchParams.get('page'), 10) || 1, 1), 100);
-    try {
-        const resp = await fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}/discussions?per_page=${perPage}&page=${page}`, {
-            headers: ghApiHeaders(),
-            cf: { cacheEverything: true, cacheTtl: 900 },
-        });
-        if (!resp.ok) {
-            return jsonResponse({ error: 'Failed to fetch discussions', details: await resp.text() }, 502);
-        }
-        const list = await resp.json();
-        const items = (Array.isArray(list) ? list : []).map(trimDiscussion).filter(Boolean);
-        return jsonResponse({
-            discussions: items,
-            page: page,
-            per_page: perPage,
-            last_page: parseLastPage(resp.headers.get('Link')) || page,
-        }, 200, { 'Cache-Control': 'public, max-age=300' });
-    } catch (error) {
-        return jsonResponse({ error: 'Discussions fetch failed', message: error.message }, 500);
-    }
-}
-
-async function handleDiscussionCategories() {
-    // 组织讨论的分类读取必须走 GraphQL（REST categories 端点对组织讨论 404）
-    try {
-        const data = await ghGraphQL(
-            'query($owner:String!,$name:String!){ repository(owner:$owner,name:$name){ discussionCategories(first:20){ nodes{ id name slug emoji description } } } }',
-            { owner: 'ErisPulse', name: 'ErisPulse' }
-        );
-        const items = data.repository.discussionCategories.nodes.map(function (c) {
-            return { id: c.id, name: c.name, slug: c.slug, emoji: c.emoji, description: c.description };
-        });
-        return jsonResponse({ categories: items }, 200, { 'Cache-Control': 'public, max-age=86400' });
-    } catch (error) {
-        console.warn('categories GraphQL 失败，使用内置兜底:', error.message);
-        return jsonResponse({ categories: FALLBACK_CATEGORIES }, 200, { 'Cache-Control': 'public, max-age=3600' });
-    }
-}
-
-async function handleDiscussionDetail(url) {
-    const number = parseInt(url.searchParams.get('number'), 10);
-    if (!number || number < 1) {
-        return jsonResponse({ error: 'Invalid number parameter' }, 400);
-    }
-    try {
-        const base = `${GH_API}/repos/${DISCUSSIONS_REPO}/discussions/${number}`;
-        const cfOpts = { cacheEverything: true, cacheTtl: 300 };
-        const results = await Promise.all([
-            fetch(base, { headers: ghApiHeaders(), cf: cfOpts }),
-            fetch(`${base}/comments?per_page=100`, { headers: ghApiHeaders(), cf: cfOpts }),
-        ]);
-        const discResp = results[0];
-        const commentsResp = results[1];
-
-        if (!discResp.ok) {
-            if (discResp.status === 404) {
-                return jsonResponse({ error: 'Discussion not found' }, 404);
-            }
-            return jsonResponse({ error: 'Failed to fetch discussion', details: await discResp.text() }, 502);
-        }
-
-        const d = await discResp.json();
-        let comments = [];
-        if (commentsResp.ok) {
-            const list = await commentsResp.json();
-            comments = (Array.isArray(list) ? list : []).map(function (c) { return trimComment(c); }).filter(Boolean);
-        }
-
-        return jsonResponse({
-            discussion: {
-                number: d.number,
-                title: d.title,
-                body: typeof d.body === 'string' ? d.body.slice(0, 20000) : '',
-                author: trimUser(d.user),
-                category: trimCategory(d.category),
-                comments: d.comments,
-                created_at: d.created_at,
-                updated_at: d.updated_at,
-                html_url: d.html_url,
-                state: d.state,
-                locked: d.locked,
-            },
-            comments: comments,
-        }, 200, { 'Cache-Control': 'public, max-age=60' });
-    } catch (error) {
-        return jsonResponse({ error: 'Discussion detail fetch failed', message: error.message }, 500);
-    }
-}
-
 // 前端错误码约定：
 //   AUTH_FAILED      → token 失效，前端引导重新登录
 //   PERMISSION_DENIED → token 有效但无 Discussions 写权限（GitHub App 未加权限/需重新授权）
 //   GITHUB_ONLY      → 只有 GitHub 账号能发帖
 //   RATE_LIMITED     → 触发每日配额
-async function handleCreateDiscussion(request) {
-    try {
-        const body = await request.json();
-        const accessToken = body.access_token;
-        const provider = body.provider;
-        const title = typeof body.title === 'string' ? body.title.trim() : '';
-        const content = typeof body.body === 'string' ? body.body.trim() : '';
-        const categorySlug = typeof body.category_slug === 'string' ? body.category_slug : '';
-
-        if (!accessToken || !provider) {
-            return jsonResponse({ error: 'Authentication required', code: 'AUTH_FAILED' }, 401);
-        }
-        if (String(provider).toLowerCase() !== 'github') {
-            return jsonResponse({ error: 'Only GitHub accounts can post discussions', code: 'GITHUB_ONLY' }, 403);
-        }
-        if (!title || title.length < 3 || title.length > 200) {
-            return jsonResponse({ error: 'Title must be between 3 and 200 characters.' }, 400);
-        }
-        if (!content || content.length > 20000) {
-            return jsonResponse({ error: 'Body must be between 1 and 20000 characters.' }, 400);
-        }
-        if (!categorySlug) {
-            return jsonResponse({ error: 'Missing category_slug' }, 400);
-        }
-
-        const verifiedUser = await verifyUser(provider, accessToken);
-        if (!verifiedUser) {
-            return jsonResponse({ error: 'Authentication required', code: 'AUTH_FAILED' }, 401);
-        }
-
-        const quota = await checkCommunityQuota(verifiedUser.uid, 'create', COMMUNITY_CREATE_DAILY);
-        if (!quota.allowed) {
-            return jsonResponse({ error: `You can create up to ${COMMUNITY_CREATE_DAILY} discussions per day.`, code: 'RATE_LIMITED' }, 429);
-        }
-
-        // 组织讨论的 REST 写接口 404 —— 走 GraphQL createDiscussion。
-        // category_slug 已在上方校验；此处换取 repository id 与 category id。
-        try {
-            const repoData = await ghGraphQL(
-                'query($owner:String!,$name:String!){ repository(owner:$owner,name:$name){ id discussionCategories(first:20){ nodes{ id slug } } } }',
-                { owner: 'ErisPulse', name: 'ErisPulse' },
-                accessToken
-            );
-            const repositoryId = repoData.repository.id;
-            const catNode = repoData.repository.discussionCategories.nodes.find(function (n) { return n.slug === categorySlug; });
-            if (!catNode) {
-                return jsonResponse({ error: 'Unknown category: ' + categorySlug }, 400);
-            }
-
-            const out = await ghGraphQL(
-                'mutation($rid:ID!,$cid:ID!,$title:String!,$body:String!){ createDiscussion(input:{repositoryId:$rid,categoryId:$cid,title:$title,body:$body}) { discussion { number title url createdAt category { name slug emoji } } } }',
-                { rid: repositoryId, cid: catNode.id, title: title, body: content },
-                accessToken
-            );
-
-            const d = out.createDiscussion.discussion;
-            await recordCommunityAction(verifiedUser.uid, 'create');
-            return jsonResponse({
-                success: true,
-                discussion: {
-                    number: d.number,
-                    title: d.title,
-                    excerpt: '',
-                    author: { login: verifiedUser.name },
-                    category: { name: d.category.name, slug: d.category.slug, emoji: d.category.emoji },
-                    comments: 0,
-                    created_at: d.createdAt,
-                    updated_at: d.createdAt,
-                    html_url: d.url,
-                    state: 'OPEN',
-                    locked: false,
-                },
-            });
-        } catch (gErr) {
-            const msg = String(gErr.message || '');
-            const denied = /permission|unauthorized|forbidden|Must have/i.test(msg);
-            return jsonResponse({
-                error: 'GitHub rejected this discussion',
-                code: denied ? 'PERMISSION_DENIED' : 'GITHUB_ERROR',
-                details: msg,
-            }, denied ? 403 : 502);
-        }
-    } catch (error) {
-        return jsonResponse({ error: 'Create discussion failed', message: error.message }, 500);
-    }
-}
-
-async function handleDiscussionComment(request) {
-    try {
-        const body = await request.json();
-        const accessToken = body.access_token;
-        const provider = body.provider;
-        const number = Number(body.number);
-        const content = typeof body.body === 'string' ? body.body.trim() : '';
-
-        if (!accessToken || !provider) {
-            return jsonResponse({ error: 'Authentication required', code: 'AUTH_FAILED' }, 401);
-        }
-        if (String(provider).toLowerCase() !== 'github') {
-            return jsonResponse({ error: 'Only GitHub accounts can comment on discussions', code: 'GITHUB_ONLY' }, 403);
-        }
-        if (!Number.isInteger(number) || number < 1) {
-            return jsonResponse({ error: 'Invalid discussion number' }, 400);
-        }
-        if (!content || content.length > 20000) {
-            return jsonResponse({ error: 'Comment must be between 1 and 20000 characters.' }, 400);
-        }
-
-        const verifiedUser = await verifyUser(provider, accessToken);
-        if (!verifiedUser) {
-            return jsonResponse({ error: 'Authentication required', code: 'AUTH_FAILED' }, 401);
-        }
-
-        const quota = await checkCommunityQuota(verifiedUser.uid, 'comment', COMMUNITY_COMMENT_DAILY);
-        if (!quota.allowed) {
-            return jsonResponse({ error: `You can post up to ${COMMUNITY_COMMENT_DAILY} comments per day.`, code: 'RATE_LIMITED' }, 429);
-        }
-
-        // 组织讨论的 REST 写接口 404（读写分离：读走 REST，写必须走 GraphQL）。
-        // 先用 number 查讨论节点 ID，再 addDiscussionComment。
-        try {
-            const idData = await ghGraphQL(
-                'query($owner:String!,$name:String!,$number:Int!){ repository(owner:$owner,name:$name){ discussion(number:$number){ id } } }',
-                { owner: 'ErisPulse', name: 'ErisPulse', number: number },
-                accessToken
-            );
-            const discussionId = idData.repository.discussion.id;
-
-            const out = await ghGraphQL(
-                'mutation($id:ID!,$body:String!){ addDiscussionComment(input:{discussionId:$id,body:$body}) { comment { id body createdAt } } }',
-                { id: discussionId, body: content },
-                accessToken
-            );
-
-            await recordCommunityAction(verifiedUser.uid, 'comment');
-            const c = out.addDiscussionComment.comment;
-            return jsonResponse({
-                success: true,
-                comment: {
-                    body: c.body,
-                    created_at: c.createdAt,
-                    author: { login: verifiedUser.name },
-                },
-            });
-        } catch (gErr) {
-            const msg = String(gErr.message || '');
-            const denied = /permission|unauthorized|forbidden|Must have/i.test(msg);
-            return jsonResponse({
-                error: 'GitHub rejected this comment',
-                code: denied ? 'PERMISSION_DENIED' : 'GITHUB_ERROR',
-                details: msg,
-            }, denied ? 403 : 502);
-        }
-    } catch (error) {
-        return jsonResponse({ error: 'Comment failed', message: error.message }, 500);
-    }
-}
-
 // 首页 Hero 数据条：stars / 贡献者数 / 最新版本 / 讨论总数，一次取齐，边缘缓存 1 小时
 async function handleSiteStats() {
     try {
@@ -1310,7 +1008,6 @@ async function handleSiteStats() {
             fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}`, { headers: headers, cf: cfOpts }),
             fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}/contributors?per_page=1`, { headers: headers, cf: cfOpts }),
             fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}/releases/latest`, { headers: headers, cf: cfOpts }),
-            fetch(`${GH_API}/repos/${DISCUSSIONS_REPO}/discussions?per_page=1`, { headers: headers, cf: cfOpts }),
         ]);
         const repoResp = results[0];
         const contribResp = results[1];
@@ -1335,14 +1032,6 @@ async function handleSiteStats() {
             const release = await releaseResp.json();
             stats.latest_release = release.tag_name || null;
         }
-        if (discResp.ok) {
-            stats.discussions = parseLastPage(discResp.headers.get('Link'));
-            if (!stats.discussions) {
-                const arr = await discResp.json();
-                stats.discussions = Array.isArray(arr) ? arr.length : null;
-            }
-        }
-
         return jsonResponse({ stats: stats, generated_at: new Date().toISOString() }, 200, { 'Cache-Control': 'public, max-age=600' });
     } catch (error) {
         return jsonResponse({ error: 'Stats fetch failed', message: error.message }, 500);

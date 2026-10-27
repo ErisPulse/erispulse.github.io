@@ -61,7 +61,9 @@ export async function loadContributors() {
     try {
         const response = await fetch(CONFIG.API.contributors);
         if (!response.ok) throw new Error('贡献者API请求失败');
-        const contributors = await response.json();
+        // 只展示真人贡献者：bot 账号（erispulse[bot]/dependabot 等）与占位账号不计入
+        const contributors = (await response.json())
+            .filter(c => c && c.login && !/\[bot\]$/i.test(c.login) && c.login.toLowerCase() !== 'ghost');
 
         document.getElementById('contributors-count').textContent = contributors.length;
 

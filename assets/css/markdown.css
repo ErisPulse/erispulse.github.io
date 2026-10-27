@@ -240,6 +240,8 @@
     overflow: hidden;
     display: table;
     background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* 表格容器包装器，用于响应式滚动 */
@@ -250,6 +252,8 @@
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     scrollbar-width: thin;
     scrollbar-color: var(--primary) rgba(var(--primary-rgb), 0.1);
 }
@@ -464,7 +468,7 @@
     .markdown-content th,
     .markdown-content td {
         padding: 0.5rem 0.7rem;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
     
     .markdown-content code {
@@ -539,3 +543,33 @@
 [data-theme="dark"] .markdown-alert-important { --gh-alert-color: #A78BFA; }
 [data-theme="dark"] .markdown-alert-warning   { --gh-alert-color: #E8B04B; }
 [data-theme="dark"] .markdown-alert-caution   { --gh-alert-color: #F07070; }
+
+/* ==================== 移动端 / 触屏体验打磨 ====================
+   代码块与表格在触屏上滚动顺手（动量滚动 + 阻止滚动链到页面），
+   触屏无 hover 时代码块复制按钮常显（否则触屏用户永远看不到），
+   480px 级别表格字号守住 0.85rem 下限。 */
+
+.markdown-content pre,
+.markdown-content .table-wrapper {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+@media (hover: none) {
+    .markdown-content pre .copy-button {
+        opacity: 0.85;
+    }
+}
+
+@media (max-width: 480px) {
+    /* 引用块与 GitHub Alerts 小屏收窄左侧留白 */
+    .markdown-content blockquote,
+    .markdown-alert {
+        padding-left: 0.9rem;
+    }
+
+    /* 内联代码小屏不因内边距过大而撑行 */
+    .markdown-content code {
+        overflow-wrap: anywhere;
+    }
+}

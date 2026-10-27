@@ -16,9 +16,6 @@ import * as market from "./modules/marketplace.js";
 import * as docs from "./modules/docs.js";
 import { renderFriendLinks, renderDependencies } from "./modules/about.js";
 import * as home from "./modules/home.js";
-import { SubmitModuleManager } from "./modules/submit.js";
-import { CommunityManager } from "./modules/community.js";
-import { AuthManager } from "./core/auth.js";
 import { initReveal } from "./modules/reveal.js";
 
 /**
@@ -79,10 +76,6 @@ function runInit() {
   settings.setupThemeToggle();
   nav.setupHamburgerMenu();
   // 账户与社区模块先于视图切换初始化：
-  // setupViewSwitching 会按 __INITIAL_VIEW__ 触发 community 视图的数据加载
-  AuthManager.init();
-  SubmitModuleManager.init();
-  CommunityManager.init();
   nav.setupViewSwitching();
   settings.setupGlobalLangSwitcher();
   market.setupMarketplace();
@@ -95,7 +88,6 @@ function runInit() {
   home.initBannerCarousel();
   home.initInstallOverlay();
   home.initHeroStats();
-  home.initCommunityTeaser();
   nav.setupOnlineOffline();
 }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "erispulse-v2.16.0";
+const CACHE_NAME = "erispulse-v2.29.0";
 const EXTERNAL_LIBS = [
   "https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/",
   "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/",
@@ -16,7 +16,6 @@ const urlsToCache = [
   "/assets/css/docs.css",
   "/assets/css/setting.css",
   "/assets/css/about.css",
-  "/assets/css/community.css",
   "/assets/js/i18n.js",
   "/assets/js/app.js",
   "/assets/js/config.js",
@@ -24,9 +23,7 @@ const urlsToCache = [
   "/assets/js/core/notify.js",
   "/assets/js/core/views.js",
   "/assets/js/core/gh-markdown.js",
-  "/assets/js/core/auth.js",
   "/assets/js/modules/about.js",
-  "/assets/js/modules/community.js",
   "/assets/js/modules/docs.js",
   "/assets/js/modules/docs-cache.js",
   "/assets/js/modules/docs-index.js",
@@ -34,13 +31,11 @@ const urlsToCache = [
   "/assets/js/modules/marketplace.js",
   "/assets/js/modules/nav.js",
   "/assets/js/modules/settings.js",
-  "/assets/js/modules/submit.js",
   "/views/home.html",
   "/views/market.html",
   "/views/docs.html",
   "/views/settings.html",
   "/views/about.html",
-  "/views/community.html",
   "/views/modals.html",
   "/assets/img/logo.png",
   "/assets/img/eplogo.svg",
@@ -118,6 +113,9 @@ self.addEventListener("fetch", (event) => {
           });
 
           return response;
+        }).catch(() => {
+          // 外部库请求失败（广告拦截器/断网）：返回 503 兜底，杜绝 undefined Response
+          return caches.match(event.request).then((r) => r || new Response("Offline", { status: 503 }));
         });
       }),
     );
@@ -140,8 +138,8 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-          // 如果网络请求失败，使用缓存
-          return caches.match(event.request);
+          // 如果网络请求失败，使用缓存；未预缓存资源给 503 兜底（杜绝 undefined Response）
+          return caches.match(event.request).then(r => r || new Response("Offline", { status: 503 }));
         }),
     );
   }
@@ -149,7 +147,7 @@ self.addEventListener("fetch", (event) => {
   else {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match(event.request);
+        return caches.match(event.request).then(r => r || new Response("Offline", { status: 503 }));
       }),
     );
   }
