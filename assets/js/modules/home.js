@@ -11,10 +11,7 @@ import { I18n } from '../i18n.js';
 import { CONFIG } from '../config.js';
 
  
-var featuresInitialized = false;
-var featuresPrevActive = -1;
-var featuresUpdateFn = null;
-var featuresMeasureFn = null;
+var featureScrollBound = false;
 
 var bannerTimer = null;
 var bannerCurrentIndex = 0;
@@ -24,15 +21,7 @@ export function setupHomeAnimations() {
         && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var animationsOff = document.body.classList.contains('no-animations') || reduceMotion;
 
-    if (!animationsOff && !featuresInitialized) {
-        featuresInitialized = true;
-        setupScrollDrivenFeatures();
-    } else if (!animationsOff && featuresUpdateFn) {
-        featuresPrevActive = -1;
-         
-        if (featuresMeasureFn) featuresMeasureFn();
-        requestAnimationFrame(featuresUpdateFn);
-    }
+    if (!animationsOff) setupFeatureStack();
      
     highlightHeroCode();
 }
@@ -151,10 +140,12 @@ export function resetFeatureCards() {
     var panes = document.querySelectorAll('.feature-immersive');
     panes.forEach(function (pane) {
         pane.classList.remove('active');
-         
-        pane.style.removeProperty('--stack-scale');
-        pane.style.removeProperty('--stack-dim');
-        pane.style.removeProperty('--stack-shift');
+        pane.classList.add('in-view');
+        var card = pane.querySelector('.feature-immersive-card');
+        if (card) {
+            card.style.removeProperty('--mx');
+            card.style.removeProperty('--my');
+        }
     });
 }
 
@@ -165,162 +156,82 @@ export function resetFeatureCards() {
 
 
 
-
-
-function setupScrollDrivenFeatures() {
+function setupFeatureStack() {
     var section = document.getElementById('features-scroll-section');
+    if (!section) return;
     var stage = document.getElementById('features-scroll-stage');
-    var panes = Array.prototype.slice.call(document.querySelectorAll('.feature-immersive'));
-    var navContainer = document.getElementById('feature-immersive-nav');
-
-    if (!section || !stage || panes.length === 0) return;
-
-    var COUNT = panes.length;
+    var panes = Array.prototype.slice.call(section.querySelectorAll('.feature-immersive'));
+    if (!stage || !panes.length) return;
 
      
-    var SHRINK_FIRST = 0.06;
-    var SHRINK_LAYER = 0.018;
-    var SCALE_MIN = 0.84;
-    var DIM_FIRST = 0.42;
-    var DIM_LAYER = 0.12;
-    var DIM_MAX = 0.66;
-    var SHIFT_PER_LAYER = 8;    
-    var SHIFT_MAX_DEPTH = 2.5;
+    panes.forEach(function (pane) {
+        if (pane.dataset.fxFx === '1') return;
+        pane.dataset.fxFx = '1';
+        var code = pane.querySelector('code');
+        if (code && typeof Prism !== 'undefined') {
+            try { Prism.highlightElement(code); } catch (e) {   }
+        }
+    });
 
-     
-    if (navContainer) {
-        navContainer.innerHTML = '';
-        panes.forEach(function (_, i) {
-            var dot = document.createElement('div');
-            dot.className = 'feature-nav-dot' + (i === 0 ? ' active' : '');
-            dot.setAttribute('data-index', i);
-            dot.addEventListener('click', function () {
-                var seatY = seatScrollY(i);
-                if (seatY !== null) {
-                    window.scrollTo({ top: seatY, behavior: 'smooth' });
-                }
-            });
-            navContainer.appendChild(dot);
+    var flat = document.body.classList.contains('no-animations')
+        || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    if (flat) {
+        section.style.height = 'auto';
+        section.classList.add('stack-flat');
+        panes.forEach(function (p) {
+            p.classList.remove('active', 'leaving');
+            p.style.transform = '';
+            p.style.opacity = '';
+            p.style.zIndex = '';
         });
+        return;
     }
+    section.classList.remove('stack-flat');
+    section.style.height = (panes.length * 100) + 'vh';
 
-    var dots = navContainer ? navContainer.querySelectorAll('.feature-nav-dot') : [];
-
-     
-    var paneH = 0;
-    var tops = [];
-
-    function measure() {
-        paneH = panes[0].getBoundingClientRect().height || 0;
-        tops = panes.map(function (pane) {
-            var t = parseFloat(getComputedStyle(pane).top);
-            return isNaN(t) ? 0 : t;
-        });
-    }
-
-     
-    function seatScrollY(i) {
-        if (!paneH) return null;
-        var stageTopDoc = stage.getBoundingClientRect().top + (window.pageYOffset || 0);
-        return stageTopDoc + i * paneH - (tops[i] || 0) + 4;
-    }
-
-    function clamp01(v) {
-        return v < 0 ? 0 : (v > 1 ? 1 : v);
-    }
-
-    function update() {
-        if (document.body.classList.contains('no-animations')) return;
-
-        var vh = window.innerHeight;
-        var rect = stage.getBoundingClientRect();
-        var stageTopDoc = rect.top + (window.pageYOffset || 0);
-        var scrolled = window.pageYOffset || 0;
-
-        if (navContainer) {
-            navContainer.classList.toggle('visible', rect.top < vh && rect.bottom > 0);
-        }
-
-         
-        if (rect.bottom < 0 || rect.top > vh) return;
-
-         
-        var topIdx = 0;
-        for (var j = COUNT - 1; j >= 0; j--) {
-            if (scrolled >= stageTopDoc + j * paneH - (tops[j] || 0)) {
-                topIdx = j;
-                break;
-            }
-        }
-
-         
-        var next = topIdx + 1;
-        var p = 0;
-        if (next < COUNT) {
-            var enterY = stageTopDoc + next * paneH - vh;
-            var seatY = stageTopDoc + next * paneH - (tops[next] || 0);
-            p = clamp01((scrolled - enterY) / Math.max(1, seatY - enterY));
-        }
-
-        for (var i = 0; i < COUNT; i++) {
-             
-            var depth = (i <= topIdx) ? (topIdx - i + p) : 0;
-            var full = Math.min(depth, 1);
-            var extra = Math.max(0, depth - 1);
-
-            panes[i].style.setProperty('--stack-scale',
-                Math.max(SCALE_MIN, 1 - SHRINK_FIRST * full - SHRINK_LAYER * extra).toFixed(4));
-            panes[i].style.setProperty('--stack-dim',
-                Math.min(DIM_MAX, DIM_FIRST * full + DIM_LAYER * extra).toFixed(3));
-            panes[i].style.setProperty('--stack-shift',
-                (-(SHIFT_PER_LAYER * Math.min(depth, SHIFT_MAX_DEPTH))).toFixed(1) + 'px');
-        }
-
-        setActive(topIdx);
-    }
+    var prev = -1;
+    var ticking = false;
 
     function setActive(index) {
-        if (index === featuresPrevActive) return;
-
-         
+        if (index === prev) return;
+        prev = index;
         panes.forEach(function (pane, i) {
-            pane.classList.toggle('active', i === index);
+            if (i === index) {
+                pane.classList.remove('leaving');
+                pane.classList.add('active');
+            } else if (pane.classList.contains('active')) {
+                pane.classList.add('leaving');
+                pane.classList.remove('active');
+                setTimeout(function () { pane.classList.remove('leaving'); }, 450);
+            } else {
+                pane.classList.remove('active', 'leaving');
+            }
         });
-
-        dots.forEach(function (dot, i) {
-            dot.classList.toggle('active', i === index);
-        });
-
-        featuresPrevActive = index;
     }
 
-    featuresMeasureFn = measure;
-    featuresUpdateFn = update;
-
-    measure();
+    function tick() {
+        ticking = false;
+        var rect = section.getBoundingClientRect();
+        var vh = window.innerHeight || 800;
+        var total = rect.height - vh;
+        var scrolled = -rect.top;
+        var idx = 0;
+        if (total > 0 && scrolled > 0) {
+            idx = Math.min(Math.floor((scrolled / total) * panes.length), panes.length - 1);
+        }
+        setActive(Math.max(0, idx));
+    }
 
     function onScroll() {
-        requestAnimationFrame(update);
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(tick);
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', function () {
-        requestAnimationFrame(function () {
-            measure();
-            update();
-        });
-    }, { passive: true });
-
-    setTimeout(update, 100);
-
-    if (typeof Prism !== 'undefined') {
-        panes.forEach(function (pane) {
-            var code = pane.querySelector('code');
-            if (code) {
-                try { Prism.highlightElement(code); } catch (e) {   }
-            }
-        });
-    }
+    window.addEventListener('resize', onScroll, { passive: true });
+    tick();
 }
 
 export function initInstallOverlay() {
