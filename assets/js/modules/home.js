@@ -1,7 +1,7 @@
 /**
  * 首页交互
  *  - Banner 轮播
- *  - 滚动驱动的特性牌堆（Stacking Cards：后卡滑入盖住前卡，逐层缩放变暗）
+ *  - Bento 特性网格（入场阶梯淡入 + 悬停聚光）
  *  - 安装命令浮层（Install Overlay）
  *  - Hero GitHub 实时数据条
  *  - 社区速览条带（最新 Discussions）
@@ -11,10 +11,7 @@ import { I18n } from '../i18n.js';
 import { CONFIG } from '../config.js';
 
 // 仅首页模块使用的本地状态
-var featuresInitialized = false;
-var featuresPrevActive = -1;
-var featuresUpdateFn = null;
-var featuresMeasureFn = null;
+var featureScrollBound = false;
 
 var bannerTimer = null;
 var bannerCurrentIndex = 0;
@@ -24,16 +21,8 @@ export function setupHomeAnimations() {
         && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var animationsOff = document.body.classList.contains('no-animations') || reduceMotion;
 
-    if (!animationsOff && !featuresInitialized) {
-        featuresInitialized = true;
-        setupScrollDrivenFeatures();
-    } else if (!animationsOff && featuresUpdateFn) {
-        featuresPrevActive = -1;
-        // 重新启用：先重量化轨道（关闭期间布局已退化为平铺），再刷新牌堆状态
-        if (featuresMeasureFn) featuresMeasureFn();
-        requestAnimationFrame(featuresUpdateFn);
-    }
-    // Hero 代码窗（产品图）独立高亮，与特性牌堆同一 Prism 模式
+    if (!animationsOff) setupFeatureStack();
+    // Hero 代码窗（产品图）独立高亮
     highlightHeroCode();
 }
 
@@ -151,176 +140,98 @@ export function resetFeatureCards() {
     var panes = document.querySelectorAll('.feature-immersive');
     panes.forEach(function (pane) {
         pane.classList.remove('active');
-        // 深度变量复位：关闭动画瞬间不残留缩放/遮罩（CSS 侧也已兜底）
-        pane.style.removeProperty('--stack-scale');
-        pane.style.removeProperty('--stack-dim');
-        pane.style.removeProperty('--stack-shift');
+        pane.classList.add('in-view');
+        var card = pane.querySelector('.feature-immersive-card');
+        if (card) {
+            card.style.removeProperty('--mx');
+            card.style.removeProperty('--my');
+        }
     });
 }
 
 /**
- * 滚动驱动的特性牌堆（Stacking Cards）：
- * 每张卡是独立 sticky 单元（CSS nth-child 注入 --stack-i 步进），向下滚动时
- * 后一张卡从底部滑入盖住前一张；本函数按滚动进度为每张卡写深度变量：
- *   --stack-scale 被盖住的卡缩小（首层 ~0.94，逐层再收，有下限）
- *   --stack-dim   深度遮罩透明度（向页面底色收束，逐层加深）
- *   --stack-shift 被盖住的卡轻微上浮，增大露出的边条
- * 回滚时进度对称递减，牌堆自然展开还原。滚动节流沿用 rAF 模式。
+ * 特性信封舞台：
+ *  - 舞台 sticky 居中，section 轨道 = 张数 × 视口高
+ *  - 每张卡按滚动进度从信封里抽出（下方一屏 → 居中），到位后被后一张叠加
+ *  - 进度由滚动位置直接计算，往回滚按同一路径收回信封
+ *  - no-animations / prefers-reduced-motion：退化为纵向平铺，内容始终可读
  */
-function setupScrollDrivenFeatures() {
+function setupFeatureStack() {
     var section = document.getElementById('features-scroll-section');
+    if (!section) return;
     var stage = document.getElementById('features-scroll-stage');
-    var panes = Array.prototype.slice.call(document.querySelectorAll('.feature-immersive'));
-    var navContainer = document.getElementById('feature-immersive-nav');
+    var panes = Array.prototype.slice.call(section.querySelectorAll('.feature-immersive'));
+    if (!stage || !panes.length) return;
 
-    if (!section || !stage || panes.length === 0) return;
+    // 代码高亮只做一次
+    panes.forEach(function (pane) {
+        if (pane.dataset.fxFx === '1') return;
+        pane.dataset.fxFx = '1';
+        var code = pane.querySelector('code');
+        if (code && typeof Prism !== 'undefined') {
+            try { Prism.highlightElement(code); } catch (e) { /* 高亮失败不影响展示 */ }
+        }
+    });
 
-    var COUNT = panes.length;
+    var flat = document.body.classList.contains('no-animations')
+        || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-    // 纵深参数集中于此：首层缩小/加深幅度、逐层递减量与下限
-    var SHRINK_FIRST = 0.06;
-    var SHRINK_LAYER = 0.018;
-    var SCALE_MIN = 0.84;
-    var DIM_FIRST = 0.42;
-    var DIM_LAYER = 0.12;
-    var DIM_MAX = 0.66;
-    var SHIFT_PER_LAYER = 8;   // px
-    var SHIFT_MAX_DEPTH = 2.5;
-
-    // 右侧导航点保留为牌堆进度指示：点击滚动到该卡就位位置
-    if (navContainer) {
-        navContainer.innerHTML = '';
-        panes.forEach(function (_, i) {
-            var dot = document.createElement('div');
-            dot.className = 'feature-nav-dot' + (i === 0 ? ' active' : '');
-            dot.setAttribute('data-index', i);
-            dot.addEventListener('click', function () {
-                var seatY = seatScrollY(i);
-                if (seatY !== null) {
-                    window.scrollTo({ top: seatY, behavior: 'smooth' });
-                }
-            });
-            navContainer.appendChild(dot);
+    if (flat) {
+        section.style.height = 'auto';
+        section.classList.add('stack-flat');
+        panes.forEach(function (p) {
+            p.classList.remove('active', 'leaving');
+            p.style.transform = '';
+            p.style.opacity = '';
+            p.style.zIndex = '';
         });
+        return;
     }
+    section.classList.remove('stack-flat');
+    section.style.height = (panes.length * 100) + 'vh';
 
-    var dots = navContainer ? navContainer.querySelectorAll('.feature-nav-dot') : [];
-
-    // 度量：卡轨道高与各卡 sticky 顶偏移（断点变化，resize 重测）
-    var paneH = 0;
-    var tops = [];
-
-    function measure() {
-        paneH = panes[0].getBoundingClientRect().height || 0;
-        tops = panes.map(function (pane) {
-            var t = parseFloat(getComputedStyle(pane).top);
-            return isNaN(t) ? 0 : t;
-        });
-    }
-
-    /** 卡 i 完全就位（成为顶卡）所需的文档滚动位置；+4px 确保 >= 就位判定成立 */
-    function seatScrollY(i) {
-        if (!paneH) return null;
-        var stageTopDoc = stage.getBoundingClientRect().top + (window.pageYOffset || 0);
-        return stageTopDoc + i * paneH - (tops[i] || 0) + 4;
-    }
-
-    function clamp01(v) {
-        return v < 0 ? 0 : (v > 1 ? 1 : v);
-    }
-
-    function update() {
-        if (document.body.classList.contains('no-animations')) return;
-
-        var vh = window.innerHeight;
-        var rect = stage.getBoundingClientRect();
-        var stageTopDoc = rect.top + (window.pageYOffset || 0);
-        var scrolled = window.pageYOffset || 0;
-
-        if (navContainer) {
-            navContainer.classList.toggle('visible', rect.top < vh && rect.bottom > 0);
-        }
-
-        // 区块整体在视口外：不逐卡写深度（回到视口会在下一帧补写）
-        if (rect.bottom < 0 || rect.top > vh) return;
-
-        // 顶卡 = 已滑入就位的最大序号卡
-        var topIdx = 0;
-        for (var j = COUNT - 1; j >= 0; j--) {
-            if (scrolled >= stageTopDoc + j * paneH - (tops[j] || 0)) {
-                topIdx = j;
-                break;
-            }
-        }
-
-        // 下一张卡的滑入进度：0 = 顶边刚进入视口下缘，1 = 完全就位盖住当前顶卡
-        var next = topIdx + 1;
-        var p = 0;
-        if (next < COUNT) {
-            var enterY = stageTopDoc + next * paneH - vh;
-            var seatY = stageTopDoc + next * paneH - (tops[next] || 0);
-            p = clamp01((scrolled - enterY) / Math.max(1, seatY - enterY));
-        }
-
-        for (var i = 0; i < COUNT; i++) {
-            // 深度 = 已完全压住的层数 + 正在滑入那层的进度；顶卡与其后未入场卡为 0
-            var depth = (i <= topIdx) ? (topIdx - i + p) : 0;
-            var full = Math.min(depth, 1);
-            var extra = Math.max(0, depth - 1);
-
-            panes[i].style.setProperty('--stack-scale',
-                Math.max(SCALE_MIN, 1 - SHRINK_FIRST * full - SHRINK_LAYER * extra).toFixed(4));
-            panes[i].style.setProperty('--stack-dim',
-                Math.min(DIM_MAX, DIM_FIRST * full + DIM_LAYER * extra).toFixed(3));
-            panes[i].style.setProperty('--stack-shift',
-                (-(SHIFT_PER_LAYER * Math.min(depth, SHIFT_MAX_DEPTH))).toFixed(1) + 'px');
-        }
-
-        setActive(topIdx);
-    }
+    var prev = -1;
+    var ticking = false;
 
     function setActive(index) {
-        if (index === featuresPrevActive) return;
-
-        // .active 现表示「当前顶卡」：驱动聊天演示内容级联入场（CSS 侧）
+        if (index === prev) return;
+        prev = index;
         panes.forEach(function (pane, i) {
-            pane.classList.toggle('active', i === index);
+            if (i === index) {
+                pane.classList.remove('leaving');
+                pane.classList.add('active');
+            } else if (pane.classList.contains('active')) {
+                pane.classList.add('leaving');
+                pane.classList.remove('active');
+                setTimeout(function () { pane.classList.remove('leaving'); }, 450);
+            } else {
+                pane.classList.remove('active', 'leaving');
+            }
         });
-
-        dots.forEach(function (dot, i) {
-            dot.classList.toggle('active', i === index);
-        });
-
-        featuresPrevActive = index;
     }
 
-    featuresMeasureFn = measure;
-    featuresUpdateFn = update;
-
-    measure();
+    function tick() {
+        ticking = false;
+        var rect = section.getBoundingClientRect();
+        var vh = window.innerHeight || 800;
+        var total = rect.height - vh;
+        var scrolled = -rect.top;
+        var idx = 0;
+        if (total > 0 && scrolled > 0) {
+            idx = Math.min(Math.floor((scrolled / total) * panes.length), panes.length - 1);
+        }
+        setActive(Math.max(0, idx));
+    }
 
     function onScroll() {
-        requestAnimationFrame(update);
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(tick);
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', function () {
-        requestAnimationFrame(function () {
-            measure();
-            update();
-        });
-    }, { passive: true });
-
-    setTimeout(update, 100);
-
-    if (typeof Prism !== 'undefined') {
-        panes.forEach(function (pane) {
-            var code = pane.querySelector('code');
-            if (code) {
-                try { Prism.highlightElement(code); } catch (e) { /* 高亮失败不影响展示 */ }
-            }
-        });
-    }
+    window.addEventListener('resize', onScroll, { passive: true });
+    tick();
 }
 
 export function initInstallOverlay() {

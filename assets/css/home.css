@@ -662,87 +662,129 @@ div.hero-glow-lavender {
     transform: scale(1.3);
 }
 
-/* ==================== 第二屏：核心特性（Stacking Cards 滚动牌堆） ====================
-   每张特性玻璃卡是独立的 sticky 单元：向下滚动时后一张卡从底部滑入，
-   盖到前一张上面堆成一叠；被盖住的卡按层数缩小、加暗产生纵深，回滚对称展开。
-   --stack-i 为卡片序号（nth-child 兜底注入，JS 失效时步进堆叠依然成立）；
-   滚动深度变量 --stack-scale / --stack-dim / --stack-shift 由 JS 按进度逐帧
-   写在卡 wrapper 上（卡片即时跟随滚动，不加缓动）。 */
-.features-scroll-section {
-    --stack-pane-h: 85vh;      /* 每张卡的滚动轨道高度 */
-    --stack-outro-h: 100vh;    /* 最后一张卡就位后的停留余量 */
-    --stack-top-base: 96px;    /* sticky 顶偏移：悬浮导航(18+60+18) 下缘对齐 */
-    --stack-step: 28px;        /* 相邻卡 sticky 顶差 = 露出的前层卡边条 */
-    position: relative;
-}
+/* 特性切换：sticky 舞台 + 单卡展示。换卡时旧卡轻微放大、模糊、淡出，
+   新卡从 0.96 与 4px 模糊中清晰起来，卡内文字/代码再错峰上浮。 */
+#features-scroll-section { position: relative; }
 
-.features-scroll-stage {
-    position: relative;
-    /* 总滚动轨道 = 8 张卡轨道 + 尾部余量（保持与旧版 800vh 相近的滚动节奏） */
-    height: calc(8 * var(--stack-pane-h) + var(--stack-outro-h));
+#features-scroll-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
-
-/* 序号兜底注入：不依赖 JS 也能得到逐层下移的堆叠步进 */
-.feature-immersive:nth-child(1) { --stack-i: 0; }
-.feature-immersive:nth-child(2) { --stack-i: 1; }
-.feature-immersive:nth-child(3) { --stack-i: 2; }
-.feature-immersive:nth-child(4) { --stack-i: 3; }
-.feature-immersive:nth-child(5) { --stack-i: 4; }
-.feature-immersive:nth-child(6) { --stack-i: 5; }
-.feature-immersive:nth-child(7) { --stack-i: 6; }
-.feature-immersive:nth-child(8) { --stack-i: 7; }
 
 .feature-immersive {
-    position: sticky;
-    top: calc(var(--stack-top-base) + var(--stack-step) * var(--stack-i, 0));
-    height: var(--stack-pane-h);
+    position: absolute;
+    inset: 0;
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    /* 顶边距小于 --stack-step：被盖住时露出的是卡片自身的玻璃边条 */
-    padding: 1rem 1.5rem 1.5rem;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* 玻璃舞台卡：半透明面 + backdrop-blur 承载每屏内容，透出全局视差背景。
-   纵深反馈吃 JS 逐帧写入的深度变量：缩放以顶边为原点（露出条对齐不漂移），
-   遮罩用主题底色向背景收束（浅主题褪白 / 深主题压暗），无过渡即时跟随滚动 */
-.feature-immersive-card {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-    gap: 3rem;
     align-items: center;
-    width: min(1240px, 100%);
-    max-height: 100%;
-    margin: 0 auto;
-    padding: 2.6rem 3rem;
-    background: color-mix(in srgb, var(--card-solid) 78%, transparent);
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-    border-radius: 28px;
-    box-shadow: 0 24px 64px -24px rgba(var(--dark-bg-rgb), 0.3);
-    min-width: 0;
-    position: relative;
-    transform: translateY(var(--stack-shift, 0px)) scale(var(--stack-scale, 1));
-    transform-origin: 50% 0;
+    justify-content: center;
+    padding: 6vh 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.96);
+    filter: blur(4px);
+    pointer-events: none;
+    transition:
+        opacity .5s cubic-bezier(.25, .46, .45, .94),
+        transform .5s cubic-bezier(.25, .46, .45, .94),
+        filter .5s cubic-bezier(.25, .46, .45, .94),
+        visibility 0s .5s;
 }
 
-/* 深度遮罩：盖住一层加一档，向页面底色收束形成「沉下去」的层级感 */
+.feature-immersive.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: scale(1);
+    filter: blur(0);
+    transition:
+        opacity .6s cubic-bezier(.25, .46, .45, .94),
+        transform .6s cubic-bezier(.25, .46, .45, .94),
+        filter .6s cubic-bezier(.25, .46, .45, .94),
+        visibility 0s 0s;
+}
+
+.feature-immersive.leaving {
+    opacity: 0;
+    visibility: visible;
+    pointer-events: none;
+    transform: scale(1.03);
+    filter: blur(6px);
+    transition:
+        opacity .4s cubic-bezier(.25, .46, .45, .94),
+        transform .4s cubic-bezier(.25, .46, .45, .94),
+        filter .4s cubic-bezier(.25, .46, .45, .94),
+        visibility 0s .4s;
+}
+
+/* 卡内元素错峰入场：文字先、代码/演示后 */
+.feature-immersive .feature-immersive-text,
+.feature-immersive .feature-immersive-code,
+.feature-immersive .feature-immersive-visual {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity .7s cubic-bezier(.25, .46, .45, .94), transform .7s cubic-bezier(.25, .46, .45, .94);
+}
+
+.feature-immersive .feature-immersive-code,
+.feature-immersive .feature-immersive-visual {
+    transition-delay: .16s;
+}
+
+.feature-immersive.active .feature-immersive-text,
+.feature-immersive.active .feature-immersive-code,
+.feature-immersive.active .feature-immersive-visual {
+    opacity: 1;
+    transform: none;
+}
+
+/* 明信片卡面：主题玻璃 + 邮戳 + 地址线（保留重设计后的样式） */
+.feature-immersive-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+    align-items: start;
+    width: min(1080px, 92%);
+    max-height: min(74vh, 640px);
+    overflow: auto;
+    padding: 2.4rem 2.6rem 2.2rem;
+    background: color-mix(in srgb, var(--card-solid) 84%, transparent);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+    border-radius: 22px;
+    box-shadow:
+        0 46px 100px -60px rgba(var(--dark-bg-rgb), 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    min-width: 0;
+}
+
+/* 首卡横排：文案左、代码右 */
+.feature-immersive:first-child .feature-immersive-card {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: center;
+    gap: 3rem;
+    padding: 2.8rem 3rem;
+}
+
+/* 明信片地址线：右下角三条浅线 */
 .feature-immersive-card::after {
     content: "";
     position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--bg);
-    opacity: var(--stack-dim, 0);
+    right: 2.4rem;
+    bottom: 1.7rem;
+    width: 132px;
+    height: 18px;
+    background: repeating-linear-gradient(180deg,
+        color-mix(in srgb, var(--text) 16%, transparent) 0 1px,
+        transparent 1px 6px);
+    opacity: .55;
     pointer-events: none;
-}
-
-.feature-immersive-text {
-    position: relative;
-    min-width: 0;
 }
 
 .feature-immersive-title {
@@ -753,6 +795,24 @@ div.hero-glow-lavender {
     color: var(--text);
     margin-bottom: 1rem;
 }
+
+/* 标题下一条手绘波浪线 */
+.feature-immersive-title::after {
+    content: "";
+    display: block;
+    width: 64px;
+    height: 6px;
+    margin-top: 0.7rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='6'%3E%3Cpath d='M0 4 Q 6 0 12 4 T 24 4' fill='none' stroke='%23d08a5f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-size: 24px 6px;
+}
+
+.feature-immersive-text {
+    position: relative;
+    min-width: 0;
+}
+
 
 .feature-immersive-desc {
     font-size: clamp(0.98rem, 1.4vw, 1.12rem);
@@ -782,6 +842,7 @@ div.hero-glow-lavender {
 .feature-immersive-visual {
     position: relative;
     min-width: 0;
+    align-self: end;      /* 矮卡里代码贴底，与同行高卡的代码区对齐 */
 }
 
 /* 演示入口（dashdemo.erisdev.com） */
@@ -800,25 +861,27 @@ div.hero-glow-lavender {
 
 /* ── 代码窗：半透明平面终端（窗在玻璃卡内，吃卡面材质） ── */
 .code-window {
-    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    /* 统一深色终端底：Prism 用的是 tomorrow 语法配色（浅色 token），
+       浅主题下若仍用浅纸底会失去对比，这里固定深底保证两种主题都可读 */
+    background: #1d1f21;
     border-radius: var(--radius-md);
     overflow: hidden;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 14px 30px -22px rgba(0, 0, 0, 0.55);
     min-width: 0;
 }
 
 .code-window-bar {
     display: flex;
     align-items: center;
-    padding: 0.6rem 1rem;
-    background: color-mix(in srgb, var(--card-solid) 45%, transparent);
-    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1.3rem 0.2rem;
+    background: transparent;
+    border-bottom: none;
     gap: 0.8rem;
 }
 
 .code-window-dots {
-    display: flex;
-    gap: 6px;
+    display: none;   /* 去掉仿 mac 红绿灯，代码块只保留文件名 */
 }
 
 .code-window-dots span {
@@ -835,7 +898,7 @@ div.hero-glow-lavender {
 
 .code-window-title {
     font-size: 0.78rem;
-    color: var(--text-secondary);
+    color: #a8b1bd;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     letter-spacing: 0.02em;
 }
@@ -905,91 +968,100 @@ div.hero-glow-lavender {
     align-self: flex-end;
 }
 
+/* 聊天演示：气泡跟随站点玻璃语言——中性面 + 细边框，仅交互态用主色软底，
+   不再出现整块高饱和实心色，避免打断卡片的透感观感 */
 .chat-msg-bot .chat-bubble {
-    background: var(--accent-soft);
+    background: color-mix(in srgb, var(--card-solid) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
     color: var(--text);
-    border-radius: 14px 14px 14px 4px;
+    border-radius: 16px 16px 16px 6px;
 }
 
 .chat-msg-user .chat-bubble {
-    background: var(--primary-dark);
-    color: white;
-    border-radius: 14px 14px 4px 14px;
+    background: color-mix(in srgb, var(--primary) 13%, transparent);
+    border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
+    color: var(--primary);
+    border-radius: 16px 16px 6px 16px;
 }
 
 .chat-bubble-selected {
-    background: var(--sel-bg, var(--accent-soft)) !important;
-    color: var(--sel-color, var(--text)) !important;
-    border: 1px solid color-mix(in srgb, var(--sel-color, var(--primary)) 30%, transparent);
+    background: color-mix(in srgb, var(--primary) 13%, transparent) !important;
+    color: var(--primary) !important;
+    border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent) !important;
     font-weight: 500;
 }
 
 .chat-bubble-success {
-    background: var(--ok-bg) !important;
+    background: color-mix(in srgb, var(--ok-c) 11%, transparent) !important;
     color: var(--ok-c) !important;
-    border: 1px solid var(--ok-bd);
+    border: 1px solid color-mix(in srgb, var(--ok-c) 24%, transparent) !important;
 }
 
 .chat-bubble {
-    padding: 0.6rem 1rem;
+    padding: 0.62rem 1rem;
     font-size: 0.9rem;
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
 .chat-options {
     display: flex;
     gap: 0.5rem;
-    margin-top: 0.5rem;
+    margin-top: 0.55rem;
     flex-wrap: wrap;
 }
 
 .chat-option {
-    padding: 0.35rem 0.75rem;
+    padding: 0.35rem 0.8rem;
     border-radius: 999px;
     font-size: 0.82rem;
-    background: var(--bg-sunken);
+    background: color-mix(in srgb, var(--card-solid) 55%, transparent);
     border: 1px solid var(--border);
-    color: var(--text);
+    color: var(--text-secondary);
     cursor: default;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
+/* 选项保留一点语义色点缀：文字色轻微偏向选项色，面积足够小 */
 .chat-option-color {
-    background: var(--option-bg, var(--bg-sunken));
-    border-color: color-mix(in srgb, var(--option-color, var(--primary)) 25%, transparent);
-    color: var(--option-color, var(--text));
+    background: color-mix(in srgb, var(--card-solid) 55%, transparent);
+    border-color: color-mix(in srgb, var(--option-color, var(--border)) 28%, var(--border));
+    color: var(--text-secondary);
 }
 
 .chat-option-active {
-    background: var(--option-bg-active, var(--primary)) !important;
-    color: white !important;
-    border-color: var(--option-bg-active, var(--primary)) !important;
+    background: color-mix(in srgb, var(--primary) 14%, transparent) !important;
+    color: var(--primary) !important;
+    border-color: color-mix(in srgb, var(--primary) 34%, transparent) !important;
+    font-weight: 600;
 }
 
 .chat-confirm {
     display: flex;
     gap: 0.5rem;
-    margin-top: 0.5rem;
+    margin-top: 0.55rem;
 }
 
 .chat-confirm-btn {
-    padding: 0.35rem 0.8rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 999px;
     font-size: 0.82rem;
-    background: var(--bg-sunken);
+    background: color-mix(in srgb, var(--card-solid) 55%, transparent);
     border: 1px solid var(--border);
-    color: var(--text);
+    color: var(--text-secondary);
     cursor: default;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .chat-confirm-yes {
-    background: var(--primary-dark);
-    color: white;
-    border-color: var(--primary-dark);
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary);
+    border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+    font-weight: 600;
 }
 
 [data-theme="dark"] .chat-msg-bot .chat-bubble {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ==================== 仪表盘演示：Dashboard 悬浮壳复刻 ====================
@@ -1116,7 +1188,8 @@ div.hero-glow-lavender {
 /* stat 瓦片 */
 .dashdemo-stats {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* 容器窄时自动降为两列/一列，避免文字被挤成竖排 */
+    grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
     gap: 10px;
 }
 
@@ -1124,12 +1197,17 @@ div.hero-glow-lavender {
     background: var(--bg-sunken);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 10px 12px;
+    padding: 10px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
     text-align: left;
+    min-width: 0;
 }
+
+.dashdemo-stat-text { min-width: 0; }
+
+.dashdemo-stat-text b { white-space: nowrap; }
 
 .dashdemo-stat-ico {
     flex: none;
@@ -1160,8 +1238,11 @@ div.hero-glow-lavender {
 }
 
 .dashdemo-stat-text .dashdemo-stat-label {
-    font-size: 0.68rem;
+    display: block;
+    font-size: 0.66rem;
+    line-height: 1.25;
     color: var(--text-secondary);
+    word-break: keep-all;   /* 中文不逐字换行 */
 }
 
 /* 适配器徽章行 */
@@ -1265,47 +1346,6 @@ div.hero-glow-lavender {
     text-overflow: ellipsis;
 }
 
-/* Immersive 右侧导航点 */
-.feature-immersive-nav {
-    position: fixed;
-    right: 2rem;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    z-index: 50;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-
-.feature-immersive-nav.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-.feature-nav-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    cursor: pointer;
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    position: relative;
-}
-
-.feature-nav-dot:hover {
-    background: var(--text-secondary);
-    transform: scale(1.3);
-}
-
-.feature-nav-dot.active {
-    background: var(--primary);
-    box-shadow: 0 0 0 4px var(--accent-soft);
-    transform: scale(1.2);
-}
-
 @media (max-width: 640px) {
     .dashdemo-sidebar { display: none; }
     .dashdemo-stats { grid-template-columns: 1fr; }
@@ -1314,17 +1354,15 @@ div.hero-glow-lavender {
 /* ==================== 响应式设计 ==================== */
 
 @media (max-width: 1024px) {
-    .features-scroll-section {
-        --stack-pane-h: 80vh;
-        --stack-outro-h: 80vh;
-        --stack-step: 22px;
-    }
+    .feature-immersive { padding: 5vh 1rem; }
 
+    .feature-immersive:first-child .feature-immersive-card,
     .feature-immersive-card {
         grid-template-columns: 1fr;
-        gap: 1.8rem;
-        padding: 1.8rem 1.8rem;
-        width: min(680px, 100%);
+        gap: 1.6rem;
+        padding: 1.9rem 1.7rem;
+        width: 100%;
+        max-height: 68vh;
     }
 
     .code-window-body {
@@ -1333,18 +1371,6 @@ div.hero-glow-lavender {
 
     .code-window-body code {
         font-size: 0.8rem;
-    }
-
-    .feature-immersive-nav {
-        right: 1rem;
-    }
-
-    /* 导航点视觉尺寸不变，命中区扩到 28px（触屏可点，桌面端无感知） */
-    .feature-nav-dot::after {
-        content: "";
-        position: absolute;
-        inset: -10px;
-        border-radius: 50%;
     }
 
     /* Prism 主题的 pre[class*="language-"]（特异性 0,1,1）压过了 .code-window-body
@@ -1447,7 +1473,7 @@ div.hero-glow-lavender {
         gap: 1.4rem;
     }
 
-    .feature-immersive-title {
+.feature-immersive-title {
         font-size: 1.45rem;
     }
 
@@ -1471,15 +1497,6 @@ div.hero-glow-lavender {
     .code-window-dots span {
         width: 9px;
         height: 9px;
-    }
-
-    .feature-immersive-nav {
-        right: 0.5rem;
-    }
-
-    .feature-nav-dot {
-        width: 6px;
-        height: 6px;
     }
 
     .chat-window-body {
@@ -1612,7 +1629,7 @@ div.hero-glow-lavender {
         padding: 1.2rem 1rem;
     }
 
-    .feature-immersive-title {
+.feature-immersive-title {
         font-size: 1.3rem;
     }
 
@@ -1692,8 +1709,31 @@ div.hero-glow-lavender {
 /* 牌堆退化（no-animations 与 prefers-reduced-motion 同款）：解除 sticky 轨道，
    每张卡独立成块平铺可读，纵深变量/遮罩/聊天级联全部失效为终态 */
 .no-animations .features-scroll-section,
-.no-animations .features-scroll-stage {
+.no-animations .features-scroll-stage,
+.stack-flat#features-scroll-section,
+.stack-flat #features-scroll-stage {
     height: auto;
+}
+
+/* 平铺模式：舞台不再 sticky，卡片按文档流排列 */
+.stack-flat #features-scroll-stage {
+    position: static;
+    display: grid;
+    gap: 18px;
+    padding: 24px 0;
+    overflow: visible;
+}
+
+.stack-flat .feature-immersive {
+    position: relative;
+    height: auto;
+    padding: 0;
+    transform: none !important;
+    opacity: 1 !important;
+}
+
+.stack-flat .feature-immersive-card {
+    max-height: none;
 }
 
 .no-animations .feature-immersive {
@@ -1719,10 +1759,6 @@ div.hero-glow-lavender {
 .no-animations .feature-immersive .dashdemo-events {
     opacity: 1;
     transform: none;
-}
-
-.no-animations .feature-immersive-nav {
-    display: none;
 }
 
 .no-animations .scroll-indicator {
@@ -1761,9 +1797,6 @@ div.hero-glow-lavender {
         transition: none;
     }
 
-    .feature-immersive-nav {
-        display: none;
-    }
 }
 
 /* ==================== Hero 内嵌快速入口（Apple 式文字链） ==================== */

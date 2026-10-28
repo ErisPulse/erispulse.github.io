@@ -46,12 +46,18 @@
                         ? s.theme
                         : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
                     document.documentElement.dataset.theme = t;
+                    // 随机背景：会话内固定，避免导航跳变
+                    var bg = sessionStorage.getItem("wb-bg");
+                    if (!bg) { bg = 1 + Math.floor(Math.random() * 6); sessionStorage.setItem("wb-bg", bg); }
+                    // 绝对地址：CSS 变量里的相对 URL 会按样式表位置解析，必须给绝对路径
+                    var bgUrl = new URL('assets/bg/bg' + bg + '.webp', document.baseURI).href;
+                    document.documentElement.style.setProperty("--site-bg-img", 'url("' + bgUrl + '")');
                 } catch (e) {}
             })();
         </script>
         <style>
-            #page-loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center}#page-loader::before{content:"";position:absolute;inset:0;background:linear-gradient(168deg,rgba(246,247,249,.95) 0%,rgba(241,243,246,.85) 46%,rgba(238,240,243,.9) 100%),url("assets/img/eris-pattern.webp") center top/640px auto repeat;transition:opacity .55s ease}
-            [data-theme="dark"] #page-loader::before{background:linear-gradient(168deg,rgba(15,17,21,.92) 0%,rgba(15,17,21,.78) 46%,rgba(15,17,21,.88) 100%),url("assets/img/eris-pattern.webp") center top/640px auto repeat}
+            #page-loader{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center}#page-loader::before{content:"";position:absolute;inset:0;background:linear-gradient(168deg,rgba(246,247,249,.98) 0%,rgba(241,243,246,.94) 46%,rgba(238,240,243,.97) 100%);transition:opacity .55s ease}
+            [data-theme="dark"] #page-loader::before{background:linear-gradient(168deg,rgba(15,17,21,.96) 0%,rgba(15,17,21,.9) 46%,rgba(15,17,21,.94) 100%)}
             .loader-pulse{display:flex;flex-direction:column;align-items:center;gap:22px}
             .loader-icon{width:200px;height:auto;opacity:0;transition:opacity .5s ease;animation:loaderBreath 1.7s ease-in-out infinite}.loader-icon.loaded{opacity:1}
             @keyframes loaderBreath{0%,100%{transform:scale(.985)}45%,60%{transform:scale(1.035)}}
