@@ -6,7 +6,7 @@
 
 # erispulse.github.io
 
-**The official ErisPulse website & documentation**
+**ErisPulse 官方网站与文档**
 
 <p>
   <a href="https://github.com/ErisPulse/ErisPulse/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
