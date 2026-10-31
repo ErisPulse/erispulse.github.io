@@ -3,95 +3,125 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>部署指南 - ErisPulse 文档中心</title>
-    <meta name="description" content="ErisPulse 提供官方 Docker 鏡像，內建 ErisPulse 框架和 Dashboard 管理面板，支援 linux/amd64 和 linux/arm64 架構。" />
+    <title>部署指南 - ErisPulse 文檔中心</title>
+    <meta name="description" content="什麼時候需要讀這篇：機器人要長期掛著跑時——Docker 部署、systemd / Supervisor 程序守護、反向代理與 SSL、備份與升級都在這裡。本地開發除錯階段不需要則跳過。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/user-guide/deployment.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/user-guide/deployment.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/user-guide/deployment.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/user-guide/deployment.html" />
-    <meta property="og:title" content="部署指南 - ErisPulse 文档中心" />
-    <meta property="og:description" content="ErisPulse 提供官方 Docker 鏡像，內建 ErisPulse 框架和 Dashboard 管理面板，支援 linux/amd64 和 linux/arm64 架構。" />
+    <meta property="og:title" content="部署指南 - ErisPulse 文檔中心" />
+    <meta property="og:description" content="什麼時候需要讀這篇：機器人要長期掛著跑時——Docker 部署、systemd / Supervisor 程序守護、反向代理與 SSL、備份與升級都在這裡。本地開發除錯階段不需要則跳過。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html" />
     <meta property="og:type" content="article" />
-    <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"部署指南","description":"ErisPulse 提供官方 Docker 鏡像，內建 ErisPulse 框架和 Dashboard 管理面板，支援 linux/amd64 和 linux/arm64 架構。","url":"https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <meta property="og:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/assets/img/logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"部署指南","description":"什麼時候需要讀這篇：機器人要長期掛著跑時——Docker 部署、systemd / Supervisor 程序守護、反向代理與 SSL、備份與升級都在這裡。本地開發除錯階段不需要則跳過。","url":"https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文檔中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"文檔中心","item":"https://www.erisdev.com/docs.html"},{"@type":"ListItem","position":2,"name":"使用者指南","item":"https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html"},{"@type":"ListItem","position":3,"name":"部署指南"}]}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/doc-static.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <style>
-        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
-        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
-        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
-        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
-        .doc-nav-links a:hover{color:var(--primary)}
-        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
-        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
-        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
-        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
-        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
-        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
-        .doc-lang-link.current{color:var(--primary);font-weight:600}
-        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
-        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
-        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
-        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
-        .doc-pager a small{color:var(--text-secondary)}
-        .doc-pager-next{text-align:right}
-        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
-    </style>
 </head>
-<body>
-    
-    <nav class="doc-static-nav">
-        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
-        <div class="doc-nav-links">
-            <a href="/">首页</a>
-            <a href="/docs.html">文档中心</a>
-            <a href="/market.html">模块市场</a>
-            <a href="/community.html">社区</a>
-            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-    </nav>
-    <main class="doc-page">
-        
-    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/docs.html">Docs</a>
-        <span class="doc-crumb-sep">/</span> 使用者指南
-        <span class="doc-crumb-sep">/</span> <span>部署指南</span>
-    </nav>
-        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/user-guide/deployment.html">简体中文</a>
+<body class="doc-static-page">
+    <header class="ds-top">
+        <a class="ds-brand" href="/">
+            <img class="ds-brand-icon" src="/assets/img/logo.png" alt="ErisPulse" />
+            <span>ErisPulse</span>
+        </a>
+        <div class="ds-top-right">
+            <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/user-guide/deployment.html">简体中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/en/user-guide/deployment.html">English</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html">繁體中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/user-guide/deployment.html">日本語</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/user-guide/deployment.html">Русский</a></div>
-        <div class="doc-interactive">
-            <span>本文为静态镜像，内容以交互版为准</span>
-            <a href="https://www.erisdev.com/#docs/user-guide/deployment.md">在交互式文档中心打开 →</a>
+            <a class="ds-interactive" href="https://www.erisdev.com/#docs/user-guide/deployment.md">在互動式文檔中心打開 →</a>
         </div>
-        <article class="markdown-content" id="docs-content">
-            <h1 id="部署指南">部署指南</h1>
-<p>將 ErisPulse 機器人部署到生產環境的最佳實踐。</p>
+    </header>
+
+    <div class="ds-layout">
+        <aside class="ds-sidebar">
+            <div class="ds-sidebar-title">文檔中心</div>
+            <nav class="ds-side-nav"><details class="ds-cat"><summary><span class="ds-cat-name">快速開始</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/README.html">ErisPulse 文件</a><a class="ds-doc" href="/docs/zh-TW/quick-start.html">快速入門</a><a class="ds-doc" href="/docs/zh-TW/architecture.html">架構概覽</a><a class="ds-doc" href="/docs/zh-TW/bug-tracker.html">Bug 追蹤器</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">入門指南</span><span class="ds-cat-count">6</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/getting-started/first-bot.html">建立第一個機器人</a><a class="ds-doc" href="/docs/zh-TW/getting-started/README.html">入門指南</a><a class="ds-doc" href="/docs/zh-TW/getting-started/basic-concepts.html">基礎概念</a><a class="ds-doc" href="/docs/zh-TW/getting-started/common-tasks.html">常見任務範例</a><a class="ds-doc" href="/docs/zh-TW/getting-started/event-handling.html">事件處理入門</a><a class="ds-doc" href="/docs/zh-TW/getting-started/ide-completion.html">類型存根生成（IDE 補全）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">選型指南</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/showcase/README.html">選型指南</a><a class="ds-doc" href="/docs/zh-TW/showcase/comparison-nonebot.html">對比：ErisPulse 與 NoneBot2</a><a class="ds-doc" href="/docs/zh-TW/showcase/comparison-agent-platforms.html">對比：ErisPulse 與 AstrBot / LangBot</a><a class="ds-doc" href="/docs/zh-TW/showcase/migrate-from-astrbot.html">遷移指南：從 AstrBot 到 ErisPulse</a></div></details><details class="ds-cat" open><summary><span class="ds-cat-name">使用者指南</span><span class="ds-cat-count">5</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/user-guide/README.html">用戶使用指南</a><a class="ds-doc" href="/docs/zh-TW/user-guide/installation.html">安裝參考</a><a class="ds-doc" href="/docs/zh-TW/user-guide/configuration.html">配置文件說明</a><a class="ds-doc" href="/docs/zh-TW/user-guide/cli-reference.html">CLI 指令參考</a><a class="ds-doc current" href="/docs/zh-TW/user-guide/deployment.html">部署指南</a><div class="ds-chapters"><a class="ds-chapter level-2" href="#docker-部署推薦">Docker 部署（推薦）</a><a class="ds-chapter level-3" href="#快速啟動">快速啟動</a><a class="ds-chapter level-3" href="#國內映像加速">國內映像加速</a><a class="ds-chapter level-3" href="#docker-composeyml">docker-compose.yml</a><a class="ds-chapter level-3" href="#環境變數">環境變數</a><a class="ds-chapter level-3" href="#資料持久化">資料持久化</a><a class="ds-chapter level-2" href="#dashboard-管理面板">Dashboard 管理面板</a><a class="ds-chapter level-3" href="#功能概覽">功能概覽</a><a class="ds-chapter level-3" href="#透過-dashboard-安裝模組">透過 Dashboard 安裝模組</a><a class="ds-chapter level-2" href="#程序監督與硬重啟">程序監督與硬重啟</a><a class="ds-chapter level-2" href="#健康檢查">健康檢查</a><a class="ds-chapter level-2" href="#反向代理">反向代理</a><a class="ds-chapter level-2" href="#手動部署pip">手動部署（pip）</a><a class="ds-chapter level-3" href="#正式環境設定">正式環境設定</a><a class="ds-chapter level-3" href="#systemd-linux">systemd (Linux)</a><a class="ds-chapter level-3" href="#supervisor">Supervisor</a><a class="ds-chapter level-3" href="#uv-tool-分離部署cli-與專案環境隔離">uv tool 分離部署（CLI 與專案環境隔離）</a><a class="ds-chapter level-2" href="#安全建議">安全建議</a><a class="ds-chapter level-2" href="#多實例部署">多實例部署</a><a class="ds-chapter level-2" href="#更新與維護">更新與維護</a><a class="ds-chapter level-3" href="#docker-方式">Docker 方式</a><a class="ds-chapter level-3" href="#pip-方式">pip 方式</a><a class="ds-chapter level-3" href="#uv-tool-方式">uv tool 方式</a><a class="ds-chapter level-3" href="#執行時熱重載伺服器設定">執行時熱重載伺服器設定</a><a class="ds-chapter level-3" href="#備份">備份</a><a class="ds-chapter level-2" href="#下一步">下一步</a></div></div></details><details class="ds-cat"><summary><span class="ds-cat-name">開發者指南</span><span class="ds-cat-count">14</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/developer-guide/README.html">開發者指南</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/publishing.html">發布與模組商店指南</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/testing.html">模組測試（ErisPulse-Testing）</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/orm.html">數據模型層（ORM）</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/configuration.html">配置與 UI 元數據</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/getting-started.html">模組開發入門</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/core-concepts.html">模組核心概念</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類別詳解</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/best-practices.html">模組開發最佳實踐</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/getting-started.html">適配器開發入門</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/core-concepts.html">適配器核心概念</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/best-practices.html">配接器開發最佳實踐</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/converter.html">事件轉換器實現指南</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">平台特性指南</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/platform-guide/README.html">ErisPulse PlatformFeatures 文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/onebot11.html">OneBot11 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/onebot12.html">OneBot12 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/telegram.html">Telegram 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/email.html">郵件平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/yunhu.html">雲湖平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/yunhu_user.html">雲湖使用者平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/qqbot.html">QQBot 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/kook.html">Kook 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/matrix.html">Matrix平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/discord.html">Discord 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/wechatmp.html">微信公眾號（WechatMp）適配器 - 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/webhook.html">平台特性說明 — Webhook 通用橋接適配器</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/ideaura.html">花楓咖啡館（RockyChat）平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/maintain-notes.html">文件維護說明</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/sandbox.html">Sandbox 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/snowluma.html">SnowLuma 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/terminal.html">終端平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/wecom.html">企業微信（WeCom）平台特性文件</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API 參考</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/api-reference/README.html">API 參考</a><a class="ds-doc" href="/docs/zh-TW/api-reference/adapter-system.html">適配器系統 API</a><a class="ds-doc" href="/docs/zh-TW/api-reference/core-modules.html">核心模組 API</a><a class="ds-doc" href="/docs/zh-TW/api-reference/event-system.html">事件系統 API</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">進階主題</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/advanced/README.html">高級主題</a><a class="ds-doc" href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a><a class="ds-doc" href="/docs/zh-TW/advanced/lazy-loading.html">慢載模組系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/router.html">路由管理器</a><a class="ds-doc" href="/docs/zh-TW/advanced/message-builder.html">MessageBuilder 詳解</a><a class="ds-doc" href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a><a class="ds-doc" href="/docs/zh-TW/advanced/http-client.html">網路用戶端</a><a class="ds-doc" href="/docs/zh-TW/advanced/sql-builder.html">SQL 查詢建構器</a><a class="ds-doc" href="/docs/zh-TW/advanced/i18n.html">國際化 (i18n) 系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/scope.html">作用域（scope）</a><a class="ds-doc" href="/docs/zh-TW/advanced/ownership.html">所屬權（owner）系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/interaction.html">互動會話系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/shadow.html">影子模組與灰度轉正</a><a class="ds-doc" href="/docs/zh-TW/advanced/module-communication.html">模塊間通信</a><a class="ds-doc" href="/docs/zh-TW/advanced/storage-backends.html">存儲後端</a><a class="ds-doc" href="/docs/zh-TW/advanced/errors.html">異常體系與捕獲指南</a><a class="ds-doc" href="/docs/zh-TW/advanced/connections.html">連接池與廣播</a><a class="ds-doc" href="/docs/zh-TW/advanced/startup.html">啟動流程與手動控制</a><a class="ds-doc" href="/docs/zh-TW/advanced/transcript.html">會話收件箱（Transcript）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">生態模組</span><span class="ds-cat-count">7</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/ecosystem/README.html">生態模組</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/app.html">ErisPulse-App</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/dashboard.html">ErisPulse-Dashboard</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/cron.html">ErisPulse-Cron</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/takumi.html">ErisPulse-Takumi</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/apimcp.html">ErisPulse-ApiMCP 使用 AI 客戶端控制機器人</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/qvqchat.html">ErisPulse-QvQChat 通用智慧代理</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">AI 輔助開發</span><span class="ds-cat-count">12</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/ai-support/README.html">AI 輔助開發</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-adapter-dev/SKILL.html">ErisPulse 适配器开发</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-adapter-standards/SKILL.html">ErisPulse 适配器技术标准</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-communication/SKILL.html">ErisPulse 通信与连接</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-config-cli/SKILL.html">ErisPulse 配置系统与 CLI 工具链</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-ecosystem/SKILL.html">ErisPulse 生态与多平台</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-errors-troubleshooting/SKILL.html">ErisPulse 异常体系与排障</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-getting-started/SKILL.html">ErisPulse 快速上手与核心概念</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-hot-reload/SKILL.html">ErisPulse 热重载与懒加载休眠</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-module-dev/SKILL.html">ErisPulse 模块开发</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-scope-ownership/SKILL.html">ErisPulse 权限作用域与归属权</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-shadow-transcript/SKILL.html">ErisPulse 影子灰度与消息追踪</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">技術標準</span><span class="ds-cat-count">8</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/standards/README.html">技術標準</a><a class="ds-doc" href="/docs/zh-TW/standards/session-types.html">ErisPulse 會話類型標準</a><a class="ds-doc" href="/docs/zh-TW/standards/api-response.html">ErisPulse 轉接器標準化回傳規範</a><a class="ds-doc" href="/docs/zh-TW/standards/event-conversion.html">適配器標準化轉換規範</a><a class="ds-doc" href="/docs/zh-TW/standards/send-method-spec.html">ErisPulse 發送方法規範</a><a class="ds-doc" href="/docs/zh-TW/standards/request-action-spec.html">ErisPulse 請求操作規範</a><a class="ds-doc" href="/docs/zh-TW/standards/api-action-spec.html">ErisPulse API 動作標準</a><a class="ds-doc" href="/docs/zh-TW/standards/standardization-guide.html">適配器標準化指南（總綱）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API</span><span class="ds-cat-count">140</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/__init__.html">`ErisPulse.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/__main__.html">`ErisPulse.__main__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/sdk.html">`ErisPulse.sdk` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/README.html">ErisPulse API 文档</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/__init__.html">`ErisPulse.Core.Bases.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/adapter.html">`ErisPulse.Core.Bases.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/adapter_patterns.html">`ErisPulse.Core.Bases.adapter_patterns` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/api_dsl.html">`ErisPulse.Core.Bases.api_dsl` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/client.html">`ErisPulse.Core.Bases.client` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/config_schema.html">`ErisPulse.Core.Bases.config_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/converter.html">`ErisPulse.Core.Bases.converter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/errors.html">`ErisPulse.Core.Bases.errors` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/i18n_schema.html">`ErisPulse.Core.Bases.i18n_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/kv_builder.html">`ErisPulse.Core.Bases.kv_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/manager.html">`ErisPulse.Core.Bases.manager` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/model.html">`ErisPulse.Core.Bases.model` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/module.html">`ErisPulse.Core.Bases.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/router.html">`ErisPulse.Core.Bases.router` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/send_builder.html">`ErisPulse.Core.Bases.send_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/send_rules.html">`ErisPulse.Core.Bases.send_rules` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">`ErisPulse.Core.Bases.sql_base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">`ErisPulse.Core.Bases.storage` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/websocket.html">`ErisPulse.Core.Bases.websocket` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/__init__.html">`ErisPulse.Core.Event.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/base.html">`ErisPulse.Core.Event.base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command.html">`ErisPulse.Core.Event.command` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command_args.html">`ErisPulse.Core.Event.command_args` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command_flow.html">`ErisPulse.Core.Event.command_flow` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/conversation.html">`ErisPulse.Core.Event.conversation` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/governance.html">`ErisPulse.Core.Event.governance` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/interaction.html">`ErisPulse.Core.Event.interaction` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/message.html">`ErisPulse.Core.Event.message` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/message_builder.html">`ErisPulse.Core.Event.message_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/meta.html">`ErisPulse.Core.Event.meta` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/notice.html">`ErisPulse.Core.Event.notice` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/overrides.html">`ErisPulse.Core.Event.overrides` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/request.html">`ErisPulse.Core.Event.request` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/session_type.html">`ErisPulse.Core.Event.session_type` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/throttle.html">`ErisPulse.Core.Event.throttle` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/trace.html">`ErisPulse.Core.Event.trace` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/wrapper.html">`ErisPulse.Core.Event.wrapper` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/__init__.html">`ErisPulse.Core.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/adapter.html">`ErisPulse.Core.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/assets/__init__.html">`ErisPulse.Core.assets.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/client.html">`ErisPulse.Core.client` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/config.html">`ErisPulse.Core.config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/connections.html">`ErisPulse.Core.connections` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/constants.html">`ErisPulse.Core.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/di.html">`ErisPulse.Core.di` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/__init__.html">`ErisPulse.Core.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/constants.html">`ErisPulse.Core.i18n.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/__init__.html">`ErisPulse.Core.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/en.html">`ErisPulse.Core.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/ja.html">`ErisPulse.Core.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/ru.html">`ErisPulse.Core.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_cn.html">`ErisPulse.Core.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_tw.html">`ErisPulse.Core.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/lifecycle.html">`ErisPulse.Core.lifecycle` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/logger.html">`ErisPulse.Core.logger` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/master.html">`ErisPulse.Core.master` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/module.html">`ErisPulse.Core.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/ownership.html">`ErisPulse.Core.ownership` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/router.html">`ErisPulse.Core.router` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/scope.html">`ErisPulse.Core.scope` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/shadow.html">`ErisPulse.Core.shadow` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/__init__.html">`ErisPulse.Core.storage.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/mysql.html">`ErisPulse.Core.storage.mysql` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/postgres.html">`ErisPulse.Core.storage.postgres` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/sqlite.html">`ErisPulse.Core.storage.sqlite` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/text_match.html">`ErisPulse.Core.text_match` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/transcript.html">`ErisPulse.Core.transcript` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/__init__.html">`ErisPulse.CLI.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/base.html">`ErisPulse.CLI.base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/cli.html">`ErisPulse.CLI.cli` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/__init__.html">`ErisPulse.CLI.commands.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/config.html">`ErisPulse.CLI.commands.config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/create.html">`ErisPulse.CLI.commands.create` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/doctor.html">`ErisPulse.CLI.commands.doctor` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/init.html">`ErisPulse.CLI.commands.init` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/install.html">`ErisPulse.CLI.commands.install` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/language.html">`ErisPulse.CLI.commands.language` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/list.html">`ErisPulse.CLI.commands.list` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/list_remote.html">`ErisPulse.CLI.commands.list_remote` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/run.html">`ErisPulse.CLI.commands.run` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/runtime.html">`ErisPulse.CLI.commands.runtime` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/self_update.html">`ErisPulse.CLI.commands.self_update` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/types.html">`ErisPulse.CLI.commands.types` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/uninstall.html">`ErisPulse.CLI.commands.uninstall` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/upgrade.html">`ErisPulse.CLI.commands.upgrade` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/version.html">`ErisPulse.CLI.commands.version` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/console.html">`ErisPulse.CLI.console` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/constants.html">`ErisPulse.CLI.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/hints.html">`ErisPulse.CLI.hints` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/__init__.html">`ErisPulse.CLI.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/__init__.html">`ErisPulse.CLI.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/en.html">`ErisPulse.CLI.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ja.html">`ErisPulse.CLI.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ru.html">`ErisPulse.CLI.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_cn.html">`ErisPulse.CLI.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_tw.html">`ErisPulse.CLI.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/registry.html">`ErisPulse.CLI.registry` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/__init__.html">`ErisPulse.CLI.utils.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/config_wizard.html">`ErisPulse.CLI.utils.config_wizard` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/display.html">`ErisPulse.CLI.utils.display` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/interactive.html">`ErisPulse.CLI.utils.interactive` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/package_manager.html">`ErisPulse.CLI.utils.package_manager` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/runtime_state.html">`ErisPulse.CLI.utils.runtime_state` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/scaffold_text.html">`ErisPulse.CLI.utils.scaffold_text` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/__init__.html">`ErisPulse.runtime.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/config_schema.html">`ErisPulse.runtime.config_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/context.html">`ErisPulse.runtime.context` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/diagnostics.html">`ErisPulse.runtime.diagnostics` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/example_config.html">`ErisPulse.runtime.example_config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/exceptions.html">`ErisPulse.runtime.exceptions` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/file_watcher.html">`ErisPulse.runtime.file_watcher` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/frame_config.html">`ErisPulse.runtime.frame_config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/hints.html">`ErisPulse.runtime.hints` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/kernel.html">`ErisPulse.runtime.kernel` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/memory.html">`ErisPulse.runtime.memory` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">`ErisPulse.runtime.owner_cleanup` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html">`ErisPulse.runtime.plugin_reload` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">`ErisPulse.runtime.proactive_gc` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/process_state.html">`ErisPulse.runtime.process_state` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/reload_ops.html">`ErisPulse.runtime.reload_ops` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/sdk_initializer.html">`ErisPulse.runtime.sdk_initializer` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/tasks.html">`ErisPulse.runtime.tasks` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/troubleshoot.html">`ErisPulse.runtime.troubleshoot` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/version.html">`ErisPulse.runtime.version` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/__init__.html">`ErisPulse.loaders.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/_reload_utils.html">`ErisPulse.loaders._reload_utils` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/adapter.html">`ErisPulse.loaders.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/bases/loader.html">`ErisPulse.loaders.bases.loader` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/module.html">`ErisPulse.loaders.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/plugin_folder.html">`ErisPulse.loaders.plugin_folder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/strategy.html">`ErisPulse.loaders.strategy` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/strict.html">`ErisPulse.loaders.strict` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/__init__.html">`ErisPulse.finders.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/adapter.html">`ErisPulse.finders.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/bases/finder.html">`ErisPulse.finders.bases.finder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/module.html">`ErisPulse.finders.module` 模块</a></div></details></nav>
+        </aside>
+
+        <main class="ds-main">
+            
+    <details class="ds-chapter-bar">
+        <summary>
+            <span class="ds-chapter-bar-icon" aria-hidden="true"></span>
+            <span class="ds-chapter-bar-label">本頁章節</span>
+            <span class="ds-chapter-bar-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="ds-chapter-bar-panel">
+            <div class="ds-chapter-rail">
+                <a class="ds-chapter level-2" href="#docker-部署推薦">Docker 部署（推薦）</a>
+                <a class="ds-chapter level-3" href="#快速啟動">快速啟動</a>
+                <a class="ds-chapter level-3" href="#國內映像加速">國內映像加速</a>
+                <a class="ds-chapter level-3" href="#docker-composeyml">docker-compose.yml</a>
+                <a class="ds-chapter level-3" href="#環境變數">環境變數</a>
+                <a class="ds-chapter level-3" href="#資料持久化">資料持久化</a>
+                <a class="ds-chapter level-2" href="#dashboard-管理面板">Dashboard 管理面板</a>
+                <a class="ds-chapter level-3" href="#功能概覽">功能概覽</a>
+                <a class="ds-chapter level-3" href="#透過-dashboard-安裝模組">透過 Dashboard 安裝模組</a>
+                <a class="ds-chapter level-2" href="#程序監督與硬重啟">程序監督與硬重啟</a>
+                <a class="ds-chapter level-2" href="#健康檢查">健康檢查</a>
+                <a class="ds-chapter level-2" href="#反向代理">反向代理</a>
+                <a class="ds-chapter level-2" href="#手動部署pip">手動部署（pip）</a>
+                <a class="ds-chapter level-3" href="#正式環境設定">正式環境設定</a>
+                <a class="ds-chapter level-3" href="#systemd-linux">systemd (Linux)</a>
+                <a class="ds-chapter level-3" href="#supervisor">Supervisor</a>
+                <a class="ds-chapter level-3" href="#uv-tool-分離部署cli-與專案環境隔離">uv tool 分離部署（CLI 與專案環境隔離）</a>
+                <a class="ds-chapter level-2" href="#安全建議">安全建議</a>
+                <a class="ds-chapter level-2" href="#多實例部署">多實例部署</a>
+                <a class="ds-chapter level-2" href="#更新與維護">更新與維護</a>
+                <a class="ds-chapter level-3" href="#docker-方式">Docker 方式</a>
+                <a class="ds-chapter level-3" href="#pip-方式">pip 方式</a>
+                <a class="ds-chapter level-3" href="#uv-tool-方式">uv tool 方式</a>
+                <a class="ds-chapter level-3" href="#執行時熱重載伺服器設定">執行時熱重載伺服器設定</a>
+                <a class="ds-chapter level-3" href="#備份">備份</a>
+                <a class="ds-chapter level-2" href="#下一步">下一步</a>
+            </div>
+        </div>
+    </details>
+            <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/docs.html">文檔中心</a>
+                <span class="doc-crumb-sep">/</span> 使用者指南
+                <span class="doc-crumb-sep">/</span> <span>部署指南</span>
+            </nav>
+            <div class="doc-interactive">
+                <span>本文為靜態鏡像，內容以互動版為準</span>
+                <a href="https://www.erisdev.com/#docs/user-guide/deployment.md">在互動式文檔中心打開 →</a>
+            </div>
+            <article class="markdown-content" id="docs-content">
+                <h1 id="部署指南">部署指南</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>什麼時候需要讀這篇</strong>：機器人要長期掛著跑時——Docker 部署、systemd / Supervisor 程序守護、反向代理與 SSL、備份與升級都在這裡。本地開發除錯階段不需要則跳過。</p>
+</div>
+<p>機器人開發完只是開始。這篇涵蓋把它穩定掛在伺服器上所需的三種部署方式（Docker / systemd / Supervisor），以及反向代理、安全強化與備份。</p>
 <h2 id="docker-部署推薦">Docker 部署（推薦）</h2>
-<p>ErisPulse 提供官方 Docker 鏡像，內建 ErisPulse 框架和 Dashboard 管理面板，支援 <code>linux/amd64</code> 和 <code>linux/arm64</code> 架構。</p>
+<p>ErisPulse 提供官方 Docker 映像，內建 ErisPulse 框架和 Dashboard 管理面板，支援 <code>linux/amd64</code> 和 <code>linux/arm64</code> 架構。</p>
 <h3 id="快速啟動">快速啟動</h3>
-<pre><code class="language-bash"><span class="token comment"># 拉取鏡像</span>
+<pre><code class="language-bash"><span class="token comment"># 拉取映像</span>
 <span class="token function">docker</span> pull erispulse/erispulse:latest
 
 <span class="token comment"># 下載 docker-compose.yml</span>
 <span class="token function">curl</span> <span class="token parameter variable">-O</span> https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/docker-compose.yml
 
-<span class="token comment"># 設定 Dashboard 登入令牌並啟動</span>
+<span class="token comment"># 設定 Dashboard 登入權杖並啟動</span>
 <span class="token assign-left variable">ERISPULSE_DASHBOARD_TOKEN</span><span class="token operator">=</span>your-token <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
-<p>啟動後訪問 <code>http://localhost:8000/Dashboard</code>，使用設定的令牌作為密碼登入。</p>
-<h3 id="國內鏡像加速">國內鏡像加速</h3>
-<p>如果 Docker Hub 無法存取，可以使用 GitHub Container Registry 拉取鏡像：</p>
+<p>啟動後存取 <code>http://localhost:8000/Dashboard</code>，使用設定的權杖作為密碼登入。</p>
+<h3 id="國內映像加速">國內映像加速</h3>
+<p>如果 Docker Hub 無法存取，可以使用 GitHub Container Registry 拉取映像：</p>
 <pre><code class="language-bash"><span class="token function">docker</span> pull ghcr.io/erispulse/erispulse:latest
 </code></pre>
-<p>使用 ghcr.io 鏡像時，需要修改 <code>docker-compose.yml</code> 中的 image：</p>
+<p>使用 ghcr.io 映像時，需要修改 <code>docker-compose.yml</code> 中的 image：</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">image</span><span class="token punctuation">:</span> ghcr.io/erispulse/erispulse<span class="token punctuation">:</span>latest
@@ -99,8 +129,8 @@
 <h3 id="docker-composeyml">docker-compose.yml</h3>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> erispulse/erispulse<span class="token punctuation">:</span>latest
-    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> erispulse
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> erispulse/erispulse<span class="token punctuation">:</span>$<span class="token punctuation">{</span>ERISPULSE_TAG<span class="token punctuation">:</span><span class="token punctuation">-</span>latest<span class="token punctuation">}</span>
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> $<span class="token punctuation">{</span>CONTAINER_NAME<span class="token punctuation">:</span><span class="token punctuation">-</span>erispulse<span class="token punctuation">}</span>
     <span class="token key atrule">ports</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> <span class="token string">"${ERISPULSE_PORT:-8000}:8000"</span>
     <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
@@ -109,13 +139,22 @@
       <span class="token punctuation">-</span> ./config/.packages<span class="token punctuation">:</span>/usr/local/lib/python3.13/site<span class="token punctuation">-</span>packages
     <span class="token key atrule">environment</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> TZ=$<span class="token punctuation">{</span>TZ<span class="token punctuation">:</span><span class="token punctuation">-</span>Asia/Shanghai<span class="token punctuation">}</span>
+      <span class="token punctuation">-</span> LANG=$<span class="token punctuation">{</span>LANG<span class="token punctuation">:</span><span class="token punctuation">-</span>en_US.UTF<span class="token punctuation">-</span><span class="token number">8</span><span class="token punctuation">}</span>
+      <span class="token punctuation">-</span> ERISPULSE_LANG=$<span class="token punctuation">{</span>ERISPULSE_LANG<span class="token punctuation">:</span><span class="token punctuation">-</span><span class="token punctuation">}</span>
       <span class="token punctuation">-</span> ERISPULSE_DASHBOARD_TOKEN=$<span class="token punctuation">{</span>ERISPULSE_DASHBOARD_TOKEN<span class="token punctuation">:</span><span class="token punctuation">-</span><span class="token punctuation">}</span>
     <span class="token key atrule">init</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token comment"># 優雅停機由框架內訊號處理完成（SIGTERM），此處僅控制寬限時長</span>
     <span class="token key atrule">stop_grace_period</span><span class="token punctuation">:</span> 30s
-    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> on<span class="token punctuation">-</span>failure<span class="token punctuation">:</span><span class="token number">5</span>
+    <span class="token key atrule">healthcheck</span><span class="token punctuation">:</span>
+      <span class="token key atrule">test</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"CMD"</span><span class="token punctuation">,</span> <span class="token string">"python"</span><span class="token punctuation">,</span> <span class="token string">"-c"</span><span class="token punctuation">,</span> <span class="token string">"import urllib.request; urllib.request.urlopen('http://localhost:8000/ping')"</span><span class="token punctuation">]</span>
+      <span class="token key atrule">interval</span><span class="token punctuation">:</span> 30s
+      <span class="token key atrule">timeout</span><span class="token punctuation">:</span> 5s
+      <span class="token key atrule">start_period</span><span class="token punctuation">:</span> 20s
+      <span class="token key atrule">retries</span><span class="token punctuation">:</span> <span class="token number">3</span>
 </code></pre>
 <blockquote>
-<p>推薦直接使用倉庫根目錄的 <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a>，它已包含上述設定及健康檢查、時區與語言環境變數。</p>
+<p>以上與儲存庫根目錄的 <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> 保持一致（儲存庫版本開頭另有映像加速與環境變數說明註解），推薦直接下載使用。</p>
 </blockquote>
 <h3 id="環境變數">環境變數</h3>
 <div class="table-wrapper"><table>
@@ -129,12 +168,22 @@
 <tbody><tr>
 <td><code>ERISPULSE_PORT</code></td>
 <td><code>8000</code></td>
-<td>Dashboard 端口映射</td>
+<td>Dashboard 連接埠映射</td>
+</tr>
+<tr>
+<td><code>ERISPULSE_TAG</code></td>
+<td><code>latest</code></td>
+<td>映像 tag（如需鎖定版本可設為具體版本號）</td>
+</tr>
+<tr>
+<td><code>CONTAINER_NAME</code></td>
+<td><code>erispulse</code></td>
+<td>容器名稱（多實例部署時區分實例）</td>
 </tr>
 <tr>
 <td><code>ERISPULSE_DASHBOARD_TOKEN</code></td>
 <td>自動產生</td>
-<td>Dashboard 登入令牌（強烈建議設定）</td>
+<td>Dashboard 登入權杖（強烈建議設定）</td>
 </tr>
 <tr>
 <td><code>TZ</code></td>
@@ -149,7 +198,7 @@
 <tr>
 <td><code>ERISPULSE_LANG</code></td>
 <td>空</td>
-<td>強制啟動介面語言：<code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code>（覆蓋 <code>LANG</code>）</td>
+<td>強制啟動介面語言：<code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code>（覆寫 <code>LANG</code>）</td>
 </tr>
 </tbody></table></div>
 <h3 id="資料持久化">資料持久化</h3>
@@ -157,13 +206,16 @@
 <ul>
 <li><code>config/config.toml</code> — 設定檔</li>
 <li><code>config/config.db</code> — SQLite 儲存資料庫</li>
-<li><code>config/.packages</code> — Python site-packages 持久化卷，保存框架、適配器和已安裝模組（首次啟動時由入口點從鏡像內建備份自動初始化，之後的模組安裝與框架熱更新均寫入此目錄）</li>
+<li><code>config/.packages</code> — Python site-packages 持久化卷，儲存框架、配接器和已安裝模組（首次啟動時由入口點從映像內建備份自動初始化，之後的模組安裝與框架熱更新均寫入此目錄）</li>
 </ul>
 <blockquote>
-<p><strong>框架升級（含 pre/rc）與鏡像自愈</strong>：入口點會在每次容器啟動時做核心套件完整性自檢，<br>損壞時按「使用者已安裝版本優先」原則修復——持久卷內顯式安裝/升級的版本<br>（如 Dashboard 安裝的 pre 版本）會從 PyPI <strong>重裝同版本</strong>，絕不靜默回退到<br>鏡像內建版本。因此 Dashboard 升級框架後，任意次容器重啟都應保持目標版本。</p>
+<p><strong>框架升級（含 pre/rc）與映像自癒</strong>：入口點會在每次容器啟動時做核心套件完整性自我檢查，
+損壞時按「使用者已安裝版本優先」原則修復——持久卷內顯式安裝/升級的版本
+（如 Dashboard 安裝的 pre 版本）會從 PyPI <strong>重裝同版本</strong>，絕不靜默回退到
+映像內建版本。因此 Dashboard 升級框架後，任意次容器重啟都應保持目標版本。</p>
 </blockquote>
 <h2 id="dashboard-管理面板">Dashboard 管理面板</h2>
-<p>ErisPulse Docker 鏡像內建 Dashboard 模組，提供 Web 可視化管理介面。</p>
+<p>ErisPulse Docker 映像內建 Dashboard 模組，提供 Web 視覺化管理介面。</p>
 <h3 id="功能概覽">功能概覽</h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -173,70 +225,70 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>儀表盤</td>
-<td>系統概覽、CPU/記憶體監控、運行時長、事件統計</td>
+<td>儀表板</td>
+<td>系統概覽、CPU/記憶體監控、執行時長、事件統計</td>
 </tr>
 <tr>
-<td>机器人管理</td>
-<td>查看各平台机器人在線狀態和資訊</td>
+<td>機器人管理</td>
+<td>查看各平台機器人線上狀態和資訊</td>
 </tr>
 <tr>
 <td>事件查看</td>
-<td>實時事件流，支援按類型和平台篩選</td>
+<td>即時事件流，支援按類型和平台篩選</td>
 </tr>
 <tr>
 <td>日誌查看</td>
-<td>按模組和層級篩選的日誌查看器</td>
+<td>按模組和層級篩選的日誌檢視器</td>
 </tr>
 <tr>
 <td>模組管理</td>
-<td>查看、載入、卸載已安裝的模組和適配器</td>
+<td>查看、載入、卸載已安裝的模組和配接器</td>
 </tr>
 <tr>
 <td>模組商店</td>
 <td>瀏覽遠端可用套件並一鍵安裝</td>
 </tr>
 <tr>
-<td>配置編輯</td>
-<td>在線編輯 <code>config.toml</code></td>
+<td>設定編輯</td>
+<td>線上編輯 <code>config.toml</code></td>
 </tr>
 <tr>
-<td>存儲管理</td>
-<td>瀏覽和編輯 Key-Value 存儲資料</td>
+<td>儲存管理</td>
+<td>瀏覽和編輯 Key-Value 儲存資料</td>
 </tr>
 <tr>
 <td>備份</td>
-<td>導出/匯入配置和存儲資料</td>
+<td>匯出/匯入設定和儲存資料</td>
 </tr>
 <tr>
-<td>審計日誌</td>
+<td>稽核日誌</td>
 <td>記錄所有管理操作</td>
 </tr>
 </tbody></table></div>
 <h3 id="透過-dashboard-安裝模組">透過 Dashboard 安裝模組</h3>
 <p>Dashboard 整合了模組商店功能，你可以：</p>
 <ol>
-<li><strong>從商店安裝</strong>：瀏覽遠端模組列表，選擇需要的模組一鍵安裝</li>
-<li><strong>上傳本機包</strong>：直接上傳 <code>.whl</code> 或 <code>.zip</code> 檔案進行安裝，方便測試個人開發的模組</li>
+<li><strong>從商店安裝</strong>：瀏覽遠端模組清單，選擇需要的模組一鍵安裝</li>
+<li><strong>上傳本地套件</strong>：直接上傳 <code>.whl</code> 或 <code>.zip</code> 檔案進行安裝，方便測試個人開發的模組</li>
 </ol>
 <blockquote>
-<p><strong>模組開發者的快速測試流程</strong>：使用 Docker 部署後，在 Dashboard 中透過「上傳本機包」功能直接上傳你建構的 <code>.whl</code> 檔案進行測試，無需手動操作容器。</p>
+<p><strong>模組開發者的快速測試流程</strong>：使用 Docker 部署後，在 Dashboard 中透過「上傳本地套件」功能直接上傳你建置的 <code>.whl</code> 檔案進行測試，無需手動操作容器。</p>
 </blockquote>
-<h2 id="進程監督與硬重啟">進程監督與硬重啟</h2>
-<p>ErisPulse 的硬重啟（<code>sdk.hard_restart()</code>）依賴<strong>外部監督者</strong>在進程退出碼為 42 時重新拉起進程——SDK 自己不會拉起新進程。生產環境務必配置監督者，否則硬重啟後進程不會自動恢復：</p>
+<h2 id="程序監督與硬重啟">程序監督與硬重啟</h2>
+<p>ErisPulse 的硬重啟（<code>sdk.hard_restart()</code>）依賴<strong>外部監督者</strong>在程序結束碼為 42 時重新拉起程序——SDK 自己不會拉起新程序。正式環境務必設定監督者，否則硬重啟後程序不會自動恢復：</p>
 <ul>
-<li>Docker：<code>restart: unless-stopped</code>（任何退出碼都會重啟，包含 42）</li>
+<li>Docker：官方 compose 使用 <code>restart: on-failure:5</code>——非零結束碼即重啟（覆寫硬重啟的結束碼 42），連續 5 次上限防死循環；需要不限次數可自行改為 <code>unless-stopped</code></li>
 <li>systemd：<code>Restart=on-failure</code> + <code>RestartForceExitStatus=42</code></li>
-<li>PM2 / supervisord：將 42 加入可重啟退出碼</li>
-<li>純 Python 自定義監督者：循環 <code>Popen</code> + 檢測 <code>returncode == 42</code></li>
+<li>PM2 / supervisord：將 42 加入可重啟結束碼</li>
+<li>純 Python 自訂監督者：以迴圈 <code>Popen</code> + 偵測 <code>returncode == 42</code></li>
 </ul>
-<p>各監督者的完整配置示例與退出碼 42 契約說明見 <a href="/docs/zh-TW/advanced/startup.html#%E7%9B%A3%E7%9D%A3%E8%80%85%E6%8C%87%E5%8D%97">啟動流程 → 監督者指南</a>。</p>
+<p>各監督者的完整設定範例與結束碼 42 契約說明見 <a href="/docs/zh-TW/advanced/startup.html#%E7%9B%A3%E7%9D%A3%E8%80%85%E6%8C%87%E5%8D%97">啟動流程 → 監督者指南</a>。</p>
 <h2 id="健康檢查">健康檢查</h2>
 <p>SDK 內建健康檢查端點：</p>
 <pre><code class="language-bash"><span class="token comment"># 健康檢查</span>
 <span class="token function">curl</span> http://localhost:8000/health
 </code></pre>
-<p>Docker 健康檢查可在 <code>docker-compose.yml</code> 中添加：</p>
+<p>官方 docker-compose.yml 已內建以下健康檢查；自行撰寫 compose 檔案時可參考：</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">healthcheck</span><span class="token punctuation">:</span>
@@ -259,7 +311,7 @@
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # WebSocket 支援（Dashboard 實時事件流需要）
+    # WebSocket 支援（Dashboard 即時事件流需要）
     location /Dashboard/ws {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -273,7 +325,7 @@
 </code></pre>
 <h2 id="手動部署pip">手動部署（pip）</h2>
 <p>如果不使用 Docker，也可以手動部署。</p>
-<h3 id="生產環境配置">生產環境配置</h3>
+<h3 id="正式環境設定">正式環境設定</h3>
 <pre><code class="language-toml"><span class="token comment"># config/config.toml</span>
 
 <span class="token punctuation">[</span><span class="token table class-name">ErisPulse.server</span><span class="token punctuation">]</span>
@@ -324,48 +376,48 @@
 <span class="token key attr-name">stderr_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/err.log</span>
 <span class="token key attr-name">stdout_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/out.log</span>
 </code></pre>
-<h3 id="uv-tool-分離部署cli-與項目環境隔離">uv tool 分離部署（CLI 與項目環境隔離）</h3>
-<p><code>uv tool install</code> 將 <code>epsdk</code> 安裝為<strong>獨立的工具環境</strong>，CLI 自身與項目依賴徹底隔離：升級 CLI 不會觸碰項目 <code>.venv</code>，項目依賴變動也不會影響 CLI。</p>
-<pre><code class="language-bash"><span class="token comment"># 1. 全域安裝 CLI（自動暴露 epsdk / ep 命令）</span>
+<h3 id="uv-tool-分離部署cli-與專案環境隔離">uv tool 分離部署（CLI 與專案環境隔離）</h3>
+<p><code>uv tool install</code> 會將 <code>epsdk</code> 安裝為<strong>獨立的工具環境</strong>，CLI 自身與專案依賴徹底隔離：升級 CLI 不會動到專案 <code>.venv</code>，專案依賴變動也不會影響 CLI。</p>
+<pre><code class="language-bash"><span class="token comment"># 1. 全域安裝 CLI（自動提供 epsdk / ep 指令）</span>
 uv tool <span class="token function">install</span> ErisPulse
 
-<span class="token comment"># 2. 項目內只放機器人依賴（.venv 由 uv 管理）</span>
+<span class="token comment"># 2. 專案內只放機器人依賴（.venv 由 uv 管理）</span>
 <span class="token builtin class-name">cd</span> /opt/erispulse-bot
-uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># 按需追加適配器</span>
+uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># 依需求追加配接器</span>
 
-<span class="token comment"># 3. 用 CLI 運行（自動探測並使用項目 .venv 中的解釋器）</span>
+<span class="token comment"># 3. 用 CLI 執行（自動偵測並使用專案 .venv 中的直譯器）</span>
 epsdk run main.py
 </code></pre>
 <p>行為要點：</p>
 <ul>
-<li><code>epsdk run</code> 的目標解釋器解析順序：<code>ERISPULSE_PYTHON</code> 環境變數 → 項目 <code>.venv</code> → 當前解釋器；工具環境本身只承載 CLI，組件（適配器/模組）應裝進項目 <code>.venv</code></li>
-<li><code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> 同樣作用於項目 <code>.venv</code>，不會污染工具環境</li>
-<li>升級 CLI：<code>uv tool upgrade ErisPulse</code>（或直接 <code>epsdk self-update</code>，uv tool 環境下自動改走 <code>uv tool upgrade</code>）；升級項目依賴：在項目目錄執行 <code>uv sync</code> / <code>uv add</code>，兩者互不影響</li>
-<li>伺服器場景下工具環境由 uv 統一管理（<code>uv tool list</code> 查看、<code>uv tool upgrade --all</code> 批量升級），無需手動維護全域 pip 包</li>
-<li>若在無項目的目錄用 <code>uv run epsdk ...</code> 執行，會落入<strong>一次性隔離環境</strong>（安裝的組件不持久化）；伺服器上請始終用 <code>epsdk</code> 直接呼叫，或先 <code>cd</code> 進項目目錄</li>
+<li><code>epsdk run</code> 的目標直譯器解析順序：<code>ERISPULSE_PYTHON</code> 環境變數 → 專案 <code>.venv</code> → 當前直譯器；工具環境本身只承載 CLI，元件（配接器/模組）應裝進專案 <code>.venv</code></li>
+<li><code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> 同樣作用於專案 <code>.venv</code>，不會污染工具環境</li>
+<li>升級 CLI：<code>uv tool upgrade ErisPulse</code>（或直接 <code>epsdk self-update</code>，uv tool 環境下會自動改走 <code>uv tool upgrade</code>）；升級專案依賴：在專案目錄執行 <code>uv sync</code> / <code>uv add</code>，兩者互不影響</li>
+<li>伺服器情境下工具環境由 uv 統一管理（<code>uv tool list</code> 查看、<code>uv tool upgrade --all</code> 批次升級），無需手動維護全域 pip 套件</li>
+<li>若在無專案的目錄用 <code>uv run epsdk ...</code> 執行，會落入<strong>一次性隔離環境</strong>（安裝的元件不會持久化）；伺服器上請一律直接呼叫 <code>epsdk</code>，或先 <code>cd</code> 進專案目錄</li>
 </ul>
 <h2 id="安全建議">安全建議</h2>
 <ol>
-<li><strong>設定 Dashboard 令牌</strong>：使用強大的隨機令牌，不要使用預設值</li>
-<li><strong>不要將端口暴露到公網</strong>：除非使用反向代理 + SSL，否則將 Dashboard 端口限制在內網</li>
+<li><strong>設定 Dashboard 權杖</strong>：使用強隨機權杖，不要使用預設值</li>
+<li><strong>不要將連接埠公開到公網</strong>：除非使用反向代理 + SSL，否則將 Dashboard 連接埠限制在內網</li>
 <li><strong>保護資料目錄</strong>：<code>config/</code> 目錄包含設定和資料庫，設定適當的檔案權限</li>
-<li><strong>定期更新</strong>：使用 <code>epsdk self-update</code> 或拉取最新 Docker 鏡像</li>
-<li><strong>不要以 root 運行</strong>：手動部署時建立專用使用者</li>
-<li><strong>使用 Docker 重啟策略</strong>：<code>restart: unless-stopped</code> 確保異常退出後自動重啟</li>
+<li><strong>定期更新</strong>：使用 <code>epsdk self-update</code> 或拉取最新 Docker 映像</li>
+<li><strong>不要以 root 執行</strong>：手動部署時建立專用使用者</li>
+<li><strong>使用 Docker 重啟策略</strong>：官方 compose 的 <code>restart: on-failure:5</code> 已確保異常結束（含硬重啟結束碼 42）後自動重啟</li>
 </ol>
 <h2 id="多實例部署">多實例部署</h2>
 <p>執行多個機器人實例時：</p>
 <ol>
 <li>每個實例使用獨立的專案目錄和 <code>docker-compose.yml</code></li>
-<li>使用不同的端口號：<code>ERISPULSE_PORT=8001</code></li>
-<li>使用不同的容器名：<code>container_name: erispulse-bot2</code></li>
+<li>使用不同的連接埠號：<code>ERISPULSE_PORT=8001</code></li>
+<li>使用不同的容器名稱：<code>container_name: erispulse-bot2</code></li>
 </ol>
 <h2 id="更新與維護">更新與維護</h2>
 <h3 id="docker-方式">Docker 方式</h3>
-<pre><code class="language-bash"><span class="token comment"># 拉取最新鏡像</span>
+<pre><code class="language-bash"><span class="token comment"># 拉取最新映像</span>
 <span class="token function">docker</span> compose pull
 
-<span class="token comment"># 重啟使用新鏡像</span>
+<span class="token comment"># 重啟以使用新映像</span>
 <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
 <h3 id="pip-方式">pip 方式</h3>
@@ -376,20 +428,20 @@ epsdk upgrade
 <pre><code class="language-bash"><span class="token comment"># 升級 CLI 工具環境</span>
 uv tool upgrade ErisPulse
 
-<span class="token comment"># 升級專案相依性（於專案目錄內執行）</span>
+<span class="token comment"># 升級專案依賴（在專案目錄內執行）</span>
 uv <span class="token function">sync</span>
 </code></pre>
-<h3 id="運行時熱重載伺服器設定">運行時熱重載伺服器設定</h3>
-<p>修改監聽位址 / 端口 / SSL 證書後無需重新啟動程序，在任意協程中呼叫 <code>router.reload()</code>：</p>
-<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># 更改端口</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 熱更換證書（證書續期場景）</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 缺省參數沿用當前設定</span>
+<h3 id="執行時熱重載伺服器設定">執行時熱重載伺服器設定</h3>
+<p>修改監聽位址 / 連接埠 / SSL 憑證後無需重啟程序，在任意協程中呼叫 <code>router.reload()</code>：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># 換連接埠</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># 熱更換憑證（憑證續期情境）</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># 未指定的參數沿用當前設定</span>
 </code></pre>
 <ul>
-<li>重用同一 FastAPI 應用，模組註冊的 HTTP / WebSocket / SSE 路由全部保留</li>
-<li>先驗證新設定（證書可建立、端口可用）再切換；失敗時以舊設定恢復服務並回傳 <code>False</code>，
+<li>重用同一 FastAPI 應用程式，模組註冊的 HTTP / WebSocket / SSE 路由全部保留</li>
+<li>先驗證新設定（憑證可建置、連接埠可用）再切換；失敗時以舊設定恢復服務並回傳 <code>False</code>，
 保證回傳 <code>False</code> = 舊服務保持可用</li>
-<li>伺服器未運行時回傳 <code>False</code>（首次啟動請使用 <code>sdk.router.start()</code>）</li>
+<li>伺服器未執行時回傳 <code>False</code>（首次啟動請使用 <code>sdk.router.start()</code>）</li>
 </ul>
 <h3 id="備份">備份</h3>
 <p>定期備份 <code>config/</code> 目錄：</p>
@@ -398,15 +450,23 @@ uv <span class="token function">sync</span>
 
 <span class="token comment"># 或在 Dashboard 中使用「備份」功能匯出</span>
 </code></pre>
+<h2 id="下一步">下一步</h2>
+<ul>
+<li><strong>部署完想視覺化管理</strong>：裝 <a href="/docs/zh-TW/ecosystem/dashboard.html">ErisPulse-Dashboard</a>，在瀏覽器裡管模組、看日誌、改設定</li>
+<li><strong>懷疑環境有問題</strong>：先跑 <code>epsdk doctor</code> 輸出健康報告，見 <a href="/docs/zh-TW/user-guide/cli-reference.html#doctor">CLI 指令參考 · doctor</a></li>
+<li><strong>要調整框架與元件設定</strong>：查 <a href="/docs/zh-TW/user-guide/configuration.html">設定檔說明</a>，環境變數覆寫尤其適合容器部署</li>
+</ul>
 
-        </article>
-        
+            </article>
+            
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/zh-TW/user-guide/cli-reference.html"><small>Previous</small><br>CLI 命令參考</a>
-        <a class="doc-pager-next" href="/docs/zh-TW/developer-guide/README.html"><small>Next</small><br>開發者指南</a>
+        <a class="doc-pager-prev" href="/docs/zh-TW/user-guide/cli-reference.html"><small>上一篇</small><br>CLI 指令參考</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/developer-guide/README.html"><small>下一篇</small><br>開發者指南</a>
     </nav>
-    </main>
-    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        </main>
+    </div>
+
+    <footer class="ds-footer">
         © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
     </footer>
 </body>

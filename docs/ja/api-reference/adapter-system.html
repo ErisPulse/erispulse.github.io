@@ -3,148 +3,175 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>アダプターシステム API - ErisPulse 文档中心</title>
-    <meta name="description" content="本文書では、ErisPulse アダプターシステムの API について詳しく説明します。" />
+    <title>アダプターシステム API - ErisPulse ドキュメント</title>
+    <meta name="description" content="このドキュメントを読むべきケース：アダプターの管理（インスタンスの取得、起動・停止、Bot のオンライン状態の確認）、Send DSL によるメッセージ送信、ミドルウェアの登録、またはアダプターへの Bot ステータス報告（meta イベント）の実装が必要な場合に本文をご参照ください。該当しない場合はスキップして..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ja/api-reference/adapter-system.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/adapter-system.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/adapter-system.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/adapter-system.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/adapter-system.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/adapter-system.html" />
-    <meta property="og:title" content="アダプターシステム API - ErisPulse 文档中心" />
-    <meta property="og:description" content="本文書では、ErisPulse アダプターシステムの API について詳しく説明します。" />
+    <meta property="og:title" content="アダプターシステム API - ErisPulse ドキュメント" />
+    <meta property="og:description" content="このドキュメントを読むべきケース：アダプターの管理（インスタンスの取得、起動・停止、Bot のオンライン状態の確認）、Send DSL によるメッセージ送信、ミドルウェアの登録、またはアダプターへの Bot ステータス報告（meta イベント）の実装が必要な場合に本文をご参照ください。該当しない場合はスキップして..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ja/api-reference/adapter-system.html" />
     <meta property="og:type" content="article" />
-    <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"アダプターシステム API","description":"本文書では、ErisPulse アダプターシステムの API について詳しく説明します。","url":"https://www.erisdev.com/docs/ja/api-reference/adapter-system.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <meta property="og:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/assets/img/logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"アダプターシステム API","description":"このドキュメントを読むべきケース：アダプターの管理（インスタンスの取得、起動・停止、Bot のオンライン状態の確認）、Send DSL によるメッセージ送信、ミドルウェアの登録、またはアダプターへの Bot ステータス報告（meta イベント）の実装が必要な場合に本文をご参照ください。該当しない場合はスキップして...","url":"https://www.erisdev.com/docs/ja/api-reference/adapter-system.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse ドキュメント","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ドキュメント","item":"https://www.erisdev.com/docs.html"},{"@type":"ListItem","position":2,"name":"API リファレンス","item":"https://www.erisdev.com/docs/ja/api-reference/adapter-system.html"},{"@type":"ListItem","position":3,"name":"アダプターシステム API"}]}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/doc-static.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <style>
-        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
-        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
-        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
-        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
-        .doc-nav-links a:hover{color:var(--primary)}
-        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
-        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
-        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
-        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
-        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
-        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
-        .doc-lang-link.current{color:var(--primary);font-weight:600}
-        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
-        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
-        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
-        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
-        .doc-pager a small{color:var(--text-secondary)}
-        .doc-pager-next{text-align:right}
-        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
-    </style>
 </head>
-<body>
-    
-    <nav class="doc-static-nav">
-        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
-        <div class="doc-nav-links">
-            <a href="/">首页</a>
-            <a href="/docs.html">文档中心</a>
-            <a href="/market.html">模块市场</a>
-            <a href="/community.html">社区</a>
-            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-    </nav>
-    <main class="doc-page">
-        
-    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/docs.html">Docs</a>
-        <span class="doc-crumb-sep">/</span> API リファレンス
-        <span class="doc-crumb-sep">/</span> <span>アダプターシステム API</span>
-    </nav>
-        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/adapter-system.html">简体中文</a>
+<body class="doc-static-page">
+    <header class="ds-top">
+        <a class="ds-brand" href="/">
+            <img class="ds-brand-icon" src="/assets/img/logo.png" alt="ErisPulse" />
+            <span>ErisPulse</span>
+        </a>
+        <div class="ds-top-right">
+            <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/adapter-system.html">简体中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/en/api-reference/adapter-system.html">English</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/api-reference/adapter-system.html">繁體中文</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/api-reference/adapter-system.html">日本語</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/adapter-system.html">Русский</a></div>
-        <div class="doc-interactive">
-            <span>本文为静态镜像，内容以交互版为准</span>
-            <a href="https://www.erisdev.com/#docs/api-reference/adapter-system.md">在交互式文档中心打开 →</a>
+            <a class="ds-interactive" href="https://www.erisdev.com/#docs/api-reference/adapter-system.md">インタラクティブ版で開く →</a>
         </div>
-        <article class="markdown-content" id="docs-content">
-            <h1 id="アダプターシステム-api">アダプターシステム API</h1>
-<p>本文書では、ErisPulse アダプターシステムの API について詳しく説明します。</p>
-<h2 id="アダプターマネージャー">アダプターマネージャー</h2>
+    </header>
+
+    <div class="ds-layout">
+        <aside class="ds-sidebar">
+            <div class="ds-sidebar-title">ドキュメント</div>
+            <nav class="ds-side-nav"><details class="ds-cat"><summary><span class="ds-cat-name">クイックスタート</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/README.html">ErisPulse ドキュメント</a><a class="ds-doc" href="/docs/ja/quick-start.html">速習</a><a class="ds-doc" href="/docs/ja/architecture.html">アーキテクチャ概要</a><a class="ds-doc" href="/docs/ja/bug-tracker.html">バグトラッカー</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">入門ガイド</span><span class="ds-cat-count">6</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/getting-started/first-bot.html">最初のロボットを作成する</a><a class="ds-doc" href="/docs/ja/getting-started/README.html">入門ガイド</a><a class="ds-doc" href="/docs/ja/getting-started/basic-concepts.html">基本概念</a><a class="ds-doc" href="/docs/ja/getting-started/common-tasks.html">一般的タスクの例</a><a class="ds-doc" href="/docs/ja/getting-started/event-handling.html">イベント処理入門</a><a class="ds-doc" href="/docs/ja/getting-started/ide-completion.html">型スタブ生成（IDE 補完）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">選定ガイド</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/showcase/README.html">選定ガイド</a><a class="ds-doc" href="/docs/ja/showcase/comparison-nonebot.html">比較：ErisPulse と NoneBot2</a><a class="ds-doc" href="/docs/ja/showcase/comparison-agent-platforms.html">ErisPulse と AstrBot / LangBot の比較</a><a class="ds-doc" href="/docs/ja/showcase/migrate-from-astrbot.html">AstrBot から ErisPulse への移行ガイド</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">ユーザーガイド</span><span class="ds-cat-count">5</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/user-guide/README.html">ユーザー使用ガイド</a><a class="ds-doc" href="/docs/ja/user-guide/installation.html">インストールリファレンス</a><a class="ds-doc" href="/docs/ja/user-guide/configuration.html">設定ファイルの説明</a><a class="ds-doc" href="/docs/ja/user-guide/cli-reference.html">CLI コマンドリファレンス</a><a class="ds-doc" href="/docs/ja/user-guide/deployment.html">部署ガイド</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">開発者ガイド</span><span class="ds-cat-count">14</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/developer-guide/README.html">開発者ガイド</a><a class="ds-doc" href="/docs/ja/developer-guide/publishing.html">リリースとモジュールストアガイド</a><a class="ds-doc" href="/docs/ja/developer-guide/testing.html">モジュールテスト（ErisPulse-Testing）</a><a class="ds-doc" href="/docs/ja/developer-guide/orm.html">データモデル層（ORM）</a><a class="ds-doc" href="/docs/ja/developer-guide/configuration.html">設定と UI メタデータ</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/getting-started.html">モジュール開発入門</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/core-concepts.html">モジュールのコア概念</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/event-wrapper.html">Event 包装类详解</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/best-practices.html">モジュール開発ベストプラクティス</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/getting-started.html">アダプタ開発入門</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/core-concepts.html">アダプタのコアコンセプト</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/send-dsl.html">SendDSL の詳細解説</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/best-practices.html">アダプタ開発のベストプラクティス</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/converter.html">イベントコンバーター実装ガイド</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">プラットフォームガイド</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/platform-guide/README.html">ErisPulse PlatformFeatures ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/onebot11.html">OneBot11プラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/onebot12.html">OneBot12プラットフォーム仕様ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/telegram.html">Telegramプラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/email.html">メールプラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/yunhu.html">雲湖プラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/yunhu_user.html">雲湖ユーザープラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/qqbot.html">QQBotプラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/kook.html">Kookプラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/matrix.html">Matrixプラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/discord.html">Discordプラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/wechatmp.html">微信公众号（WechatMp）アダプター - プラットフォーム特性ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/webhook.html">プラットフォームの機能説明 — Webhook 一般的なブリッジアダプター</a><a class="ds-doc" href="/docs/ja/platform-guide/ideaura.html">花楓カフェ（RockyChat）プラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/maintain-notes.html">ドキュメントの保守に関する説明</a><a class="ds-doc" href="/docs/ja/platform-guide/sandbox.html">Sandboxプラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/snowluma.html">SnowLumaプラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/terminal.html">Terminal プラットフォーム機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/wecom.html">企業微信（WeCom）プラットフォームの特徴ドキュメント</a></div></details><details class="ds-cat" open><summary><span class="ds-cat-name">API リファレンス</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/api-reference/README.html">API リファレンス</a><a class="ds-doc current" href="/docs/ja/api-reference/adapter-system.html">アダプターシステム API</a><div class="ds-chapters"><a class="ds-chapter level-2" href="#adapter-マネージャー">Adapter マネージャー</a><a class="ds-chapter level-3" href="#アダプターの取得">アダプターの取得</a><a class="ds-chapter level-3" href="#アダプターイベントリスナーの使用">アダプターイベントリスナーの使用</a><a class="ds-chapter level-3" href="#アダプターの管理">アダプターの管理</a><a class="ds-chapter level-2" href="#ミドルウェア">ミドルウェア</a><a class="ds-chapter level-3" href="#ミドルウェアの登録">ミドルウェアの登録</a><a class="ds-chapter level-3" href="#ミドルウェアの実行モデル">ミドルウェアの実行モデル</a><a class="ds-chapter level-2" href="#send-メッセージ送信">Send メッセージ送信</a><a class="ds-chapter level-3" href="#基本的な送信">基本的な送信</a><a class="ds-chapter level-3" href="#送信アカウントの指定">送信アカウントの指定</a><a class="ds-chapter level-3" href="#サポートされる送信メソッドの照会">サポートされる送信メソッドの照会</a><a class="ds-chapter level-3" href="#チェーン装飾">チェーン装飾</a><a class="ds-chapter level-2" href="#api-呼び出し">API 呼び出し</a><a class="ds-chapter level-3" href="#call_api-メソッド">call_api メソッド</a><a class="ds-chapter level-2" href="#アダプター基底クラス">アダプター基底クラス</a><a class="ds-chapter level-3" href="#baseadapter-のメソッド">BaseAdapter のメソッド</a><a class="ds-chapter level-3" href="#send-ネストクラス">Send ネストクラス</a><a class="ds-chapter level-2" href="#bot-ステータス管理">Bot ステータス管理</a><a class="ds-chapter level-3" href="#meta-イベントの報告">meta イベントの報告</a><a class="ds-chapter level-3" href="#bot-ステータスの照会">Bot ステータスの照会</a><a class="ds-chapter level-3" href="#bot-ステータスの値">Bot ステータスの値</a><a class="ds-chapter level-3" href="#ライフサイクルイベント">ライフサイクルイベント</a><a class="ds-chapter level-2" href="#関連ドキュメント">関連ドキュメント</a></div><a class="ds-doc" href="/docs/ja/api-reference/core-modules.html">コアモジュール API</a><a class="ds-doc" href="/docs/ja/api-reference/event-system.html">イベントシステム API</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">高度なトピック</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/advanced/README.html">高級トピック</a><a class="ds-doc" href="/docs/ja/advanced/lifecycle.html">ライフサイクル管理</a><a class="ds-doc" href="/docs/ja/advanced/lazy-loading.html">ラグロードモジュールシステム</a><a class="ds-doc" href="/docs/ja/advanced/router.html">ルーティングマネージャー</a><a class="ds-doc" href="/docs/ja/advanced/message-builder.html">MessageBuilder 详解</a><a class="ds-doc" href="/docs/ja/advanced/conversation.html">Conversation 多輪対話</a><a class="ds-doc" href="/docs/ja/advanced/http-client.html">ネットワーククライアント</a><a class="ds-doc" href="/docs/ja/advanced/sql-builder.html">SQL クエリビルダ</a><a class="ds-doc" href="/docs/ja/advanced/i18n.html">国際化 (i18n) システム</a><a class="ds-doc" href="/docs/ja/advanced/scope.html">スコープ（scope）</a><a class="ds-doc" href="/docs/ja/advanced/ownership.html">所有権（owner）システム</a><a class="ds-doc" href="/docs/ja/advanced/interaction.html">交互会話システム</a><a class="ds-doc" href="/docs/ja/advanced/shadow.html">シャドウモジュールとカナリア昇格</a><a class="ds-doc" href="/docs/ja/advanced/module-communication.html">モジュール間通信</a><a class="ds-doc" href="/docs/ja/advanced/storage-backends.html">ストレージバックエンド</a><a class="ds-doc" href="/docs/ja/advanced/errors.html">エラー体系とキャッチのガイド</a><a class="ds-doc" href="/docs/ja/advanced/connections.html">接続プールとブロードキャスト</a><a class="ds-doc" href="/docs/ja/advanced/startup.html">起動フローと手動制御</a><a class="ds-doc" href="/docs/ja/advanced/transcript.html">セッション受信トレイ（Transcript）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">エコシステムモジュール</span><span class="ds-cat-count">7</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/ecosystem/README.html">エコシステムモジュール</a><a class="ds-doc" href="/docs/ja/ecosystem/app.html">ErisPulse-App</a><a class="ds-doc" href="/docs/ja/ecosystem/dashboard.html">ErisPulse-Dashboard</a><a class="ds-doc" href="/docs/ja/ecosystem/cron.html">ErisPulse-Cron</a><a class="ds-doc" href="/docs/ja/ecosystem/takumi.html">ErisPulse-Takumi</a><a class="ds-doc" href="/docs/ja/ecosystem/apimcp.html">ErisPulse-ApiMCP で AI クライアントからボットを操作する</a><a class="ds-doc" href="/docs/ja/ecosystem/qvqchat.html">ErisPulse-QvQChat 通用インテリジェントエージェント</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">AI 支援開発</span><span class="ds-cat-count">12</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/ai-support/README.html">AI 支援開発</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-adapter-dev/SKILL.html">ErisPulse 适配器开发</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-adapter-standards/SKILL.html">ErisPulse 适配器技术标准</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-communication/SKILL.html">ErisPulse 通信与连接</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-config-cli/SKILL.html">ErisPulse 配置系统与 CLI 工具链</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-ecosystem/SKILL.html">ErisPulse 生态与多平台</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-errors-troubleshooting/SKILL.html">ErisPulse 异常体系与排障</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-getting-started/SKILL.html">ErisPulse 快速上手与核心概念</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-hot-reload/SKILL.html">ErisPulse 热重载与懒加载休眠</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-module-dev/SKILL.html">ErisPulse 模块开发</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-scope-ownership/SKILL.html">ErisPulse 权限作用域与归属权</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-shadow-transcript/SKILL.html">ErisPulse 影子灰度与消息追踪</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">技術標準</span><span class="ds-cat-count">8</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/standards/README.html">技術標準</a><a class="ds-doc" href="/docs/ja/standards/session-types.html">ErisPulse セッションタイプ標準</a><a class="ds-doc" href="/docs/ja/standards/api-response.html">ErisPulse アダプターの標準化された返却値仕様</a><a class="ds-doc" href="/docs/ja/standards/event-conversion.html">アダプター標準化変換仕様</a><a class="ds-doc" href="/docs/ja/standards/send-method-spec.html">ErisPulse 送信メソッド規格</a><a class="ds-doc" href="/docs/ja/standards/request-action-spec.html">ErisPulse リクエスト操作仕様</a><a class="ds-doc" href="/docs/ja/standards/api-action-spec.html">ErisPulse API アクション標準</a><a class="ds-doc" href="/docs/ja/standards/standardization-guide.html">アダプター標準化ガイド（概要）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API</span><span class="ds-cat-count">140</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/__init__.html">`ErisPulse.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/__main__.html">`ErisPulse.__main__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/sdk.html">`ErisPulse.sdk` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/README.html">ErisPulse API 文档</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/__init__.html">`ErisPulse.Core.Bases.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/adapter.html">`ErisPulse.Core.Bases.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/adapter_patterns.html">`ErisPulse.Core.Bases.adapter_patterns` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/api_dsl.html">`ErisPulse.Core.Bases.api_dsl` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/client.html">`ErisPulse.Core.Bases.client` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/config_schema.html">`ErisPulse.Core.Bases.config_schema` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/converter.html">`ErisPulse.Core.Bases.converter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/errors.html">`ErisPulse.Core.Bases.errors` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/i18n_schema.html">`ErisPulse.Core.Bases.i18n_schema` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/kv_builder.html">`ErisPulse.Core.Bases.kv_builder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/manager.html">`ErisPulse.Core.Bases.manager` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/model.html">`ErisPulse.Core.Bases.model` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/module.html">`ErisPulse.Core.Bases.module` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/router.html">`ErisPulse.Core.Bases.router` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/send_builder.html">`ErisPulse.Core.Bases.send_builder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/send_rules.html">`ErisPulse.Core.Bases.send_rules` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">`ErisPulse.Core.Bases.sql_base` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">`ErisPulse.Core.Bases.storage` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/websocket.html">`ErisPulse.Core.Bases.websocket` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/__init__.html">`ErisPulse.Core.Event.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/base.html">`ErisPulse.Core.Event.base` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/command.html">`ErisPulse.Core.Event.command` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/command_args.html">`ErisPulse.Core.Event.command_args` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/command_flow.html">`ErisPulse.Core.Event.command_flow` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/conversation.html">`ErisPulse.Core.Event.conversation` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/governance.html">`ErisPulse.Core.Event.governance` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/interaction.html">`ErisPulse.Core.Event.interaction` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/message.html">`ErisPulse.Core.Event.message` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/message_builder.html">`ErisPulse.Core.Event.message_builder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/meta.html">`ErisPulse.Core.Event.meta` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/notice.html">`ErisPulse.Core.Event.notice` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/overrides.html">`ErisPulse.Core.Event.overrides` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/request.html">`ErisPulse.Core.Event.request` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/session_type.html">`ErisPulse.Core.Event.session_type` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/throttle.html">`ErisPulse.Core.Event.throttle` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/trace.html">`ErisPulse.Core.Event.trace` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/wrapper.html">`ErisPulse.Core.Event.wrapper` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/__init__.html">`ErisPulse.Core.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/adapter.html">`ErisPulse.Core.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/assets/__init__.html">`ErisPulse.Core.assets.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/client.html">`ErisPulse.Core.client` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/config.html">`ErisPulse.Core.config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/connections.html">`ErisPulse.Core.connections` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/constants.html">`ErisPulse.Core.constants` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/di.html">`ErisPulse.Core.di` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/__init__.html">`ErisPulse.Core.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/constants.html">`ErisPulse.Core.i18n.constants` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/__init__.html">`ErisPulse.Core.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/en.html">`ErisPulse.Core.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/ja.html">`ErisPulse.Core.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/ru.html">`ErisPulse.Core.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_cn.html">`ErisPulse.Core.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_tw.html">`ErisPulse.Core.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/lifecycle.html">`ErisPulse.Core.lifecycle` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/logger.html">`ErisPulse.Core.logger` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/master.html">`ErisPulse.Core.master` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/module.html">`ErisPulse.Core.module` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/ownership.html">`ErisPulse.Core.ownership` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/router.html">`ErisPulse.Core.router` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/scope.html">`ErisPulse.Core.scope` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/shadow.html">`ErisPulse.Core.shadow` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/__init__.html">`ErisPulse.Core.storage.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/mysql.html">`ErisPulse.Core.storage.mysql` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/postgres.html">`ErisPulse.Core.storage.postgres` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/sqlite.html">`ErisPulse.Core.storage.sqlite` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/text_match.html">`ErisPulse.Core.text_match` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/transcript.html">`ErisPulse.Core.transcript` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/__init__.html">`ErisPulse.CLI.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/base.html">`ErisPulse.CLI.base` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/cli.html">`ErisPulse.CLI.cli` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/__init__.html">`ErisPulse.CLI.commands.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/config.html">`ErisPulse.CLI.commands.config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/create.html">`ErisPulse.CLI.commands.create` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/doctor.html">`ErisPulse.CLI.commands.doctor` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/init.html">`ErisPulse.CLI.commands.init` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/install.html">`ErisPulse.CLI.commands.install` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/language.html">`ErisPulse.CLI.commands.language` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/list.html">`ErisPulse.CLI.commands.list` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/list_remote.html">`ErisPulse.CLI.commands.list_remote` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/run.html">`ErisPulse.CLI.commands.run` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/runtime.html">`ErisPulse.CLI.commands.runtime` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/self_update.html">`ErisPulse.CLI.commands.self_update` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/types.html">`ErisPulse.CLI.commands.types` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/uninstall.html">`ErisPulse.CLI.commands.uninstall` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/upgrade.html">`ErisPulse.CLI.commands.upgrade` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/version.html">`ErisPulse.CLI.commands.version` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/console.html">`ErisPulse.CLI.console` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/constants.html">`ErisPulse.CLI.constants` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/hints.html">`ErisPulse.CLI.hints` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/__init__.html">`ErisPulse.CLI.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/__init__.html">`ErisPulse.CLI.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/en.html">`ErisPulse.CLI.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ja.html">`ErisPulse.CLI.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ru.html">`ErisPulse.CLI.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_cn.html">`ErisPulse.CLI.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_tw.html">`ErisPulse.CLI.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/registry.html">`ErisPulse.CLI.registry` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/__init__.html">`ErisPulse.CLI.utils.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/config_wizard.html">`ErisPulse.CLI.utils.config_wizard` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/display.html">`ErisPulse.CLI.utils.display` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/interactive.html">`ErisPulse.CLI.utils.interactive` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/package_manager.html">`ErisPulse.CLI.utils.package_manager` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/runtime_state.html">`ErisPulse.CLI.utils.runtime_state` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/scaffold_text.html">`ErisPulse.CLI.utils.scaffold_text` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/__init__.html">`ErisPulse.runtime.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/config_schema.html">`ErisPulse.runtime.config_schema` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/context.html">`ErisPulse.runtime.context` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/diagnostics.html">`ErisPulse.runtime.diagnostics` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/example_config.html">`ErisPulse.runtime.example_config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/exceptions.html">`ErisPulse.runtime.exceptions` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/file_watcher.html">`ErisPulse.runtime.file_watcher` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/frame_config.html">`ErisPulse.runtime.frame_config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/hints.html">`ErisPulse.runtime.hints` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/kernel.html">`ErisPulse.runtime.kernel` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/memory.html">`ErisPulse.runtime.memory` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">`ErisPulse.runtime.owner_cleanup` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html">`ErisPulse.runtime.plugin_reload` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">`ErisPulse.runtime.proactive_gc` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/process_state.html">`ErisPulse.runtime.process_state` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/reload_ops.html">`ErisPulse.runtime.reload_ops` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/sdk_initializer.html">`ErisPulse.runtime.sdk_initializer` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/tasks.html">`ErisPulse.runtime.tasks` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/troubleshoot.html">`ErisPulse.runtime.troubleshoot` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/version.html">`ErisPulse.runtime.version` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/__init__.html">`ErisPulse.loaders.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/_reload_utils.html">`ErisPulse.loaders._reload_utils` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/adapter.html">`ErisPulse.loaders.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/bases/loader.html">`ErisPulse.loaders.bases.loader` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/module.html">`ErisPulse.loaders.module` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/plugin_folder.html">`ErisPulse.loaders.plugin_folder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/strategy.html">`ErisPulse.loaders.strategy` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/strict.html">`ErisPulse.loaders.strict` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/__init__.html">`ErisPulse.finders.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/adapter.html">`ErisPulse.finders.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/bases/finder.html">`ErisPulse.finders.bases.finder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/module.html">`ErisPulse.finders.module` 模块</a></div></details></nav>
+        </aside>
+
+        <main class="ds-main">
+            
+    <details class="ds-chapter-bar">
+        <summary>
+            <span class="ds-chapter-bar-icon" aria-hidden="true"></span>
+            <span class="ds-chapter-bar-label">このページのセクション</span>
+            <span class="ds-chapter-bar-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="ds-chapter-bar-panel">
+            <div class="ds-chapter-rail">
+                <a class="ds-chapter level-2" href="#adapter-マネージャー">Adapter マネージャー</a>
+                <a class="ds-chapter level-3" href="#アダプターの取得">アダプターの取得</a>
+                <a class="ds-chapter level-3" href="#アダプターイベントリスナーの使用">アダプターイベントリスナーの使用</a>
+                <a class="ds-chapter level-3" href="#アダプターの管理">アダプターの管理</a>
+                <a class="ds-chapter level-2" href="#ミドルウェア">ミドルウェア</a>
+                <a class="ds-chapter level-3" href="#ミドルウェアの登録">ミドルウェアの登録</a>
+                <a class="ds-chapter level-3" href="#ミドルウェアの実行モデル">ミドルウェアの実行モデル</a>
+                <a class="ds-chapter level-2" href="#send-メッセージ送信">Send メッセージ送信</a>
+                <a class="ds-chapter level-3" href="#基本的な送信">基本的な送信</a>
+                <a class="ds-chapter level-3" href="#送信アカウントの指定">送信アカウントの指定</a>
+                <a class="ds-chapter level-3" href="#サポートされる送信メソッドの照会">サポートされる送信メソッドの照会</a>
+                <a class="ds-chapter level-3" href="#チェーン装飾">チェーン装飾</a>
+                <a class="ds-chapter level-2" href="#api-呼び出し">API 呼び出し</a>
+                <a class="ds-chapter level-3" href="#call_api-メソッド">call_api メソッド</a>
+                <a class="ds-chapter level-2" href="#アダプター基底クラス">アダプター基底クラス</a>
+                <a class="ds-chapter level-3" href="#baseadapter-のメソッド">BaseAdapter のメソッド</a>
+                <a class="ds-chapter level-3" href="#send-ネストクラス">Send ネストクラス</a>
+                <a class="ds-chapter level-2" href="#bot-ステータス管理">Bot ステータス管理</a>
+                <a class="ds-chapter level-3" href="#meta-イベントの報告">meta イベントの報告</a>
+                <a class="ds-chapter level-3" href="#bot-ステータスの照会">Bot ステータスの照会</a>
+                <a class="ds-chapter level-3" href="#bot-ステータスの値">Bot ステータスの値</a>
+                <a class="ds-chapter level-3" href="#ライフサイクルイベント">ライフサイクルイベント</a>
+                <a class="ds-chapter level-2" href="#関連ドキュメント">関連ドキュメント</a>
+            </div>
+        </div>
+    </details>
+            <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/docs.html">ドキュメント</a>
+                <span class="doc-crumb-sep">/</span> API リファレンス
+                <span class="doc-crumb-sep">/</span> <span>アダプターシステム API</span>
+            </nav>
+            <div class="doc-interactive">
+                <span>静的ミラーです。内容はインタラクティブ版が正となります</span>
+                <a href="https://www.erisdev.com/#docs/api-reference/adapter-system.md">インタラクティブ版で開く →</a>
+            </div>
+            <article class="markdown-content" id="docs-content">
+                <h1 id="アダプターシステム-api">アダプターシステム API</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>このドキュメントを読むべきケース</strong>：アダプターの管理（インスタンスの取得、起動・停止、Bot のオンライン状態の確認）、Send DSL によるメッセージ送信、ミドルウェアの登録、またはアダプターへの Bot ステータス報告（meta イベント）の実装が必要な場合に本文をご参照ください。該当しない場合はスキップしてください。</p>
+</div>
+<p>このドキュメントでは、ErisPulse アダプターシステムの API について詳しく説明します。</p>
+<h2 id="adapter-マネージャー">Adapter マネージャー</h2>
 <h3 id="アダプターの取得">アダプターの取得</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 
-<span class="token comment"># 名称でアダプターを取得</span>
+<span class="token comment"># 名前でアダプターを取得</span>
 adapter <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>
 
 <span class="token comment"># または、属性で直接アクセスすることもできます</span>
 adapter <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>platform_name
 </code></pre>
-<h3 id="アダプターイベントの監視">アダプターイベントの監視</h3>
+<h3 id="アダプターイベントリスナーの使用">アダプターイベントリスナーの使用</h3>
 <blockquote>
-<p>通常、<code>Event</code> モジュールを使ってイベントの監視/処理を行うことを推奨します。</p>
-<p>また、<code>Event</code> モジュールは強力なラッパーを提供しており、モジュール開発に多くの利便性をもたらします。</p>
+<p>通常は、イベントの監視/処理には<code>Event</code>モジュールを使用することをお勧めします。</p>
+<p>また、<code>Event</code>モジュールは強力なラッパーを提供しており、モジュール開発にさらに便利さをもたらします。</p>
 </blockquote>
-<pre><code class="language-python"><span class="token comment"># OneBot12 標準イベントを監視</span>
+<pre><code class="language-python"><span class="token comment"># OneBot12 標準イベントをリッスン</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_message</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 
-<span class="token comment"># 特定のプラットフォームの標準イベントを監視</span>
+<span class="token comment"># 特定プラットフォームの標準イベントをリッスン</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">,</span> platform<span class="token operator">=</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_yunhu_message</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 
-<span class="token comment"># プラットフォームのネイティブイベントを監視</span>
+<span class="token comment"># プラットフォームのネイティブイベントをリッスン</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"raw_event"</span><span class="token punctuation">,</span> raw<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> platform<span class="token operator">=</span><span class="token string">"yunhu"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_raw_event</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 </code></pre>
-<h3 id="アダプターマネージメント">アダプターマネージメント</h3>
+<h3 id="アダプターの管理">アダプターの管理</h3>
 <pre><code class="language-python"><span class="token comment"># すべてのプラットフォームを取得</span>
 platforms <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>platforms
 
-<span class="token comment"># アダプターが存在するか確認</span>
+<span class="token comment"># アダプターが存在するかどうかを確認</span>
 exists <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>exists<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>
 
 <span class="token comment"># アダプターの有効化/無効化</span>
 sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>enable<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>
 sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>disable<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># アダプターの起動/停止</span>
-<span class="token comment"># 以下のメソッドは、引数を渡す場合の例を示しています。引数なしの場合は、すべての登録されたアダプターを起動/停止します。</span>
+<span class="token comment"># アダプターの起動/終了</span>
+<span class="token comment"># 以下のメソッドはいずれも引数を渡す場合の例であり、引数なしの場合は登録済みのすべてのアダプターの起動/停止を意味します</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>startup<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"platform1"</span><span class="token punctuation">,</span> <span class="token string">"platform2"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>shutdown<span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">"platform1"</span><span class="token punctuation">,</span> <span class="token string">"platform2"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
 
-<span class="token comment"># アダプターの実行状態を確認</span>
+<span class="token comment"># アダプターが実行中かどうかを確認</span>
 is_running <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>is_running<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># 実行中のすべてのアダプターをリストアップ</span>
+<span class="token comment"># 実行中のすべてのアダプターを一覧表示</span>
 running <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_running<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># アダプターのメタ情報を取得（module.get_meta と対応、パネル / ストア等の消費用）</span>
+<span class="token comment"># アダプターのメタ情報を取得（module.get_meta と整合、パネル/ストアなどで利用される）</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_info<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>   <span class="token comment"># 登録情報（meta + クラス名、json-safe）</span>
-meta <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>   <span class="token comment"># 説明メタ情報（description は i18n 解析をサポート）</span>
-raw <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">,</span> resolve_i18n<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># 透かし i18n ディクショナリをそのまま返す</span>
+meta <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">)</span>   <span class="token comment"># 紹介メタ情報（description は i18n 解析に対応）</span>
+raw <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_meta<span class="token punctuation">(</span><span class="token string">"platform_name"</span><span class="token punctuation">,</span> resolve_i18n<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>  <span class="token comment"># 生の i18n 辞書をそのまま返す</span>
 </code></pre>
 <h2 id="ミドルウェア">ミドルウェア</h2>
-<p>ミドルウェアは、イベントがハンドラに配信される前に実行され、イベントデータを変更、フィルタ、または記録することができます。</p>
+<p>ミドルウェアは、イベントがハンドラーにディスパッチされる前に実行され、イベントデータの変更、フィルタリング、記録などを行うことができます。</p>
 <h3 id="ミドルウェアの登録">ミドルウェアの登録</h3>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">my_middleware</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"ミドルウェア処理: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
     <span class="token keyword">return</span> event
 </code></pre>
-<h3 id="ミドルウェア実行モデル">ミドルウェア実行モデル</h3>
+<h3 id="ミドルウェアの実行モデル">ミドルウェアの実行モデル</h3>
 <ul>
-<li><strong>実行順序</strong>：ミドルウェアは登録順に実行されます（先に登録されたものから実行）</li>
-<li><strong>データの伝達</strong>：各ミドルウェアは、前のミドルウェアが返した <code>event</code> データを受け取ります。もし、あるミドルウェアが <code>None</code> を返した場合、その返り値は無視され、元のデータが引き続き伝達されます（同時に <code>warning</code> レベルのログが出力されます）</li>
-<li><strong>データの変更</strong>：ミドルウェアはイベントデータを変更して、変更後の辞書を返すことができます</li>
-<li><strong>イベントの否認</strong>：ミドルウェアが明示的に <code>False</code> を返した場合、イベントは否認されます—イベントはすべてのハンドラに渡らず、出力副作用も一切ありません。否認された場合、<code>TRACE</code> ログが出力され、<code>adapter.event.blocked</code> ライフサイクルフックがトリガーされ、ミドルウェア名と完全なイベントが渡されます</li>
+<li><strong>実行順序</strong>：ミドルウェアは登録順に実行されます（先に登録されたものが先に実行される）</li>
+<li><strong>データの受け渡し</strong>：各ミドルウェアは、直前のミドルウェアが返した <code>event</code> データを受け取ります。いずれかのミドルウェアが <code>None</code> を返した場合、その戻り値は無視され、元のデータが保持されたまま引き続き渡されます（同時に <code>warning</code> レベルのログが出力されます）</li>
+<li><strong>データの変更</strong>：ミドルウェアはイベントデータを変更し、変更後の辞書を返すことができます</li>
+<li><strong>イベントの否決</strong>：ミドルウェアが明示的に <code>False</code> を返した場合、イベントは否決されます。イベントは破棄され、どのハンドラーにも渡されず、アウトバウンドの副作用も一切発生しません。否決時には TRACE ログが出力され、<code>adapter.event.blocked</code> ライフサイクルフックがトリガーされます（ミドルウェア名と完全なイベントが渡されます）</li>
 </ul>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>middleware</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">add_timestamp</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -156,12 +183,13 @@ raw <span class="token operator">=</span> sdk<span class="token punctuation">.</
     <span class="token keyword">if</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"detail_type"</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token string">"private"</span><span class="token punctuation">:</span>
         text <span class="token operator">=</span> event<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"alt_message"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
         <span class="token keyword">if</span> <span class="token string">"スパム広告"</span> <span class="token keyword">in</span> text<span class="token punctuation">:</span>
-            <span class="token keyword">return</span> <span class="token boolean">False</span>  <span class="token comment"># 否認：イベントはハンドラに渡らず、すべての出力副作用も無視</span>
+            <span class="token keyword">return</span> <span class="token boolean">False</span>  <span class="token comment"># 否決：イベントは破棄され、どのハンドラーにも渡されません</span>
     <span class="token keyword">return</span> event
 </code></pre>
 <blockquote>
-<p><strong>注意</strong>：イベントを否認するのは、明示的に <code>False</code> を返した場合のみです（空の辞書 / <code>0</code> / <code>""</code> などの falsy 値を返しても否認されません）；
-<code>None</code> を返しても、イベントは許可され、負荷は変化しません。否認されたイベントは、<code>adapter.event.blocked</code> フックを監視することで、イベントがなぜ応答しなかったのかを監査・調査することができます。</p>
+<p><strong>注意</strong>：イベントを否決するのは、明示的に <code>False</code> を返した場合のみです（空の辞書 / <code>0</code> / <code>""</code> などの falsy 値を返しても否決されません）。
+<code>None</code> を返した場合も通過し、ペイロードは変更されません。否決されたイベントは、
+<code>adapter.event.blocked</code> フックをリッスンすることで、「イベントがなぜ応答しなかったのか」の監査や調査が可能です。</p>
 </blockquote>
 <h2 id="send-メッセージ送信">Send メッセージ送信</h2>
 <h3 id="基本的な送信">基本的な送信</h3>
@@ -181,12 +209,12 @@ adapter <span class="token operator">=</span> sdk<span class="token punctuation"
 <span class="token comment"># アカウント ID を使用</span>
 <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>Using<span class="token punctuation">(</span><span class="token string">"bot_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"123"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span>
 </code></pre>
-<h3 id="送信メソッドの照会">送信メソッドの照会</h3>
-<pre><code class="language-python"><span class="token comment"># プラットフォームがサポートするすべての送信メソッドをリストアップ</span>
+<h3 id="サポートされる送信メソッドの照会">サポートされる送信メソッドの照会</h3>
+<pre><code class="language-python"><span class="token comment"># プラットフォームがサポートするすべての送信メソッドを一覧表示</span>
 methods <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_sends<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">)</span>
 <span class="token comment"># 戻り値: ["Text", "Image", "Voice", "Markdown", ...]</span>
 
-<span class="token comment"># あるメソッドの詳細情報を取得</span>
+<span class="token comment"># 特定のメソッドの詳細情報を取得</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>send_info<span class="token punctuation">(</span><span class="token string">"onebot11"</span><span class="token punctuation">,</span> <span class="token string">"Text"</span><span class="token punctuation">)</span>
 <span class="token comment"># 戻り値:</span>
 <span class="token comment"># {</span>
@@ -198,23 +226,23 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 <span class="token comment">#     "docstring": "テキストメッセージを送信..."</span>
 <span class="token comment"># }</span>
 </code></pre>
-<h3 id="チェーン修飾">チェーン修飾</h3>
+<h3 id="チェーン装飾">チェーン装飾</h3>
 <pre><code class="language-python"><span class="token comment"># @ユーザー</span>
 <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"こんにちは"</span><span class="token punctuation">)</span>
 
 <span class="token comment"># @全員</span>
-<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AtAll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"みなさんこんにちは"</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>AtAll<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"皆さん、こんにちは"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># メッセージへの返信</span>
+<span class="token comment"># メッセージに返信</span>
 <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"返信内容"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># 組み合わせ</span>
-<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"返信@メッセージ"</span><span class="token punctuation">)</span>
+<span class="token comment"># 組み合わせて使用</span>
+<span class="token keyword">await</span> adapter<span class="token punctuation">.</span>Send<span class="token punctuation">.</span>To<span class="token punctuation">(</span><span class="token string">"group"</span><span class="token punctuation">,</span> <span class="token string">"456"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>At<span class="token punctuation">(</span><span class="token string">"789"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Reply<span class="token punctuation">(</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Text<span class="token punctuation">(</span><span class="token string">"@したメッセージへの返信"</span><span class="token punctuation">)</span>
 </code></pre>
 <h2 id="api-呼び出し">API 呼び出し</h2>
 <h3 id="call_api-メソッド">call_api メソッド</h3>
 <blockquote>
-<p><strong>注意</strong>：<code>call_api</code> は、プラットフォームのネイティブ API を直接呼び出す低レベルメソッドです。各プラットフォームのパラメータと戻り値は異なる可能性があるため、対応するプラットフォームアダプターのドキュメントを参照してください。<strong>Send DSL を使用することを推奨します</strong>。Send DSL がサポートしていない場面（プラットフォーム固有のデータの取得、プラットフォーム管理インターフェースの呼び出し等）でのみ <code>call_api</code> を使用してください。</p>
+<p><strong>注意</strong>：<code>call_api</code> はプラットフォームのネイティブ API を直接呼び出す低レベルメソッドです。パラメータや戻り値はプラットフォームによって異なる場合があるため、対応するプラットフォームのアダプタードキュメントをご参照ください。<strong>メッセージの送信には Send DSL の使用をお勧めします</strong>。<code>call_api</code> は、Send DSL が対応していないシナリオ（プラットフォーム固有のデータの取得やプラットフォーム管理インターフェースの呼び出しなど）でのみ使用してください。</p>
 </blockquote>
 <pre><code class="language-python"><span class="token comment"># プラットフォーム API を呼び出す</span>
 result <span class="token operator">=</span> <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
@@ -234,8 +262,8 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token string">"{platform}_raw"</span><span class="token punctuation">:</span> raw_response
 <span class="token punctuation">}</span>
 </code></pre>
-<h2 id="アダプターベースクラス">アダプターベースクラス</h2>
-<h3 id="baseadapter-メソッド">BaseAdapter メソッド</h3>
+<h2 id="アダプター基底クラス">アダプター基底クラス</h2>
+<h3 id="baseadapter-のメソッド">BaseAdapter のメソッド</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse <span class="token keyword">import</span> sdk
 <span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core <span class="token keyword">import</span> BaseAdapter
 
@@ -243,26 +271,26 @@ result <span class="token operator">=</span> <span class="token keyword">await</
     <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token builtin">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span><span class="token punctuation">)</span>
         self<span class="token punctuation">.</span>sdk <span class="token operator">=</span> sdk
-        <span class="token comment"># アダプターを初期化</span>
+        <span class="token comment"># アダプターの初期化</span>
         <span class="token keyword">pass</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""アダプターを起動する（必須実装）"""</span>
+        <span class="token triple-quoted-string string">"""アダプターを起動する（実装必須）"""</span>
         <span class="token keyword">pass</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">shutdown</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""アダプターを停止する（必須実装）"""</span>
+        <span class="token triple-quoted-string string">"""アダプターを終了する（実装必須）"""</span>
         <span class="token keyword">pass</span>
     
     <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">call_api</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> endpoint<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> <span class="token operator">**</span>params<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token triple-quoted-string string">"""プラットフォーム API を呼び出す（必須実装）"""</span>
+        <span class="token triple-quoted-string string">"""プラットフォーム API を呼び出す（実装必須）"""</span>
         <span class="token keyword">pass</span>
 </code></pre>
-<h3 id="send-嵌套クラス">Send 嵌套クラス</h3>
+<h3 id="send-ネストクラス">Send ネストクラス</h3>
 <pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">class</span> <span class="token class-name">Send</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">.</span>Send<span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">def</span> <span class="token function">Text</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-            <span class="token triple-quoted-string string">"""テキストメッセージを送信"""</span>
+            <span class="token triple-quoted-string string">"""テキストメッセージを送信する"""</span>
             <span class="token keyword">import</span> asyncio
             <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>
                 self<span class="token punctuation">.</span>_adapter<span class="token punctuation">.</span>call_api<span class="token punctuation">(</span>
@@ -273,162 +301,16 @@ result <span class="token operator">=</span> <span class="token keyword">await</
                 <span class="token punctuation">)</span>
             <span class="token punctuation">)</span>
 </code></pre>
-<h2 id="bot-状態管理">Bot 状態管理</h2>
-<p>アダプターは、OneBot12 標準の <strong><code>meta</code> イベント</strong>を送信することで、フレームワークに Bot の接続状態を通知します。システムは、このイベントから Bot 情報を自動的に抽出して、状態を追跡します。</p>
-<h3 id="meta-イベントタイプ">meta イベントタイプ</h3>
-<p>アダプターは、以下の 3 種類の <code>meta</code> イベントを送信する必要があります：</p>
-<div class="table-wrapper"><table>
-<thead>
-<tr>
-<th><code>type</code></th>
-<th><code>detail_type</code></th>
-<th>説明</th>
-<th>発生タイミング</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>meta</code></td>
-<td><code>connect</code></td>
-<td>Bot が接続・オンライン</td>
-<td>アダプターがプラットフォームとの接続を確立した後</td>
-</tr>
-<tr>
-<td><code>meta</code></td>
-<td><code>heartbeat</code></td>
-<td>Bot のハートビート</td>
-<td>定期的に送信（推奨 30-60 秒）</td>
-</tr>
-<tr>
-<td><code>meta</code></td>
-<td><code>disconnect</code></td>
-<td>Bot が接続を切断</td>
-<td>接続が切断されたと検知したとき</td>
-</tr>
-</tbody></table></div>
-<h3 id="self-フィールド拡張">self フィールド拡張</h3>
-<p>ErisPulse は、OneBot12 標準の <code>self</code> フィールドに以下のオプションフィールドを拡張しています：</p>
-<div class="table-wrapper"><table>
-<thead>
-<tr>
-<th>フィールド</th>
-<th>タイプ</th>
-<th>説明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>self.platform</code></td>
-<td>string</td>
-<td>プラットフォーム名（OB12 標準）</td>
-</tr>
-<tr>
-<td><code>self.user_id</code></td>
-<td>string</td>
-<td>Bot ユーザー ID（OB12 標準）</td>
-</tr>
-<tr>
-<td><code>self.user_name</code></td>
-<td>string</td>
-<td>Bot ニックネーム（ErisPulse 拡張）</td>
-</tr>
-<tr>
-<td><code>self.avatar</code></td>
-<td>string</td>
-<td>Bot アバター URL（ErisPulse 拡張）</td>
-</tr>
-<tr>
-<td><code>self.account_id</code></td>
-<td>string</td>
-<td>多アカウント識別子（ErisPulse 拡張）</td>
-</tr>
-</tbody></table></div>
-<h3 id="meta-イベント形式">meta イベント形式</h3>
-<h4 id="connect-接続オンライン">connect — 接続・オンライン</h4>
-<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
-    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique_id"</span><span class="token punctuation">,</span>
-    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1712345678</span><span class="token punctuation">,</span>
-    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"meta"</span><span class="token punctuation">,</span>
-    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"connect"</span><span class="token punctuation">,</span>
-    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"telegram"</span><span class="token punctuation">,</span>
-    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"telegram"</span><span class="token punctuation">,</span>
-        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123456"</span><span class="token punctuation">,</span>
-        <span class="token string">"user_name"</span><span class="token punctuation">:</span> <span class="token string">"MyBot"</span><span class="token punctuation">,</span>
-        <span class="token string">"avatar"</span><span class="token punctuation">:</span> <span class="token string">"https://example.com/avatar.jpg"</span>
-    <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token string">"telegram_raw"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token string">"telegram_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"bot_connected"</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span>
-</code></pre>
-<p>システム処理：Bot を登録し、<code>online</code> にマークし、<code>adapter.bot.online</code> ライフサイクルイベントをトリガーします。</p>
-<h4 id="heartbeat-ハートビート">heartbeat — ハートビート</h4>
-<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
-    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique_id"</span><span class="token punctuation">,</span>
-    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1712345708</span><span class="token punctuation">,</span>
-    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"meta"</span><span class="token punctuation">,</span>
-    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"heartbeat"</span><span class="token punctuation">,</span>
-    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"telegram"</span><span class="token punctuation">,</span>
-    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"telegram"</span><span class="token punctuation">,</span>
-        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123456"</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span>
-</code></pre>
-<p>システム処理：<code>last_active</code> 時間を更新（ハートビートではメタ情報の更新もサポート）。</p>
-<h4 id="disconnect-接続切断">disconnect — 接続切断</h4>
-<pre><code class="language-python"><span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
-    <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token string">"unique_id"</span><span class="token punctuation">,</span>
-    <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token number">1712345738</span><span class="token punctuation">,</span>
-    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"meta"</span><span class="token punctuation">,</span>
-    <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"disconnect"</span><span class="token punctuation">,</span>
-    <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"telegram"</span><span class="token punctuation">,</span>
-    <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"telegram"</span><span class="token punctuation">,</span>
-        <span class="token string">"user_id"</span><span class="token punctuation">:</span> <span class="token string">"123456"</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span>
-</code></pre>
-<p>システム処理：Bot を <code>offline</code> にマークし、<code>adapter.bot.offline</code> ライフサイクルイベントをトリガーします。</p>
-<h3 id="通常イベントの自動発見">通常イベントの自動発見</h3>
-<p><code>meta</code> イベント以外にも、通常イベント（<code>message</code>/<code>notice</code>/<code>request</code>）の <code>self</code> フィールドは、自動的に Bot を発見して登録し、アクティブ時間を更新します。つまり、アダプターが <code>connect</code> イベントを送信しなくても、フレームワークは最初の通常イベントから Bot を発見することができます。</p>
-<h3 id="アダプター接続例">アダプター接続例</h3>
-<pre><code class="language-python"><span class="token keyword">class</span> <span class="token class-name">MyAdapter</span><span class="token punctuation">(</span>BaseAdapter<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token comment"># プラットフォームとの接続を確立...</span>
-        connection <span class="token operator">=</span> <span class="token keyword">await</span> self<span class="token punctuation">.</span>_connect<span class="token punctuation">(</span><span class="token punctuation">)</span>
-        
-        <span class="token comment"># 接続成功、connect イベントを送信</span>
-        <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
-            <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>uuid4<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-            <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-            <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"meta"</span><span class="token punctuation">,</span>
-            <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"connect"</span><span class="token punctuation">,</span>
-            <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
-            <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
-                <span class="token string">"user_id"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>bot_id<span class="token punctuation">,</span>
-                <span class="token string">"user_name"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>bot_name<span class="token punctuation">,</span>
-                <span class="token string">"avatar"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>bot_avatar
-            <span class="token punctuation">}</span><span class="token punctuation">,</span>
-            <span class="token string">"myplatform_raw"</span><span class="token punctuation">:</span> raw_data<span class="token punctuation">,</span>
-            <span class="token string">"myplatform_raw_type"</span><span class="token punctuation">:</span> <span class="token string">"connected"</span>
-        <span class="token punctuation">}</span><span class="token punctuation">)</span>
-    
-    <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">on_disconnect</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-        <span class="token comment"># 接続切断、disconnect イベントを送信</span>
-        <span class="token keyword">await</span> adapter<span class="token punctuation">.</span>emit<span class="token punctuation">(</span><span class="token punctuation">{</span>
-            <span class="token string">"id"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>uuid4<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-            <span class="token string">"time"</span><span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>time<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
-            <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"meta"</span><span class="token punctuation">,</span>
-            <span class="token string">"detail_type"</span><span class="token punctuation">:</span> <span class="token string">"disconnect"</span><span class="token punctuation">,</span>
-            <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
-            <span class="token string">"self"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                <span class="token string">"platform"</span><span class="token punctuation">:</span> <span class="token string">"myplatform"</span><span class="token punctuation">,</span>
-                <span class="token string">"user_id"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>bot_id
-            <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span><span class="token punctuation">)</span>
-</code></pre>
-<h3 id="bot-状態の照会">Bot 状態の照会</h3>
-<pre><code class="language-python"><span class="token comment"># すべてのアダプターと Bot の完全な状態を取得（WebUI 友好）</span>
+<h2 id="bot-ステータス管理">Bot ステータス管理</h2>
+<p>アダプターは、OneBot12 標準の <strong><code>meta</code> イベント</strong>を送信することで、フレームワークに Bot の接続状態を通知します。システムはそこから自動的に Bot 情報を抽出し、ステータスの追跡を行います。</p>
+<h3 id="meta-イベントの報告">meta イベントの報告</h3>
+<p>アダプターは <code>meta</code> イベントを通じて Bot のステータスを報告します。<code>detail_type</code> は 3 種類あります：<code>connect</code>（登録してオンライン）、<code>heartbeat</code>（ハートビートによる生存維持）、<code>disconnect</code>（オフラインとしてマーク）。<code>emit_meta()</code> を使って 1 行で送信することをお勧めします。meta イベントを送信しない場合でも、フレームワークは通常のイベント（message/notice/request）の <code>self</code> フィールドから自動的に Bot を検出します。</p>
+<ul>
+<li><strong>meta イベントの形式と送信方法</strong>（送信タイミング、<code>emit_meta()</code> の使い方、手動での形式構築）については、<a href="/docs/ja/developer-guide/adapters/best-practices.html#bot-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E4%B8%8E-meta-%E4%BA%8B%E4%BB%B6">アダプターのベストプラクティス - Bot ステータス管理と Meta イベント</a> をご参照ください</li>
+<li><strong>自動検出メカニズムとフレームワークの動作</strong>については、<a href="/docs/ja/developer-guide/adapters/core-concepts.html#bot-%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86">アダプターのコアコンセプト - Bot ステータス管理</a> をご参照ください</li>
+</ul>
+<h3 id="bot-ステータスの照会">Bot ステータスの照会</h3>
+<pre><code class="language-python"><span class="token comment"># すべてのアダプターと Bot の完全なステータスを取得（WebUI フレンドリー）</span>
 summary <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_status_summary<span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token comment"># {</span>
 <span class="token comment">#     "adapters": {</span>
@@ -445,38 +327,38 @@ summary <span class="token operator">=</span> sdk<span class="token punctuation"
 <span class="token comment">#     }</span>
 <span class="token comment"># }</span>
 
-<span class="token comment"># すべての Bot をリストアップ</span>
+<span class="token comment"># すべての Bot を一覧表示</span>
 all_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># 指定プラットフォームの Bot をリストアップ</span>
+<span class="token comment"># 指定したプラットフォームの Bot を一覧表示</span>
 tg_bots <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>list_bots<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># 単一 Bot の詳細を取得</span>
+<span class="token comment"># 単一の Bot の詳細を取得</span>
 info <span class="token operator">=</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>get_bot_info<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span>
 
-<span class="token comment"># Bot がオンラインか確認</span>
+<span class="token comment"># Bot がオンラインかどうかを確認</span>
 <span class="token keyword">if</span> sdk<span class="token punctuation">.</span>adapter<span class="token punctuation">.</span>is_bot_online<span class="token punctuation">(</span><span class="token string">"telegram"</span><span class="token punctuation">,</span> <span class="token string">"123456"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"Bot はオンラインです"</span><span class="token punctuation">)</span>
 </code></pre>
-<h3 id="bot-状態値">Bot 状態値</h3>
+<h3 id="bot-ステータスの値">Bot ステータスの値</h3>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
-<th>状態</th>
+<th>ステータス</th>
 <th>説明</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>online</code></td>
-<td>オンライン（継続的にイベントを受け取るか、アダプターが明示的にマーク）</td>
+<td>オンライン（イベントを継続的に受信、またはアダプターによる明示的なマーク）</td>
 </tr>
 <tr>
 <td><code>offline</code></td>
-<td>オフライン（アダプターが明示的にマーク、またはシステムのシャットダウン時に自動設定）</td>
+<td>オフライン（アダプターによる明示的なマーク、またはシステム終了時に自動設定）</td>
 </tr>
 <tr>
 <td><code>unknown</code></td>
-<td>未知（登録のみ、状態が確認されていない）</td>
+<td>不明（登録のみでステータス未確認）</td>
 </tr>
 </tbody></table></div>
 <h3 id="ライフサイクルイベント">ライフサイクルイベント</h3>
@@ -490,43 +372,50 @@ info <span class="token operator">=</span> sdk<span class="token punctuation">.<
 </thead>
 <tbody><tr>
 <td><code>adapter.bot.online</code></td>
-<td>新しい Bot が自動的に発見されたとき</td>
+<td>新しい Bot を初めて自動検出した時</td>
 <td><code>{platform, bot_id, status}</code></td>
 </tr>
 <tr>
 <td><code>adapter.status.change</code></td>
-<td>アダプターの状態が変化したとき</td>
-<td><code>{platform, status}</code>、status の完全な値：<code>starting</code> / <code>started</code> / <code>start_failed</code> / <code>stopping</code> / <code>stopped</code> / <code>stop_failed</code> / <code>skipped-dependency</code>（依存するアダプターが準備できていないために起動をスキップ） / <code>disabled</code>（設定で無効化）</td>
+<td>アダプターのステータス変化時</td>
+<td><code>{platform, status}</code>。status のすべての値：<code>starting</code> / <code>started</code> / <code>start_failed</code> / <code>stopping</code> / <code>stopped</code> / <code>stop_failed</code> / <code>skipped-dependency</code>（依存するアダプターが未準備のため起動をスキップ）/ <code>disabled</code>（設定により無効化）</td>
 </tr>
 </tbody></table></div>
-<pre><code class="language-python"><span class="token comment"># Bot オンラインイベントを監視</span>
+<pre><code class="language-python"><span class="token comment"># Bot オンラインイベントをリッスン</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.bot.online"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">on_bot_online</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Bot オンライン: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'bot_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"Bot がオンライン: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">/</span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'bot_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># アダプター状態変化を監視</span>
+<span class="token comment"># アダプターのステータス変化をリッスン</span>
 <span class="token decorator annotation punctuation">@sdk<span class="token punctuation">.</span>lifecycle<span class="token punctuation">.</span>on</span><span class="token punctuation">(</span><span class="token string">"adapter.status.change"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">on_status_change</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"アダプター状態: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'platform'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> -&gt; </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">[</span><span class="token string">'data'</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">'status'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
 <blockquote>
-<p>システムのシャットダウン時（<code>shutdown</code>）、すべての Bot は自動的に <code>offline</code> にマークされます。</p>
+<p>システム終了時（<code>shutdown</code>）には、すべての Bot が自動的に <code>offline</code> としてマークされます。</p>
 </blockquote>
 <h2 id="関連ドキュメント">関連ドキュメント</h2>
+<p><strong>API の参照を続ける</strong>：</p>
 <ul>
-<li><a href="/docs/ja/api-reference/core-modules.html">コアモジュール API</a> - コアモジュール API</li>
-<li><a href="/docs/ja/api-reference/event-system.html">イベントシステム API</a> - Event モジュール API</li>
+<li><a href="/docs/ja/api-reference/core-modules.html">コアモジュール API</a> - コアモジュールの API</li>
+<li><a href="/docs/ja/api-reference/event-system.html">イベントシステム API</a> - Event モジュールの API</li>
+</ul>
+<p><strong>アダプターを書いてみる</strong>：</p>
+<ul>
 <li><a href="/docs/ja/developer-guide/adapters.html">アダプター開発ガイド</a> - プラットフォームアダプターの開発</li>
+<li><a href="/docs/ja/standards/standardization-guide.html">アダプター標準化ガイド（総綱）</a> - 新しいアダプターを実装する前の標準照合と Checklist</li>
 </ul>
 
-        </article>
-        
+            </article>
+            
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ja/api-reference/README.html"><small>Previous</small><br>API リファレンス</a>
-        <a class="doc-pager-next" href="/docs/ja/api-reference/core-modules.html"><small>Next</small><br>コアモジュール API</a>
+        <a class="doc-pager-prev" href="/docs/ja/api-reference/README.html"><small>前へ</small><br>API リファレンス</a>
+        <a class="doc-pager-next" href="/docs/ja/api-reference/core-modules.html"><small>次へ</small><br>コアモジュール API</a>
     </nav>
-    </main>
-    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        </main>
+    </div>
+
+    <footer class="ds-footer">
         © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
     </footer>
 </body>
