@@ -1803,3 +1803,217 @@
         display: none;
     }
 }
+
+/* ==================== 分类项单行化 ====================
+   分类名过长时省略号截断，图标/计数/箭头恒在同行，卡片等高不换行 */
+.category-item .category-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.category-item .doc-count {
+    flex-shrink: 0;
+}
+
+.category-item i.chevron {
+    flex-shrink: 0;
+}
+
+/* ==================== 文档导航条（移动端常驻 / PC 收起态） ====================
+   吸顶玻璃条：左侧「恢复侧边栏」按钮（仅 PC 收起态显示）+ 导航条本体。
+   侧栏 DOM 由 JS 搬进面板，桌面收起与移动端共用同一形态。 */
+.docs-chapter-bar-row {
+    position: sticky;
+    top: 120px;
+    z-index: 85;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin: 0 0 1.1rem;
+}
+
+.docs-chapter-bar-row[hidden] {
+    display: none !important;
+}
+
+.docs-chapter-bar {
+    flex: 1;
+    min-width: 0;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.docs-chapter-bar-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
+    min-height: 48px;
+    transition: background-color 0.2s ease;
+}
+
+.docs-chapter-bar-toggle:hover {
+    background: rgba(var(--primary-rgb), 0.06);
+}
+
+.docs-chapter-bar-toggle:active {
+    background: rgba(var(--primary-rgb), 0.1);
+}
+
+.docs-chapter-bar-toggle>i:first-child {
+    color: var(--primary);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.docs-chapter-bar-label {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.docs-chapter-bar-chevron {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.docs-chapter-bar.open .docs-chapter-bar-chevron {
+    transform: rotate(180deg);
+}
+
+.docs-chapter-bar-panel {
+    border-top: 1px solid var(--border);
+    max-height: min(62vh, 560px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--primary-rgb), 0.2) transparent;
+}
+
+.docs-chapter-bar-panel[hidden] {
+    display: none;
+}
+
+/* 侧栏搬进面板后重置自身布局：不吸顶、不限高，玻璃底交给面板 */
+.docs-chapter-bar-panel .docs-sidebar {
+    position: static;
+    max-height: none;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0.4rem 0.9rem 0.9rem;
+    overflow: visible;
+}
+
+/* 恢复侧边栏按钮：与导航条头部同高的纯图标方块，仅 PC 收起态显示 */
+.docs-sidebar-restore {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.docs-sidebar-restore:hover {
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.06);
+}
+
+.docs-sidebar-restore[hidden] {
+    display: none !important;
+}
+
+/* 侧栏泊入导航条面板后：收起按钮与搜索框同行，按钮在搜索左侧
+   （此时它的动作 = 恢复侧边栏） */
+.docs-chapter-bar-panel .docs-sidebar-header {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+.docs-chapter-bar-panel .docs-sidebar-header .docs-sidebar-collapse-btn {
+    order: -1;
+    align-self: stretch;
+    width: 44px;
+    height: auto;
+}
+
+.docs-chapter-bar-panel .docs-sidebar-header .docs-search-trigger {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+}
+
+/* 导航条接管期间：布局退化为单列（侧栏已搬离布局） */
+.docs-layout.nav-in-bar {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* PC 收起按钮：常驻侧栏头部（≤991px 无意义，随侧栏进面板后隐藏） */
+.docs-sidebar-collapse-btn {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .docs-sidebar-collapse-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--card-bg);
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .docs-sidebar-collapse-btn:hover {
+        background: rgba(var(--primary-rgb), 0.08);
+        color: var(--primary);
+    }
+
+}
+
+@media (max-width: 767px) {
+    .docs-chapter-bar-row {
+        top: 66px;
+    }
+}

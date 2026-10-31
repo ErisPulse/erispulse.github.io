@@ -257,6 +257,51 @@ async function loadDocInventory() {
 
 // ── 文档静态页模板 ──
 
+/** 静态页界面文案（按语言） */
+const STATIC_LABELS = {
+    'zh-CN': { docs: '文档中心', toc: '本页章节', prev: '上一篇', next: '下一篇', interactive: '在交互式文档中心打开', mirror: '本文为静态镜像，内容以交互版为准' },
+    en: { docs: 'Docs', toc: 'On this page', prev: 'Previous', next: 'Next', interactive: 'Open in interactive docs', mirror: 'Static mirror — the interactive version is canonical' },
+    'zh-TW': { docs: '文檔中心', toc: '本頁章節', prev: '上一篇', next: '下一篇', interactive: '在互動式文檔中心打開', mirror: '本文為靜態鏡像，內容以互動版為準' },
+    ja: { docs: 'ドキュメント', toc: 'このページのセクション', prev: '前へ', next: '次へ', interactive: 'インタラクティブ版で開く', mirror: '静的ミラーです。内容はインタラクティブ版が正となります' },
+    ru: { docs: 'Документация', toc: 'Разделы страницы', prev: 'Назад', next: 'Далее', interactive: 'Открыть интерактивную версию', mirror: 'Статическое зеркало — интерактивная версия является основной' },
+};
+
+/** 抽取 H2/H3 章节锚点（renderMarkdown 已写入 id） */
+function extractToc(html) {
+    const doc = new DOMParser().parseFromString('<div id="__root">' + html + '</div>', 'text/html');
+    const items = [];
+    doc.querySelectorAll('h2, h3').forEach((h) => {
+        const text = (h.textContent || '').trim();
+        if (h.id && text) items.push({ id: h.id, text, level: parseInt(h.tagName[1], 10) });
+    });
+    return items;
+}
+
+/** 侧栏文档树：分类 details（当前文档所在分类默认展开），当前文档下内嵌章节锚点 */
+function buildSidebarTree(lang, tree, currentPath, toc) {
+    const cats = new Map();
+    for (const item of tree) {
+        if (!cats.has(item.category)) cats.set(item.category, []);
+        cats.get(item.category).push(item);
+    }
+    let out = '';
+    for (const [catName, docs] of cats) {
+        const hasCurrent = docs.some((d) => d.path === currentPath);
+        out += `<details class="ds-cat"${hasCurrent ? ' open' : ''}><summary><span class="ds-cat-name">${escapeHtml(catName)}</span><span class="ds-cat-count">${docs.length}</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs">`;
+        for (const d of docs) {
+            const isCur = d.path === currentPath;
+            out += `<a class="ds-doc${isCur ? ' current' : ''}" href="${staticDocUrl(lang, d.path)}">${escapeHtml(d.title || d.path)}</a>`;
+            if (isCur && toc.length) {
+                out += `<div class="ds-chapters">` + toc.map((t) =>
+                    `<a class="ds-chapter level-${t.level}" href="#${escapeHtml(t.id)}">${escapeHtml(t.text)}</a>`
+                ).join('') + `</div>`;
+            }
+        }
+        out += '</div></details>';
+    }
+    return out;
+}
+
 function langLinks(lang, docPath) {
     const labels = { 'zh-CN': '简体中文', en: 'English', 'zh-TW': '繁體中文', ja: '日本語', ru: 'Русский' };
     const alts = [];
@@ -269,36 +314,45 @@ function langLinks(lang, docPath) {
     return { alts: alts.join('\n    '), links: links.join('\n') };
 }
 
-function docPageHtml({ lang, docPath, title, category, group, html, description, prev, next }) {
+function docPageHtml({ lang, docPath, title, category, group, html, description, prev, next, toc, tree }) {
     const url = SITE + staticDocUrl(lang, docPath);
     const interactive = SITE + '/#docs/' + docPath;
+    const labels = STATIC_LABELS[lang] || STATIC_LABELS['zh-CN'];
     const crumbCategory = escapeHtml(category);
     const crumbGroup = group ? ' <span class="doc-crumb-sep">/</span> ' + escapeHtml(group) : '';
+    const ogImage = SITE + '/assets/img/og-cover.png';
 
-    const nav = `
-    <nav class="doc-static-nav">
-        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
-        <div class="doc-nav-links">
-            <a href="/">首页</a>
-            <a href="/docs.html">文档中心</a>
-            <a href="/market.html">模块市场</a>
-            <a href="/community.html">社区</a>
-            <a href="https://github.com/${UPSTREAM}" target="_blank" rel="noopener noreferrer">GitHub</a>
+    const sidebar = buildSidebarTree(lang, tree || [], docPath, toc || []);
+
+    const chapterBar = toc && toc.length ? `
+    <details class="ds-chapter-bar">
+        <summary>
+            <span class="ds-chapter-bar-icon" aria-hidden="true"></span>
+            <span class="ds-chapter-bar-label">${escapeHtml(labels.toc)}</span>
+            <span class="ds-chapter-bar-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="ds-chapter-bar-panel">
+            <div class="ds-chapter-rail">
+                ${toc.map((t) => `<a class="ds-chapter level-${t.level}" href="#${escapeHtml(t.id)}">${escapeHtml(t.text)}</a>`).join('\n                ')}
+            </div>
         </div>
-    </nav>`;
-
-    const breadcrumbs = `
-    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/docs.html">${lang === MAIN_LANG ? '文档' : 'Docs'}</a>
-        <span class="doc-crumb-sep">/</span> ${crumbCategory}${crumbGroup}
-        <span class="doc-crumb-sep">/</span> <span>${escapeHtml(title)}</span>
-    </nav>`;
+    </details>` : '';
 
     const pager = (prev || next) ? `
     <nav class="doc-pager">
-        ${prev ? `<a class="doc-pager-prev" href="${staticDocUrl(lang, prev.path)}"><small>${lang === MAIN_LANG ? '上一篇' : 'Previous'}</small><br>${escapeHtml(prev.title)}</a>` : '<span></span>'}
-        ${next ? `<a class="doc-pager-next" href="${staticDocUrl(lang, next.path)}"><small>${lang === MAIN_LANG ? '下一篇' : 'Next'}</small><br>${escapeHtml(next.title)}</a>` : '<span></span>'}
+        ${prev ? `<a class="doc-pager-prev" href="${staticDocUrl(lang, prev.path)}"><small>${escapeHtml(labels.prev)}</small><br>${escapeHtml(prev.title)}</a>` : '<span></span>'}
+        ${next ? `<a class="doc-pager-next" href="${staticDocUrl(lang, next.path)}"><small>${escapeHtml(labels.next)}</small><br>${escapeHtml(next.title)}</a>` : '<span></span>'}
     </nav>` : '';
+
+    const breadcrumbLd = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: labels.docs, item: SITE + '/docs.html' },
+            { '@type': 'ListItem', position: 2, name: category, item: url },
+            { '@type': 'ListItem', position: 3, name: title },
+        ],
+    });
 
     const jsonLd = JSON.stringify({
         '@context': 'https://schema.org',
@@ -307,7 +361,7 @@ function docPageHtml({ lang, docPath, title, category, group, html, description,
         description: description,
         url: url,
         inLanguage: lang,
-        isPartOf: { '@type': 'WebSite', name: 'ErisPulse 文档中心', url: SITE + '/docs.html' },
+        isPartOf: { '@type': 'WebSite', name: 'ErisPulse ' + labels.docs, url: SITE + '/docs.html' },
     });
 
     return `<!doctype html>
@@ -315,57 +369,64 @@ function docPageHtml({ lang, docPath, title, category, group, html, description,
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${escapeHtml(title)} - ErisPulse 文档中心</title>
+    <title>${escapeHtml(title)} - ErisPulse ${escapeHtml(labels.docs)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
     <link rel="canonical" href="${url}" />
     ${langLinks(lang, docPath).alts}
-    <meta property="og:title" content="${escapeHtml(title)} - ErisPulse 文档中心" />
+    <meta property="og:title" content="${escapeHtml(title)} - ErisPulse ${escapeHtml(labels.docs)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${url}" />
     <meta property="og:type" content="article" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="${ogImage}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="${ogImage}" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/assets/img/logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
     <script type="application/ld+json">${jsonLd}</script>
+    <script type="application/ld+json">${breadcrumbLd}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/doc-static.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <style>
-        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
-        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
-        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
-        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
-        .doc-nav-links a:hover{color:var(--primary)}
-        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
-        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
-        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
-        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
-        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
-        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
-        .doc-lang-link.current{color:var(--primary);font-weight:600}
-        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
-        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
-        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
-        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
-        .doc-pager a small{color:var(--text-secondary)}
-        .doc-pager-next{text-align:right}
-        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
-    </style>
 </head>
-<body>
-    ${nav}
-    <main class="doc-page">
-        ${breadcrumbs}
-        <div class="doc-langs">${langLinks(lang, docPath).links}</div>
-        <div class="doc-interactive">
-            <span>本文为静态镜像，内容以交互版为准</span>
-            <a href="${interactive}">在交互式文档中心打开 →</a>
+<body class="doc-static-page">
+    <header class="ds-top">
+        <a class="ds-brand" href="/">
+            <img class="ds-brand-icon" src="/assets/img/logo.png" alt="ErisPulse" />
+            <span>ErisPulse</span>
+        </a>
+        <div class="ds-top-right">
+            <div class="doc-langs">${langLinks(lang, docPath).links}</div>
+            <a class="ds-interactive" href="${interactive}">${escapeHtml(labels.interactive)} →</a>
         </div>
-        <article class="markdown-content" id="docs-content">
-            ${html}
-        </article>
-        ${pager}
-    </main>
-    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+    </header>
+
+    <div class="ds-layout">
+        <aside class="ds-sidebar">
+            <div class="ds-sidebar-title">${escapeHtml(labels.docs)}</div>
+            <nav class="ds-side-nav">${sidebar}</nav>
+        </aside>
+
+        <main class="ds-main">
+            ${chapterBar}
+            <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/docs.html">${escapeHtml(labels.docs)}</a>
+                <span class="doc-crumb-sep">/</span> ${crumbCategory}${crumbGroup}
+                <span class="doc-crumb-sep">/</span> <span>${escapeHtml(title)}</span>
+            </nav>
+            <div class="doc-interactive">
+                <span>${escapeHtml(labels.mirror)}</span>
+                <a href="${interactive}">${escapeHtml(labels.interactive)} →</a>
+            </div>
+            <article class="markdown-content" id="docs-content">
+                ${html}
+            </article>
+            ${pager}
+        </main>
+    </div>
+
+    <footer class="ds-footer">
         © 2026 ErisPulse Project · <a href="https://github.com/${UPSTREAM}" target="_blank" rel="noopener noreferrer">GitHub</a>
     </footer>
 </body>
@@ -394,6 +455,7 @@ async function buildDocs() {
                     (item.title || '').replace(/[`*]/g, '');
                 const prev = idx > 0 ? list[idx - 1] : null;
                 const next = idx < list.length - 1 ? list[idx + 1] : null;
+                const toc = extractToc(html);
 
                 const out = path.join(ROOT, 'docs', lang === MAIN_LANG ? '' : lang,
                     item.path.replace(/\.md$/, '') + '.html');
@@ -408,6 +470,8 @@ async function buildDocs() {
                     description,
                     prev,
                     next,
+                    toc,
+                    tree: list,
                 }));
                 built.push(`${lang}/${item.path}`);
             } catch (e) {
@@ -437,6 +501,11 @@ function timeAgoCn(iso) {
 
 /** 把 views 片段做 DOM 修改后填入入口页 slot */
 function prefillSlot(pageFile, slotName, viewFile, mutate) {
+    const pagePath = path.join(ROOT, pageFile);
+    if (!fs.existsSync(pagePath)) {
+        console.warn(`SKIP 预填充 ${pageFile}：入口页不存在`);
+        return;
+    }
     const { doc, bom } = parsePage(pageFile);
     const slot = doc.querySelector(`[data-fragment-slot="${slotName}"]`);
     if (!slot) throw new Error(`${pageFile} 缺少 slot: ${slotName}`);
@@ -633,7 +702,6 @@ function buildSitemap(builtPaths) {
         { loc: '/', priority: '1.0', changefreq: 'weekly' },
         { loc: '/docs.html', priority: '0.9', changefreq: 'weekly' },
         { loc: '/market.html', priority: '0.8', changefreq: 'weekly' },
-        { loc: '/community.html', priority: '0.7', changefreq: 'daily' },
         { loc: '/about.html', priority: '0.6', changefreq: 'monthly' },
     ];
     for (const p of entryPages) {

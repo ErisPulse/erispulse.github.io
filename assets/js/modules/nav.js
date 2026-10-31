@@ -224,6 +224,8 @@ function switchViewByHash() {
 }
 
 export function updateView(view, updateHash = false) {
+  // 视图身份同步到 body：CSS 据此切换页面底（首页纸面/文档米色/其余视差图）
+  if (view) document.body.dataset.activeView = view;
   document
     .querySelectorAll("[data-view]")
     .forEach((link) => link.classList.remove("active"));

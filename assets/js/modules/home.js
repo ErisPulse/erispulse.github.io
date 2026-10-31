@@ -364,7 +364,7 @@ function renderHeroStats(stats) {
 
 /** 单次拉取 /api/stats（Worker 边缘缓存 1h），失败保持 '--' 降级 */
 export function initHeroStats() {
-    if (!document.getElementById('hero-stats')) return;
+    if (!document.getElementById('stat-stars') && !document.getElementById('hero-stats')) return;
 
     try {
         var cached = JSON.parse(localStorage.getItem(STATS_CACHE_KEY));

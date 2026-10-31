@@ -16,6 +16,7 @@ import * as market from "./modules/marketplace.js";
 import * as docs from "./modules/docs.js";
 import { renderFriendLinks, renderDependencies } from "./modules/about.js";
 import * as home from "./modules/home.js";
+import { initLineField } from "./modules/linefield.js";
 import { initReveal } from "./modules/reveal.js";
 
 /**
@@ -53,17 +54,6 @@ import { initReveal } from "./modules/reveal.js";
 })();
 
 /**
- * Logo 图片加载检测：加载完成后淡入，加载中显示文字占位
- */
-(function setupLoaderLogo() {
-  const img = document.querySelector(".loader-icon");
-  if (!img) return;
-  const reveal = () => img.classList.add("loaded");
-  if (img.complete && img.naturalWidth > 0) reveal();
-  else img.addEventListener("load", reveal, { once: true });
-})();
-
-/**
  * 等价于原 ErisPulseApp.init()
  * 注意：setupStorage() 与 loadUserSettings() 在原实现中功能完全重复，
  * 此处仅调用 loadUserSettings() 一次即可达到相同效果。
@@ -88,11 +78,12 @@ function runInit() {
   home.initBannerCarousel();
   home.initInstallOverlay();
   home.initHeroStats();
+  initLineField();
   nav.setupOnlineOffline();
 }
 
 /**
- * 揭幕：整层水彩溶解 —— 轻微放大、虚化后淡出（CSS .page-loader.leaving）
+ * 揭幕：纯淡出（CSS .page-loader.leaving，0.45s）
  */
 function hideLoader() {
   const loader = document.getElementById("page-loader");
@@ -107,7 +98,7 @@ function hideLoader() {
   loader.classList.add("leaving");
   setTimeout(() => {
     loader.style.display = "none";
-  }, 620);
+  }, 480);
 }
 
 /**

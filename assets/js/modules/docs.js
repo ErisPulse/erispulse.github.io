@@ -272,6 +272,7 @@ export function setupDocumentation() {
     setupDocumentActions();
     setupDocumentationResponsive();
     setupGlobalNavigationEvents();
+    setupChapterBar();
 
     DocsIndexManager.onLoad(function (type, success, data, error) {
         if (type === 'mapping' || type === 'search') {
@@ -364,6 +365,8 @@ export function showCategoryLevel() {
             showDocumentList(categoryId);
         });
     });
+
+    syncChapterBar();
 }
 
 function renderDocItemHtml(doc) {
@@ -496,6 +499,8 @@ function showDocumentList(categoryId) {
             subgroup.classList.toggle('collapsed');
         });
     });
+
+    syncChapterBar();
 }
 
 function isApiReferenceCategory(category, categoryId) {
@@ -533,6 +538,153 @@ async function handleAutoApiLazyLoad(subgroupEl, categoryId) {
         console.error('auto_api 加载失败:', e);
         subgroupEl.dataset.autoApiLoading = '';
     }
+}
+
+/* ==================== 文档导航壳（移动端吸顶条 + PC 收起/恢复） ====================
+   ≤991px：侧栏（搜索 + 三态导航）常驻吸顶导航条面板。
+   ≥992px：默认侧栏内联；点侧栏头部的收起按钮 → 侧栏搬进导航条（与移动端
+   同一形态），导航条左侧出现「恢复侧边栏」按钮；点恢复 → 侧栏回布局原位。
+   偏好持久化在 localStorage（erispulse-docs-sidebar）。 */
+const SIDEBAR_STORE_KEY = 'erispulse-docs-sidebar';
+
+const navShell = {
+    row: null,
+    bar: null,
+    toggle: null,
+    label: null,
+    panel: null,
+    restore: null,
+    collapseBtn: null,
+    sidebar: null,
+    layout: null,
+    main: null,
+    open: false,
+    collapsed: false,
+    isMobile: false,
+    ready: false,
+};
+
+export function setupChapterBar() {
+    navShell.row = document.getElementById('docs-chapter-bar-row');
+    navShell.bar = document.getElementById('docs-chapter-bar');
+    if (!navShell.row || !navShell.bar) return;
+    navShell.toggle = navShell.bar.querySelector('.docs-chapter-bar-toggle');
+    navShell.label = navShell.bar.querySelector('.docs-chapter-bar-label');
+    navShell.panel = navShell.bar.querySelector('.docs-chapter-bar-panel');
+    navShell.restore = document.getElementById('docs-sidebar-restore');
+    navShell.ready = true;
+
+    navShell.toggle.setAttribute('aria-label', I18n.t('docs.chapterbar.toggleAria'));
+    navShell.toggle.addEventListener('click', () => setChapterBarOpen(!navShell.open));
+    document.addEventListener('click', (e) => {
+        if (navShell.open && !navShell.row.contains(e.target)) setChapterBarOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navShell.open) setChapterBarOpen(false);
+    });
+    if (navShell.restore) {
+        navShell.restore.addEventListener('click', () => setSidebarCollapsed(false));
+    }
+
+    // PC 收起按钮（在侧栏头部，随侧栏一起被搬移，收起态下兼作恢复入口）
+    const aside = document.querySelector('.docs-sidebar');
+    const header = document.querySelector('.docs-sidebar-header');
+    if (aside && header) {
+        navShell.sidebar = aside;
+        navShell.collapseBtn = document.createElement('button');
+        navShell.collapseBtn.type = 'button';
+        navShell.collapseBtn.className = 'docs-sidebar-collapse-btn';
+        navShell.collapseBtn.setAttribute('aria-label', I18n.t('docs.sidebar.collapseAria'));
+        navShell.collapseBtn.innerHTML = '<i class="fas fa-outdent"></i>';
+        navShell.collapseBtn.addEventListener('click', () => {
+            const next = !navShell.collapsed;
+            setSidebarCollapsed(next);
+            // 收起后自动展开面板；零延迟避开本次点击沿旧路径冒泡的干扰
+            if (next) setTimeout(() => setChapterBarOpen(true), 0);
+        });
+        header.appendChild(navShell.collapseBtn);
+    }
+    navShell.layout = document.querySelector('.docs-layout');
+    navShell.main = document.querySelector('.docs-main');
+
+    try { navShell.collapsed = localStorage.getItem(SIDEBAR_STORE_KEY) === 'collapsed'; } catch (e) { /* 忽略 */ }
+
+    const mq = window.matchMedia('(max-width: 991px)');
+    const apply = () => { navShell.isMobile = mq.matches; renderNavShell(); };
+    if (mq.addEventListener) mq.addEventListener('change', apply);
+    else if (mq.addListener) mq.addListener(apply);
+    apply();
+}
+
+function setSidebarCollapsed(collapsed) {
+    navShell.collapsed = collapsed;
+    try { localStorage.setItem(SIDEBAR_STORE_KEY, collapsed ? 'collapsed' : 'open'); } catch (e) { /* 忽略 */ }
+    renderNavShell();
+}
+
+/* 侧栏泊位：移动端或 PC 收起态 → 导航条面板；否则回布局原位 */
+function renderNavShell() {
+    if (!navShell.ready || !navShell.sidebar || !navShell.layout || !navShell.main) return;
+    const dockInBar = navShell.isMobile || navShell.collapsed;
+    if (dockInBar) {
+        if (navShell.sidebar.parentElement !== navShell.panel) {
+            navShell.panel.appendChild(navShell.sidebar);
+        }
+        navShell.layout.classList.add('nav-in-bar');
+    } else {
+        if (navShell.sidebar.parentElement !== navShell.layout) {
+            navShell.layout.insertBefore(navShell.sidebar, navShell.main);
+        }
+        navShell.layout.classList.remove('nav-in-bar');
+        setChapterBarOpen(false);
+    }
+    navShell.row.hidden = !dockInBar;
+    if (navShell.restore) {
+        navShell.restore.hidden = navShell.isMobile || !navShell.collapsed;
+    }
+    if (navShell.collapseBtn) {
+        navShell.collapseBtn.querySelector('i').className =
+            navShell.collapsed ? 'fas fa-table-columns' : 'fas fa-outdent';
+    }
+    updateChapterBarLabel();
+}
+
+function setChapterBarOpen(open) {
+    if (!navShell.ready) return;
+    navShell.open = open;
+    navShell.bar.classList.toggle('open', open);
+    navShell.panel.hidden = !open;
+    navShell.toggle.setAttribute('aria-expanded', String(open));
+    // 面板展开期间隐藏外侧恢复按钮（面板内已有同功能入口）
+    if (navShell.restore) {
+        navShell.restore.hidden = navShell.isMobile || !navShell.collapsed || open;
+    }
+}
+
+/* 导航状态 → 导航条标题（分类态/文档态/章节态） */
+function syncChapterBar() {
+    if (!navShell.ready) return;
+    updateChapterBarLabel();
+}
+
+function updateChapterBarLabel() {
+    if (!navShell.ready || !navShell.label) return;
+    if (currentNavState === 'chapters') {
+        const active = document.querySelector('.chapter-item.active .chapter-text');
+        navShell.label.textContent = active ? active.textContent
+            : (DocsIndexManager.getDocumentTitle(currentDocPath) || I18n.t('docs.chapterbar.title'));
+    } else if (currentNavState === 'documents') {
+        navShell.label.textContent = currentCategory || I18n.t('docs.chapterbar.title');
+    } else {
+        navShell.label.textContent = I18n.t('docs.chapterbar.selectCategory');
+    }
+}
+
+/* scrollspy 命中章节时：导航条标题同步（面板内高亮由侧栏 .chapter-item.active 原生承担） */
+function updateChapterBarActive() {
+    if (!navShell.ready || navShell.row.hidden || currentNavState !== 'chapters') return;
+    const active = document.querySelector('.chapter-item.active .chapter-text');
+    if (active && navShell.label) navShell.label.textContent = active.textContent;
 }
 
 function showChapterToc(docPath) {
@@ -585,6 +737,9 @@ function showChapterToc(docPath) {
     });
 
     updateActiveChapter();
+
+    // 单列布局下侧栏（分类/文档树）保留在顶部，章节导航由浮动章节条承担
+    syncChapterBar();
 }
 
 function updateActiveChapter() {
@@ -613,6 +768,8 @@ function updateActiveChapter() {
                 if (activeItem) {
                     scrollChapterIntoView(activeItem);
                 }
+                // 移动端导航条标题同步当前章节
+                updateChapterBarActive();
                 // 滚动同步 URL 中的章节锚点，方便直接复制/刷新定位
                 syncSectionHash(id);
             }
@@ -764,6 +921,8 @@ function setupGlobalNavigationEvents() {
                 }
                 document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
                 chapterItem.classList.add('active');
+                // 移动端：选定阅读位置后收起导航条面板
+                setChapterBarOpen(false);
             }
             return;
         }
