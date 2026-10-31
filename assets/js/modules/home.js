@@ -364,7 +364,7 @@ function renderHeroStats(stats) {
 
  
 export function initHeroStats() {
-    if (!document.getElementById('hero-stats')) return;
+    if (!document.getElementById('stat-stars') && !document.getElementById('hero-stats')) return;
 
     try {
         var cached = JSON.parse(localStorage.getItem(STATS_CACHE_KEY));

@@ -224,6 +224,8 @@ function switchViewByHash() {
 }
 
 export function updateView(view, updateHash = false) {
+   
+  if (view) document.body.dataset.activeView = view;
   document
     .querySelectorAll("[data-view]")
     .forEach((link) => link.classList.remove("active"));

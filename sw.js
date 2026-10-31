@@ -1,4 +1,4 @@
-const CACHE_NAME = "erispulse-v2.31.0";
+const CACHE_NAME = "erispulse-v2.32.0";
 const EXTERNAL_LIBS = [
   "https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/",
   "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/",
@@ -10,6 +10,7 @@ const urlsToCache = [
   "/index.html",
   "/404.html",
   "/assets/css/main.css",
+  "/assets/css/doc-static.css",
   "/assets/css/home.css",
   "/assets/css/market.css",
   "/assets/css/markdown.css",
@@ -38,6 +39,10 @@ const urlsToCache = [
   "/views/about.html",
   "/views/modals.html",
   "/assets/img/logo.png",
+  "/assets/img/logo-192.png",
+  "/assets/img/logo-512.png",
+  "/assets/img/apple-touch-icon.png",
+  "/assets/img/og-cover.png",
   "/assets/img/eplogo.svg",
   "/assets/img/mascot-hero.webp",
   "/assets/img/thanks.webp",

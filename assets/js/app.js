@@ -16,6 +16,7 @@ import * as market from "./modules/marketplace.js";
 import * as docs from "./modules/docs.js";
 import { renderFriendLinks, renderDependencies } from "./modules/about.js";
 import * as home from "./modules/home.js";
+import { initLineField } from "./modules/linefield.js";
 import { initReveal } from "./modules/reveal.js";
 
 
@@ -55,17 +56,6 @@ import { initReveal } from "./modules/reveal.js";
 
 
 
-(function setupLoaderLogo() {
-  const img = document.querySelector(".loader-icon");
-  if (!img) return;
-  const reveal = () => img.classList.add("loaded");
-  if (img.complete && img.naturalWidth > 0) reveal();
-  else img.addEventListener("load", reveal, { once: true });
-})();
-
-
-
-
 
 
 function runInit() {
@@ -88,6 +78,7 @@ function runInit() {
   home.initBannerCarousel();
   home.initInstallOverlay();
   home.initHeroStats();
+  initLineField();
   nav.setupOnlineOffline();
 }
 
@@ -107,7 +98,7 @@ function hideLoader() {
   loader.classList.add("leaving");
   setTimeout(() => {
     loader.style.display = "none";
-  }, 620);
+  }, 480);
 }
 
 
