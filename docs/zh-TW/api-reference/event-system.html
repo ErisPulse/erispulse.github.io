@@ -3,82 +3,110 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>事件系統 API - ErisPulse 文档中心</title>
-    <meta name="description" content="命名衝突規則：命令名優先於別名。註冊與既有命令重名的別名時，該別名不生效並輸出警告；註冊與既有別名重名的命令時，命令名優先生效、死別名會自動移除——這兩類衝突都會有 WARNING 日誌，不會靜默劫持。" />
+    <title>事件系統 API - ErisPulse 文檔中心</title>
+    <meta name="description" content="什麼時候需要閱讀這篇：當你需要註冊命令、監聽訊息/通知/請求事件，或使用 event.reply() / wait_reply() / confirm() 等事件互動方法時查閱本文。不需要則跳過。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/api-reference/event-system.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/api-reference/event-system.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/api-reference/event-system.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/api-reference/event-system.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/api-reference/event-system.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/api-reference/event-system.html" />
-    <meta property="og:title" content="事件系統 API - ErisPulse 文档中心" />
-    <meta property="og:description" content="命名衝突規則：命令名優先於別名。註冊與既有命令重名的別名時，該別名不生效並輸出警告；註冊與既有別名重名的命令時，命令名優先生效、死別名會自動移除——這兩類衝突都會有 WARNING 日誌，不會靜默劫持。" />
+    <meta property="og:title" content="事件系統 API - ErisPulse 文檔中心" />
+    <meta property="og:description" content="什麼時候需要閱讀這篇：當你需要註冊命令、監聽訊息/通知/請求事件，或使用 event.reply() / wait_reply() / confirm() 等事件互動方法時查閱本文。不需要則跳過。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/api-reference/event-system.html" />
     <meta property="og:type" content="article" />
-    <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"事件系統 API","description":"命名衝突規則：命令名優先於別名。註冊與既有命令重名的別名時，該別名不生效並輸出警告；註冊與既有別名重名的命令時，命令名優先生效、死別名會自動移除——這兩類衝突都會有 WARNING 日誌，不會靜默劫持。","url":"https://www.erisdev.com/docs/zh-TW/api-reference/event-system.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <meta property="og:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/assets/img/logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"事件系統 API","description":"什麼時候需要閱讀這篇：當你需要註冊命令、監聽訊息/通知/請求事件，或使用 event.reply() / wait_reply() / confirm() 等事件互動方法時查閱本文。不需要則跳過。","url":"https://www.erisdev.com/docs/zh-TW/api-reference/event-system.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文檔中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"文檔中心","item":"https://www.erisdev.com/docs.html"},{"@type":"ListItem","position":2,"name":"API 參考","item":"https://www.erisdev.com/docs/zh-TW/api-reference/event-system.html"},{"@type":"ListItem","position":3,"name":"事件系統 API"}]}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/doc-static.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <style>
-        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
-        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
-        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
-        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
-        .doc-nav-links a:hover{color:var(--primary)}
-        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
-        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
-        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
-        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
-        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
-        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
-        .doc-lang-link.current{color:var(--primary);font-weight:600}
-        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
-        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
-        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
-        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
-        .doc-pager a small{color:var(--text-secondary)}
-        .doc-pager-next{text-align:right}
-        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
-    </style>
 </head>
-<body>
-    
-    <nav class="doc-static-nav">
-        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
-        <div class="doc-nav-links">
-            <a href="/">首页</a>
-            <a href="/docs.html">文档中心</a>
-            <a href="/market.html">模块市场</a>
-            <a href="/community.html">社区</a>
-            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-    </nav>
-    <main class="doc-page">
-        
-    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/docs.html">Docs</a>
-        <span class="doc-crumb-sep">/</span> API 參考
-        <span class="doc-crumb-sep">/</span> <span>事件系統 API</span>
-    </nav>
-        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/event-system.html">简体中文</a>
+<body class="doc-static-page">
+    <header class="ds-top">
+        <a class="ds-brand" href="/">
+            <img class="ds-brand-icon" src="/assets/img/logo.png" alt="ErisPulse" />
+            <span>ErisPulse</span>
+        </a>
+        <div class="ds-top-right">
+            <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/api-reference/event-system.html">简体中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/en/api-reference/event-system.html">English</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/api-reference/event-system.html">繁體中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/api-reference/event-system.html">日本語</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/api-reference/event-system.html">Русский</a></div>
-        <div class="doc-interactive">
-            <span>本文为静态镜像，内容以交互版为准</span>
-            <a href="https://www.erisdev.com/#docs/api-reference/event-system.md">在交互式文档中心打开 →</a>
+            <a class="ds-interactive" href="https://www.erisdev.com/#docs/api-reference/event-system.md">在互動式文檔中心打開 →</a>
         </div>
-        <article class="markdown-content" id="docs-content">
-            <h1 id="事件系統-api">事件系統 API</h1>
+    </header>
+
+    <div class="ds-layout">
+        <aside class="ds-sidebar">
+            <div class="ds-sidebar-title">文檔中心</div>
+            <nav class="ds-side-nav"><details class="ds-cat"><summary><span class="ds-cat-name">快速開始</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/README.html">ErisPulse 文件</a><a class="ds-doc" href="/docs/zh-TW/quick-start.html">快速入門</a><a class="ds-doc" href="/docs/zh-TW/architecture.html">架構概覽</a><a class="ds-doc" href="/docs/zh-TW/bug-tracker.html">Bug 追蹤器</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">入門指南</span><span class="ds-cat-count">6</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/getting-started/first-bot.html">建立第一個機器人</a><a class="ds-doc" href="/docs/zh-TW/getting-started/README.html">入門指南</a><a class="ds-doc" href="/docs/zh-TW/getting-started/basic-concepts.html">基礎概念</a><a class="ds-doc" href="/docs/zh-TW/getting-started/common-tasks.html">常見任務範例</a><a class="ds-doc" href="/docs/zh-TW/getting-started/event-handling.html">事件處理入門</a><a class="ds-doc" href="/docs/zh-TW/getting-started/ide-completion.html">類型存根生成（IDE 補全）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">選型指南</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/showcase/README.html">選型指南</a><a class="ds-doc" href="/docs/zh-TW/showcase/comparison-nonebot.html">對比：ErisPulse 與 NoneBot2</a><a class="ds-doc" href="/docs/zh-TW/showcase/comparison-agent-platforms.html">對比：ErisPulse 與 AstrBot / LangBot</a><a class="ds-doc" href="/docs/zh-TW/showcase/migrate-from-astrbot.html">遷移指南：從 AstrBot 到 ErisPulse</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">使用者指南</span><span class="ds-cat-count">5</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/user-guide/README.html">用戶使用指南</a><a class="ds-doc" href="/docs/zh-TW/user-guide/installation.html">安裝參考</a><a class="ds-doc" href="/docs/zh-TW/user-guide/configuration.html">配置文件說明</a><a class="ds-doc" href="/docs/zh-TW/user-guide/cli-reference.html">CLI 指令參考</a><a class="ds-doc" href="/docs/zh-TW/user-guide/deployment.html">部署指南</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">開發者指南</span><span class="ds-cat-count">14</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/developer-guide/README.html">開發者指南</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/publishing.html">發布與模組商店指南</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/testing.html">模組測試（ErisPulse-Testing）</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/orm.html">數據模型層（ORM）</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/configuration.html">配置與 UI 元數據</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/getting-started.html">模組開發入門</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/core-concepts.html">模組核心概念</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類別詳解</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/best-practices.html">模組開發最佳實踐</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/getting-started.html">適配器開發入門</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/core-concepts.html">適配器核心概念</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/best-practices.html">配接器開發最佳實踐</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/converter.html">事件轉換器實現指南</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">平台特性指南</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/platform-guide/README.html">ErisPulse PlatformFeatures 文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/onebot11.html">OneBot11 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/onebot12.html">OneBot12 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/telegram.html">Telegram 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/email.html">郵件平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/yunhu.html">雲湖平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/yunhu_user.html">雲湖使用者平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/qqbot.html">QQBot 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/kook.html">Kook 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/matrix.html">Matrix平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/discord.html">Discord 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/wechatmp.html">微信公眾號（WechatMp）適配器 - 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/webhook.html">平台特性說明 — Webhook 通用橋接適配器</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/ideaura.html">花楓咖啡館（RockyChat）平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/maintain-notes.html">文件維護說明</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/sandbox.html">Sandbox 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/snowluma.html">SnowLuma 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/terminal.html">終端平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/wecom.html">企業微信（WeCom）平台特性文件</a></div></details><details class="ds-cat" open><summary><span class="ds-cat-name">API 參考</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/api-reference/README.html">API 參考</a><a class="ds-doc" href="/docs/zh-TW/api-reference/adapter-system.html">適配器系統 API</a><a class="ds-doc" href="/docs/zh-TW/api-reference/core-modules.html">核心模組 API</a><a class="ds-doc current" href="/docs/zh-TW/api-reference/event-system.html">事件系統 API</a><div class="ds-chapters"><a class="ds-chapter level-2" href="#command-命令模組">Command 命令模組</a><a class="ds-chapter level-3" href="#註冊命令">註冊命令</a><a class="ds-chapter level-3" href="#命令資訊">命令資訊</a><a class="ds-chapter level-3" href="#等待回覆">等待回覆</a><a class="ds-chapter level-2" href="#message-訊息模組">Message 訊息模組</a><a class="ds-chapter level-3" href="#訊息事件">訊息事件</a><a class="ds-chapter level-3" href="#條件監聽">條件監聽</a><a class="ds-chapter level-2" href="#notice-通知模組">Notice 通知模組</a><a class="ds-chapter level-3" href="#通知事件">通知事件</a><a class="ds-chapter level-2" href="#request-請求模組">Request 請求模組</a><a class="ds-chapter level-3" href="#請求事件">請求事件</a><a class="ds-chapter level-2" href="#meta-元事件模組">Meta 元事件模組</a><a class="ds-chapter level-3" href="#元事件">元事件</a><a class="ds-chapter level-3" href="#bot-狀態查詢">Bot 狀態查詢</a><a class="ds-chapter level-2" href="#event-包裝類">Event 包裝類</a><a class="ds-chapter level-3" href="#能力速覽">能力速覽</a><a class="ds-chapter level-3" href="#鏈路控制">鏈路控制</a><a class="ds-chapter level-3" href="#平台擴展方法">平台擴展方法</a><a class="ds-chapter level-3" href="#適配器註冊平台擴展方法">適配器：註冊平台擴展方法</a><a class="ds-chapter level-2" href="#跨平台擴展通配符">跨平台擴展（通配符）</a><a class="ds-chapter level-3" href="#註冊跨平台方法">註冊跨平台方法</a><a class="ds-chapter level-3" href="#方法解析優先級">方法解析優先級</a><a class="ds-chapter level-2" href="#優先級系統">優先級系統</a><a class="ds-chapter level-2" href="#相關文件">相關文件</a></div></div></details><details class="ds-cat"><summary><span class="ds-cat-name">進階主題</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/advanced/README.html">高級主題</a><a class="ds-doc" href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a><a class="ds-doc" href="/docs/zh-TW/advanced/lazy-loading.html">慢載模組系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/router.html">路由管理器</a><a class="ds-doc" href="/docs/zh-TW/advanced/message-builder.html">MessageBuilder 詳解</a><a class="ds-doc" href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a><a class="ds-doc" href="/docs/zh-TW/advanced/http-client.html">網路用戶端</a><a class="ds-doc" href="/docs/zh-TW/advanced/sql-builder.html">SQL 查詢建構器</a><a class="ds-doc" href="/docs/zh-TW/advanced/i18n.html">國際化 (i18n) 系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/scope.html">作用域（scope）</a><a class="ds-doc" href="/docs/zh-TW/advanced/ownership.html">所屬權（owner）系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/interaction.html">互動會話系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/shadow.html">影子模組與灰度轉正</a><a class="ds-doc" href="/docs/zh-TW/advanced/module-communication.html">模塊間通信</a><a class="ds-doc" href="/docs/zh-TW/advanced/storage-backends.html">存儲後端</a><a class="ds-doc" href="/docs/zh-TW/advanced/errors.html">異常體系與捕獲指南</a><a class="ds-doc" href="/docs/zh-TW/advanced/connections.html">連接池與廣播</a><a class="ds-doc" href="/docs/zh-TW/advanced/startup.html">啟動流程與手動控制</a><a class="ds-doc" href="/docs/zh-TW/advanced/transcript.html">會話收件箱（Transcript）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">生態模組</span><span class="ds-cat-count">7</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/ecosystem/README.html">生態模組</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/app.html">ErisPulse-App</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/dashboard.html">ErisPulse-Dashboard</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/cron.html">ErisPulse-Cron</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/takumi.html">ErisPulse-Takumi</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/apimcp.html">ErisPulse-ApiMCP 使用 AI 客戶端控制機器人</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/qvqchat.html">ErisPulse-QvQChat 通用智慧代理</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">AI 輔助開發</span><span class="ds-cat-count">12</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/ai-support/README.html">AI 輔助開發</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-adapter-dev/SKILL.html">ErisPulse 适配器开发</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-adapter-standards/SKILL.html">ErisPulse 适配器技术标准</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-communication/SKILL.html">ErisPulse 通信与连接</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-config-cli/SKILL.html">ErisPulse 配置系统与 CLI 工具链</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-ecosystem/SKILL.html">ErisPulse 生态与多平台</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-errors-troubleshooting/SKILL.html">ErisPulse 异常体系与排障</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-getting-started/SKILL.html">ErisPulse 快速上手与核心概念</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-hot-reload/SKILL.html">ErisPulse 热重载与懒加载休眠</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-module-dev/SKILL.html">ErisPulse 模块开发</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-scope-ownership/SKILL.html">ErisPulse 权限作用域与归属权</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-shadow-transcript/SKILL.html">ErisPulse 影子灰度与消息追踪</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">技術標準</span><span class="ds-cat-count">8</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/standards/README.html">技術標準</a><a class="ds-doc" href="/docs/zh-TW/standards/session-types.html">ErisPulse 會話類型標準</a><a class="ds-doc" href="/docs/zh-TW/standards/api-response.html">ErisPulse 轉接器標準化回傳規範</a><a class="ds-doc" href="/docs/zh-TW/standards/event-conversion.html">適配器標準化轉換規範</a><a class="ds-doc" href="/docs/zh-TW/standards/send-method-spec.html">ErisPulse 發送方法規範</a><a class="ds-doc" href="/docs/zh-TW/standards/request-action-spec.html">ErisPulse 請求操作規範</a><a class="ds-doc" href="/docs/zh-TW/standards/api-action-spec.html">ErisPulse API 動作標準</a><a class="ds-doc" href="/docs/zh-TW/standards/standardization-guide.html">適配器標準化指南（總綱）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API</span><span class="ds-cat-count">140</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/__init__.html">`ErisPulse.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/__main__.html">`ErisPulse.__main__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/sdk.html">`ErisPulse.sdk` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/README.html">ErisPulse API 文档</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/__init__.html">`ErisPulse.Core.Bases.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/adapter.html">`ErisPulse.Core.Bases.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/adapter_patterns.html">`ErisPulse.Core.Bases.adapter_patterns` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/api_dsl.html">`ErisPulse.Core.Bases.api_dsl` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/client.html">`ErisPulse.Core.Bases.client` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/config_schema.html">`ErisPulse.Core.Bases.config_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/converter.html">`ErisPulse.Core.Bases.converter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/errors.html">`ErisPulse.Core.Bases.errors` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/i18n_schema.html">`ErisPulse.Core.Bases.i18n_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/kv_builder.html">`ErisPulse.Core.Bases.kv_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/manager.html">`ErisPulse.Core.Bases.manager` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/model.html">`ErisPulse.Core.Bases.model` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/module.html">`ErisPulse.Core.Bases.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/router.html">`ErisPulse.Core.Bases.router` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/send_builder.html">`ErisPulse.Core.Bases.send_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/send_rules.html">`ErisPulse.Core.Bases.send_rules` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">`ErisPulse.Core.Bases.sql_base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">`ErisPulse.Core.Bases.storage` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/websocket.html">`ErisPulse.Core.Bases.websocket` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/__init__.html">`ErisPulse.Core.Event.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/base.html">`ErisPulse.Core.Event.base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command.html">`ErisPulse.Core.Event.command` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command_args.html">`ErisPulse.Core.Event.command_args` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command_flow.html">`ErisPulse.Core.Event.command_flow` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/conversation.html">`ErisPulse.Core.Event.conversation` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/governance.html">`ErisPulse.Core.Event.governance` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/interaction.html">`ErisPulse.Core.Event.interaction` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/message.html">`ErisPulse.Core.Event.message` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/message_builder.html">`ErisPulse.Core.Event.message_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/meta.html">`ErisPulse.Core.Event.meta` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/notice.html">`ErisPulse.Core.Event.notice` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/overrides.html">`ErisPulse.Core.Event.overrides` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/request.html">`ErisPulse.Core.Event.request` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/session_type.html">`ErisPulse.Core.Event.session_type` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/throttle.html">`ErisPulse.Core.Event.throttle` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/trace.html">`ErisPulse.Core.Event.trace` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/wrapper.html">`ErisPulse.Core.Event.wrapper` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/__init__.html">`ErisPulse.Core.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/adapter.html">`ErisPulse.Core.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/assets/__init__.html">`ErisPulse.Core.assets.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/client.html">`ErisPulse.Core.client` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/config.html">`ErisPulse.Core.config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/connections.html">`ErisPulse.Core.connections` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/constants.html">`ErisPulse.Core.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/di.html">`ErisPulse.Core.di` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/__init__.html">`ErisPulse.Core.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/constants.html">`ErisPulse.Core.i18n.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/__init__.html">`ErisPulse.Core.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/en.html">`ErisPulse.Core.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/ja.html">`ErisPulse.Core.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/ru.html">`ErisPulse.Core.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_cn.html">`ErisPulse.Core.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_tw.html">`ErisPulse.Core.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/lifecycle.html">`ErisPulse.Core.lifecycle` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/logger.html">`ErisPulse.Core.logger` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/master.html">`ErisPulse.Core.master` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/module.html">`ErisPulse.Core.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/ownership.html">`ErisPulse.Core.ownership` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/router.html">`ErisPulse.Core.router` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/scope.html">`ErisPulse.Core.scope` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/shadow.html">`ErisPulse.Core.shadow` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/__init__.html">`ErisPulse.Core.storage.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/mysql.html">`ErisPulse.Core.storage.mysql` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/postgres.html">`ErisPulse.Core.storage.postgres` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/sqlite.html">`ErisPulse.Core.storage.sqlite` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/text_match.html">`ErisPulse.Core.text_match` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/transcript.html">`ErisPulse.Core.transcript` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/__init__.html">`ErisPulse.CLI.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/base.html">`ErisPulse.CLI.base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/cli.html">`ErisPulse.CLI.cli` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/__init__.html">`ErisPulse.CLI.commands.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/config.html">`ErisPulse.CLI.commands.config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/create.html">`ErisPulse.CLI.commands.create` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/doctor.html">`ErisPulse.CLI.commands.doctor` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/init.html">`ErisPulse.CLI.commands.init` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/install.html">`ErisPulse.CLI.commands.install` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/language.html">`ErisPulse.CLI.commands.language` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/list.html">`ErisPulse.CLI.commands.list` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/list_remote.html">`ErisPulse.CLI.commands.list_remote` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/run.html">`ErisPulse.CLI.commands.run` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/runtime.html">`ErisPulse.CLI.commands.runtime` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/self_update.html">`ErisPulse.CLI.commands.self_update` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/types.html">`ErisPulse.CLI.commands.types` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/uninstall.html">`ErisPulse.CLI.commands.uninstall` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/upgrade.html">`ErisPulse.CLI.commands.upgrade` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/version.html">`ErisPulse.CLI.commands.version` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/console.html">`ErisPulse.CLI.console` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/constants.html">`ErisPulse.CLI.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/hints.html">`ErisPulse.CLI.hints` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/__init__.html">`ErisPulse.CLI.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/__init__.html">`ErisPulse.CLI.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/en.html">`ErisPulse.CLI.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ja.html">`ErisPulse.CLI.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ru.html">`ErisPulse.CLI.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_cn.html">`ErisPulse.CLI.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_tw.html">`ErisPulse.CLI.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/registry.html">`ErisPulse.CLI.registry` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/__init__.html">`ErisPulse.CLI.utils.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/config_wizard.html">`ErisPulse.CLI.utils.config_wizard` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/display.html">`ErisPulse.CLI.utils.display` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/interactive.html">`ErisPulse.CLI.utils.interactive` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/package_manager.html">`ErisPulse.CLI.utils.package_manager` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/runtime_state.html">`ErisPulse.CLI.utils.runtime_state` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/scaffold_text.html">`ErisPulse.CLI.utils.scaffold_text` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/__init__.html">`ErisPulse.runtime.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/config_schema.html">`ErisPulse.runtime.config_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/context.html">`ErisPulse.runtime.context` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/diagnostics.html">`ErisPulse.runtime.diagnostics` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/example_config.html">`ErisPulse.runtime.example_config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/exceptions.html">`ErisPulse.runtime.exceptions` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/file_watcher.html">`ErisPulse.runtime.file_watcher` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/frame_config.html">`ErisPulse.runtime.frame_config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/hints.html">`ErisPulse.runtime.hints` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/kernel.html">`ErisPulse.runtime.kernel` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/memory.html">`ErisPulse.runtime.memory` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">`ErisPulse.runtime.owner_cleanup` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html">`ErisPulse.runtime.plugin_reload` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">`ErisPulse.runtime.proactive_gc` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/process_state.html">`ErisPulse.runtime.process_state` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/reload_ops.html">`ErisPulse.runtime.reload_ops` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/sdk_initializer.html">`ErisPulse.runtime.sdk_initializer` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/tasks.html">`ErisPulse.runtime.tasks` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/troubleshoot.html">`ErisPulse.runtime.troubleshoot` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/version.html">`ErisPulse.runtime.version` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/__init__.html">`ErisPulse.loaders.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/_reload_utils.html">`ErisPulse.loaders._reload_utils` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/adapter.html">`ErisPulse.loaders.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/bases/loader.html">`ErisPulse.loaders.bases.loader` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/module.html">`ErisPulse.loaders.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/plugin_folder.html">`ErisPulse.loaders.plugin_folder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/strategy.html">`ErisPulse.loaders.strategy` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/strict.html">`ErisPulse.loaders.strict` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/__init__.html">`ErisPulse.finders.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/adapter.html">`ErisPulse.finders.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/bases/finder.html">`ErisPulse.finders.bases.finder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/module.html">`ErisPulse.finders.module` 模块</a></div></details></nav>
+        </aside>
+
+        <main class="ds-main">
+            
+    <details class="ds-chapter-bar">
+        <summary>
+            <span class="ds-chapter-bar-icon" aria-hidden="true"></span>
+            <span class="ds-chapter-bar-label">本頁章節</span>
+            <span class="ds-chapter-bar-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="ds-chapter-bar-panel">
+            <div class="ds-chapter-rail">
+                <a class="ds-chapter level-2" href="#command-命令模組">Command 命令模組</a>
+                <a class="ds-chapter level-3" href="#註冊命令">註冊命令</a>
+                <a class="ds-chapter level-3" href="#命令資訊">命令資訊</a>
+                <a class="ds-chapter level-3" href="#等待回覆">等待回覆</a>
+                <a class="ds-chapter level-2" href="#message-訊息模組">Message 訊息模組</a>
+                <a class="ds-chapter level-3" href="#訊息事件">訊息事件</a>
+                <a class="ds-chapter level-3" href="#條件監聽">條件監聽</a>
+                <a class="ds-chapter level-2" href="#notice-通知模組">Notice 通知模組</a>
+                <a class="ds-chapter level-3" href="#通知事件">通知事件</a>
+                <a class="ds-chapter level-2" href="#request-請求模組">Request 請求模組</a>
+                <a class="ds-chapter level-3" href="#請求事件">請求事件</a>
+                <a class="ds-chapter level-2" href="#meta-元事件模組">Meta 元事件模組</a>
+                <a class="ds-chapter level-3" href="#元事件">元事件</a>
+                <a class="ds-chapter level-3" href="#bot-狀態查詢">Bot 狀態查詢</a>
+                <a class="ds-chapter level-2" href="#event-包裝類">Event 包裝類</a>
+                <a class="ds-chapter level-3" href="#能力速覽">能力速覽</a>
+                <a class="ds-chapter level-3" href="#鏈路控制">鏈路控制</a>
+                <a class="ds-chapter level-3" href="#平台擴展方法">平台擴展方法</a>
+                <a class="ds-chapter level-3" href="#適配器註冊平台擴展方法">適配器：註冊平台擴展方法</a>
+                <a class="ds-chapter level-2" href="#跨平台擴展通配符">跨平台擴展（通配符）</a>
+                <a class="ds-chapter level-3" href="#註冊跨平台方法">註冊跨平台方法</a>
+                <a class="ds-chapter level-3" href="#方法解析優先級">方法解析優先級</a>
+                <a class="ds-chapter level-2" href="#優先級系統">優先級系統</a>
+                <a class="ds-chapter level-2" href="#相關文件">相關文件</a>
+            </div>
+        </div>
+    </details>
+            <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/docs.html">文檔中心</a>
+                <span class="doc-crumb-sep">/</span> API 參考
+                <span class="doc-crumb-sep">/</span> <span>事件系統 API</span>
+            </nav>
+            <div class="doc-interactive">
+                <span>本文為靜態鏡像，內容以互動版為準</span>
+                <a href="https://www.erisdev.com/#docs/api-reference/event-system.md">在互動式文檔中心打開 →</a>
+            </div>
+            <article class="markdown-content" id="docs-content">
+                <h1 id="事件系統-api">事件系統 API</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>什麼時候需要閱讀這篇</strong>：當你需要註冊命令、監聽訊息/通知/請求事件，或使用 <code>event.reply()</code> / <code>wait_reply()</code> / <code>confirm()</code> 等事件互動方法時查閱本文。不需要則跳過。</p>
+</div>
 <p>本文檔詳細介紹了 ErisPulse 事件系統的 API。</p>
 <p>事件系統將平台事件按類型分發到五類處理器：</p>
 <pre><code class="language-mermaid">flowchart LR
     A["平台事件&lt;br/&gt;（OneBot12 標準）"] --&gt; B{"事件類型"}
     B --&gt; C["command&lt;br/&gt;命令處理器"]
-    B --&gt; D["message&lt;br/&gt;消息處理器"]
+    B --&gt; D["message&lt;br/&gt;訊息處理器"]
     B --&gt; E["notice&lt;br/&gt;通知處理器"]
     B --&gt; F["request&lt;br/&gt;請求處理器"]
     B --&gt; G["meta&lt;br/&gt;元事件處理器"]
@@ -116,16 +144,21 @@
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">reload_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 
-<span class="token comment"># 子命令（以空格分隔的多 token 命令名）</span>
-<span class="token comment"># 匹配採用最長前綴：/admin add x 會優先命中 admin add（args 為 ["x"]）；</span>
-<span class="token comment"># 子命令未聲明 permission 時會繼承父鏈上最近聲明權限的祖先命令</span>
+<span class="token comment"># 子命令（空格分隔的多 token 命令名）</span>
+<span class="token comment"># 匹配採用最長前綴：/admin add x 優先命中 admin add（args 為 ["x"]）；</span>
+<span class="token comment"># 子命令未聲明 permission 時繼承父鏈上最近聲明權限的祖先命令</span>
 <span class="token decorator annotation punctuation">@command</span><span class="token punctuation">(</span><span class="token string">"admin add"</span><span class="token punctuation">,</span> <span class="token builtin">help</span><span class="token operator">=</span><span class="token string">"新增管理員"</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">admin_add_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 </code></pre>
-<p><strong>命名衝突規則</strong>：命令名優先於別名。註冊與既有命令重名的別名時，該別名不生效並輸出警告；註冊與既有別名重名的命令時，命令名優先生效、死別名會自動移除——這兩類衝突都會有 WARNING 日誌，不會靜默劫持。</p>
+<p><strong>命名衝突規則</strong>：命令名優先於別名。註冊與既有命令重名的別名時該別名不生效並輸出
+警告；註冊與既有別名重名的命令時命令名優先生效、死別名自動移除——兩類衝突均有
+WARNING 日誌，不會靜默劫持。</p>
 <h3 id="命令資訊">命令資訊</h3>
-<p>所有命令查詢 API 均支援可選的<strong>會話上下文</strong>：傳 <code>event=</code>（Event 或 dict）或顯式 <code>platform=</code> / <code>bot_id=</code> / <code>session_id=</code>（與 event 重疊時，顯式參數優先），即按作用域模組維度過濾當前會話不可用模組的命令（詳見 advanced/scope.md）；全部為可選關鍵字參數，不傳時保持原有全量行為。</p>
+<p>所有命令查詢 API 均支援可選的<strong>會話上下文</strong>：傳 <code>event=</code>（Event 或 dict）或
+顯式 <code>platform=</code> / <code>bot_id=</code> / <code>session_id=</code>（與 event 叠加時顯式參數優先），
+即按作用域模組維度過濾當前會話不可用模組的命令（詳見 advanced/scope.md）；
+全部為可選關鍵字參數，不傳時保持原有全量行為。</p>
 <pre><code class="language-python"><span class="token comment"># 獲取命令幫助</span>
 help_text <span class="token operator">=</span> command<span class="token punctuation">.</span><span class="token builtin">help</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 
@@ -207,28 +240,28 @@ visible_commands <span class="token operator">=</span> command<span class="token
         callback<span class="token operator">=</span>handle_confirmation
     <span class="token punctuation">)</span>
 </code></pre>
-<h2 id="message-消息模組">Message 消息模組</h2>
-<h3 id="消息事件">消息事件</h3>
+<h2 id="message-訊息模組">Message 訊息模組</h2>
+<h3 id="訊息事件">訊息事件</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message
 
-<span class="token comment"># 監聽所有消息</span>
+<span class="token comment"># 監聽所有訊息</span>
 <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">message_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到消息: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+    sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"收到訊息: </span><span class="token interpolation"><span class="token punctuation">{</span>event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># 監聽私聊消息</span>
+<span class="token comment"># 監聽私聊訊息</span>
 <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_private_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">private_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
     sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"私聊來自: </span><span class="token interpolation"><span class="token punctuation">{</span>user_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># 監聽群聊消息</span>
+<span class="token comment"># 監聽群聊訊息</span>
 <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_group_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">group_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     group_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_group_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
     sdk<span class="token punctuation">.</span>logger<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"群聊來自: </span><span class="token interpolation"><span class="token punctuation">{</span>group_id<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 
-<span class="token comment"># 監聽@消息</span>
+<span class="token comment"># 監聽@訊息</span>
 <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_at_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">at_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     mentions <span class="token operator">=</span> event<span class="token punctuation">.</span>get_mentions<span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -240,23 +273,23 @@ visible_commands <span class="token operator">=</span> command<span class="token
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">high_priority_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     <span class="token keyword">pass</span>
 
-<span class="token comment"># 在處理器內部實作條件過濾</span>
+<span class="token comment"># 在處理器內部實現條件過濾</span>
 <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">filtered_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">if</span> <span class="token string">"關鍵字"</span> <span class="token keyword">not</span> <span class="token keyword">in</span> event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">if</span> <span class="token string">"關鍵詞"</span> <span class="token keyword">not</span> <span class="token keyword">in</span> event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
         <span class="token keyword">return</span>
-    <span class="token comment"># 處理包含關鍵字的消息</span>
+    <span class="token comment"># 處理包含關鍵詞的訊息</span>
     <span class="token keyword">pass</span>
 </code></pre>
 <h2 id="notice-通知模組">Notice 通知模組</h2>
 <h3 id="通知事件">通知事件</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> notice
 
-<span class="token comment"># 好友添加</span>
+<span class="token comment"># 好友新增</span>
 <span class="token decorator annotation punctuation">@notice<span class="token punctuation">.</span>on_friend_add</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">friend_add_handler</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"歡迎添加我為好友！"</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"歡迎新增我為好友！"</span><span class="token punctuation">)</span>
 
 <span class="token comment"># 好友刪除</span>
 <span class="token decorator annotation punctuation">@notice<span class="token punctuation">.</span>on_friend_remove</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -318,222 +351,33 @@ visible_commands <span class="token operator">=</span> command<span class="token
 <h3 id="bot-狀態查詢">Bot 狀態查詢</h3>
 <p>當適配器發送 meta 事件後，框架會自動追蹤 Bot 狀態。查詢 API 和生命週期事件監聽請參考 <a href="/docs/zh-TW/api-reference/adapter-system.html#bot-%E7%8B%80%E6%85%8B%E7%AE%A1%E7%90%86">適配器系統 API - Bot 狀態管理</a>。</p>
 <h2 id="event-包裝類">Event 包裝類</h2>
-<p>Event 模組的事件處理器接收一個 Event 包裝類實例，它繼承自 dict 並提供了便捷方法。</p>
-<h3 id="核心方法">核心方法</h3>
-<pre><code class="language-python"><span class="token comment"># 獲取事件資訊</span>
-event_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
-event_time <span class="token operator">=</span> event<span class="token punctuation">.</span>get_time<span class="token punctuation">(</span><span class="token punctuation">)</span>
-event_type <span class="token operator">=</span> event<span class="token punctuation">.</span>get_type<span class="token punctuation">(</span><span class="token punctuation">)</span>
-detail_type <span class="token operator">=</span> event<span class="token punctuation">.</span>get_detail_type<span class="token punctuation">(</span><span class="token punctuation">)</span>
-platform <span class="token operator">=</span> event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 獲取機器人資訊</span>
-self_platform <span class="token operator">=</span> event<span class="token punctuation">.</span>get_self_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
-self_user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_self_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
-self_info <span class="token operator">=</span> event<span class="token punctuation">.</span>get_self_info<span class="token punctuation">(</span><span class="token punctuation">)</span>
-</code></pre>
-<h3 id="會話標識">會話標識</h3>
-<pre><code class="language-python"><span class="token comment"># 統一目標 ID：群聊返回 group_id，私聊返回 user_id，以此類推</span>
-target_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_target_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 會話唯一標識，格式: {platform}:{detail_type}:{target_id}</span>
-session_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_session_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token comment"># 範例: "telegram:private:12345"、"qq:group:67890"</span>
-</code></pre>
-<p><code>get_target_id()</code> 按以下順序返回首個非空值：<code>group_id</code> → <code>channel_id</code> → <code>guild_id</code> → <code>thread_id</code> → <code>user_id</code>。適用於上下文管理、狀態儲存等需要統一標識會話的場景。</p>
-<h3 id="消息方法">消息方法</h3>
-<pre><code class="language-python"><span class="token comment"># 獲取消息內容</span>
-message_segments <span class="token operator">=</span> event<span class="token punctuation">.</span>get_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
-alt_message <span class="token operator">=</span> event<span class="token punctuation">.</span>get_alt_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
-text <span class="token operator">=</span> event<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 獲取發送者資訊</span>
-user_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
-nickname <span class="token operator">=</span> event<span class="token punctuation">.</span>get_user_nickname<span class="token punctuation">(</span><span class="token punctuation">)</span>
-sender <span class="token operator">=</span> event<span class="token punctuation">.</span>get_sender<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 獲取群組資訊</span>
-group_id <span class="token operator">=</span> event<span class="token punctuation">.</span>get_group_id<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 判斷消息類型</span>
-is_msg <span class="token operator">=</span> event<span class="token punctuation">.</span>is_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
-is_private <span class="token operator">=</span> event<span class="token punctuation">.</span>is_private_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
-is_group <span class="token operator">=</span> event<span class="token punctuation">.</span>is_group_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># @消息相關</span>
-is_at <span class="token operator">=</span> event<span class="token punctuation">.</span>is_at_message<span class="token punctuation">(</span><span class="token punctuation">)</span>
-has_mention <span class="token operator">=</span> event<span class="token punctuation">.</span>has_mention<span class="token punctuation">(</span><span class="token punctuation">)</span>
-mentions <span class="token operator">=</span> event<span class="token punctuation">.</span>get_mentions<span class="token punctuation">(</span><span class="token punctuation">)</span>
-</code></pre>
-<h3 id="命令資訊-2">命令資訊</h3>
-<pre><code class="language-python"><span class="token comment"># 獲取命令資訊</span>
-cmd_name <span class="token operator">=</span> event<span class="token punctuation">.</span>get_command_name<span class="token punctuation">(</span><span class="token punctuation">)</span>
-cmd_args <span class="token operator">=</span> event<span class="token punctuation">.</span>get_command_args<span class="token punctuation">(</span><span class="token punctuation">)</span>
-cmd_raw <span class="token operator">=</span> event<span class="token punctuation">.</span>get_command_raw<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 判斷是否為命令</span>
-is_cmd <span class="token operator">=</span> event<span class="token punctuation">.</span>is_command<span class="token punctuation">(</span><span class="token punctuation">)</span>
-</code></pre>
-<h3 id="回覆功能">回覆功能</h3>
-<pre><code class="language-python"><span class="token comment"># 基本回覆</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"這是一條消息"</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 指定發送方法</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"http://example.com/image.jpg"</span><span class="token punctuation">,</span> method<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 帶 @用戶 和回覆訊息</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">,</span> at_users<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"user1"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> reply_to<span class="token operator">=</span><span class="token string">"msg_id"</span><span class="token punctuation">)</span>
-
-<span class="token comment"># @全體成員</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"公告"</span><span class="token punctuation">,</span> at_all<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 使用平台專有修飾方法（via 參數）</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"看板內容"</span><span class="token punctuation">,</span> method<span class="token operator">=</span><span class="token string">"Board"</span><span class="token punctuation">,</span>
-                  via<span class="token operator">=</span><span class="token punctuation">[</span><span class="token punctuation">(</span><span class="token string">"Expire"</span><span class="token punctuation">,</span> <span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token string">"ForMember"</span><span class="token punctuation">,</span> <span class="token string">"114514"</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 獲取發送鏈，自由追加修飾方法和發送方法（適合連續多個修飾 / 動作型方法）</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Expire<span class="token punctuation">(</span><span class="token number">3600</span><span class="token punctuation">)</span><span class="token punctuation">.</span>Board<span class="token punctuation">(</span><span class="token string">"看板內容"</span><span class="token punctuation">)</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>send_chain<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>DismissBoard<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 使用 OneBot12 消息段回覆</span>
-<span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> MessageBuilder
-msg <span class="token operator">=</span> MessageBuilder<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>text<span class="token punctuation">(</span><span class="token string">"Hello"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>image<span class="token punctuation">(</span><span class="token string">"url"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>build<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply_ob12<span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
-
-<span class="token comment"># 等待回覆</span>
-reply <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_reply<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">30</span><span class="token punctuation">)</span>
-</code></pre>
-<h3 id="平台能力查詢">平台能力查詢</h3>
-<pre><code class="language-python"><span class="token comment"># 檢查當前平台是否支援某種發送方法</span>
-<span class="token keyword">if</span> event<span class="token punctuation">.</span>supports<span class="token punctuation">(</span><span class="token string">"Image"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span>url<span class="token punctuation">,</span> method<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 列出當前平台所有可用發送方法</span>
-methods <span class="token operator">=</span> event<span class="token punctuation">.</span>available_methods<span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token comment"># ["Text", "Image", "Voice", ...]</span>
-</code></pre>
-<h3 id="回覆方法">回覆方法</h3>
-<p><code>reply()</code> 方法支援透過 <code>method</code> 參數指定發送類型，以及兩個便捷的布林參數：</p>
-<pre><code class="language-python"><span class="token comment"># 簡單文本回覆</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 回覆並@發送者</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"你好"</span><span class="token punctuation">,</span> at_sender<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 回覆並引用當前訊息</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"收到"</span><span class="token punctuation">,</span> quote<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 組合使用</span>
-<span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"收到"</span><span class="token punctuation">,</span> at_sender<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span> quote<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 發送圖片（使用 method 參數）</span>
-<span class="token keyword">if</span> event<span class="token punctuation">.</span>supports<span class="token punctuation">(</span><span class="token string">"Image"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"http://example.com/img.jpg"</span><span class="token punctuation">,</span> method<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span>
-<span class="token keyword">else</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"[圖片] http://example.com/img.jpg"</span><span class="token punctuation">)</span>
-</code></pre>
-<p><strong>參數說明</strong>：</p>
-<div class="table-wrapper"><table>
-<thead>
-<tr>
-<th>參數</th>
-<th>類型</th>
-<th>說明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>content</code></td>
-<td>str</td>
-<td>發送內容</td>
-</tr>
-<tr>
-<td><code>method</code></td>
-<td>str</td>
-<td>發送方法，預設 "Text"，可選 "Image"/"Voice"/"Video"/"File" 等</td>
-</tr>
-<tr>
-<td><code>at_sender</code></td>
-<td>bool</td>
-<td>是否@發送者（自動提取 user_id）</td>
-</tr>
-<tr>
-<td><code>quote</code></td>
-<td>bool</td>
-<td>是否引用回覆當前訊息（自動提取 message_id）</td>
-</tr>
-<tr>
-<td><code>at_users</code></td>
-<td>list[str]</td>
-<td>@指定用戶列表</td>
-</tr>
-<tr>
-<td><code>reply_to</code></td>
-<td>str</td>
-<td>手動指定回覆的訊息 ID</td>
-</tr>
-<tr>
-<td><code>at_all</code></td>
-<td>bool</td>
-<td>是否@全體成員</td>
-</tr>
-</tbody></table></div>
-<h3 id="互動方法">互動方法</h3>
-<pre><code class="language-python"><span class="token comment"># confirm — 確認對話（返回 True/False/None）</span>
-<span class="token keyword">if</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>confirm<span class="token punctuation">(</span><span class="token string">"確定要執行此操作嗎？"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"已確認"</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 使用非 Text 方式發送確認提示</span>
-<span class="token keyword">if</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>confirm<span class="token punctuation">(</span><span class="token string">"http://example.com/image.jpg"</span><span class="token punctuation">,</span> method<span class="token operator">=</span><span class="token string">"Image"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token keyword">await</span> event<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string">"已確認圖片提示"</span><span class="token punctuation">)</span>
-
-<span class="token comment"># choose — 選擇菜單（返回選項索引或 None）</span>
-choice <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>choose<span class="token punctuation">(</span><span class="token string">"請選擇顏色："</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"紅色"</span><span class="token punctuation">,</span> <span class="token string">"綠色"</span><span class="token punctuation">,</span> <span class="token string">"藍色"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-
-<span class="token comment"># options_format="auto"（預設）根據 method 自動選擇樣式：</span>
-<span class="token comment"># Markdown→無序列表（- 1.選項），Html→有序列表（&lt;ol&gt;），其他→純文字列表</span>
-<span class="token comment"># 文本類方法（Markdown/Html 等）預設合併選項到末尾</span>
-<span class="token comment"># merge_prompt=True 可強制任意 method 合併；placeholder 可自訂占位符</span>
-choice <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>choose<span class="token punctuation">(</span>
-    <span class="token string">"## 請選擇\n{options}"</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token string">"A"</span><span class="token punctuation">,</span> <span class="token string">"B"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
-    method<span class="token operator">=</span><span class="token string">"Markdown"</span><span class="token punctuation">,</span> merge_prompt<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
-<span class="token punctuation">)</span>
-
-<span class="token comment"># collect — 表單收集（返回 {key: value} 字典或 None）</span>
-data <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>collect<span class="token punctuation">(</span><span class="token punctuation">[</span>
-    <span class="token punctuation">{</span><span class="token string">"key"</span><span class="token punctuation">:</span> <span class="token string">"name"</span><span class="token punctuation">,</span> <span class="token string">"prompt"</span><span class="token punctuation">:</span> <span class="token string">"請輸入姓名："</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span><span class="token string">"key"</span><span class="token punctuation">:</span> <span class="token string">"age"</span><span class="token punctuation">,</span> <span class="token string">"prompt"</span><span class="token punctuation">:</span> <span class="token string">"請輸入年齡："</span><span class="token punctuation">,</span>
-     <span class="token string">"validator"</span><span class="token punctuation">:</span> <span class="token keyword">lambda</span> e<span class="token punctuation">:</span> e<span class="token punctuation">.</span>get_text<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>isdigit<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">{</span><span class="token string">"key"</span><span class="token punctuation">:</span> <span class="token string">"avatar"</span><span class="token punctuation">,</span> <span class="token string">"prompt"</span><span class="token punctuation">:</span> <span class="token string">"請發送頭像："</span><span class="token punctuation">,</span> <span class="token string">"method"</span><span class="token punctuation">:</span> <span class="token string">"Image"</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
-<span class="token punctuation">]</span><span class="token punctuation">)</span>
-
-<span class="token comment"># wait_for — 等待滿足條件的任意事件</span>
-evt <span class="token operator">=</span> <span class="token keyword">await</span> event<span class="token punctuation">.</span>wait_for<span class="token punctuation">(</span>event_type<span class="token operator">=</span><span class="token string">"notice"</span><span class="token punctuation">,</span> condition<span class="token operator">=</span><span class="token keyword">lambda</span> e<span class="token punctuation">:</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">,</span> timeout<span class="token operator">=</span><span class="token number">120</span><span class="token punctuation">)</span>
-
-<span class="token comment"># conversation — 多輪對話上下文</span>
-conv <span class="token operator">=</span> event<span class="token punctuation">.</span>conversation<span class="token punctuation">(</span>timeout<span class="token operator">=</span><span class="token number">60</span><span class="token punctuation">)</span>
-<span class="token keyword">await</span> conv<span class="token punctuation">.</span>say<span class="token punctuation">(</span><span class="token string">"歡迎！"</span><span class="token punctuation">)</span>
-</code></pre>
+<p>Event 模組的事件處理器接收一個 Event 包裝類實例，它繼承自 dict 並提供了便捷方法。完整方法清單、參數簽名與行為以 <a href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類詳解</a> 為準，本節僅作速覽。</p>
+<h3 id="能力速覽">能力速覽</h3>
+<ul>
+<li><strong>事件基礎資訊</strong>：<code>get_id()</code> / <code>get_time()</code> / <code>get_type()</code> / <code>get_detail_type()</code> / <code>get_platform()</code></li>
+<li><strong>機器人資訊</strong>：<code>get_self_platform()</code> / <code>get_self_user_id()</code> / <code>get_self_account_id()</code> / <code>get_self_info()</code></li>
+<li><strong>會話標識</strong>：<code>get_target_id()</code>（統一目標 ID，按 <code>group_id</code> → <code>channel_id</code> → <code>guild_id</code> → <code>thread_id</code> → <code>user_id</code> 取首個非空值）；<code>get_session_id()</code>（格式 <code>{platform}:{detail_type}:{target_id}</code>，如 <code>"telegram:private:12345"</code>）</li>
+<li><strong>訊息內容與發送者</strong>：<code>get_message()</code> / <code>get_alt_message()</code> / <code>get_text()</code> / <code>get_user_id()</code> / <code>get_sender()</code> / <code>get_group_id()</code> 等</li>
+<li><strong>訊息類型判斷</strong>：<code>is_message()</code> / <code>is_private_message()</code> / <code>is_group_message()</code> / <code>is_at_message()</code> / <code>has_mention()</code> / <code>get_mentions()</code></li>
+<li><strong>回覆</strong>：<code>reply(content, method=..., at_sender=..., quote=..., at_users=..., reply_to=..., at_all=..., via=...)</code> / <code>reply_ob12()</code>；平台能力查詢 <code>supports()</code> / <code>available_methods()</code>；自由發送鏈 <code>send_chain()</code> 見 <a href="/docs/zh-TW/developer-guide/adapters/send-dsl.html#%E6%96%B9%E5%BC%8F%E4%BA%8Ceventsend_chain">SendDSL 詳解</a></li>
+<li><strong>命令資訊</strong>：<code>get_command_name()</code> / <code>get_command_args()</code> / <code>is_command()</code> 等</li>
+<li><strong>互動會話</strong>：<code>wait_reply()</code> / <code>confirm()</code> / <code>choose()</code> / <code>collect()</code> / <code>wait_for()</code> / <code>conversation()</code></li>
+<li><strong>工具</strong>：<code>to_dict()</code>（過濾內部鍵）/ <code>get_raw()</code> / <code>get_raw_type()</code></li>
+</ul>
 <blockquote>
-<p>完整的互動方法參數說明和更多範例請參考 <a href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類詳解</a> 和 <a href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a>。</p>
+<p>各方法的完整參數說明與範例見 <a href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類詳解</a>；
+多輪對話進階見 <a href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a>。</p>
 </blockquote>
-<h3 id="工具方法">工具方法</h3>
-<pre><code class="language-python"><span class="token comment"># 轉換為字典（過濾以 _ 開頭的內部鍵）</span>
-event_dict <span class="token operator">=</span> event<span class="token punctuation">.</span>to_dict<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token comment"># 獲取原始資料</span>
-raw <span class="token operator">=</span> event<span class="token punctuation">.</span>get_raw<span class="token punctuation">(</span><span class="token punctuation">)</span>
-raw_type <span class="token operator">=</span> event<span class="token punctuation">.</span>get_raw_type<span class="token punctuation">(</span><span class="token punctuation">)</span>
-</code></pre>
 <h3 id="鏈路控制">鏈路控制</h3>
 <p><code>event.done(claim=, stop=)</code> 統一控制「認領」與「阻斷」兩個正交語義：</p>
 <ul>
 <li><strong>認領（claim）</strong>：標記事件已被處理（<code>_processed</code>），命令分發器據此跳過去重</li>
-<li><strong>阻斷（stop）</strong>：阻止向低优先级處理器傳播（<code>_propagation_stopped</code>）</li>
+<li><strong>阻斷（stop）</strong>：阻止向低優先級處理器傳播（<code>_propagation_stopped</code>）</li>
 </ul>
 <pre><code class="language-python"><span class="token comment"># 認領 + 阻斷（預設）</span>
 event<span class="token punctuation">.</span>done<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-<span class="token comment"># 僅認領，不阻斷（低优先级觀察者仍能看到）</span>
+<span class="token comment"># 僅認領，不阻斷（低優先級觀察者仍能看到）</span>
 event<span class="token punctuation">.</span>done<span class="token punctuation">(</span>stop<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>
 
 <span class="token comment"># 僅阻斷，不認領（如防火牆 / 限流）</span>
@@ -549,15 +393,15 @@ event<span class="token punctuation">.</span>is_stopped<span class="token punctu
 </code></pre>
 <h3 id="平台擴展方法">平台擴展方法</h3>
 <p>適配器可以為 Event 註冊平台專有方法，僅在對應平台的實例上可用。</p>
-<h4 id="用戶使用平台擴展方法">用戶：使用平台擴展方法</h4>
-<p>當適配器註冊了平台專有方法後，你可以在事件處理器中直接呼叫。各平台的方法不同，請參閱對應的 <a href="/docs/zh-TW/platform-guide.html">平台文件</a>。</p>
+<h4 id="使用者使用平台擴展方法">使用者：使用平台擴展方法</h4>
+<p>當適配器註冊了平台專有方法後，你可以在事件處理器中直接調用。各平台的方法不同，請參閱對應的 <a href="/docs/zh-TW/platform-guide.html">平台文件</a>。</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message
 
 <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">async</span> <span class="token keyword">def</span> <span class="token function">handle_message</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">:</span>
     platform <span class="token operator">=</span> event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span>
 
-    <span class="token comment"># 根據平台呼叫專有方法</span>
+    <span class="token comment"># 根據平台調用專有方法</span>
     <span class="token keyword">if</span> platform <span class="token operator">==</span> <span class="token string">"email"</span><span class="token punctuation">:</span>
         subject <span class="token operator">=</span> event<span class="token punctuation">.</span>get_subject<span class="token punctuation">(</span><span class="token punctuation">)</span>           <span class="token comment"># 郵件專有</span>
         attachments <span class="token operator">=</span> event<span class="token punctuation">.</span>get_attachments<span class="token punctuation">(</span><span class="token punctuation">)</span>   <span class="token comment"># 郵件專有</span>
@@ -569,7 +413,7 @@ event<span class="token punctuation">.</span>is_stopped<span class="token punctu
 methods <span class="token operator">=</span> get_platform_event_methods<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span>
 <span class="token comment"># ["get_subject", "get_from", "get_attachments", ...]</span>
 
-<span class="token comment"># 動態判斷並呼叫</span>
+<span class="token comment"># 動態判斷並調用</span>
 <span class="token keyword">for</span> method_name <span class="token keyword">in</span> get_platform_event_methods<span class="token punctuation">(</span>event<span class="token punctuation">.</span>get_platform<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
     method <span class="token operator">=</span> <span class="token builtin">getattr</span><span class="token punctuation">(</span>event<span class="token punctuation">,</span> method_name<span class="token punctuation">)</span>
     <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>method_name<span class="token punctuation">}</span></span><span class="token string">: </span><span class="token interpolation"><span class="token punctuation">{</span>method<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
@@ -597,7 +441,7 @@ event<span class="token punctuation">.</span>get_subject<span class="token punct
 
 <span class="token decorator annotation punctuation">@register_event_method</span><span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">get_subject</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""獲取郵件主題"""</span>
+    <span class="token triple-quoted-string string">"""獲取郵件主旨"""</span>
     <span class="token keyword">return</span> self<span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"email_raw"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span>get<span class="token punctuation">(</span><span class="token string">"subject"</span><span class="token punctuation">,</span> <span class="token string">""</span><span class="token punctuation">)</span>
 
 <span class="token decorator annotation punctuation">@register_event_method</span><span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span>
@@ -628,7 +472,7 @@ register_event_mixin<span class="token punctuation">(</span><span class="token s
 <tr>
 <th>場景</th>
 <th>回傳值</th>
-<th>用戶使用方式</th>
+<th>使用者使用方式</th>
 </tr>
 </thead>
 <tbody><tr>
@@ -643,17 +487,17 @@ register_event_mixin<span class="token punctuation">(</span><span class="token s
 </tr>
 </tbody></table></div>
 <blockquote>
-<p><strong>建議</strong>：非資料回傳的方法回傳 <code>asyncio.Task</code>，這樣用戶可以自行決定是否 <code>await</code>，即使不 <code>await</code> 操作也會執行完成。</p>
+<p><strong>建議</strong>：非資料回傳的方法回傳 <code>asyncio.Task</code>，這樣使用者可以自行決定是否 <code>await</code>，即使不 <code>await</code> 操作也會執行完成。</p>
 </blockquote>
 <pre><code class="language-python"><span class="token decorator annotation punctuation">@register_event_method</span><span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span>
 <span class="token keyword">def</span> <span class="token function">forward_email</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> to_address<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""轉發郵件 — 回傳 Task，用戶可自行決定是否 await"""</span>
+    <span class="token triple-quoted-string string">"""轉發郵件 — 回傳 Task，使用者可自行決定是否 await"""</span>
     <span class="token keyword">import</span> asyncio
     <span class="token keyword">return</span> asyncio<span class="token punctuation">.</span>create_task<span class="token punctuation">(</span>
         self<span class="token punctuation">.</span>_do_forward<span class="token punctuation">(</span>to_address<span class="token punctuation">)</span>
     <span class="token punctuation">)</span>
 
-<span class="token comment"># 用戶可以 await 等待結果</span>
+<span class="token comment"># 使用者可以 await 等待結果</span>
 <span class="token keyword">await</span> event<span class="token punctuation">.</span>forward_email<span class="token punctuation">(</span><span class="token string">"user@example.com"</span><span class="token punctuation">)</span>
 
 <span class="token comment"># 也可以不 await，操作在背景執行</span>
@@ -669,8 +513,8 @@ unregister_event_method<span class="token punctuation">(</span><span class="toke
 unregister_platform_event_methods<span class="token punctuation">(</span><span class="token string">"email"</span><span class="token punctuation">)</span>
 </code></pre>
 <h4 id="覆寫內建方法">覆寫內建方法</h4>
-<p><code>register_event_mixin</code> / <code>register_event_method</code> 支援覆寫 Event 內建方法（如 <code>confirm</code>、<code>choose</code>、<code>collect</code>、<code>wait_reply</code>、<code>reply</code> 等）。註冊的平台方法透過 <code>Event.__getattribute__</code> 優先於內建方法生效，因此適配器可以提供平台特色的互動實作。</p>
-<p>內建實作為 <code>_builtin_*</code> 函式導出，覆寫方可以呼叫它們作為回退：</p>
+<p><code>register_event_mixin</code> / <code>register_event_method</code> 支援覆寫 Event 內建方法（如 <code>confirm</code>、<code>choose</code>、<code>collect</code>、<code>wait_reply</code>、<code>reply</code> 等）。註冊的平台方法透過 <code>Event.__getattribute__</code> 會優先於內建方法生效，因此適配器可以提供平台特色的互動實作。</p>
+<p>內建實作作為 <code>_builtin_*</code> 函數導出，覆寫方可以呼叫它們作為回退：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> register_event_mixin<span class="token punctuation">,</span> _builtin_choose
 
 <span class="token keyword">class</span> <span class="token class-name">YunhuEventMixin</span><span class="token punctuation">:</span>
@@ -685,7 +529,7 @@ unregister_platform_event_methods<span class="token punctuation">(</span><span c
 register_event_mixin<span class="token punctuation">(</span><span class="token string">"yunhu"</span><span class="token punctuation">,</span> YunhuEventMixin<span class="token punctuation">)</span>
 </code></pre>
 <h2 id="跨平台擴展通配符">跨平台擴展（通配符）</h2>
-<p><code>register_event_method</code> 和 <code>register_event_mixin</code> 支援傳入 <code>"*"</code> 作為平台名，註冊的方法會在<strong>所有平台</strong>的 Event 實例上都可用。適合 AI 對話、上下文管理等需要跨平台重用的功能模組。</p>
+<p><code>register_event_method</code> 和 <code>register_event_mixin</code> 支援傳 <code>"*"</code> 作為平台名，註冊的方法在<strong>所有平台</strong>的 Event 實例上都可用。適合 AI 對話、上下文管理等需要跨平台複用的功能模組。</p>
 <h3 id="註冊跨平台方法">註冊跨平台方法</h3>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event<span class="token punctuation">.</span>wrapper <span class="token keyword">import</span> register_event_method
 
@@ -694,7 +538,7 @@ register_event_mixin<span class="token punctuation">(</span><span class="token s
     <span class="token triple-quoted-string string">"""self 為 Event 實例，可自由存取事件資料和內建方法"""</span>
     <span class="token keyword">await</span> self<span class="token punctuation">.</span>reply<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"AI: </span><span class="token interpolation"><span class="token punctuation">{</span>prompt<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
 </code></pre>
-<p>註冊後，所有平台的事件處理器都能調用：</p>
+<p>註冊後，所有平台的事件處理器都能呼叫：</p>
 <pre><code class="language-python"><span class="token keyword">from</span> ErisPulse<span class="token punctuation">.</span>Core<span class="token punctuation">.</span>Event <span class="token keyword">import</span> message
 
 <span class="token decorator annotation punctuation">@message<span class="token punctuation">.</span>on_message</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -704,7 +548,7 @@ register_event_mixin<span class="token punctuation">(</span><span class="token s
 <h3 id="方法解析優先級">方法解析優先級</h3>
 <p>透過屬性存取 Event 方法時，解析順序為：</p>
 <ol>
-<li><strong>平台特定方法</strong>（目前平台的覆寫）</li>
+<li><strong>平台特定方法</strong>（當前平台的覆寫）</li>
 <li><strong>通配符方法</strong>（<code>"*"</code> 註冊的跨平台方法）</li>
 <li><strong>內建方法</strong>（<code>reply</code>、<code>confirm</code> 等）</li>
 <li><strong>字典鍵存取</strong></li>
@@ -725,20 +569,27 @@ register_event_mixin<span class="token punctuation">(</span><span class="token s
     <span class="token keyword">pass</span>
 </code></pre>
 <h2 id="相關文件">相關文件</h2>
+<p><strong>繼續查 API</strong>：</p>
 <ul>
 <li><a href="/docs/zh-TW/api-reference/core-modules.html">核心模組 API</a> - 核心模組 API</li>
 <li><a href="/docs/zh-TW/api-reference/adapter-system.html">適配器系統 API</a> - Adapter 管理 API</li>
-<li><a href="/docs/zh-TW/developer-guide/modules.html">模組開發指南</a> - 開發自訂模組</li>
+</ul>
+<p><strong>從範例學事件處理</strong>：</p>
+<ul>
+<li><a href="/docs/zh-TW/developer-guide/modules.html">模組開發指南</a> - 開發自定義模組</li>
+<li><a href="/docs/zh-TW/getting-started/event-handling.html">事件處理</a> - 事件處理入門教程</li>
 </ul>
 
-        </article>
-        
+            </article>
+            
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/zh-TW/api-reference/core-modules.html"><small>Previous</small><br>核心模組 API</a>
-        <a class="doc-pager-next" href="/docs/zh-TW/advanced/README.html"><small>Next</small><br>高級主題</a>
+        <a class="doc-pager-prev" href="/docs/zh-TW/api-reference/core-modules.html"><small>上一篇</small><br>核心模組 API</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/README.html"><small>下一篇</small><br>高級主題</a>
     </nav>
-    </main>
-    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        </main>
+    </div>
+
+    <footer class="ds-footer">
         © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
     </footer>
 </body>

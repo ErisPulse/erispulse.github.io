@@ -3,164 +3,194 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>シャドウモジュールとグレーディングの正式化 - ErisPulse 文档中心</title>
-    <meta name="description" content="このドキュメントを読むタイミング：新バージョンを並行して試運転し、動作を比較して正式化またはロールバックしたい場合に必要です。不要であればスキップしても、他の機能の使用に影響はありません。" />
+    <title>シャドウモジュールとカナリア昇格 - ErisPulse ドキュメント</title>
+    <meta name="description" content="このドキュメントを読むべきタイミング：カナリアリリース——新バージョンの並行トライアル実行、動作比較、昇格・ロールバックが必要なとき。不要であればスキップしても、他の機能の利用には影響しません。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/ja/advanced/shadow.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/shadow.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/shadow.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/shadow.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/shadow.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/shadow.html" />
-    <meta property="og:title" content="シャドウモジュールとグレーディングの正式化 - ErisPulse 文档中心" />
-    <meta property="og:description" content="このドキュメントを読むタイミング：新バージョンを並行して試運転し、動作を比較して正式化またはロールバックしたい場合に必要です。不要であればスキップしても、他の機能の使用に影響はありません。" />
+    <meta property="og:title" content="シャドウモジュールとカナリア昇格 - ErisPulse ドキュメント" />
+    <meta property="og:description" content="このドキュメントを読むべきタイミング：カナリアリリース——新バージョンの並行トライアル実行、動作比較、昇格・ロールバックが必要なとき。不要であればスキップしても、他の機能の利用には影響しません。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/ja/advanced/shadow.html" />
     <meta property="og:type" content="article" />
-    <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"シャドウモジュールとグレーディングの正式化","description":"このドキュメントを読むタイミング：新バージョンを並行して試運転し、動作を比較して正式化またはロールバックしたい場合に必要です。不要であればスキップしても、他の機能の使用に影響はありません。","url":"https://www.erisdev.com/docs/ja/advanced/shadow.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <meta property="og:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/assets/img/logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"シャドウモジュールとカナリア昇格","description":"このドキュメントを読むべきタイミング：カナリアリリース——新バージョンの並行トライアル実行、動作比較、昇格・ロールバックが必要なとき。不要であればスキップしても、他の機能の利用には影響しません。","url":"https://www.erisdev.com/docs/ja/advanced/shadow.html","inLanguage":"ja","isPartOf":{"@type":"WebSite","name":"ErisPulse ドキュメント","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ドキュメント","item":"https://www.erisdev.com/docs.html"},{"@type":"ListItem","position":2,"name":"高度なトピック","item":"https://www.erisdev.com/docs/ja/advanced/shadow.html"},{"@type":"ListItem","position":3,"name":"シャドウモジュールとカナリア昇格"}]}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/doc-static.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <style>
-        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
-        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
-        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
-        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
-        .doc-nav-links a:hover{color:var(--primary)}
-        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
-        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
-        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
-        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
-        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
-        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
-        .doc-lang-link.current{color:var(--primary);font-weight:600}
-        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
-        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
-        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
-        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
-        .doc-pager a small{color:var(--text-secondary)}
-        .doc-pager-next{text-align:right}
-        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
-    </style>
 </head>
-<body>
-    
-    <nav class="doc-static-nav">
-        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
-        <div class="doc-nav-links">
-            <a href="/">首页</a>
-            <a href="/docs.html">文档中心</a>
-            <a href="/market.html">模块市场</a>
-            <a href="/community.html">社区</a>
-            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-    </nav>
-    <main class="doc-page">
-        
-    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/docs.html">Docs</a>
-        <span class="doc-crumb-sep">/</span> 高度なトピック
-        <span class="doc-crumb-sep">/</span> <span>シャドウモジュールとグレーディングの正式化</span>
-    </nav>
-        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/shadow.html">简体中文</a>
+<body class="doc-static-page">
+    <header class="ds-top">
+        <a class="ds-brand" href="/">
+            <img class="ds-brand-icon" src="/assets/img/logo.png" alt="ErisPulse" />
+            <span>ErisPulse</span>
+        </a>
+        <div class="ds-top-right">
+            <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/shadow.html">简体中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/shadow.html">English</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/advanced/shadow.html">繁體中文</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/ja/advanced/shadow.html">日本語</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/shadow.html">Русский</a></div>
-        <div class="doc-interactive">
-            <span>本文为静态镜像，内容以交互版为准</span>
-            <a href="https://www.erisdev.com/#docs/advanced/shadow.md">在交互式文档中心打开 →</a>
+            <a class="ds-interactive" href="https://www.erisdev.com/#docs/advanced/shadow.md">インタラクティブ版で開く →</a>
         </div>
-        <article class="markdown-content" id="docs-content">
-            <h1 id="シャドウモジュールとグレーディングの正式化">シャドウモジュールとグレーディングの正式化</h1>
+    </header>
+
+    <div class="ds-layout">
+        <aside class="ds-sidebar">
+            <div class="ds-sidebar-title">ドキュメント</div>
+            <nav class="ds-side-nav"><details class="ds-cat"><summary><span class="ds-cat-name">クイックスタート</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/README.html">ErisPulse ドキュメント</a><a class="ds-doc" href="/docs/ja/quick-start.html">速習</a><a class="ds-doc" href="/docs/ja/architecture.html">アーキテクチャ概要</a><a class="ds-doc" href="/docs/ja/bug-tracker.html">バグトラッカー</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">入門ガイド</span><span class="ds-cat-count">6</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/getting-started/first-bot.html">最初のロボットを作成する</a><a class="ds-doc" href="/docs/ja/getting-started/README.html">入門ガイド</a><a class="ds-doc" href="/docs/ja/getting-started/basic-concepts.html">基本概念</a><a class="ds-doc" href="/docs/ja/getting-started/common-tasks.html">一般的タスクの例</a><a class="ds-doc" href="/docs/ja/getting-started/event-handling.html">イベント処理入門</a><a class="ds-doc" href="/docs/ja/getting-started/ide-completion.html">型スタブ生成（IDE 補完）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">選定ガイド</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/showcase/README.html">選定ガイド</a><a class="ds-doc" href="/docs/ja/showcase/comparison-nonebot.html">比較：ErisPulse と NoneBot2</a><a class="ds-doc" href="/docs/ja/showcase/comparison-agent-platforms.html">ErisPulse と AstrBot / LangBot の比較</a><a class="ds-doc" href="/docs/ja/showcase/migrate-from-astrbot.html">AstrBot から ErisPulse への移行ガイド</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">ユーザーガイド</span><span class="ds-cat-count">5</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/user-guide/README.html">ユーザー使用ガイド</a><a class="ds-doc" href="/docs/ja/user-guide/installation.html">インストールリファレンス</a><a class="ds-doc" href="/docs/ja/user-guide/configuration.html">設定ファイルの説明</a><a class="ds-doc" href="/docs/ja/user-guide/cli-reference.html">CLI コマンドリファレンス</a><a class="ds-doc" href="/docs/ja/user-guide/deployment.html">部署ガイド</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">開発者ガイド</span><span class="ds-cat-count">14</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/developer-guide/README.html">開発者ガイド</a><a class="ds-doc" href="/docs/ja/developer-guide/publishing.html">リリースとモジュールストアガイド</a><a class="ds-doc" href="/docs/ja/developer-guide/testing.html">モジュールテスト（ErisPulse-Testing）</a><a class="ds-doc" href="/docs/ja/developer-guide/orm.html">データモデル層（ORM）</a><a class="ds-doc" href="/docs/ja/developer-guide/configuration.html">設定と UI メタデータ</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/getting-started.html">モジュール開発入門</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/core-concepts.html">モジュールのコア概念</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/event-wrapper.html">Event 包装类详解</a><a class="ds-doc" href="/docs/ja/developer-guide/modules/best-practices.html">モジュール開発ベストプラクティス</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/getting-started.html">アダプタ開発入門</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/core-concepts.html">アダプタのコアコンセプト</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/send-dsl.html">SendDSL の詳細解説</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/best-practices.html">アダプタ開発のベストプラクティス</a><a class="ds-doc" href="/docs/ja/developer-guide/adapters/converter.html">イベントコンバーター実装ガイド</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">プラットフォームガイド</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/platform-guide/README.html">ErisPulse PlatformFeatures ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/onebot11.html">OneBot11プラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/onebot12.html">OneBot12プラットフォーム仕様ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/telegram.html">Telegramプラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/email.html">メールプラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/yunhu.html">雲湖プラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/yunhu_user.html">雲湖ユーザープラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/qqbot.html">QQBotプラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/kook.html">Kookプラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/matrix.html">Matrixプラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/discord.html">Discordプラットフォーム特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/wechatmp.html">微信公众号（WechatMp）アダプター - プラットフォーム特性ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/webhook.html">プラットフォームの機能説明 — Webhook 一般的なブリッジアダプター</a><a class="ds-doc" href="/docs/ja/platform-guide/ideaura.html">花楓カフェ（RockyChat）プラットフォームの機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/maintain-notes.html">ドキュメントの保守に関する説明</a><a class="ds-doc" href="/docs/ja/platform-guide/sandbox.html">Sandboxプラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/snowluma.html">SnowLumaプラットフォームの特徴ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/terminal.html">Terminal プラットフォーム機能ドキュメント</a><a class="ds-doc" href="/docs/ja/platform-guide/wecom.html">企業微信（WeCom）プラットフォームの特徴ドキュメント</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API リファレンス</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/api-reference/README.html">API リファレンス</a><a class="ds-doc" href="/docs/ja/api-reference/adapter-system.html">アダプターシステム API</a><a class="ds-doc" href="/docs/ja/api-reference/core-modules.html">コアモジュール API</a><a class="ds-doc" href="/docs/ja/api-reference/event-system.html">イベントシステム API</a></div></details><details class="ds-cat" open><summary><span class="ds-cat-name">高度なトピック</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/advanced/README.html">高級トピック</a><a class="ds-doc" href="/docs/ja/advanced/lifecycle.html">ライフサイクル管理</a><a class="ds-doc" href="/docs/ja/advanced/lazy-loading.html">ラグロードモジュールシステム</a><a class="ds-doc" href="/docs/ja/advanced/router.html">ルーティングマネージャー</a><a class="ds-doc" href="/docs/ja/advanced/message-builder.html">MessageBuilder 详解</a><a class="ds-doc" href="/docs/ja/advanced/conversation.html">Conversation 多輪対話</a><a class="ds-doc" href="/docs/ja/advanced/http-client.html">ネットワーククライアント</a><a class="ds-doc" href="/docs/ja/advanced/sql-builder.html">SQL クエリビルダ</a><a class="ds-doc" href="/docs/ja/advanced/i18n.html">国際化 (i18n) システム</a><a class="ds-doc" href="/docs/ja/advanced/scope.html">スコープ（scope）</a><a class="ds-doc" href="/docs/ja/advanced/ownership.html">所有権（owner）システム</a><a class="ds-doc" href="/docs/ja/advanced/interaction.html">交互会話システム</a><a class="ds-doc current" href="/docs/ja/advanced/shadow.html">シャドウモジュールとカナリア昇格</a><div class="ds-chapters"><a class="ds-chapter level-2" href="#クイックスタート">クイックスタート</a><a class="ds-chapter level-2" href="#5つの分離ゲート">5つの分離ゲート</a><a class="ds-chapter level-2" href="#誠実な限界防げないもの">誠実な限界（防げないもの）</a><a class="ds-chapter level-2" href="#昇格とロールバック">昇格とロールバック</a><a class="ds-chapter level-2" href="#関連ドキュメント">関連ドキュメント</a></div><a class="ds-doc" href="/docs/ja/advanced/module-communication.html">モジュール間通信</a><a class="ds-doc" href="/docs/ja/advanced/storage-backends.html">ストレージバックエンド</a><a class="ds-doc" href="/docs/ja/advanced/errors.html">エラー体系とキャッチのガイド</a><a class="ds-doc" href="/docs/ja/advanced/connections.html">接続プールとブロードキャスト</a><a class="ds-doc" href="/docs/ja/advanced/startup.html">起動フローと手動制御</a><a class="ds-doc" href="/docs/ja/advanced/transcript.html">セッション受信トレイ（Transcript）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">エコシステムモジュール</span><span class="ds-cat-count">7</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/ecosystem/README.html">エコシステムモジュール</a><a class="ds-doc" href="/docs/ja/ecosystem/app.html">ErisPulse-App</a><a class="ds-doc" href="/docs/ja/ecosystem/dashboard.html">ErisPulse-Dashboard</a><a class="ds-doc" href="/docs/ja/ecosystem/cron.html">ErisPulse-Cron</a><a class="ds-doc" href="/docs/ja/ecosystem/takumi.html">ErisPulse-Takumi</a><a class="ds-doc" href="/docs/ja/ecosystem/apimcp.html">ErisPulse-ApiMCP で AI クライアントからボットを操作する</a><a class="ds-doc" href="/docs/ja/ecosystem/qvqchat.html">ErisPulse-QvQChat 通用インテリジェントエージェント</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">AI 支援開発</span><span class="ds-cat-count">12</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/ai-support/README.html">AI 支援開発</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-adapter-dev/SKILL.html">ErisPulse 适配器开发</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-adapter-standards/SKILL.html">ErisPulse 适配器技术标准</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-communication/SKILL.html">ErisPulse 通信与连接</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-config-cli/SKILL.html">ErisPulse 配置系统与 CLI 工具链</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-ecosystem/SKILL.html">ErisPulse 生态与多平台</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-errors-troubleshooting/SKILL.html">ErisPulse 异常体系与排障</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-getting-started/SKILL.html">ErisPulse 快速上手与核心概念</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-hot-reload/SKILL.html">ErisPulse 热重载与懒加载休眠</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-module-dev/SKILL.html">ErisPulse 模块开发</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-scope-ownership/SKILL.html">ErisPulse 权限作用域与归属权</a><a class="ds-doc" href="/docs/ja/ai-support/skills/erispulse-shadow-transcript/SKILL.html">ErisPulse 影子灰度与消息追踪</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">技術標準</span><span class="ds-cat-count">8</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/standards/README.html">技術標準</a><a class="ds-doc" href="/docs/ja/standards/session-types.html">ErisPulse セッションタイプ標準</a><a class="ds-doc" href="/docs/ja/standards/api-response.html">ErisPulse アダプターの標準化された返却値仕様</a><a class="ds-doc" href="/docs/ja/standards/event-conversion.html">アダプター標準化変換仕様</a><a class="ds-doc" href="/docs/ja/standards/send-method-spec.html">ErisPulse 送信メソッド規格</a><a class="ds-doc" href="/docs/ja/standards/request-action-spec.html">ErisPulse リクエスト操作仕様</a><a class="ds-doc" href="/docs/ja/standards/api-action-spec.html">ErisPulse API アクション標準</a><a class="ds-doc" href="/docs/ja/standards/standardization-guide.html">アダプター標準化ガイド（概要）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API</span><span class="ds-cat-count">140</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/__init__.html">`ErisPulse.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/__main__.html">`ErisPulse.__main__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/sdk.html">`ErisPulse.sdk` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/README.html">ErisPulse API 文档</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/__init__.html">`ErisPulse.Core.Bases.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/adapter.html">`ErisPulse.Core.Bases.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/adapter_patterns.html">`ErisPulse.Core.Bases.adapter_patterns` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/api_dsl.html">`ErisPulse.Core.Bases.api_dsl` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/client.html">`ErisPulse.Core.Bases.client` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/config_schema.html">`ErisPulse.Core.Bases.config_schema` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/converter.html">`ErisPulse.Core.Bases.converter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/errors.html">`ErisPulse.Core.Bases.errors` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/i18n_schema.html">`ErisPulse.Core.Bases.i18n_schema` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/kv_builder.html">`ErisPulse.Core.Bases.kv_builder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/manager.html">`ErisPulse.Core.Bases.manager` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/model.html">`ErisPulse.Core.Bases.model` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/module.html">`ErisPulse.Core.Bases.module` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/router.html">`ErisPulse.Core.Bases.router` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/send_builder.html">`ErisPulse.Core.Bases.send_builder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/send_rules.html">`ErisPulse.Core.Bases.send_rules` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">`ErisPulse.Core.Bases.sql_base` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">`ErisPulse.Core.Bases.storage` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Bases/websocket.html">`ErisPulse.Core.Bases.websocket` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/__init__.html">`ErisPulse.Core.Event.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/base.html">`ErisPulse.Core.Event.base` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/command.html">`ErisPulse.Core.Event.command` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/command_args.html">`ErisPulse.Core.Event.command_args` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/command_flow.html">`ErisPulse.Core.Event.command_flow` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/conversation.html">`ErisPulse.Core.Event.conversation` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/governance.html">`ErisPulse.Core.Event.governance` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/interaction.html">`ErisPulse.Core.Event.interaction` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/message.html">`ErisPulse.Core.Event.message` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/message_builder.html">`ErisPulse.Core.Event.message_builder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/meta.html">`ErisPulse.Core.Event.meta` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/notice.html">`ErisPulse.Core.Event.notice` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/overrides.html">`ErisPulse.Core.Event.overrides` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/request.html">`ErisPulse.Core.Event.request` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/session_type.html">`ErisPulse.Core.Event.session_type` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/throttle.html">`ErisPulse.Core.Event.throttle` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/trace.html">`ErisPulse.Core.Event.trace` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/Event/wrapper.html">`ErisPulse.Core.Event.wrapper` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/__init__.html">`ErisPulse.Core.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/adapter.html">`ErisPulse.Core.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/assets/__init__.html">`ErisPulse.Core.assets.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/client.html">`ErisPulse.Core.client` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/config.html">`ErisPulse.Core.config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/connections.html">`ErisPulse.Core.connections` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/constants.html">`ErisPulse.Core.constants` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/di.html">`ErisPulse.Core.di` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/__init__.html">`ErisPulse.Core.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/constants.html">`ErisPulse.Core.i18n.constants` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/__init__.html">`ErisPulse.Core.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/en.html">`ErisPulse.Core.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/ja.html">`ErisPulse.Core.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/ru.html">`ErisPulse.Core.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_cn.html">`ErisPulse.Core.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_tw.html">`ErisPulse.Core.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/lifecycle.html">`ErisPulse.Core.lifecycle` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/logger.html">`ErisPulse.Core.logger` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/master.html">`ErisPulse.Core.master` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/module.html">`ErisPulse.Core.module` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/ownership.html">`ErisPulse.Core.ownership` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/router.html">`ErisPulse.Core.router` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/scope.html">`ErisPulse.Core.scope` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/shadow.html">`ErisPulse.Core.shadow` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/__init__.html">`ErisPulse.Core.storage.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/mysql.html">`ErisPulse.Core.storage.mysql` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/postgres.html">`ErisPulse.Core.storage.postgres` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/storage/sqlite.html">`ErisPulse.Core.storage.sqlite` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/text_match.html">`ErisPulse.Core.text_match` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/Core/transcript.html">`ErisPulse.Core.transcript` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/__init__.html">`ErisPulse.CLI.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/base.html">`ErisPulse.CLI.base` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/cli.html">`ErisPulse.CLI.cli` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/__init__.html">`ErisPulse.CLI.commands.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/config.html">`ErisPulse.CLI.commands.config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/create.html">`ErisPulse.CLI.commands.create` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/doctor.html">`ErisPulse.CLI.commands.doctor` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/init.html">`ErisPulse.CLI.commands.init` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/install.html">`ErisPulse.CLI.commands.install` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/language.html">`ErisPulse.CLI.commands.language` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/list.html">`ErisPulse.CLI.commands.list` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/list_remote.html">`ErisPulse.CLI.commands.list_remote` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/run.html">`ErisPulse.CLI.commands.run` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/runtime.html">`ErisPulse.CLI.commands.runtime` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/self_update.html">`ErisPulse.CLI.commands.self_update` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/types.html">`ErisPulse.CLI.commands.types` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/uninstall.html">`ErisPulse.CLI.commands.uninstall` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/upgrade.html">`ErisPulse.CLI.commands.upgrade` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/commands/version.html">`ErisPulse.CLI.commands.version` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/console.html">`ErisPulse.CLI.console` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/constants.html">`ErisPulse.CLI.constants` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/hints.html">`ErisPulse.CLI.hints` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/__init__.html">`ErisPulse.CLI.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/__init__.html">`ErisPulse.CLI.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/en.html">`ErisPulse.CLI.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ja.html">`ErisPulse.CLI.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ru.html">`ErisPulse.CLI.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_cn.html">`ErisPulse.CLI.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_tw.html">`ErisPulse.CLI.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/registry.html">`ErisPulse.CLI.registry` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/__init__.html">`ErisPulse.CLI.utils.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/config_wizard.html">`ErisPulse.CLI.utils.config_wizard` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/display.html">`ErisPulse.CLI.utils.display` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/interactive.html">`ErisPulse.CLI.utils.interactive` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/package_manager.html">`ErisPulse.CLI.utils.package_manager` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/runtime_state.html">`ErisPulse.CLI.utils.runtime_state` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/CLI/utils/scaffold_text.html">`ErisPulse.CLI.utils.scaffold_text` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/__init__.html">`ErisPulse.runtime.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/config_schema.html">`ErisPulse.runtime.config_schema` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/context.html">`ErisPulse.runtime.context` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/diagnostics.html">`ErisPulse.runtime.diagnostics` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/example_config.html">`ErisPulse.runtime.example_config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/exceptions.html">`ErisPulse.runtime.exceptions` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/file_watcher.html">`ErisPulse.runtime.file_watcher` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/frame_config.html">`ErisPulse.runtime.frame_config` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/hints.html">`ErisPulse.runtime.hints` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/kernel.html">`ErisPulse.runtime.kernel` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/memory.html">`ErisPulse.runtime.memory` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">`ErisPulse.runtime.owner_cleanup` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html">`ErisPulse.runtime.plugin_reload` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">`ErisPulse.runtime.proactive_gc` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/process_state.html">`ErisPulse.runtime.process_state` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/reload_ops.html">`ErisPulse.runtime.reload_ops` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/sdk_initializer.html">`ErisPulse.runtime.sdk_initializer` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/tasks.html">`ErisPulse.runtime.tasks` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/troubleshoot.html">`ErisPulse.runtime.troubleshoot` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/runtime/version.html">`ErisPulse.runtime.version` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/__init__.html">`ErisPulse.loaders.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/_reload_utils.html">`ErisPulse.loaders._reload_utils` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/adapter.html">`ErisPulse.loaders.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/bases/loader.html">`ErisPulse.loaders.bases.loader` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/module.html">`ErisPulse.loaders.module` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/plugin_folder.html">`ErisPulse.loaders.plugin_folder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/strategy.html">`ErisPulse.loaders.strategy` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/loaders/strict.html">`ErisPulse.loaders.strict` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/__init__.html">`ErisPulse.finders.__init__` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/adapter.html">`ErisPulse.finders.adapter` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/bases/finder.html">`ErisPulse.finders.bases.finder` 模块</a><a class="ds-doc" href="/docs/ja/api-reference/auto_api/ErisPulse/finders/module.html">`ErisPulse.finders.module` 模块</a></div></details></nav>
+        </aside>
+
+        <main class="ds-main">
+            
+    <details class="ds-chapter-bar">
+        <summary>
+            <span class="ds-chapter-bar-icon" aria-hidden="true"></span>
+            <span class="ds-chapter-bar-label">このページのセクション</span>
+            <span class="ds-chapter-bar-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="ds-chapter-bar-panel">
+            <div class="ds-chapter-rail">
+                <a class="ds-chapter level-2" href="#クイックスタート">クイックスタート</a>
+                <a class="ds-chapter level-2" href="#5つの分離ゲート">5つの分離ゲート</a>
+                <a class="ds-chapter level-2" href="#誠実な限界防げないもの">誠実な限界（防げないもの）</a>
+                <a class="ds-chapter level-2" href="#昇格とロールバック">昇格とロールバック</a>
+                <a class="ds-chapter level-2" href="#関連ドキュメント">関連ドキュメント</a>
+            </div>
+        </div>
+    </details>
+            <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/docs.html">ドキュメント</a>
+                <span class="doc-crumb-sep">/</span> 高度なトピック
+                <span class="doc-crumb-sep">/</span> <span>シャドウモジュールとカナリア昇格</span>
+            </nav>
+            <div class="doc-interactive">
+                <span>静的ミラーです。内容はインタラクティブ版が正となります</span>
+                <a href="https://www.erisdev.com/#docs/advanced/shadow.md">インタラクティブ版で開く →</a>
+            </div>
+            <article class="markdown-content" id="docs-content">
+                <h1 id="シャドウモジュールとカナリア昇格">シャドウモジュールとカナリア昇格</h1>
 <div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
-<p><br><strong>このドキュメントを読むタイミング</strong>：新バージョンを並行して試運転し、動作を比較して正式化またはロールバックしたい場合に必要です。不要であればスキップしても、他の機能の使用に影響はありません。</p>
+<p><strong>このドキュメントを読むべきタイミング</strong>：カナリアリリース——新バージョンの並行トライアル実行、動作比較、昇格・ロールバックが必要なとき。不要であればスキップしても、他の機能の利用には影響しません。</p>
 </div>
-<p>シャドウとは、同一モジュールの<strong>新しいバージョン</strong>を指します。これは、<code>roll_shadow</code> などの<strong>独立したオーナー</strong>として、本番環境の旧バージョンと並行して試運転されます。シャドウは、本物のイベントの<strong>コピー</strong>を受け取り、その出力は<strong>実際には送信されず、記録されるだけ</strong>です。<code>shadow_diff</code> で2つのバージョンの動作を比較し、問題がないことを確認した後、<code>promote</code> コマンドで<strong>ワンクリックで正式化</strong>し、<code>dismiss</code> でいつでも<strong>中止</strong>できます。<strong>モジュールのコードは一切変更せず、全プロセスは実行時APIによって駆動されます</strong>：<code>load / unload / reload</code> と同じようなオペレーションアクションであり、ダッシュボードやカスタム管理モジュールから直接呼び出すことができます。<strong>設定項目を書く必要はありません</strong>。</p>
+<blockquote>
+<p><strong>読み終えるとわかること</strong>：シャドウモジュールの5つの分離ゲート、動作 diff のアライメント方法、
+<code>promote</code> による昇格と失敗時のロールバック手順、そしてフレームワークでは防げない誠実な限界。</p>
+<p><strong>このドキュメントでは扱わないこと</strong>：通常モジュールのホットリロードとオーナーのクリーンアップに関する汎用メカニズム
+（<a href="/docs/ja/advanced/ownership.html">オーナー（owner）システム</a> を参照）。</p>
+</blockquote>
+<p>シャドウ = 同一モジュールの<strong>新バージョン</strong>であり、独立した owner（例：<code>roll_shadow</code>）として本番の旧バージョンと
+共存しながらトライアル実行します：実際のイベントの<strong>コピー</strong>を受け取り、そのアウトバウンドは本当に送信されるのではなく
+<strong>傍受して記録</strong>されます——<code>shadow_diff</code> で2つのバージョンの動作を比較し、無害であることを確認したら <code>promote</code> で
+ワンクリック昇格、<code>dismiss</code> でいつでも破棄できます。<strong>モジュールコードは一切変更不要、全工程がランタイム API 駆動</strong>：
+<code>load / unload / reload</code> と同種の運用アクションであり、Dashboard / カスタム管理モジュールから直接
+呼び出せ、書くべき設定項目は一切ありません。</p>
 <p>{!--&lt; tips &gt;!--}</p>
 <ol>
-<li>起動：<code>await sdk.module.shadow_start("roll", source="v2のパス")</code><br>—— 新バージョンのコードは、独立したオーナー（デフォルトではパス名が使用されます）として旧バージョンと並行して動作します。</li>
-<li>シャドウは、実際の配布や依存関係グラフには参加しません：同名のコマンドはシャドウディレクトリに進み、ルーティングは登録されるだけ、ライフサイクルのブロードキャストは無視されます。<code>module.call</code> と依存解析は引き続き v1 を指します。</li>
-<li>正式化は常に人間の確認が必要です：<code>await sdk.module.promote_shadow("roll")</code> で正式化を実行し、失敗した場合は自動的に旧インスタンスに戻ってサービスを継続します。<code>dismiss_shadow</code> でいつでもシャドウを中止できます。
+<li>起動：<code>await sdk.module.shadow_start("roll", source="path/to/v2")</code>
+——新バージョンのコードは独立した owner（デフォルトはパス名）として旧バージョンと共存</li>
+<li>シャドウは実際のディスパッチと依存グラフには参加しません：同名コマンドはシャドウのカタログに入り、ルートは登録のみでマウントせず、
+ライフサイクルブロードキャストはサイレント、<code>module.call</code> と依存解決は引き続き v1 を指します</li>
+<li>昇格は常に人間が確認します：<code>await sdk.module.promote_shadow("roll")</code>、失敗時は
+自動ロールバックで旧インスタンスがサービスを継続；<code>dismiss_shadow</code> でいつでも破棄
 {!--&lt; /tips &gt;!--}</li>
 </ol>
-<h2 id="快速上手">快速上手</h2>
-<pre><code class="language-python"><span class="token comment"># v2 代码：通常のモジュール書き方、シャドウを意識しない（任意のディレクトリ、例：downloads/roll_v2/）</span>
+<h2 id="クイックスタート">クイックスタート</h2>
+<pre><code class="language-python"><span class="token comment"># v2 コード：通常のモジュールの書き方、シャドウを一切意識しない（任意のディレクトリ、例：downloads/roll_v2/）</span>
 </code></pre>
-<pre><code class="language-python"><span class="token comment"># オンラインロボット環境で（ダッシュボード / 管理モジュールから呼び出し）、一回のコマンドでグレーディングを開始：</span>
+<pre><code class="language-python"><span class="token comment"># 本番ボット内で（Dashboard / 管理モジュールから呼び出し）、1行でカナリアを起動：</span>
 <span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>shadow_start<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">,</span> source<span class="token operator">=</span><span class="token string">"downloads/roll_v2"</span><span class="token punctuation">)</span>
-<span class="token comment"># → シャドウは独立した所有者 "roll_v2" として v1 と並存し、出力はブロックされ、記録される</span>
+<span class="token comment"># → シャドウは独立した owner "roll_v2" として v1 と共存し、アウトバウンドは傍受・記録される</span>
 
-<span class="token comment"># 試運転期間中の挙動比較：</span>
+<span class="token comment"># トライアル実行中に動作を比較：</span>
 report <span class="token operator">=</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>shadow_diff<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>
 <span class="token comment"># {"shadow_owner": "roll_v2", "count": 3, "aligned": [...]}</span>
 </code></pre>
 <ul>
-<li><strong>v1 が実際に送信した内容</strong>：受信箱（transcript）からの bot 時系列</li>
-<li><strong>v2 が意図した送信内容</strong>：シャドウの帳簿（出力ゲートで記録された「何を送信しようとしていたか」）</li>
-<li>両者は <code>trace_id</code> で対応している — 同じメッセージについて、2つのバージョンそれぞれが何をトリガーしたか、送信したか、送信しなかったかが一目瞭然</li>
+<li><strong>v1 の実際の送信</strong>：受信箱（transcript）からの bot タイムライン</li>
+<li><strong>v2 の送信意図</strong>：シャドウ台帳（アウトバウンドゲートが記録した「送りたかったもの」）</li>
+<li>両者は <code>trace_id</code> で整列されます——同じメッセージについて、2つのバージョンがそれぞれなぜ発火した/しなかった、
+何を送りたかった/実際に送ったのかが一目瞭然</li>
 </ul>
-<p>問題がなければ、正式に転換します：</p>
-<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>promote_shadow<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>   <span class="token comment"># 転換、失敗時は自動的に v1 にロールバック</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>dismiss_shadow<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>   <span class="token comment"># または：シャドウを放棄</span>
+<p>問題ないことを確認したら昇格：</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>promote_shadow<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>   <span class="token comment"># 昇格、失敗時は自動的に v1 へロールバック</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>module<span class="token punctuation">.</span>dismiss_shadow<span class="token punctuation">(</span><span class="token string">"roll"</span><span class="token punctuation">)</span>   <span class="token comment"># または：シャドウを破棄</span>
 </code></pre>
-<h2 id="五つの隔離ゲート">五つの隔離ゲート</h2>
+<h2 id="5つの分離ゲート">5つの分離ゲート</h2>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
 <th>ゲート</th>
-<th>機制</th>
+<th>メカニズム</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>事件コピー</td>
-<td>シャドウプロセッサは<strong>独立したイベントのコピー</strong>（<code>shadow</code> マーク付き）を受け取ります。シャドウでの変更 / 所有権取得 / 伝播停止はコピーにのみ影響し、元のイベントチェーンには影響しません。</td>
+<td>イベントコピー</td>
+<td>シャドウハンドラーはイベントの<strong>独立したコピー</strong>を受け取る（<code>shadow</code> マーク付き）——シャドウによる改変 / 引き取り / 伝播停止はコピーにのみ作用し、元のイベントチェーンには影響しない</td>
 </tr>
 <tr>
-<td>出力ゲート</td>
-<td>シャドウの <code>Send</code> DSL と <code>Api</code> 呼び出しはすべて記録され、成功した仮のレスポンスが返されます。実際には送信されません。シャドウは重複して返信しません。</td>
+<td>アウトバウンドゲート</td>
+<td>シャドウの <code>Send</code> DSL と <code>Api</code> 呼び出しはすべて傍受して記録（成功形状のフェイクレスポンスを返却）、実際には送信しない——シャドウが重複して返信することはない</td>
 </tr>
 <tr>
-<td>ストレージ上書き層</td>
-<td>シャドウの KV 書き込みはメモリ上の上書き層に入り、永続化は行われません。読み込みは上書き層を優先し、ヒットしなければ本物のストレージを参照します（グレーディングは実際のデータで実行）。削除は墓石として記録されます。</td>
+<td>ストレージオーバーレイ</td>
+<td>シャドウの KV 書き込みはメモリ上のオーバーレイに入り、実DBへの永続化は破棄；読み取りはまずオーバーレイを確認し、ミスなら実DBへ透過（カナリアは実際のデータに対して実行）；削除はトゥームストーンとして記録</td>
 </tr>
 <tr>
-<td>ルーティング遮断</td>
-<td>シャドウの HTTP/WS/SSE ルーティングは登録のみでマウントされません。同名のコマンドはシャドウのコマンドディレクトリに登録され、プラットフォームイベントメソッドの注入は禁止されます。</td>
+<td>ルートブロック</td>
+<td>シャドウの HTTP/WS/SSE ルートは登録のみでマウントしない；同名コマンドはシャドウのコマンドカタログに入り、プラットフォームイベントメソッドの注入は禁止</td>
 </tr>
 <tr>
-<td>ライフサイクル静音</td>
-<td>シャドウは自身のライフサイクルイベントをブロードキャストせず、エコシステムの依存グラフにも参加しません（<code>module.call</code> と依存解析は v1 を参照し続けます。半完成品が依存されることを避けるため）。</td>
+<td>ライフサイクルサイレント</td>
+<td>シャドウは自身のライフサイクルイベントをブロードキャストせず、エコシステムの依存グラフに参加しない（<code>module.call</code> と依存解決は引き続き v1 を指し、未完成品が依存されるのを回避）</td>
 </tr>
 </tbody></table></div>
-<p>構成の継承: シャドウはデフォルトで<strong>元のモジュールの構成節を継承</strong>します（そうでなければグレーディングの歪みが発生します）。転正後は構成がその場で有効になります。</p>
-<h2 id="正直な境界防ぎきれない">正直な境界（防ぎきれない）</h2>
+<p>設定の継承：シャドウはデフォルトで<strong>元モジュールの設定セクションを継承</strong>します（そうでないとカナリアの結果が歪みます）。昇格後は設定がそのまま有効になります。</p>
+<h2 id="誠実な限界防げないもの">誠実な限界（防げないもの）</h2>
 <ul>
-<li>フレームワークの送信 / API / KV ストレージ / 統一 HTTP クライアントは<strong>すべて防げる</strong>；
-フレームワークを迂回して <code>aiohttp</code> を直接起動したり、スレッドで外部システムに書き込んだりする場合——フレームワークは防げない</li>
-<li><strong>ORM の読み書きはカバレッジの対象外</strong>（行単位のオーバーレイでは SQL 層で綺麗に実現できない）——
-影の期間中は ORM を使っての書き込み隔離に依存しないことを推奨</li>
-<li><strong>影のソースがローカルパスの場合</strong>：新しいコードはパスからインポートされ、独自の所有者でロードされる。同じ PyPI パッケージは、同一の Python 解釈器内では <code>sys.modules</code> の単一キー制限により、新旧の2つのバージョンを同時に存在させることはできない</li>
-<li>泄漏監査ツール（<code>sdk.module.audit</code>）は影のリソースの所有者を確認可能。フレームワークを迂回する副作用は、少なくとも静かに起こることはない</li>
+<li>フレームワーク経由の送信 / API / KV ストレージ / 統一 HTTP クライアントは<strong>すべて傍受可能</strong>；
+モジュールがフレームワークを迂回して生の <code>aiohttp</code> を起動したり、スレッドを立てて外部システムへ書き込むことは——フレームワークでは防げません</li>
+<li><strong>ORM の読み書きはオーバーレイのセマンティクス外</strong>です（行単位の overlay は SQL レイヤーではクリーンに実装できない）——
+シャドウ期間中は ORM 書き込み分離への依存を避けることを推奨</li>
+<li><strong>シャドウソースはローカルパス</strong>：新バージョンのコードはパスからインポートされ、独立した owner としてロード；同一 PyPI パッケージは
+同一インタプリタ内では <code>sys.modules</code> の単一キー制限を受け、新旧2バージョンの共存は不可能</li>
+<li>リーク監査器（<code>sdk.module.audit</code>）はシャドウリソースの帰属を可視化；フレームワークを迂回した副作用も、
+少なくとも無音のままにはなりません</li>
 </ul>
-<h2 id="転正とロールバック">転正とロールバック</h2>
-<p><code>promote</code> プロセス：現在のバージョン（および連鎖する依存者を含む）をスナップショット → 完全にアンロード → シャドウを本物の名前で登録<br>ロード → いずれかのステップで失敗した場合、自動的にロールバックされ、古いインスタンスが引き続きサービスを提供します（ベストエフォートの意味：<code>on_unload</code> で実行された副作用は取り消せません。ロールバック後、古いインスタンスは終了済み状態になります）。転正に成功したシャドウリソースは回収され、バインドが解除されます。元のモジュールの設定セクションはその場で有効になります。</p>
-<p><strong>永続化の注意</strong>：promote はランタイムでの切り替えです。再起動後も v2 で動作し続けます。新しいバージョンを<strong>永続的にインストール</strong>する必要があります（<code>pip install -U</code> で新しいバージョンをインストール / プラグインファイルを置き換えます）。ランタイムでの切り替えはパッケージ管理を代行しません。</p>
+<h2 id="昇格とロールバック">昇格とロールバック</h2>
+<p><code>promote</code> の流れ：現在のバージョンをスナップショット（カスケード依存モジュールを含む）→ 完全アンロード → シャドウを本名で登録・
+ロード → いずれかのステップが失敗すれば自動ロールバック、旧インスタンスがサービスを継続（ベストエフォートのセマンティクス：<code>on_unload</code> で
+既に実行された副作用は取り消し不可、ロールバック後の旧インスタンスは終了処理済みの状態）。昇格成功後、シャドウのリソースは
+回収され、バインドは解除；元モジュールの設定セクションがそのまま有効になります。</p>
+<p><strong>永続化の注意</strong>：promote はランタイムでの切り替えです——再起動後も v2 で動作し続けるには、新バージョンを
+<strong>永続的にインストール</strong>する必要があります（<code>pip install -U</code> で新バージョンを導入 / プラグインファイルを差し替え）。
+ランタイムでの切り替えはパッケージ管理を代行しません。</p>
 <h2 id="関連ドキュメント">関連ドキュメント</h2>
 <ul>
-<li><a href="/docs/ja/advanced/ownership.html">所有権（owner）システム</a> —— シャドウが独立した owner によって隔離されるメカニズムの基礎</li>
-<li><a href="/docs/ja/advanced/interaction.html">インタラクティブセッション</a> —— <code>trace_id</code> と受信箱（diff で同期されたデータソース）</li>
-<li><a href="/docs/ja/advanced/scope.html">スコープ（scope）</a> —— イベントの入出力制御面</li>
+<li><a href="/docs/ja/advanced/ownership.html">オーナー（owner）システム</a>——シャドウが独立した owner で分離される仕組みの基盤</li>
+<li><a href="/docs/ja/advanced/interaction.html">インタラクションセッション</a>——<code>trace_id</code> と受信箱（diff 整列のデータソース）</li>
+<li><a href="/docs/ja/advanced/scope.html">スコープ（scope）</a>——イベントの准入とアウトバウンド制御プレーン</li>
 </ul>
 
-        </article>
-        
+            </article>
+            
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ja/advanced/interaction.html"><small>Previous</small><br>交互会話システム</a>
-        <a class="doc-pager-next" href="/docs/ja/advanced/module-communication.html"><small>Next</small><br>モジュール間通信</a>
+        <a class="doc-pager-prev" href="/docs/ja/advanced/interaction.html"><small>前へ</small><br>交互会話システム</a>
+        <a class="doc-pager-next" href="/docs/ja/advanced/module-communication.html"><small>次へ</small><br>モジュール間通信</a>
     </nav>
-    </main>
-    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        </main>
+    </div>
+
+    <footer class="ds-footer">
         © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
     </footer>
 </body>

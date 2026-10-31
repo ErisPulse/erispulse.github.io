@@ -3,95 +3,125 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Руководство по развертыванию - ErisPulse 文档中心</title>
-    <meta name="description" content="Лучшие практики развертывания бота ErisPulse в рабочей среде." />
+    <title>Руководство по развёртыванию - ErisPulse Документация</title>
+    <meta name="description" content="Когда читать этот документ: когда бот должен длительно работать на постоянной основе — здесь всё о развёртывании в Docker, процессных супервизорах systemd / ..." />
     <link rel="canonical" href="https://www.erisdev.com/docs/ru/user-guide/deployment.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/user-guide/deployment.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/user-guide/deployment.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/user-guide/deployment.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/user-guide/deployment.html" />
-    <meta property="og:title" content="Руководство по развертыванию - ErisPulse 文档中心" />
-    <meta property="og:description" content="Лучшие практики развертывания бота ErisPulse в рабочей среде." />
+    <meta property="og:title" content="Руководство по развёртыванию - ErisPulse Документация" />
+    <meta property="og:description" content="Когда читать этот документ: когда бот должен длительно работать на постоянной основе — здесь всё о развёртывании в Docker, процессных супервизорах systemd / ..." />
     <meta property="og:url" content="https://www.erisdev.com/docs/ru/user-guide/deployment.html" />
     <meta property="og:type" content="article" />
-    <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Руководство по развертыванию","description":"Лучшие практики развертывания бота ErisPulse в рабочей среде.","url":"https://www.erisdev.com/docs/ru/user-guide/deployment.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <meta property="og:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/assets/img/logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Руководство по развёртыванию","description":"Когда читать этот документ: когда бот должен длительно работать на постоянной основе — здесь всё о развёртывании в Docker, процессных супервизорах systemd / ...","url":"https://www.erisdev.com/docs/ru/user-guide/deployment.html","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"ErisPulse Документация","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Документация","item":"https://www.erisdev.com/docs.html"},{"@type":"ListItem","position":2,"name":"Руководство пользователя","item":"https://www.erisdev.com/docs/ru/user-guide/deployment.html"},{"@type":"ListItem","position":3,"name":"Руководство по развёртыванию"}]}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/doc-static.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <style>
-        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
-        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
-        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
-        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
-        .doc-nav-links a:hover{color:var(--primary)}
-        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
-        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
-        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
-        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
-        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
-        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
-        .doc-lang-link.current{color:var(--primary);font-weight:600}
-        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
-        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
-        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
-        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
-        .doc-pager a small{color:var(--text-secondary)}
-        .doc-pager-next{text-align:right}
-        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
-    </style>
 </head>
-<body>
-    
-    <nav class="doc-static-nav">
-        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
-        <div class="doc-nav-links">
-            <a href="/">首页</a>
-            <a href="/docs.html">文档中心</a>
-            <a href="/market.html">模块市场</a>
-            <a href="/community.html">社区</a>
-            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-    </nav>
-    <main class="doc-page">
-        
-    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/docs.html">Docs</a>
-        <span class="doc-crumb-sep">/</span> Руководство пользователя
-        <span class="doc-crumb-sep">/</span> <span>Руководство по развертыванию</span>
-    </nav>
-        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/user-guide/deployment.html">简体中文</a>
+<body class="doc-static-page">
+    <header class="ds-top">
+        <a class="ds-brand" href="/">
+            <img class="ds-brand-icon" src="/assets/img/logo.png" alt="ErisPulse" />
+            <span>ErisPulse</span>
+        </a>
+        <div class="ds-top-right">
+            <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/user-guide/deployment.html">简体中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/en/user-guide/deployment.html">English</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/zh-TW/user-guide/deployment.html">繁體中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/user-guide/deployment.html">日本語</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/ru/user-guide/deployment.html">Русский</a></div>
-        <div class="doc-interactive">
-            <span>本文为静态镜像，内容以交互版为准</span>
-            <a href="https://www.erisdev.com/#docs/user-guide/deployment.md">在交互式文档中心打开 →</a>
+            <a class="ds-interactive" href="https://www.erisdev.com/#docs/user-guide/deployment.md">Открыть интерактивную версию →</a>
         </div>
-        <article class="markdown-content" id="docs-content">
-            <h1 id="руководство-по-развертыванию">Руководство по развертыванию</h1>
-<p>Лучшие практики развертывания бота ErisPulse в рабочей среде.</p>
-<h2 id="docker-развертывание-рекомендуется">Docker-развертывание (рекомендуется)</h2>
-<p>ErisPulse предоставляет официальный образ Docker, включающий фреймворк ErisPulse и панель управления Dashboard, поддерживающий архитектуры <code>linux/amd64</code> и <code>linux/arm64</code>.</p>
+    </header>
+
+    <div class="ds-layout">
+        <aside class="ds-sidebar">
+            <div class="ds-sidebar-title">Документация</div>
+            <nav class="ds-side-nav"><details class="ds-cat"><summary><span class="ds-cat-name">Быстрый старт</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/README.html">Документация ErisPulse</a><a class="ds-doc" href="/docs/ru/quick-start.html">Быстрый старт</a><a class="ds-doc" href="/docs/ru/architecture.html">Обзор архитектуры</a><a class="ds-doc" href="/docs/ru/bug-tracker.html">Трекер ошибок</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Начало работы</span><span class="ds-cat-count">6</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/getting-started/first-bot.html">Создание первого бота</a><a class="ds-doc" href="/docs/ru/getting-started/README.html">Руководство для начинающих</a><a class="ds-doc" href="/docs/ru/getting-started/basic-concepts.html">Основные концепции</a><a class="ds-doc" href="/docs/ru/getting-started/common-tasks.html">Примеры типичных задач</a><a class="ds-doc" href="/docs/ru/getting-started/event-handling.html">Введение в обработку событий</a><a class="ds-doc" href="/docs/ru/getting-started/ide-completion.html">Генерация типовых заглушек (дополнение IDE)</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Руководство по выбору</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/showcase/README.html">Руководство по выбору</a><a class="ds-doc" href="/docs/ru/showcase/comparison-nonebot.html">Сравнение: ErisPulse и NoneBot2</a><a class="ds-doc" href="/docs/ru/showcase/comparison-agent-platforms.html">Сравнение: ErisPulse и AstrBot / LangBot</a><a class="ds-doc" href="/docs/ru/showcase/migrate-from-astrbot.html">Руководство по миграции: с AstrBot на ErisPulse</a></div></details><details class="ds-cat" open><summary><span class="ds-cat-name">Руководство пользователя</span><span class="ds-cat-count">5</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/user-guide/README.html">Руководство пользователя</a><a class="ds-doc" href="/docs/ru/user-guide/installation.html">Справочник по установке</a><a class="ds-doc" href="/docs/ru/user-guide/configuration.html">Описание конфигурационного файла</a><a class="ds-doc" href="/docs/ru/user-guide/cli-reference.html">Справочник командной строки</a><a class="ds-doc current" href="/docs/ru/user-guide/deployment.html">Руководство по развёртыванию</a><div class="ds-chapters"><a class="ds-chapter level-2" href="#развёртывание-в-docker-рекомендуется">Развёртывание в Docker (рекомендуется)</a><a class="ds-chapter level-3" href="#быстрый-старт">Быстрый старт</a><a class="ds-chapter level-3" href="#ускорение-загрузки-образа-через-зеркало-для-китая">Ускорение загрузки образа через зеркало (для Китая)</a><a class="ds-chapter level-3" href="#docker-composeyml">docker-compose.yml</a><a class="ds-chapter level-3" href="#переменные-окружения">Переменные окружения</a><a class="ds-chapter level-3" href="#сохранение-данных">Сохранение данных</a><a class="ds-chapter level-2" href="#панель-управления-dashboard">Панель управления Dashboard</a><a class="ds-chapter level-3" href="#обзор-функций">Обзор функций</a><a class="ds-chapter level-3" href="#установка-модулей-через-dashboard">Установка модулей через Dashboard</a><a class="ds-chapter level-2" href="#супервизия-процессов-и-жёсткий-перезапуск">Супервизия процессов и жёсткий перезапуск</a><a class="ds-chapter level-2" href="#проверка-состояния">Проверка состояния</a><a class="ds-chapter level-2" href="#обратный-прокси">Обратный прокси</a><a class="ds-chapter level-2" href="#ручное-развёртывание-pip">Ручное развёртывание (pip)</a><a class="ds-chapter level-3" href="#конфигурация-для-производственного-окружения">Конфигурация для производственного окружения</a><a class="ds-chapter level-3" href="#systemd-linux">systemd (Linux)</a><a class="ds-chapter level-3" href="#supervisor">Supervisor</a><a class="ds-chapter level-3" href="#изолированное-развёртывание-через-uv-tool-разделение-cli-и-окружения-проекта">Изолированное развёртывание через uv tool (разделение CLI и окружения проекта)</a><a class="ds-chapter level-2" href="#рекомендации-по-безопасности">Рекомендации по безопасности</a><a class="ds-chapter level-2" href="#развёртывание-нескольких-экземпляров">Развёртывание нескольких экземпляров</a><a class="ds-chapter level-2" href="#обновление-и-обслуживание">Обновление и обслуживание</a><a class="ds-chapter level-3" href="#через-docker">Через Docker</a><a class="ds-chapter level-3" href="#через-pip">Через pip</a><a class="ds-chapter level-3" href="#через-uv-tool">Через uv tool</a><a class="ds-chapter level-3" href="#горячая-перезагрузка-конфигурации-сервера-во-время-выполнения">Горячая перезагрузка конфигурации сервера во время выполнения</a><a class="ds-chapter level-3" href="#резервное-копирование">Резервное копирование</a><a class="ds-chapter level-2" href="#следующие-шаги">Следующие шаги</a></div></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Руководство разработчика</span><span class="ds-cat-count">14</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/developer-guide/README.html">Руководство для разработчиков</a><a class="ds-doc" href="/docs/ru/developer-guide/publishing.html">Руководство по публикации и магазину модулей</a><a class="ds-doc" href="/docs/ru/developer-guide/testing.html">Тестирование модулей (ErisPulse-Testing)</a><a class="ds-doc" href="/docs/ru/developer-guide/orm.html">Слой моделей данных (ORM)</a><a class="ds-doc" href="/docs/ru/developer-guide/configuration.html">Конфигурация и метаданные пользовательского интерфейса</a><a class="ds-doc" href="/docs/ru/developer-guide/modules/getting-started.html">Введение в разработку модулей</a><a class="ds-doc" href="/docs/ru/developer-guide/modules/core-concepts.html">Основные концепции модуля</a><a class="ds-doc" href="/docs/ru/developer-guide/modules/event-wrapper.html">Подробное руководство по классу-обёртке Event</a><a class="ds-doc" href="/docs/ru/developer-guide/modules/best-practices.html">Лучшие практики разработки модулей</a><a class="ds-doc" href="/docs/ru/developer-guide/adapters/getting-started.html">Введение в разработку адаптеров</a><a class="ds-doc" href="/docs/ru/developer-guide/adapters/core-concepts.html">Основные концепции адаптеров</a><a class="ds-doc" href="/docs/ru/developer-guide/adapters/send-dsl.html">Подробное руководство по SendDSL</a><a class="ds-doc" href="/docs/ru/developer-guide/adapters/best-practices.html">Лучшие практики разработки адаптеров</a><a class="ds-doc" href="/docs/ru/developer-guide/adapters/converter.html">Руководство по реализации конвертера событий</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Руководство по платформам</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/platform-guide/README.html">Документация функций платформы ErisPulse</a><a class="ds-doc" href="/docs/ru/platform-guide/onebot11.html">Документация по функциям платформы OneBot11</a><a class="ds-doc" href="/docs/ru/platform-guide/onebot12.html">Документация по функциям платформы OneBot12</a><a class="ds-doc" href="/docs/ru/platform-guide/telegram.html">Документация по функциям Telegram-платформы</a><a class="ds-doc" href="/docs/ru/platform-guide/email.html">Документация по функциональным возможностям почтовой платформы</a><a class="ds-doc" href="/docs/ru/platform-guide/yunhu.html">Характеристики платформы Yunhu</a><a class="ds-doc" href="/docs/ru/platform-guide/yunhu_user.html">Документация по функциям платформы пользователей Yunhu</a><a class="ds-doc" href="/docs/ru/platform-guide/qqbot.html">Документация по функциям платформы QQBot</a><a class="ds-doc" href="/docs/ru/platform-guide/kook.html">Документация по функциям платформы Kook</a><a class="ds-doc" href="/docs/ru/platform-guide/matrix.html">Документация по функциональным возможностям платформы Matrix</a><a class="ds-doc" href="/docs/ru/platform-guide/discord.html">Документация по функциям платформы Discord</a><a class="ds-doc" href="/docs/ru/platform-guide/wechatmp.html">Адаптер WeChatMp - Документация по функциональности платформы</a><a class="ds-doc" href="/docs/ru/platform-guide/webhook.html">Описание функциональных возможностей платформы — универсальный адаптер-мост Webhook</a><a class="ds-doc" href="/docs/ru/platform-guide/ideaura.html">Документация по функционалу платформы RockyChat</a><a class="ds-doc" href="/docs/ru/platform-guide/maintain-notes.html">Инструкция по поддержке документации</a><a class="ds-doc" href="/docs/ru/platform-guide/sandbox.html">Документация по функциям платформы Sandbox</a><a class="ds-doc" href="/docs/ru/platform-guide/snowluma.html">Документация по функциям платформы SnowLuma</a><a class="ds-doc" href="/docs/ru/platform-guide/terminal.html">Документация по функциям платформы Terminal</a><a class="ds-doc" href="/docs/ru/platform-guide/wecom.html">Документация по возможностям платформы WeCom (WeChat Work)</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Справочник API</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/api-reference/README.html">Справочник API</a><a class="ds-doc" href="/docs/ru/api-reference/adapter-system.html">API системы адаптеров</a><a class="ds-doc" href="/docs/ru/api-reference/core-modules.html">API основных модулей</a><a class="ds-doc" href="/docs/ru/api-reference/event-system.html">API системы событий</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Продвинутые темы</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/advanced/README.html">Продвинутые темы</a><a class="ds-doc" href="/docs/ru/advanced/lifecycle.html">Управление жизненным циклом</a><a class="ds-doc" href="/docs/ru/advanced/lazy-loading.html">Система ленивой загрузки модулей</a><a class="ds-doc" href="/docs/ru/advanced/router.html">Маршрутизатор</a><a class="ds-doc" href="/docs/ru/advanced/message-builder.html">MessageBuilder подробно</a><a class="ds-doc" href="/docs/ru/advanced/conversation.html">Conversation: многоходовой диалог</a><a class="ds-doc" href="/docs/ru/advanced/http-client.html">Сетевой клиент</a><a class="ds-doc" href="/docs/ru/advanced/sql-builder.html">SQL 查询构建器</a><a class="ds-doc" href="/docs/ru/advanced/i18n.html">Система международной локализации (i18n)</a><a class="ds-doc" href="/docs/ru/advanced/scope.html">Область действия (scope)</a><a class="ds-doc" href="/docs/ru/advanced/ownership.html">Система принадлежности (owner)</a><a class="ds-doc" href="/docs/ru/advanced/interaction.html">Система интерактивных сессий</a><a class="ds-doc" href="/docs/ru/advanced/shadow.html">Теневые модули и постепенный переход</a><a class="ds-doc" href="/docs/ru/advanced/module-communication.html">Коммуникация между модулями</a><a class="ds-doc" href="/docs/ru/advanced/storage-backends.html">Хранилище данных</a><a class="ds-doc" href="/docs/ru/advanced/errors.html">Система исключений и руководство по обработке</a><a class="ds-doc" href="/docs/ru/advanced/connections.html">Пул соединений и трансляция</a><a class="ds-doc" href="/docs/ru/advanced/startup.html">Процесс запуска и ручное управление</a><a class="ds-doc" href="/docs/ru/advanced/transcript.html">Транскрипт сессии (Transcript)</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Модули экосистемы</span><span class="ds-cat-count">7</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/ecosystem/README.html">Экологические модули</a><a class="ds-doc" href="/docs/ru/ecosystem/app.html">ErisPulse-App</a><a class="ds-doc" href="/docs/ru/ecosystem/dashboard.html">ErisPulse-Dashboard</a><a class="ds-doc" href="/docs/ru/ecosystem/cron.html">ErisPulse-Cron</a><a class="ds-doc" href="/docs/ru/ecosystem/takumi.html">ErisPulse-Takumi</a><a class="ds-doc" href="/docs/ru/ecosystem/apimcp.html">ErisPulse-ApiMCP 控制机器人的人工智能客户端</a><a class="ds-doc" href="/docs/ru/ecosystem/qvqchat.html">ErisPulse-QvQChat — универсальный агент</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Разработка с ИИ</span><span class="ds-cat-count">12</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/ai-support/README.html">AI-помощь в разработке</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-adapter-dev/SKILL.html">ErisPulse 适配器开发</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-adapter-standards/SKILL.html">ErisPulse 适配器技术标准</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-communication/SKILL.html">ErisPulse 通信与连接</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-config-cli/SKILL.html">ErisPulse 配置系统与 CLI 工具链</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-ecosystem/SKILL.html">ErisPulse 生态与多平台</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-errors-troubleshooting/SKILL.html">ErisPulse 异常体系与排障</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-getting-started/SKILL.html">ErisPulse 快速上手与核心概念</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-hot-reload/SKILL.html">ErisPulse 热重载与懒加载休眠</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-module-dev/SKILL.html">ErisPulse 模块开发</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-scope-ownership/SKILL.html">ErisPulse 权限作用域与归属权</a><a class="ds-doc" href="/docs/ru/ai-support/skills/erispulse-shadow-transcript/SKILL.html">ErisPulse 影子灰度与消息追踪</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">Технические стандарты</span><span class="ds-cat-count">8</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/standards/README.html">Технические стандарты</a><a class="ds-doc" href="/docs/ru/standards/session-types.html">Стандарт типов сессий ErisPulse</a><a class="ds-doc" href="/docs/ru/standards/api-response.html">Стандарт спецификации возвращаемых значений адаптеров ErisPulse</a><a class="ds-doc" href="/docs/ru/standards/event-conversion.html">Стандартизированные правила преобразования адаптеров</a><a class="ds-doc" href="/docs/ru/standards/send-method-spec.html">Спецификация методов отправки ErisPulse</a><a class="ds-doc" href="/docs/ru/standards/request-action-spec.html">Стандарты операций запросов ErisPulse</a><a class="ds-doc" href="/docs/ru/standards/api-action-spec.html">Стандарт действий API ErisPulse</a><a class="ds-doc" href="/docs/ru/standards/standardization-guide.html">Руководство по стандартизации адаптеров (генеральное руководство)</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API</span><span class="ds-cat-count">140</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/__init__.html">`ErisPulse.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/__main__.html">`ErisPulse.__main__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/sdk.html">`ErisPulse.sdk` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/README.html">ErisPulse API 文档</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/__init__.html">`ErisPulse.Core.Bases.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/adapter.html">`ErisPulse.Core.Bases.adapter` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/adapter_patterns.html">`ErisPulse.Core.Bases.adapter_patterns` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/api_dsl.html">`ErisPulse.Core.Bases.api_dsl` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/client.html">`ErisPulse.Core.Bases.client` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/config_schema.html">`ErisPulse.Core.Bases.config_schema` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/converter.html">`ErisPulse.Core.Bases.converter` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/errors.html">`ErisPulse.Core.Bases.errors` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/i18n_schema.html">`ErisPulse.Core.Bases.i18n_schema` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/kv_builder.html">`ErisPulse.Core.Bases.kv_builder` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/manager.html">`ErisPulse.Core.Bases.manager` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/model.html">`ErisPulse.Core.Bases.model` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/module.html">`ErisPulse.Core.Bases.module` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/router.html">`ErisPulse.Core.Bases.router` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/send_builder.html">`ErisPulse.Core.Bases.send_builder` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/send_rules.html">`ErisPulse.Core.Bases.send_rules` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">`ErisPulse.Core.Bases.sql_base` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">`ErisPulse.Core.Bases.storage` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Bases/websocket.html">`ErisPulse.Core.Bases.websocket` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/__init__.html">`ErisPulse.Core.Event.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/base.html">`ErisPulse.Core.Event.base` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/command.html">`ErisPulse.Core.Event.command` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/command_args.html">`ErisPulse.Core.Event.command_args` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/command_flow.html">`ErisPulse.Core.Event.command_flow` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/conversation.html">`ErisPulse.Core.Event.conversation` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/governance.html">`ErisPulse.Core.Event.governance` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/interaction.html">`ErisPulse.Core.Event.interaction` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/message.html">`ErisPulse.Core.Event.message` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/message_builder.html">`ErisPulse.Core.Event.message_builder` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/meta.html">`ErisPulse.Core.Event.meta` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/notice.html">`ErisPulse.Core.Event.notice` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/overrides.html">`ErisPulse.Core.Event.overrides` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/request.html">`ErisPulse.Core.Event.request` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/session_type.html">`ErisPulse.Core.Event.session_type` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/throttle.html">`ErisPulse.Core.Event.throttle` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/trace.html">`ErisPulse.Core.Event.trace` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/Event/wrapper.html">`ErisPulse.Core.Event.wrapper` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/__init__.html">`ErisPulse.Core.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/adapter.html">`ErisPulse.Core.adapter` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/assets/__init__.html">`ErisPulse.Core.assets.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/client.html">`ErisPulse.Core.client` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/config.html">`ErisPulse.Core.config` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/connections.html">`ErisPulse.Core.connections` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/constants.html">`ErisPulse.Core.constants` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/di.html">`ErisPulse.Core.di` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/__init__.html">`ErisPulse.Core.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/constants.html">`ErisPulse.Core.i18n.constants` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/locales/__init__.html">`ErisPulse.Core.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/locales/en.html">`ErisPulse.Core.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/locales/ja.html">`ErisPulse.Core.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/locales/ru.html">`ErisPulse.Core.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_cn.html">`ErisPulse.Core.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_tw.html">`ErisPulse.Core.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/lifecycle.html">`ErisPulse.Core.lifecycle` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/logger.html">`ErisPulse.Core.logger` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/master.html">`ErisPulse.Core.master` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/module.html">`ErisPulse.Core.module` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/ownership.html">`ErisPulse.Core.ownership` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/router.html">`ErisPulse.Core.router` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/scope.html">`ErisPulse.Core.scope` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/shadow.html">`ErisPulse.Core.shadow` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/storage/__init__.html">`ErisPulse.Core.storage.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/storage/mysql.html">`ErisPulse.Core.storage.mysql` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/storage/postgres.html">`ErisPulse.Core.storage.postgres` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/storage/sqlite.html">`ErisPulse.Core.storage.sqlite` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/text_match.html">`ErisPulse.Core.text_match` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/Core/transcript.html">`ErisPulse.Core.transcript` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/__init__.html">`ErisPulse.CLI.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/base.html">`ErisPulse.CLI.base` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/cli.html">`ErisPulse.CLI.cli` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/__init__.html">`ErisPulse.CLI.commands.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/config.html">`ErisPulse.CLI.commands.config` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/create.html">`ErisPulse.CLI.commands.create` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/doctor.html">`ErisPulse.CLI.commands.doctor` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/init.html">`ErisPulse.CLI.commands.init` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/install.html">`ErisPulse.CLI.commands.install` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/language.html">`ErisPulse.CLI.commands.language` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/list.html">`ErisPulse.CLI.commands.list` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/list_remote.html">`ErisPulse.CLI.commands.list_remote` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/run.html">`ErisPulse.CLI.commands.run` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/runtime.html">`ErisPulse.CLI.commands.runtime` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/self_update.html">`ErisPulse.CLI.commands.self_update` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/types.html">`ErisPulse.CLI.commands.types` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/uninstall.html">`ErisPulse.CLI.commands.uninstall` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/upgrade.html">`ErisPulse.CLI.commands.upgrade` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/commands/version.html">`ErisPulse.CLI.commands.version` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/console.html">`ErisPulse.CLI.console` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/constants.html">`ErisPulse.CLI.constants` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/hints.html">`ErisPulse.CLI.hints` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/i18n/__init__.html">`ErisPulse.CLI.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/i18n/locales/__init__.html">`ErisPulse.CLI.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/i18n/locales/en.html">`ErisPulse.CLI.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ja.html">`ErisPulse.CLI.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ru.html">`ErisPulse.CLI.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_cn.html">`ErisPulse.CLI.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_tw.html">`ErisPulse.CLI.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/registry.html">`ErisPulse.CLI.registry` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/utils/__init__.html">`ErisPulse.CLI.utils.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/utils/config_wizard.html">`ErisPulse.CLI.utils.config_wizard` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/utils/display.html">`ErisPulse.CLI.utils.display` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/utils/interactive.html">`ErisPulse.CLI.utils.interactive` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/utils/package_manager.html">`ErisPulse.CLI.utils.package_manager` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/utils/runtime_state.html">`ErisPulse.CLI.utils.runtime_state` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/CLI/utils/scaffold_text.html">`ErisPulse.CLI.utils.scaffold_text` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/__init__.html">`ErisPulse.runtime.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/config_schema.html">`ErisPulse.runtime.config_schema` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/context.html">`ErisPulse.runtime.context` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/diagnostics.html">`ErisPulse.runtime.diagnostics` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/example_config.html">`ErisPulse.runtime.example_config` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/exceptions.html">`ErisPulse.runtime.exceptions` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/file_watcher.html">`ErisPulse.runtime.file_watcher` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/frame_config.html">`ErisPulse.runtime.frame_config` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/hints.html">`ErisPulse.runtime.hints` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/kernel.html">`ErisPulse.runtime.kernel` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/memory.html">`ErisPulse.runtime.memory` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">`ErisPulse.runtime.owner_cleanup` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html">`ErisPulse.runtime.plugin_reload` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">`ErisPulse.runtime.proactive_gc` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/process_state.html">`ErisPulse.runtime.process_state` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/reload_ops.html">`ErisPulse.runtime.reload_ops` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/sdk_initializer.html">`ErisPulse.runtime.sdk_initializer` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/tasks.html">`ErisPulse.runtime.tasks` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/troubleshoot.html">`ErisPulse.runtime.troubleshoot` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/runtime/version.html">`ErisPulse.runtime.version` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/__init__.html">`ErisPulse.loaders.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/_reload_utils.html">`ErisPulse.loaders._reload_utils` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/adapter.html">`ErisPulse.loaders.adapter` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/bases/loader.html">`ErisPulse.loaders.bases.loader` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/module.html">`ErisPulse.loaders.module` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/plugin_folder.html">`ErisPulse.loaders.plugin_folder` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/strategy.html">`ErisPulse.loaders.strategy` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/loaders/strict.html">`ErisPulse.loaders.strict` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/finders/__init__.html">`ErisPulse.finders.__init__` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/finders/adapter.html">`ErisPulse.finders.adapter` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/finders/bases/finder.html">`ErisPulse.finders.bases.finder` 模块</a><a class="ds-doc" href="/docs/ru/api-reference/auto_api/ErisPulse/finders/module.html">`ErisPulse.finders.module` 模块</a></div></details></nav>
+        </aside>
+
+        <main class="ds-main">
+            
+    <details class="ds-chapter-bar">
+        <summary>
+            <span class="ds-chapter-bar-icon" aria-hidden="true"></span>
+            <span class="ds-chapter-bar-label">Разделы страницы</span>
+            <span class="ds-chapter-bar-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="ds-chapter-bar-panel">
+            <div class="ds-chapter-rail">
+                <a class="ds-chapter level-2" href="#развёртывание-в-docker-рекомендуется">Развёртывание в Docker (рекомендуется)</a>
+                <a class="ds-chapter level-3" href="#быстрый-старт">Быстрый старт</a>
+                <a class="ds-chapter level-3" href="#ускорение-загрузки-образа-через-зеркало-для-китая">Ускорение загрузки образа через зеркало (для Китая)</a>
+                <a class="ds-chapter level-3" href="#docker-composeyml">docker-compose.yml</a>
+                <a class="ds-chapter level-3" href="#переменные-окружения">Переменные окружения</a>
+                <a class="ds-chapter level-3" href="#сохранение-данных">Сохранение данных</a>
+                <a class="ds-chapter level-2" href="#панель-управления-dashboard">Панель управления Dashboard</a>
+                <a class="ds-chapter level-3" href="#обзор-функций">Обзор функций</a>
+                <a class="ds-chapter level-3" href="#установка-модулей-через-dashboard">Установка модулей через Dashboard</a>
+                <a class="ds-chapter level-2" href="#супервизия-процессов-и-жёсткий-перезапуск">Супервизия процессов и жёсткий перезапуск</a>
+                <a class="ds-chapter level-2" href="#проверка-состояния">Проверка состояния</a>
+                <a class="ds-chapter level-2" href="#обратный-прокси">Обратный прокси</a>
+                <a class="ds-chapter level-2" href="#ручное-развёртывание-pip">Ручное развёртывание (pip)</a>
+                <a class="ds-chapter level-3" href="#конфигурация-для-производственного-окружения">Конфигурация для производственного окружения</a>
+                <a class="ds-chapter level-3" href="#systemd-linux">systemd (Linux)</a>
+                <a class="ds-chapter level-3" href="#supervisor">Supervisor</a>
+                <a class="ds-chapter level-3" href="#изолированное-развёртывание-через-uv-tool-разделение-cli-и-окружения-проекта">Изолированное развёртывание через uv tool (разделение CLI и окружения проекта)</a>
+                <a class="ds-chapter level-2" href="#рекомендации-по-безопасности">Рекомендации по безопасности</a>
+                <a class="ds-chapter level-2" href="#развёртывание-нескольких-экземпляров">Развёртывание нескольких экземпляров</a>
+                <a class="ds-chapter level-2" href="#обновление-и-обслуживание">Обновление и обслуживание</a>
+                <a class="ds-chapter level-3" href="#через-docker">Через Docker</a>
+                <a class="ds-chapter level-3" href="#через-pip">Через pip</a>
+                <a class="ds-chapter level-3" href="#через-uv-tool">Через uv tool</a>
+                <a class="ds-chapter level-3" href="#горячая-перезагрузка-конфигурации-сервера-во-время-выполнения">Горячая перезагрузка конфигурации сервера во время выполнения</a>
+                <a class="ds-chapter level-3" href="#резервное-копирование">Резервное копирование</a>
+                <a class="ds-chapter level-2" href="#следующие-шаги">Следующие шаги</a>
+            </div>
+        </div>
+    </details>
+            <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/docs.html">Документация</a>
+                <span class="doc-crumb-sep">/</span> Руководство пользователя
+                <span class="doc-crumb-sep">/</span> <span>Руководство по развёртыванию</span>
+            </nav>
+            <div class="doc-interactive">
+                <span>Статическое зеркало — интерактивная версия является основной</span>
+                <a href="https://www.erisdev.com/#docs/user-guide/deployment.md">Открыть интерактивную версию →</a>
+            </div>
+            <article class="markdown-content" id="docs-content">
+                <h1 id="руководство-по-развёртыванию">Руководство по развёртыванию</h1>
+<div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
+<p><strong>Когда читать этот документ</strong>: когда бот должен длительно работать на постоянной основе — здесь всё о развёртывании в Docker, процессных супервизорах systemd / Supervisor, обратном прокси и SSL, резервном копировании и обновлениях. На этапе локальной разработки и отладки это не требуется — можете пропустить.</p>
+</div>
+<p>Завершение разработки бота — это только начало. Этот документ охватывает три способа развёртывания, необходимых для стабильной работы бота на сервере (Docker / systemd / Supervisor), а также обратный прокси, усиление безопасности и резервное копирование.</p>
+<h2 id="развёртывание-в-docker-рекомендуется">Развёртывание в Docker (рекомендуется)</h2>
+<p>ErisPulse предоставляет официальный Docker-образ со встроенными фреймворком ErisPulse и панелью управления Dashboard, поддерживающий архитектуры <code>linux/amd64</code> и <code>linux/arm64</code>.</p>
 <h3 id="быстрый-старт">Быстрый старт</h3>
-<pre><code class="language-bash"><span class="token comment"># Скачивание образа</span>
+<pre><code class="language-bash"><span class="token comment"># Загрузка образа</span>
 <span class="token function">docker</span> pull erispulse/erispulse:latest
 
 <span class="token comment"># Скачивание docker-compose.yml</span>
 <span class="token function">curl</span> <span class="token parameter variable">-O</span> https://raw.githubusercontent.com/ErisPulse/ErisPulse/main/docker-compose.yml
 
-<span class="token comment"># Установка токена доступа к Dashboard и запуск</span>
+<span class="token comment"># Задайте токен входа в Dashboard и запустите</span>
 <span class="token assign-left variable">ERISPULSE_DASHBOARD_TOKEN</span><span class="token operator">=</span>your-token <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
-<p>После запуска перейдите по адресу <code>http://localhost:8000/Dashboard</code> и войдите, используя установленный токен в качестве пароля.</p>
-<h3 id="ускорение-загрузки-образов-в-китае">Ускорение загрузки образов в Китае</h3>
-<p>Если Docker Hub недоступен, можно использовать GitHub Container Registry для загрузки образа:</p>
+<p>После запуска откройте <code>http://localhost:8000/Dashboard</code> и войдите, используя установленный токен в качестве пароля.</p>
+<h3 id="ускорение-загрузки-образа-через-зеркало-для-китая">Ускорение загрузки образа через зеркало (для Китая)</h3>
+<p>Если Docker Hub недоступен, образ можно загрузить через GitHub Container Registry:</p>
 <pre><code class="language-bash"><span class="token function">docker</span> pull ghcr.io/erispulse/erispulse:latest
 </code></pre>
-<p>При использовании образа ghcr.io необходимо изменить параметр image в файле <code>docker-compose.yml</code>:</p>
+<p>При использовании образа из ghcr.io необходимо изменить поле image в <code>docker-compose.yml</code>:</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">image</span><span class="token punctuation">:</span> ghcr.io/erispulse/erispulse<span class="token punctuation">:</span>latest
@@ -99,23 +129,32 @@
 <h3 id="docker-composeyml">docker-compose.yml</h3>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
-    <span class="token key atrule">image</span><span class="token punctuation">:</span> erispulse/erispulse<span class="token punctuation">:</span>latest
-    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> erispulse
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> erispulse/erispulse<span class="token punctuation">:</span>$<span class="token punctuation">{</span>ERISPULSE_TAG<span class="token punctuation">:</span><span class="token punctuation">-</span>latest<span class="token punctuation">}</span>
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> $<span class="token punctuation">{</span>CONTAINER_NAME<span class="token punctuation">:</span><span class="token punctuation">-</span>erispulse<span class="token punctuation">}</span>
     <span class="token key atrule">ports</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> <span class="token string">"${ERISPULSE_PORT:-8000}:8000"</span>
     <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> ./config<span class="token punctuation">:</span>/app/config
-      <span class="token comment"># Объединение каталога пакетов Python</span>
+      <span class="token comment"># Персистентный каталог Python-пакетов</span>
       <span class="token punctuation">-</span> ./config/.packages<span class="token punctuation">:</span>/usr/local/lib/python3.13/site<span class="token punctuation">-</span>packages
     <span class="token key atrule">environment</span><span class="token punctuation">:</span>
       <span class="token punctuation">-</span> TZ=$<span class="token punctuation">{</span>TZ<span class="token punctuation">:</span><span class="token punctuation">-</span>Asia/Shanghai<span class="token punctuation">}</span>
+      <span class="token punctuation">-</span> LANG=$<span class="token punctuation">{</span>LANG<span class="token punctuation">:</span><span class="token punctuation">-</span>en_US.UTF<span class="token punctuation">-</span><span class="token number">8</span><span class="token punctuation">}</span>
+      <span class="token punctuation">-</span> ERISPULSE_LANG=$<span class="token punctuation">{</span>ERISPULSE_LANG<span class="token punctuation">:</span><span class="token punctuation">-</span><span class="token punctuation">}</span>
       <span class="token punctuation">-</span> ERISPULSE_DASHBOARD_TOKEN=$<span class="token punctuation">{</span>ERISPULSE_DASHBOARD_TOKEN<span class="token punctuation">:</span><span class="token punctuation">-</span><span class="token punctuation">}</span>
     <span class="token key atrule">init</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token comment"># Корректная остановка выполняется обработкой сигналов внутри фреймворка (SIGTERM); здесь задаётся только длительность льготного периода</span>
     <span class="token key atrule">stop_grace_period</span><span class="token punctuation">:</span> 30s
-    <span class="token key atrule">restart</span><span class="token punctuation">:</span> unless<span class="token punctuation">-</span>stopped
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> on<span class="token punctuation">-</span>failure<span class="token punctuation">:</span><span class="token number">5</span>
+    <span class="token key atrule">healthcheck</span><span class="token punctuation">:</span>
+      <span class="token key atrule">test</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"CMD"</span><span class="token punctuation">,</span> <span class="token string">"python"</span><span class="token punctuation">,</span> <span class="token string">"-c"</span><span class="token punctuation">,</span> <span class="token string">"import urllib.request; urllib.request.urlopen('http://localhost:8000/ping')"</span><span class="token punctuation">]</span>
+      <span class="token key atrule">interval</span><span class="token punctuation">:</span> 30s
+      <span class="token key atrule">timeout</span><span class="token punctuation">:</span> 5s
+      <span class="token key atrule">start_period</span><span class="token punctuation">:</span> 20s
+      <span class="token key atrule">retries</span><span class="token punctuation">:</span> <span class="token number">3</span>
 </code></pre>
 <blockquote>
-<p>Рекомендуется использовать файл <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> из корня репозитория, он содержит вышеуказанные настройки, а также проверки на работоспособность, переменные окружения часового пояса и языка.</p>
+<p>Вышеуказанное соответствует <a href="https://github.com/ErisPulse/ErisPulse/blob/main/docker-compose.yml">docker-compose.yml</a> в корне репозитория (в версии из репозитория в начале файла содержатся дополнительные комментарии об ускорении через зеркало и переменных окружения); рекомендуется скачивать и использовать напрямую.</p>
 </blockquote>
 <h3 id="переменные-окружения">Переменные окружения</h3>
 <div class="table-wrapper"><table>
@@ -129,12 +168,22 @@
 <tbody><tr>
 <td><code>ERISPULSE_PORT</code></td>
 <td><code>8000</code></td>
-<td>Порт для Dashboard</td>
+<td>Маппинг порта Dashboard</td>
+</tr>
+<tr>
+<td><code>ERISPULSE_TAG</code></td>
+<td><code>latest</code></td>
+<td>Тег образа (для фиксации версии можно указать конкретный номер версии)</td>
+</tr>
+<tr>
+<td><code>CONTAINER_NAME</code></td>
+<td><code>erispulse</code></td>
+<td>Имя контейнера (для различения экземпляров при развёртывании нескольких экземпляров)</td>
 </tr>
 <tr>
 <td><code>ERISPULSE_DASHBOARD_TOKEN</code></td>
-<td>自动生成</td>
-<td>Токен доступа к Dashboard (рекомендуется установить)</td>
+<td>Генерируется автоматически</td>
+<td>Токен входа в Dashboard (настоятельно рекомендуется задать)</td>
 </tr>
 <tr>
 <td><code>TZ</code></td>
@@ -144,7 +193,7 @@
 <tr>
 <td><code>LANG</code></td>
 <td><code>en_US.UTF-8</code></td>
-<td>Язык системы, автоматически определяется для интерфейса запуска</td>
+<td>Язык системы, автоматическое определение языка интерфейса запуска</td>
 </tr>
 <tr>
 <td><code>ERISPULSE_LANG</code></td>
@@ -152,20 +201,21 @@
 <td>Принудительный язык интерфейса запуска: <code>zh</code> / <code>zh_TW</code> / <code>en</code> / <code>ja</code> / <code>ru</code> (переопределяет <code>LANG</code>)</td>
 </tr>
 </tbody></table></div>
-<h3 id="хранение-данных">Хранение данных</h3>
-<p>Каталог <code>./config</code> смонтирован для хранения конфигурационных файлов и базы данных, включая:</p>
+<h3 id="сохранение-данных">Сохранение данных</h3>
+<p>В каталог <code>./config</code> смонтированы файлы конфигурации и база данных, он содержит:</p>
 <ul>
-<li><code>config/config.toml</code> — конфигурационный файл</li>
-<li><code>config/config.db</code> — база данных SQLite</li>
-<li><code>config/.packages</code> — каталог site-packages Python, сохраняющий фреймворк, адаптеры и установленные модули (в первый запуск инициализируется автоматически из резервной копии внутри образа, последующие установки модулей и горячие обновления фреймворка записываются в этот каталог)</li>
+<li><code>config/config.toml</code> — файл конфигурации</li>
+<li><code>config/config.db</code> — база данных хранилища SQLite</li>
+<li><code>config/.packages</code> — персистентный том Python site-packages, в котором хранятся фреймворк, адаптеры и установленные модули (при первом запуске автоматически инициализируется точкой входа из встроенного в образ резервного хранилища; все последующие установки модулей и «горячие» обновления фреймворка записываются в этот каталог)</li>
 </ul>
 <blockquote>
-<p><strong>Обновление фреймворка (включая pre/rc) и самовосстановление образа</strong>: точка входа выполняет автоматическую проверку целостности основных пакетов при каждом запуске контейнера,
-при повреждении пакетов восстанавливает их на основе установленных пользователем версий,
-поврежденные пакеты, установленные вручную (например, предварительные версии, установленные через Dashboard), переустанавливаются из PyPI <strong>в той же версии</strong>, без тихого возврата к версии внутри образа. Таким образом, после обновления фреймворка через Dashboard, при любом перезапуске контейнера будет сохранена целевая версия.</p>
+<p><strong>Обновление фреймворка (включая pre/rc) и самолечение образа</strong>: точка входа при каждом запуске контейнера выполняет самопроверку целостности основных пакетов.
+При повреждении восстановление выполняется по принципу «приоритет версии, установленной пользователем» — версии, явно установленные/обновлённые в персистентном томе
+(например, pre-версия, установленная через Dashboard), будут <strong>переустановлены в той же версии</strong> из PyPI, без тихого отката к
+версии, встроенной в образ. Поэтому после обновления фреймворка через Dashboard целевая версия сохраняется при любом количестве перезапусков контейнера.</p>
 </blockquote>
 <h2 id="панель-управления-dashboard">Панель управления Dashboard</h2>
-<p>В Docker-образе ErisPulse встроен модуль Dashboard, предоставляющий веб-интерфейс для управления.</p>
+<p>Docker-образ ErisPulse содержит встроенный модуль Dashboard, предоставляющий веб-интерфейс визуального управления.</p>
 <h3 id="обзор-функций">Обзор функций</h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -180,23 +230,23 @@
 </tr>
 <tr>
 <td>Управление ботами</td>
-<td>Просмотр состояния и информации о ботах на разных платформах</td>
+<td>Просмотр статуса «онлайн» и информации ботов на различных платформах</td>
 </tr>
 <tr>
 <td>Просмотр событий</td>
-<td>Поток событий в реальном времени, фильтрация по типу и платформе</td>
+<td>Поток событий в реальном времени с фильтрацией по типу и платформе</td>
 </tr>
 <tr>
 <td>Просмотр логов</td>
-<td>Просмотр логов с фильтрацией по модулю и уровню</td>
+<td>Просмотрщик логов с фильтрацией по модулю и уровню</td>
 </tr>
 <tr>
 <td>Управление модулями</td>
-<td>Просмотр, загрузка, удаление установленных модулей и адаптеров</td>
+<td>Просмотр, загрузка и выгрузка установленных модулей и адаптеров</td>
 </tr>
 <tr>
 <td>Магазин модулей</td>
-<td>Просмотр доступных удаленных пакетов и установка их одним кликом</td>
+<td>Просмотр доступных удалённых пакетов и установка в один клик</td>
 </tr>
 <tr>
 <td>Редактирование конфигурации</td>
@@ -204,7 +254,7 @@
 </tr>
 <tr>
 <td>Управление хранилищем</td>
-<td>Просмотр и редактирование данных хранилища Key-Value</td>
+<td>Просмотр и редактирование данных Key-Value хранилища</td>
 </tr>
 <tr>
 <td>Резервное копирование</td>
@@ -216,29 +266,29 @@
 </tr>
 </tbody></table></div>
 <h3 id="установка-модулей-через-dashboard">Установка модулей через Dashboard</h3>
-<p>Dashboard включает функцию магазина модулей, с помощью которой вы можете:</p>
+<p>В Dashboard интегрирована функция магазина модулей, с помощью которой можно:</p>
 <ol>
-<li><strong>Установить из магазина</strong>: просмотреть список доступных удаленных модулей и установить нужный одним кликом</li>
-<li><strong>Загрузить локальный пакет</strong>: загрузить <code>.whl</code> или <code>.zip</code> файл для установки, удобно для тестирования собственных разработок</li>
+<li><strong>Установить из магазина</strong>: просмотреть список удалённых модулей и установить нужный в один клик</li>
+<li><strong>Загрузить локальный пакет</strong>: загрузить файл <code>.whl</code> или <code>.zip</code> напрямую для установки — удобно для тестирования самостоятельно разработанных модулей</li>
 </ol>
 <blockquote>
-<p><strong>Быстрый тест для разработчиков модулей</strong>: после развертывания с помощью Docker, вы можете загрузить <code>.whl</code> файл, созданный вами, через функцию "Загрузить локальный пакет" в Dashboard для тестирования, без необходимости ручного взаимодействия с контейнером.</p>
+<p><strong>Быстрый процесс тестирования для разработчиков модулей</strong>: после развёртывания в Docker загружайте собранные вами файлы <code>.whl</code> напрямую через функцию «Загрузить локальный пакет» в Dashboard для тестирования — без ручных операций с контейнером.</p>
 </blockquote>
-<h2 id="надзор-за-процессами-и-принудительный-перезапуск">Надзор за процессами и принудительный перезапуск</h2>
-<p>Принудительный перезапуск ErisPulse (<code>sdk.hard_restart()</code>) зависит от <strong>внешнего надзирателя</strong>, который перезапускает процесс при выходном коде 42 — SDK сам не запускает новый процесс. В рабочей среде необходимо настроить надзирателя, иначе процесс не будет автоматически восстанавливаться после принудительного перезапуска:</p>
+<h2 id="супервизия-процессов-и-жёсткий-перезапуск">Супервизия процессов и жёсткий перезапуск</h2>
+<p>Жёсткий перезапуск ErisPulse (<code>sdk.hard_restart()</code>) рассчитан на <strong>внешнего супервизора</strong>, который заново запускает процесс при коде выхода 42, — сам SDK новый процесс не запускает. В производственной среде обязательно настройте супервизора, иначе после жёсткого перезапуска процесс не восстановится автоматически:</p>
 <ul>
-<li>Docker: <code>restart: unless-stopped</code> (перезапуск при любом выходном коде, включая 42)</li>
+<li>Docker: официальный compose использует <code>restart: on-failure:5</code> — перезапуск при любом ненулевом коде выхода (включая код выхода 42 жёсткого перезапуска); лимит в 5 последовательных перезапусков защищает от бесконечного цикла; при необходимости неограниченного числа перезапусков самостоятельно измените на <code>unless-stopped</code></li>
 <li>systemd: <code>Restart=on-failure</code> + <code>RestartForceExitStatus=42</code></li>
-<li>PM2 / supervisord: добавить 42 в список перезапускаемых кодов выхода</li>
-<li>Чистый Python с пользовательским надзирателем: цикл <code>Popen</code> + проверка <code>returncode == 42</code></li>
+<li>PM2 / supervisord: добавьте 42 в число кодов выхода, при которых выполняется перезапуск</li>
+<li>Собственный супервизор на чистом Python: цикл <code>Popen</code> + проверка <code>returncode == 42</code></li>
 </ul>
-<p>Примеры полной конфигурации надзирателей и описание соглашения по выходному коду 42 см. в разделе <a href="/docs/ru/advanced/startup.html#%D0%A0%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE-%D0%BF%D0%BE-%D0%BD%D0%B0%D0%B4%D0%B7%D0%B8%D1%80%D0%B0%D1%82%D0%B5%D0%BB%D1%8F%D0%BC">Процесс запуска → Руководство по надзирателям</a>.</p>
-<h2 id="проверка-работоспособности">Проверка работоспособности</h2>
-<p>SDK включает конечную точку проверки работоспособности:</p>
-<pre><code class="language-bash"><span class="token comment"># Проверка работоспособности</span>
+<p>Полные примеры настройки каждого супервизора и описание контракта кода выхода 42 см. в разделе <a href="/docs/ru/advanced/startup.html#%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D1%81%D1%82%D0%B2%D0%BE-%D0%BF%D0%BE-%D1%81%D1%83%D0%BF%D0%B5%D1%80%D0%B2%D0%B8%D0%B7%D0%BE%D1%80%D0%B0%D0%BC">Процесс запуска → Руководство по супервизорам</a>.</p>
+<h2 id="проверка-состояния">Проверка состояния</h2>
+<p>В SDK встроена конечная точка проверки состояния:</p>
+<pre><code class="language-bash"><span class="token comment"># Проверка состояния</span>
 <span class="token function">curl</span> http://localhost:8000/health
 </code></pre>
-<p>Проверку работоспособности в Docker можно добавить в <code>docker-compose.yml</code>:</p>
+<p>В официальном docker-compose.yml уже встроена приведённая ниже проверка состояния; при написании собственного compose-файла можно ориентироваться на неё:</p>
 <pre><code class="language-yaml"><span class="token key atrule">services</span><span class="token punctuation">:</span>
   <span class="token key atrule">erispulse</span><span class="token punctuation">:</span>
     <span class="token key atrule">healthcheck</span><span class="token punctuation">:</span>
@@ -249,7 +299,7 @@
       <span class="token key atrule">retries</span><span class="token punctuation">:</span> <span class="token number">3</span>
 </code></pre>
 <h2 id="обратный-прокси">Обратный прокси</h2>
-<p>Если необходимо выставить Dashboard через обратный прокси, например, Nginx:</p>
+<p>Если необходимо предоставить доступ к Dashboard через обратный прокси (например, Nginx):</p>
 <pre><code class="language-nginx">server {
     listen 80;
     server_name bot.example.com;
@@ -261,7 +311,7 @@
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    # Поддержка WebSocket (необходима для потоков событий Dashboard)
+    # Поддержка WebSocket (необходима для потока событий Dashboard в реальном времени)
     location /Dashboard/ws {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -270,12 +320,12 @@
     }
 }
 </code></pre>
-<p>SSL можно настроить с помощью Let's Encrypt:</p>
+<p>Для SSL можно использовать Let's Encrypt:</p>
 <pre><code class="language-bash"><span class="token function">sudo</span> certbot <span class="token parameter variable">--nginx</span> <span class="token parameter variable">-d</span> bot.example.com
 </code></pre>
-<h2 id="ручное-развертывание-pip">Ручное развертывание (pip)</h2>
-<p>Если не использовать Docker, можно развернуть вручную.</p>
-<h3 id="настройка-для-рабочей-среды">Настройка для рабочей среды</h3>
+<h2 id="ручное-развёртывание-pip">Ручное развёртывание (pip)</h2>
+<p>Если Docker не используется, можно развернуть вручную.</p>
+<h3 id="конфигурация-для-производственного-окружения">Конфигурация для производственного окружения</h3>
 <pre><code class="language-toml"><span class="token comment"># config/config.toml</span>
 
 <span class="token punctuation">[</span><span class="token table class-name">ErisPulse.server</span><span class="token punctuation">]</span>
@@ -291,7 +341,7 @@
 <span class="token key property">enable_lazy_loading</span> <span class="token punctuation">=</span> <span class="token boolean">true</span>
 </code></pre>
 <h3 id="systemd-linux">systemd (Linux)</h3>
-<p>Создайте <code>/etc/systemd/system/erispulse-bot.service</code>:</p>
+<p>Создайте файл <code>/etc/systemd/system/erispulse-bot.service</code>:</p>
 <pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">Unit</span><span class="token punctuation">]</span></span>
 <span class="token key attr-name">Description</span><span class="token punctuation">=</span><span class="token value attr-value">ErisPulse Bot</span>
 <span class="token key attr-name">After</span><span class="token punctuation">=</span><span class="token value attr-value">network.target</span>
@@ -316,7 +366,7 @@
 <span class="token function">sudo</span> journalctl <span class="token parameter variable">-u</span> erispulse-bot <span class="token parameter variable">-f</span>
 </code></pre>
 <h3 id="supervisor">Supervisor</h3>
-<p>Создайте <code>/etc/supervisor/conf.d/erispulse-bot.conf</code>:</p>
+<p>Создайте файл <code>/etc/supervisor/conf.d/erispulse-bot.conf</code>:</p>
 <pre><code class="language-ini"><span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">program:erispulse-bot</span><span class="token punctuation">]</span></span>
 <span class="token key attr-name">command</span><span class="token punctuation">=</span><span class="token value attr-value">/opt/erispulse-bot/venv/bin/python -m ErisPulse run main.py</span>
 <span class="token key attr-name">directory</span><span class="token punctuation">=</span><span class="token value attr-value">/opt/erispulse-bot</span>
@@ -326,89 +376,97 @@
 <span class="token key attr-name">stderr_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/err.log</span>
 <span class="token key attr-name">stdout_logfile</span><span class="token punctuation">=</span><span class="token value attr-value">/var/log/erispulse-bot/out.log</span>
 </code></pre>
-<h3 id="uv-tool-разделение-развертывания-отдельное-окружение-cli-и-проекта">uv tool: разделение развертывания (отдельное окружение CLI и проекта)</h3>
-<p><code>uv tool install</code> устанавливает <code>epsdk</code> в <strong>отдельное окружение инструментов</strong>, полностью изолируя CLI от зависимостей проекта: обновление CLI не затрагивает <code>.venv</code> проекта, а изменения зависимостей проекта не влияют на CLI.</p>
-<pre><code class="language-bash"><span class="token comment"># 1. Установка CLI глобально (автоматически доступны команды epsdk / ep)</span>
+<h3 id="изолированное-развёртывание-через-uv-tool-разделение-cli-и-окружения-проекта">Изолированное развёртывание через uv tool (разделение CLI и окружения проекта)</h3>
+<p><code>uv tool install</code> устанавливает <code>epsdk</code> как <strong>отдельное инструментальное окружение</strong>, полностью изолируя сам CLI от зависимостей проекта: обновление CLI не затрагивает <code>.venv</code> проекта, а изменения зависимостей проекта не влияют на CLI.</p>
+<pre><code class="language-bash"><span class="token comment"># 1. Глобальная установка CLI (команды epsdk / ep становятся доступны автоматически)</span>
 uv tool <span class="token function">install</span> ErisPulse
 
-<span class="token comment"># 2. В проекте размещаются только зависимости бота (`.venv` управляется uv)</span>
+<span class="token comment"># 2. В проекте размещаются только зависимости бота (.venv управляется uv)</span>
 <span class="token builtin class-name">cd</span> /opt/erispulse-bot
-uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># Добавить адаптеры по мере необходимости</span>
+uv <span class="token function">add</span> erispulse ErisPulse-Adapter-Yunhu   <span class="token comment"># добавляйте адаптеры по мере необходимости</span>
 
-<span class="token comment"># 3. Запуск с помощью CLI (автоматически определяет и использует интерпретатор из `.venv` проекта)</span>
+<span class="token comment"># 3. Запуск через CLI (интерпретатор из .venv проекта определяется и используется автоматически)</span>
 epsdk run main.py
 </code></pre>
-<p>Особенности поведения:</p>
+<p>Ключевые аспекты поведения:</p>
 <ul>
-<li>Порядок поиска целевого интерпретатора <code>epsdk run</code>: переменная окружения <code>ERISPULSE_PYTHON</code> → <code>.venv</code> проекта → текущий интерпретатор; окружение инструментов содержит только CLI, компоненты (адаптеры/модули) должны устанавливаться в <code>.venv</code> проекта</li>
-<li>Команды <code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> действуют на <code>.venv</code> проекта, не влияя на окружение инструментов</li>
-<li>Обновление CLI: <code>uv tool upgrade ErisPulse</code> (или <code>epsdk self-update</code>, в окружении uv tool автоматически переключается на <code>uv tool upgrade</code>); обновление зависимостей проекта: в директории проекта выполнить <code>uv sync</code> / <code>uv add</code>, оба процесса не влияют друг на друга</li>
-<li>На сервере окружение инструментов управляется через uv (<code>uv tool list</code> для просмотра, <code>uv tool upgrade --all</code> для пакетного обновления), без ручного обслуживания глобальных пакетов pip</li>
-<li>Если использовать <code>uv run epsdk ...</code> в директории без проекта, создается <strong>одноразовое изолированное окружение</strong> (установленные компоненты не сохраняются); на сервере всегда используйте <code>epsdk</code> напрямую или сначала перейдите в директорию проекта</li>
+<li>Порядок разрешения целевого интерпретатора для <code>epsdk run</code>: переменная окружения <code>ERISPULSE_PYTHON</code> → <code>.venv</code> проекта → текущий интерпретатор; само инструментальное окружение содержит только CLI, компоненты (адаптеры/модули) следует устанавливать в <code>.venv</code> проекта</li>
+<li><code>epsdk install</code> / <code>uninstall</code> / <code>upgrade</code> / <code>list</code> также действуют на <code>.venv</code> проекта и не засоряют инструментальное окружение</li>
+<li>Обновление CLI: <code>uv tool upgrade ErisPulse</code> (или напрямую <code>epsdk self-update</code> — в окружении uv tool автоматически перенаправляется на <code>uv tool upgrade</code>); обновление зависимостей проекта: выполните <code>uv sync</code> / <code>uv add</code> в каталоге проекта; эти операции не влияют друг на друга</li>
+<li>В серверных сценариях инструментальные окружения управляются централизованно через uv (просмотр — <code>uv tool list</code>, массовое обновление — <code>uv tool upgrade --all</code>), ручное обслуживание глобальных pip-пакетов не требуется</li>
+<li>Если выполнить <code>uv run epsdk ...</code> в каталоге без проекта, вы попадёте во <strong>временное одноразовое изолированное окружение</strong> (установленные компоненты не сохраняются); на сервере всегда вызывайте <code>epsdk</code> напрямую или сначала перейдите через <code>cd</code> в каталог проекта</li>
 </ul>
 <h2 id="рекомендации-по-безопасности">Рекомендации по безопасности</h2>
 <ol>
-<li><strong>Установите токен доступа к Dashboard</strong>: используйте сильный случайный токен, не используйте значение по умолчанию</li>
-<li><strong>Не открывайте порт для публичного доступа</strong>: если не используете обратный прокси + SSL, ограничьте порт Dashboard только внутренней сетью</li>
+<li><strong>Задайте токен Dashboard</strong>: используйте сильный случайный токен, не используйте значения по умолчанию</li>
+<li><strong>Не открывайте порт в публичную сеть</strong>: если не используется обратный прокси + SSL, ограничьте доступ к порту Dashboard внутренней сетью</li>
 <li><strong>Защитите каталог данных</strong>: каталог <code>config/</code> содержит конфигурацию и базу данных, установите соответствующие права доступа к файлам</li>
-<li><strong>Регулярно обновляйте</strong>: используйте <code>epsdk self-update</code> или обновите Docker-образ</li>
-<li><strong>Не запускайте от root</strong>: при ручном развертывании создайте специального пользователя</li>
-<li><strong>Используйте стратегию перезапуска Docker</strong>: <code>restart: unless-stopped</code> для автоматического перезапуска при аварийном завершении</li>
+<li><strong>Регулярно обновляйтесь</strong>: используйте <code>epsdk self-update</code> или загружайте новейший Docker-образ</li>
+<li><strong>Не запускайте от root</strong>: при ручном развёртывании создайте отдельного пользователя</li>
+<li><strong>Используйте политику перезапуска Docker</strong>: <code>restart: on-failure:5</code> в официальном compose гарантирует автоматический перезапуск после аварийного завершения (включая код выхода 42 жёсткого перезапуска)</li>
 </ol>
-<h2 id="развертывание-нескольких-экземпляров">Развертывание нескольких экземпляров</h2>
+<h2 id="развёртывание-нескольких-экземпляров">Развёртывание нескольких экземпляров</h2>
 <p>При запуске нескольких экземпляров бота:</p>
 <ol>
-<li>Каждый экземпляр использует отдельную директорию проекта и <code>docker-compose.yml</code></li>
-<li>Используйте разные порты: <code>ERISPULSE_PORT=8001</code></li>
+<li>Каждый экземпляр использует отдельный каталог проекта и <code>docker-compose.yml</code></li>
+<li>Используйте разные номера портов: <code>ERISPULSE_PORT=8001</code></li>
 <li>Используйте разные имена контейнеров: <code>container_name: erispulse-bot2</code></li>
 </ol>
 <h2 id="обновление-и-обслуживание">Обновление и обслуживание</h2>
-<h3 id="способ-docker">Способ Docker</h3>
-<pre><code class="language-bash"><span class="token comment"># Скачивание последнего образа</span>
+<h3 id="через-docker">Через Docker</h3>
+<pre><code class="language-bash"><span class="token comment"># Загрузка новейшего образа</span>
 <span class="token function">docker</span> compose pull
 
 <span class="token comment"># Перезапуск с использованием нового образа</span>
 <span class="token function">docker</span> compose up <span class="token parameter variable">-d</span>
 </code></pre>
-<h3 id="способ-pip">Способ pip</h3>
+<h3 id="через-pip">Через pip</h3>
 <pre><code class="language-bash">epsdk self-update
 epsdk upgrade
 </code></pre>
-<h3 id="способ-uv-tool">Способ uv tool</h3>
-<pre><code class="language-bash"><span class="token comment"># Обновление окружения инструментов CLI</span>
+<h3 id="через-uv-tool">Через uv tool</h3>
+<pre><code class="language-bash"><span class="token comment"># Обновление инструментального окружения CLI</span>
 uv tool upgrade ErisPulse
 
-<span class="token comment"># Обновление зависимостей проекта (выполняется в директории проекта)</span>
+<span class="token comment"># Обновление зависимостей проекта (выполнять в каталоге проекта)</span>
 uv <span class="token function">sync</span>
 </code></pre>
-<h3 id="горячая-перезагрузка-конфигурации-сервера-в-режиме-реального-времени">Горячая перезагрузка конфигурации сервера в режиме реального времени</h3>
-<p>После изменения адреса прослушивания / порта / SSL-сертификата перезапуск процесса не требуется. В любом корутине вызовите <code>router.reload()</code>:</p>
-<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># Смена порта</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># Горячая замена сертификата (сценарий продления)</span>
-<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># Непереданные параметры берутся из текущей конфигурации</span>
+<h3 id="горячая-перезагрузка-конфигурации-сервера-во-время-выполнения">Горячая перезагрузка конфигурации сервера во время выполнения</h3>
+<p>После изменения адреса прослушивания / порта / SSL-сертификата перезапускать процесс не нужно — вызовите <code>router.reload()</code> из любой сопрограммы:</p>
+<pre><code class="language-python"><span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                                <span class="token comment"># смена порта</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>ssl_cert<span class="token operator">=</span>new_pem<span class="token punctuation">,</span> ssl_key<span class="token operator">=</span>new_key<span class="token punctuation">)</span>        <span class="token comment"># горячая замена сертификата (сценарий продления сертификата)</span>
+<span class="token keyword">await</span> sdk<span class="token punctuation">.</span>router<span class="token punctuation">.</span><span class="token builtin">reload</span><span class="token punctuation">(</span>host<span class="token operator">=</span><span class="token string">"0.0.0.0"</span><span class="token punctuation">,</span> port<span class="token operator">=</span><span class="token number">9000</span><span class="token punctuation">)</span>                <span class="token comment"># опущенные параметры наследуют текущую конфигурацию</span>
 </code></pre>
 <ul>
-<li>Используется один и тот же экземпляр FastAPI, все зарегистрированные HTTP / WebSocket / SSE-маршруты сохраняются</li>
-<li>Новая конфигурация проверяется (сертификат может быть построен, порт доступен) перед переключением; при неудаче обслуживание возвращается к старой конфигурации и возвращается <code>False</code>,
-гарантируя, что возвращение <code>False</code> = старая служба остается доступной</li>
-<li>Если сервер не запущен, возвращается <code>False</code> (первый запуск следует использовать <code>sdk.router.start()</code>)</li>
+<li>Переиспользуется то же приложение FastAPI; все маршруты HTTP / WebSocket / SSE, зарегистрированные модулями, полностью сохраняются</li>
+<li>Сначала проверяется новая конфигурация (сертификат может быть загружен, порт доступен), и только затем выполняется переключение; при сбое сервис восстанавливается на старой конфигурации и возвращается <code>False</code>,
+гарантируется: возврат <code>False</code> = старый сервис остаётся доступным</li>
+<li>Если сервер не запущен, возвращается <code>False</code> (для первого запуска используйте <code>sdk.router.start()</code>)</li>
 </ul>
 <h3 id="резервное-копирование">Резервное копирование</h3>
 <p>Регулярно создавайте резервные копии каталога <code>config/</code>:</p>
-<pre><code class="language-bash"><span class="token comment"># Docker-развертывание</span>
+<pre><code class="language-bash"><span class="token comment"># Развёртывание Docker</span>
 <span class="token function">tar</span> czf erispulse-backup-<span class="token variable"><span class="token variable">$(</span><span class="token function">date</span> +%Y%m%d<span class="token variable">)</span></span>.tar.gz config/
 
-<span class="token comment"># Или используйте функцию "Резервное копирование" в Dashboard для экспорта</span>
+<span class="token comment"># Или выполните экспорт через функцию «Резервное копирование» в Dashboard</span>
 </code></pre>
+<h2 id="следующие-шаги">Следующие шаги</h2>
+<ul>
+<li><strong>Хотите визуальное управление после развёртывания</strong>: установите <a href="/docs/ru/ecosystem/dashboard.html">ErisPulse-Dashboard</a> — управляйте модулями, просматривайте логи и изменяйте конфигурацию прямо в браузере</li>
+<li><strong>Подозреваете проблемы с окружением</strong>: сначала запустите <code>epsdk doctor</code> для вывода отчёта о состоянии, см. <a href="/docs/ru/user-guide/cli-reference.html#doctor">Справочник команд CLI · doctor</a></li>
+<li><strong>Нужно настроить конфигурацию фреймворка и компонентов</strong>: обратитесь к <a href="/docs/ru/user-guide/configuration.html">Описанию файла конфигурации</a>; переопределение через переменные окружения особенно подходит для контейнерного развёртывания</li>
+</ul>
 
-        </article>
-        
+            </article>
+            
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/ru/user-guide/cli-reference.html"><small>Previous</small><br>Справочник командной строки</a>
-        <a class="doc-pager-next" href="/docs/ru/developer-guide/README.html"><small>Next</small><br>Руководство для разработчиков</a>
+        <a class="doc-pager-prev" href="/docs/ru/user-guide/cli-reference.html"><small>Назад</small><br>Справочник командной строки</a>
+        <a class="doc-pager-next" href="/docs/ru/developer-guide/README.html"><small>Далее</small><br>Руководство для разработчиков</a>
     </nav>
-    </main>
-    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        </main>
+    </div>
+
+    <footer class="ds-footer">
         © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
     </footer>
 </body>

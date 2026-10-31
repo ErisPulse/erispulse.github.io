@@ -3,89 +3,111 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>归屬權（owner）系統 - ErisPulse 文档中心</title>
-    <meta name="description" content="何時需要閱讀本文：排查資源泄漏、理解卸載清理鏈路或聲明歸屬資源時。若無需求則可跳過，不影響其他功能的使用。" />
+    <title>所屬權（owner）系統 - ErisPulse 文檔中心</title>
+    <meta name="description" content="何時需要閱讀本文：排查資源洩漏、理解卸載清理鏈路或宣告所屬資源時。不需要則跳過，不會影響其他功能的使用。" />
     <link rel="canonical" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html" />
     <link rel="alternate" hreflang="zh-CN" href="https://www.erisdev.com/docs/advanced/ownership.html" />
     <link rel="alternate" hreflang="en" href="https://www.erisdev.com/docs/en/advanced/ownership.html" />
     <link rel="alternate" hreflang="zh-TW" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html" />
     <link rel="alternate" hreflang="ja" href="https://www.erisdev.com/docs/ja/advanced/ownership.html" />
     <link rel="alternate" hreflang="ru" href="https://www.erisdev.com/docs/ru/advanced/ownership.html" />
-    <meta property="og:title" content="归屬權（owner）系統 - ErisPulse 文档中心" />
-    <meta property="og:description" content="何時需要閱讀本文：排查資源泄漏、理解卸載清理鏈路或聲明歸屬資源時。若無需求則可跳過，不影響其他功能的使用。" />
+    <meta property="og:title" content="所屬權（owner）系統 - ErisPulse 文檔中心" />
+    <meta property="og:description" content="何時需要閱讀本文：排查資源洩漏、理解卸載清理鏈路或宣告所屬資源時。不需要則跳過，不會影響其他功能的使用。" />
     <meta property="og:url" content="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html" />
     <meta property="og:type" content="article" />
-    <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"归屬權（owner）系統","description":"何時需要閱讀本文：排查資源泄漏、理解卸載清理鏈路或聲明歸屬資源時。若無需求則可跳過，不影響其他功能的使用。","url":"https://www.erisdev.com/docs/zh-TW/advanced/ownership.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文档中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <meta property="og:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.erisdev.com/assets/img/og-cover.png" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/assets/img/logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"所屬權（owner）系統","description":"何時需要閱讀本文：排查資源洩漏、理解卸載清理鏈路或宣告所屬資源時。不需要則跳過，不會影響其他功能的使用。","url":"https://www.erisdev.com/docs/zh-TW/advanced/ownership.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"ErisPulse 文檔中心","url":"https://www.erisdev.com/docs.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"文檔中心","item":"https://www.erisdev.com/docs.html"},{"@type":"ListItem","position":2,"name":"進階主題","item":"https://www.erisdev.com/docs/zh-TW/advanced/ownership.html"},{"@type":"ListItem","position":3,"name":"所屬權（owner）系統"}]}</script>
     <link rel="stylesheet" href="/assets/css/main.css" />
     <link rel="stylesheet" href="/assets/css/markdown.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/assets/css/doc-static.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
-    <style>
-        .doc-static-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:var(--card-bg)}
-        .doc-nav-brand{color:var(--text);text-decoration:none;font-size:1.05rem}
-        .doc-nav-links{display:flex;gap:1.2rem;flex-wrap:wrap}
-        .doc-nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.9rem}
-        .doc-nav-links a:hover{color:var(--primary)}
-        .doc-page{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
-        .doc-breadcrumbs{font-size:.82rem;color:var(--text-secondary);margin-bottom:1.6rem}
-        .doc-breadcrumbs a{color:var(--primary);text-decoration:none}
-        .doc-crumb-sep{margin:0 .4rem;opacity:.6}
-        .doc-langs{display:flex;gap:.8rem;flex-wrap:wrap;margin:0 0 1.4rem;font-size:.82rem}
-        .doc-lang-link{color:var(--text-secondary);text-decoration:none}
-        .doc-lang-link.current{color:var(--primary);font-weight:600}
-        .doc-interactive{margin:0 0 1.8rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--card-bg);font-size:.85rem;color:var(--text-secondary);display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
-        .doc-interactive a{color:var(--primary);font-weight:600;text-decoration:none}
-        .doc-pager{display:flex;justify-content:space-between;gap:1rem;margin-top:2.5rem}
-        .doc-pager a{flex:1;padding:.8rem 1rem;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);font-size:.88rem;background:var(--card-bg)}
-        .doc-pager a small{color:var(--text-secondary)}
-        .doc-pager-next{text-align:right}
-        @media (max-width:640px){.doc-nav-links a:nth-child(n+4){display:none}}
-    </style>
 </head>
-<body>
-    
-    <nav class="doc-static-nav">
-        <a class="doc-nav-brand" href="/"><strong>ErisPulse</strong></a>
-        <div class="doc-nav-links">
-            <a href="/">首页</a>
-            <a href="/docs.html">文档中心</a>
-            <a href="/market.html">模块市场</a>
-            <a href="/community.html">社区</a>
-            <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-    </nav>
-    <main class="doc-page">
-        
-    <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/docs.html">Docs</a>
-        <span class="doc-crumb-sep">/</span> 進階主題
-        <span class="doc-crumb-sep">/</span> <span>归屬權（owner）系統</span>
-    </nav>
-        <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/ownership.html">简体中文</a>
+<body class="doc-static-page">
+    <header class="ds-top">
+        <a class="ds-brand" href="/">
+            <img class="ds-brand-icon" src="/assets/img/logo.png" alt="ErisPulse" />
+            <span>ErisPulse</span>
+        </a>
+        <div class="ds-top-right">
+            <div class="doc-langs"><a class="doc-lang-link" href="https://www.erisdev.com/docs/advanced/ownership.html">简体中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/en/advanced/ownership.html">English</a>
 <a class="doc-lang-link current" href="https://www.erisdev.com/docs/zh-TW/advanced/ownership.html">繁體中文</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ja/advanced/ownership.html">日本語</a>
 <a class="doc-lang-link" href="https://www.erisdev.com/docs/ru/advanced/ownership.html">Русский</a></div>
-        <div class="doc-interactive">
-            <span>本文为静态镜像，内容以交互版为准</span>
-            <a href="https://www.erisdev.com/#docs/advanced/ownership.md">在交互式文档中心打开 →</a>
+            <a class="ds-interactive" href="https://www.erisdev.com/#docs/advanced/ownership.md">在互動式文檔中心打開 →</a>
         </div>
-        <article class="markdown-content" id="docs-content">
-            <h1 id="归屬權owner系統">归屬權（owner）系統</h1>
+    </header>
+
+    <div class="ds-layout">
+        <aside class="ds-sidebar">
+            <div class="ds-sidebar-title">文檔中心</div>
+            <nav class="ds-side-nav"><details class="ds-cat"><summary><span class="ds-cat-name">快速開始</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/README.html">ErisPulse 文件</a><a class="ds-doc" href="/docs/zh-TW/quick-start.html">快速入門</a><a class="ds-doc" href="/docs/zh-TW/architecture.html">架構概覽</a><a class="ds-doc" href="/docs/zh-TW/bug-tracker.html">Bug 追蹤器</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">入門指南</span><span class="ds-cat-count">6</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/getting-started/first-bot.html">建立第一個機器人</a><a class="ds-doc" href="/docs/zh-TW/getting-started/README.html">入門指南</a><a class="ds-doc" href="/docs/zh-TW/getting-started/basic-concepts.html">基礎概念</a><a class="ds-doc" href="/docs/zh-TW/getting-started/common-tasks.html">常見任務範例</a><a class="ds-doc" href="/docs/zh-TW/getting-started/event-handling.html">事件處理入門</a><a class="ds-doc" href="/docs/zh-TW/getting-started/ide-completion.html">類型存根生成（IDE 補全）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">選型指南</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/showcase/README.html">選型指南</a><a class="ds-doc" href="/docs/zh-TW/showcase/comparison-nonebot.html">對比：ErisPulse 與 NoneBot2</a><a class="ds-doc" href="/docs/zh-TW/showcase/comparison-agent-platforms.html">對比：ErisPulse 與 AstrBot / LangBot</a><a class="ds-doc" href="/docs/zh-TW/showcase/migrate-from-astrbot.html">遷移指南：從 AstrBot 到 ErisPulse</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">使用者指南</span><span class="ds-cat-count">5</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/user-guide/README.html">用戶使用指南</a><a class="ds-doc" href="/docs/zh-TW/user-guide/installation.html">安裝參考</a><a class="ds-doc" href="/docs/zh-TW/user-guide/configuration.html">配置文件說明</a><a class="ds-doc" href="/docs/zh-TW/user-guide/cli-reference.html">CLI 指令參考</a><a class="ds-doc" href="/docs/zh-TW/user-guide/deployment.html">部署指南</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">開發者指南</span><span class="ds-cat-count">14</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/developer-guide/README.html">開發者指南</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/publishing.html">發布與模組商店指南</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/testing.html">模組測試（ErisPulse-Testing）</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/orm.html">數據模型層（ORM）</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/configuration.html">配置與 UI 元數據</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/getting-started.html">模組開發入門</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/core-concepts.html">模組核心概念</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/event-wrapper.html">Event 包裝類別詳解</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/modules/best-practices.html">模組開發最佳實踐</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/getting-started.html">適配器開發入門</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/core-concepts.html">適配器核心概念</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/send-dsl.html">SendDSL 詳解</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/best-practices.html">配接器開發最佳實踐</a><a class="ds-doc" href="/docs/zh-TW/developer-guide/adapters/converter.html">事件轉換器實現指南</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">平台特性指南</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/platform-guide/README.html">ErisPulse PlatformFeatures 文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/onebot11.html">OneBot11 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/onebot12.html">OneBot12 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/telegram.html">Telegram 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/email.html">郵件平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/yunhu.html">雲湖平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/yunhu_user.html">雲湖使用者平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/qqbot.html">QQBot 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/kook.html">Kook 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/matrix.html">Matrix平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/discord.html">Discord 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/wechatmp.html">微信公眾號（WechatMp）適配器 - 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/webhook.html">平台特性說明 — Webhook 通用橋接適配器</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/ideaura.html">花楓咖啡館（RockyChat）平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/maintain-notes.html">文件維護說明</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/sandbox.html">Sandbox 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/snowluma.html">SnowLuma 平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/terminal.html">終端平台特性文件</a><a class="ds-doc" href="/docs/zh-TW/platform-guide/wecom.html">企業微信（WeCom）平台特性文件</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API 參考</span><span class="ds-cat-count">4</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/api-reference/README.html">API 參考</a><a class="ds-doc" href="/docs/zh-TW/api-reference/adapter-system.html">適配器系統 API</a><a class="ds-doc" href="/docs/zh-TW/api-reference/core-modules.html">核心模組 API</a><a class="ds-doc" href="/docs/zh-TW/api-reference/event-system.html">事件系統 API</a></div></details><details class="ds-cat" open><summary><span class="ds-cat-name">進階主題</span><span class="ds-cat-count">19</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/advanced/README.html">高級主題</a><a class="ds-doc" href="/docs/zh-TW/advanced/lifecycle.html">生命週期管理</a><a class="ds-doc" href="/docs/zh-TW/advanced/lazy-loading.html">慢載模組系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/router.html">路由管理器</a><a class="ds-doc" href="/docs/zh-TW/advanced/message-builder.html">MessageBuilder 詳解</a><a class="ds-doc" href="/docs/zh-TW/advanced/conversation.html">Conversation 多輪對話</a><a class="ds-doc" href="/docs/zh-TW/advanced/http-client.html">網路用戶端</a><a class="ds-doc" href="/docs/zh-TW/advanced/sql-builder.html">SQL 查詢建構器</a><a class="ds-doc" href="/docs/zh-TW/advanced/i18n.html">國際化 (i18n) 系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/scope.html">作用域（scope）</a><a class="ds-doc current" href="/docs/zh-TW/advanced/ownership.html">所屬權（owner）系統</a><div class="ds-chapters"><a class="ds-chapter level-2" href="#owner-上下文機制">owner 上下文機制</a><a class="ds-chapter level-2" href="#歸屬資源全景">歸屬資源全景</a><a class="ds-chapter level-2" href="#卸載-禁用清理序列">卸載 / 禁用清理序列</a><a class="ds-chapter level-2" href="#歸屬權統一門面ownership">歸屬權統一門面（ownership）</a><a class="ds-chapter level-2" href="#熱重載失敗回滾">熱重載失敗回滾</a><a class="ds-chapter level-2" href="#設計邊界哪些資源不隨卸載清理">設計邊界：哪些資源不隨卸載清理</a><a class="ds-chapter level-2" href="#內部實現歸屬如何運作">內部實現：歸屬如何運作</a><a class="ds-chapter level-3" href="#歸因鏈contextvar-传播">歸因鏈（contextvar 传播）</a><a class="ds-chapter level-3" href="#取消鏈任務登記表">取消鏈（任務登記表）</a><a class="ds-chapter level-3" href="#取消時序模組卸載">取消時序（模組卸載）</a><a class="ds-chapter level-3" href="#排查思路">排查思路</a><a class="ds-chapter level-2" href="#模組作者指南">模組作者指南</a><a class="ds-chapter level-3" href="#推薦寫法">推薦寫法</a><a class="ds-chapter level-3" href="#注意事項">注意事項</a><a class="ds-chapter level-3" href="#註冊時機-所有權結果對照表">註冊時機 → 所有權結果對照表</a><a class="ds-chapter level-2" href="#工具模組指南託管其他模組的句柄">工具模組指南：託管其他模組的句柄</a><a class="ds-chapter level-2" href="#相關文件">相關文件</a></div><a class="ds-doc" href="/docs/zh-TW/advanced/interaction.html">互動會話系統</a><a class="ds-doc" href="/docs/zh-TW/advanced/shadow.html">影子模組與灰度轉正</a><a class="ds-doc" href="/docs/zh-TW/advanced/module-communication.html">模塊間通信</a><a class="ds-doc" href="/docs/zh-TW/advanced/storage-backends.html">存儲後端</a><a class="ds-doc" href="/docs/zh-TW/advanced/errors.html">異常體系與捕獲指南</a><a class="ds-doc" href="/docs/zh-TW/advanced/connections.html">連接池與廣播</a><a class="ds-doc" href="/docs/zh-TW/advanced/startup.html">啟動流程與手動控制</a><a class="ds-doc" href="/docs/zh-TW/advanced/transcript.html">會話收件箱（Transcript）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">生態模組</span><span class="ds-cat-count">7</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/ecosystem/README.html">生態模組</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/app.html">ErisPulse-App</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/dashboard.html">ErisPulse-Dashboard</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/cron.html">ErisPulse-Cron</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/takumi.html">ErisPulse-Takumi</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/apimcp.html">ErisPulse-ApiMCP 使用 AI 客戶端控制機器人</a><a class="ds-doc" href="/docs/zh-TW/ecosystem/qvqchat.html">ErisPulse-QvQChat 通用智慧代理</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">AI 輔助開發</span><span class="ds-cat-count">12</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/ai-support/README.html">AI 輔助開發</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-adapter-dev/SKILL.html">ErisPulse 适配器开发</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-adapter-standards/SKILL.html">ErisPulse 适配器技术标准</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-communication/SKILL.html">ErisPulse 通信与连接</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-config-cli/SKILL.html">ErisPulse 配置系统与 CLI 工具链</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-ecosystem/SKILL.html">ErisPulse 生态与多平台</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-errors-troubleshooting/SKILL.html">ErisPulse 异常体系与排障</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-getting-started/SKILL.html">ErisPulse 快速上手与核心概念</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-hot-reload/SKILL.html">ErisPulse 热重载与懒加载休眠</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-module-dev/SKILL.html">ErisPulse 模块开发</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-scope-ownership/SKILL.html">ErisPulse 权限作用域与归属权</a><a class="ds-doc" href="/docs/zh-TW/ai-support/skills/erispulse-shadow-transcript/SKILL.html">ErisPulse 影子灰度与消息追踪</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">技術標準</span><span class="ds-cat-count">8</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/standards/README.html">技術標準</a><a class="ds-doc" href="/docs/zh-TW/standards/session-types.html">ErisPulse 會話類型標準</a><a class="ds-doc" href="/docs/zh-TW/standards/api-response.html">ErisPulse 轉接器標準化回傳規範</a><a class="ds-doc" href="/docs/zh-TW/standards/event-conversion.html">適配器標準化轉換規範</a><a class="ds-doc" href="/docs/zh-TW/standards/send-method-spec.html">ErisPulse 發送方法規範</a><a class="ds-doc" href="/docs/zh-TW/standards/request-action-spec.html">ErisPulse 請求操作規範</a><a class="ds-doc" href="/docs/zh-TW/standards/api-action-spec.html">ErisPulse API 動作標準</a><a class="ds-doc" href="/docs/zh-TW/standards/standardization-guide.html">適配器標準化指南（總綱）</a></div></details><details class="ds-cat"><summary><span class="ds-cat-name">API</span><span class="ds-cat-count">140</span><i class="ds-cat-chev" aria-hidden="true"></i></summary><div class="ds-docs"><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/__init__.html">`ErisPulse.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/__main__.html">`ErisPulse.__main__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/sdk.html">`ErisPulse.sdk` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/README.html">ErisPulse API 文档</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/__init__.html">`ErisPulse.Core.Bases.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/adapter.html">`ErisPulse.Core.Bases.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/adapter_patterns.html">`ErisPulse.Core.Bases.adapter_patterns` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/api_dsl.html">`ErisPulse.Core.Bases.api_dsl` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/client.html">`ErisPulse.Core.Bases.client` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/config_schema.html">`ErisPulse.Core.Bases.config_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/converter.html">`ErisPulse.Core.Bases.converter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/errors.html">`ErisPulse.Core.Bases.errors` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/i18n_schema.html">`ErisPulse.Core.Bases.i18n_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/kv_builder.html">`ErisPulse.Core.Bases.kv_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/manager.html">`ErisPulse.Core.Bases.manager` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/model.html">`ErisPulse.Core.Bases.model` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/module.html">`ErisPulse.Core.Bases.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/router.html">`ErisPulse.Core.Bases.router` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/send_builder.html">`ErisPulse.Core.Bases.send_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/send_rules.html">`ErisPulse.Core.Bases.send_rules` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/sql_base.html">`ErisPulse.Core.Bases.sql_base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/storage.html">`ErisPulse.Core.Bases.storage` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Bases/websocket.html">`ErisPulse.Core.Bases.websocket` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/__init__.html">`ErisPulse.Core.Event.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/base.html">`ErisPulse.Core.Event.base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command.html">`ErisPulse.Core.Event.command` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command_args.html">`ErisPulse.Core.Event.command_args` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/command_flow.html">`ErisPulse.Core.Event.command_flow` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/conversation.html">`ErisPulse.Core.Event.conversation` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/governance.html">`ErisPulse.Core.Event.governance` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/interaction.html">`ErisPulse.Core.Event.interaction` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/message.html">`ErisPulse.Core.Event.message` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/message_builder.html">`ErisPulse.Core.Event.message_builder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/meta.html">`ErisPulse.Core.Event.meta` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/notice.html">`ErisPulse.Core.Event.notice` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/overrides.html">`ErisPulse.Core.Event.overrides` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/request.html">`ErisPulse.Core.Event.request` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/session_type.html">`ErisPulse.Core.Event.session_type` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/throttle.html">`ErisPulse.Core.Event.throttle` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/trace.html">`ErisPulse.Core.Event.trace` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/Event/wrapper.html">`ErisPulse.Core.Event.wrapper` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/__init__.html">`ErisPulse.Core.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/adapter.html">`ErisPulse.Core.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/assets/__init__.html">`ErisPulse.Core.assets.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/client.html">`ErisPulse.Core.client` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/config.html">`ErisPulse.Core.config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/connections.html">`ErisPulse.Core.connections` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/constants.html">`ErisPulse.Core.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/di.html">`ErisPulse.Core.di` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/__init__.html">`ErisPulse.Core.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/constants.html">`ErisPulse.Core.i18n.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/__init__.html">`ErisPulse.Core.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/en.html">`ErisPulse.Core.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/ja.html">`ErisPulse.Core.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/ru.html">`ErisPulse.Core.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_cn.html">`ErisPulse.Core.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/i18n/locales/zh_tw.html">`ErisPulse.Core.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/lifecycle.html">`ErisPulse.Core.lifecycle` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/logger.html">`ErisPulse.Core.logger` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/master.html">`ErisPulse.Core.master` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/module.html">`ErisPulse.Core.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/ownership.html">`ErisPulse.Core.ownership` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/router.html">`ErisPulse.Core.router` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/scope.html">`ErisPulse.Core.scope` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/shadow.html">`ErisPulse.Core.shadow` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/__init__.html">`ErisPulse.Core.storage.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/mysql.html">`ErisPulse.Core.storage.mysql` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/postgres.html">`ErisPulse.Core.storage.postgres` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/storage/sqlite.html">`ErisPulse.Core.storage.sqlite` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/text_match.html">`ErisPulse.Core.text_match` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/Core/transcript.html">`ErisPulse.Core.transcript` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/__init__.html">`ErisPulse.CLI.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/base.html">`ErisPulse.CLI.base` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/cli.html">`ErisPulse.CLI.cli` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/__init__.html">`ErisPulse.CLI.commands.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/config.html">`ErisPulse.CLI.commands.config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/create.html">`ErisPulse.CLI.commands.create` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/doctor.html">`ErisPulse.CLI.commands.doctor` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/init.html">`ErisPulse.CLI.commands.init` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/install.html">`ErisPulse.CLI.commands.install` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/language.html">`ErisPulse.CLI.commands.language` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/list.html">`ErisPulse.CLI.commands.list` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/list_remote.html">`ErisPulse.CLI.commands.list_remote` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/run.html">`ErisPulse.CLI.commands.run` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/runtime.html">`ErisPulse.CLI.commands.runtime` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/self_update.html">`ErisPulse.CLI.commands.self_update` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/types.html">`ErisPulse.CLI.commands.types` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/uninstall.html">`ErisPulse.CLI.commands.uninstall` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/upgrade.html">`ErisPulse.CLI.commands.upgrade` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/commands/version.html">`ErisPulse.CLI.commands.version` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/console.html">`ErisPulse.CLI.console` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/constants.html">`ErisPulse.CLI.constants` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/hints.html">`ErisPulse.CLI.hints` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/__init__.html">`ErisPulse.CLI.i18n.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/__init__.html">`ErisPulse.CLI.i18n.locales.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/en.html">`ErisPulse.CLI.i18n.locales.en` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ja.html">`ErisPulse.CLI.i18n.locales.ja` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/ru.html">`ErisPulse.CLI.i18n.locales.ru` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_cn.html">`ErisPulse.CLI.i18n.locales.zh_cn` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/i18n/locales/zh_tw.html">`ErisPulse.CLI.i18n.locales.zh_tw` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/registry.html">`ErisPulse.CLI.registry` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/__init__.html">`ErisPulse.CLI.utils.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/config_wizard.html">`ErisPulse.CLI.utils.config_wizard` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/display.html">`ErisPulse.CLI.utils.display` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/interactive.html">`ErisPulse.CLI.utils.interactive` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/package_manager.html">`ErisPulse.CLI.utils.package_manager` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/runtime_state.html">`ErisPulse.CLI.utils.runtime_state` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/CLI/utils/scaffold_text.html">`ErisPulse.CLI.utils.scaffold_text` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/__init__.html">`ErisPulse.runtime.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/config_schema.html">`ErisPulse.runtime.config_schema` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/context.html">`ErisPulse.runtime.context` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/diagnostics.html">`ErisPulse.runtime.diagnostics` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/example_config.html">`ErisPulse.runtime.example_config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/exceptions.html">`ErisPulse.runtime.exceptions` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/file_watcher.html">`ErisPulse.runtime.file_watcher` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/frame_config.html">`ErisPulse.runtime.frame_config` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/hints.html">`ErisPulse.runtime.hints` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/kernel.html">`ErisPulse.runtime.kernel` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/memory.html">`ErisPulse.runtime.memory` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/owner_cleanup.html">`ErisPulse.runtime.owner_cleanup` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/plugin_reload.html">`ErisPulse.runtime.plugin_reload` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/proactive_gc.html">`ErisPulse.runtime.proactive_gc` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/process_state.html">`ErisPulse.runtime.process_state` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/reload_ops.html">`ErisPulse.runtime.reload_ops` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/sdk_initializer.html">`ErisPulse.runtime.sdk_initializer` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/tasks.html">`ErisPulse.runtime.tasks` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/troubleshoot.html">`ErisPulse.runtime.troubleshoot` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/runtime/version.html">`ErisPulse.runtime.version` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/__init__.html">`ErisPulse.loaders.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/_reload_utils.html">`ErisPulse.loaders._reload_utils` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/adapter.html">`ErisPulse.loaders.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/bases/loader.html">`ErisPulse.loaders.bases.loader` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/module.html">`ErisPulse.loaders.module` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/plugin_folder.html">`ErisPulse.loaders.plugin_folder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/strategy.html">`ErisPulse.loaders.strategy` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/loaders/strict.html">`ErisPulse.loaders.strict` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/__init__.html">`ErisPulse.finders.__init__` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/adapter.html">`ErisPulse.finders.adapter` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/bases/finder.html">`ErisPulse.finders.bases.finder` 模块</a><a class="ds-doc" href="/docs/zh-TW/api-reference/auto_api/ErisPulse/finders/module.html">`ErisPulse.finders.module` 模块</a></div></details></nav>
+        </aside>
+
+        <main class="ds-main">
+            
+    <details class="ds-chapter-bar">
+        <summary>
+            <span class="ds-chapter-bar-icon" aria-hidden="true"></span>
+            <span class="ds-chapter-bar-label">本頁章節</span>
+            <span class="ds-chapter-bar-chev" aria-hidden="true"></span>
+        </summary>
+        <div class="ds-chapter-bar-panel">
+            <div class="ds-chapter-rail">
+                <a class="ds-chapter level-2" href="#owner-上下文機制">owner 上下文機制</a>
+                <a class="ds-chapter level-2" href="#歸屬資源全景">歸屬資源全景</a>
+                <a class="ds-chapter level-2" href="#卸載-禁用清理序列">卸載 / 禁用清理序列</a>
+                <a class="ds-chapter level-2" href="#歸屬權統一門面ownership">歸屬權統一門面（ownership）</a>
+                <a class="ds-chapter level-2" href="#熱重載失敗回滾">熱重載失敗回滾</a>
+                <a class="ds-chapter level-2" href="#設計邊界哪些資源不隨卸載清理">設計邊界：哪些資源不隨卸載清理</a>
+                <a class="ds-chapter level-2" href="#內部實現歸屬如何運作">內部實現：歸屬如何運作</a>
+                <a class="ds-chapter level-3" href="#歸因鏈contextvar-传播">歸因鏈（contextvar 传播）</a>
+                <a class="ds-chapter level-3" href="#取消鏈任務登記表">取消鏈（任務登記表）</a>
+                <a class="ds-chapter level-3" href="#取消時序模組卸載">取消時序（模組卸載）</a>
+                <a class="ds-chapter level-3" href="#排查思路">排查思路</a>
+                <a class="ds-chapter level-2" href="#模組作者指南">模組作者指南</a>
+                <a class="ds-chapter level-3" href="#推薦寫法">推薦寫法</a>
+                <a class="ds-chapter level-3" href="#注意事項">注意事項</a>
+                <a class="ds-chapter level-3" href="#註冊時機-所有權結果對照表">註冊時機 → 所有權結果對照表</a>
+                <a class="ds-chapter level-2" href="#工具模組指南託管其他模組的句柄">工具模組指南：託管其他模組的句柄</a>
+                <a class="ds-chapter level-2" href="#相關文件">相關文件</a>
+            </div>
+        </div>
+    </details>
+            <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/docs.html">文檔中心</a>
+                <span class="doc-crumb-sep">/</span> 進階主題
+                <span class="doc-crumb-sep">/</span> <span>所屬權（owner）系統</span>
+            </nav>
+            <div class="doc-interactive">
+                <span>本文為靜態鏡像，內容以互動版為準</span>
+                <a href="https://www.erisdev.com/#docs/advanced/ownership.md">在互動式文檔中心打開 →</a>
+            </div>
+            <article class="markdown-content" id="docs-content">
+                <h1 id="所屬權owner系統">所屬權（owner）系統</h1>
 <div class="markdown-alert markdown-alert-tip"><p class="markdown-alert-title"><i class="fas fa-lightbulb" aria-hidden="true"></i>Tip</p>
-<p><strong>何時需要閱讀本文</strong>：排查資源泄漏、理解卸載清理鏈路或聲明歸屬資源時。若無需求則可跳過，不影響其他功能的使用。</p>
+<p><br><strong>何時需要閱讀本文</strong>：排查資源洩漏、理解卸載清理鏈路或宣告所屬資源時。不需要則跳過，不會影響其他功能的使用。</p>
 </div>
-<p>歸屬權是模組「即插即用」的基石：模組在加載期間註冊的所有框架資源會自動標記所有者，卸載/禁用時則根據標記的所有者進行一鍵回收——模組作者只需聲明資源，無需手動編寫清理邏輯。</p>
 <blockquote>
-<p><strong>相關系統</strong>：作用域（scope）在事件分發時決定「資源是否生效」，歸屬權在生命週期中決定「資源歸誰所有、誰卸載時被回收」。作用域詳見<a href="/docs/zh-TW/advanced/scope.html">統一控制面（scope）</a>，背景任務詳見 <a href="/docs/zh-TW/advanced/lifecycle.html#%E8%83%8C%E6%99%AF%E4%BB%BB%E5%8B%99%E6%AD%B8%E5%B1%AC%E8%88%87%E8%87%AA%E5%8B%95%E5%8F%96%E6%B6%88">生命週期管理</a>。</p>
+<p><strong>閱讀完你將知道</strong>：owner 上下文如何自動歸屬資源、所屬資源全景表、卸載/禁用時清理鏈的完整時序，以及哪些資源不會隨卸載清理（設計邊界）。</p>
+<p><strong>本文不涉及</strong>：資源「何時生效」的權限判定（見<a href="/docs/zh-TW/advanced/scope.html">作用域（scope）</a>）；後台任務的推薦寫法與強制取消邊界（見<a href="/docs/zh-TW/advanced/lifecycle.html#%E5%BE%8C%E5%8F%B0%E4%BB%BB%E5%8B%99%E6%AD%B8%E5%B1%AC%E8%88%87%E8%87%AA%E5%8B%95%E5%8F%96%E6%B6%88">生命週期管理 · 後台任務歸屬與自動取消</a>）。</p>
+</blockquote>
+<p>所屬權是模組「即插即用」的基石：模組在載入期間註冊的一切框架資源會自動記名，卸載/禁用時按記名一鍵回收——模組作者只需宣告資源，無需手寫清理邏輯。</p>
+<blockquote>
+<p><strong>相關系統</strong>：作用域（scope）在事件分發時決定「資源是否生效」，所屬權在生命週期中決定「資源歸誰、誰卸載時被回收」。作用域詳見<a href="/docs/zh-TW/advanced/scope.html">統一控制面（scope）</a>，後台任務詳見 <a href="/docs/zh-TW/advanced/lifecycle.html#%E5%BE%8C%E5%8F%B0%E4%BB%BB%E5%8B%99%E6%AD%B8%E5%B1%AC%E8%88%87%E8%87%AA%E5%8B%95%E5%8F%96%E6%B6%88">生命週期管理</a>。</p>
 </blockquote>
 <p>{!--&lt; tips &gt;!--}</p>
 <ol>
-<li>歸屬在<strong>註冊瞬間</strong>按 <code>current_owner</code> 自動記錄，模組程式碼無需修改</li>
-<li>卸載/禁用共用同一條清理鏈（<code>_cleanup_module_registrations</code>），每步失敗僅發出警告而不中斷</li>
-<li>用戶配置語義的資源（持久化覆寫 / scope 規則 / 命令 ACL）<strong>不</strong>隨模組卸載清理</li>
-<li>工具模組托管的外部句柄可用 <code>on_cleanup(cb)</code> 掛入清理鏈，對方模組卸載時自動回調（見<a href="#%E5%B7%A5%E5%85%B7%E6%A8%A1%E7%B5%84%E6%8C%87%E5%8D%97%E6%89%98%E7%AE%A1%E5%85%B6%E5%AE%83%E6%A8%A1%E7%B5%84%E7%9A%84%E5%8F%A5%E6%9F%84">工具模組指南</a>）
+<li>所屬權在<strong>註冊瞬間</strong>按 <code>current_owner</code> 自動記錄，模組程式碼無需修改</li>
+<li>卸載/禁用共用同一條清理鏈（<code>_cleanup_module_registrations</code>），每一步失敗僅發出警告而不中斷</li>
+<li>用戶設定語意的資源（持久化覆寫 / scope 規則 / 命令 ACL）<strong>不</strong>會隨模組卸載清理</li>
+<li>工具模組托管的外部句柄可用 <code>on_cleanup(cb)</code> 掛入清理鏈，對方模組卸載時自動回呼（見<a href="#%E5%B7%A5%E5%85%B7%E6%A8%A1%E7%B5%84%E6%8C%87%E5%8D%97%E6%89%98%E7%AE%A1%E5%85%B6%E5%AE%83%E6%A8%A1%E7%B5%84%E7%9A%84%E5%8F%A5%E6%9F%84">工具模組指南</a>）
 {!--&lt; /tips &gt;!--}</li>
 </ol>
 <h2 id="owner-上下文機制">owner 上下文機制</h2>
@@ -368,12 +390,11 @@ ownership<span class="token punctuation">.</span>orphans<span class="token punct
 </tbody></table></div>
 <p>執行時臨時寫入（<code>persist=False</code>）則隨 owner 回收——<strong>持久化與否即</strong>
 "用戶資產"與"模組執行時狀態"的分界線。</p>
-<h2 id="內部實現所有權如何工作">內部實現：所有權如何工作</h2>
-<p>所有權系統由<strong>兩條獨立鏈路</strong>構成，理解它們的分工是排查所有權問題的前提：</p>
-<h3 id="歸因鏈contextvar-傳播">歸因鏈（contextvar 傳播）</h3>
-<p><code>runtime/context.py</code> 的 <code>current_owner</code> 等 ContextVar 負責<strong>歸因</strong>——
-"此刻這段程式碼註冊的資源/發起的呼叫記在誰頭上"。傳播規則遵循 Python
-contextvars 語意：</p>
+<h2 id="內部實現歸屬如何運作">內部實現：歸屬如何運作</h2>
+<p><strong>一句話</strong>：歸因鏈（contextvar 传播）決定「記在誰頭上」，取消鏈（任務登記表）決定「卸載時能否被取消」——兩條鏈路獨立運作，資源被正確清理需二者兼備。</p>
+<p>歸屬系統由<strong>兩條獨立鏈路</strong>構成，理解它們的分工是排查歸屬問題的前提：</p>
+<h3 id="歸因鏈contextvar-传播">歸因鏈（contextvar 传播）</h3>
+<p><code>runtime/context.py</code> 的 <code>current_owner</code> 等 ContextVar 負責<strong>歸因</strong>——<br>「此刻這段代碼註冊的資源 / 發起的調用記在誰頭上」。傳播規則遵循 Python<br>contextvars 語義：</p>
 <div class="table-wrapper"><table>
 <thead>
 <tr>
@@ -383,55 +404,48 @@ contextvars 語意：</p>
 </tr>
 </thead>
 <tbody><tr>
-<td>同步呼叫鏈 / <code>await</code> 鏈</td>
+<td>同步調用鏈 / <code>await</code> 鏈</td>
 <td>✅ 傳播</td>
 <td>正確歸因</td>
 </tr>
 <tr>
 <td><code>owner_scope</code> 內 <code>asyncio.create_task</code></td>
-<td>✅ 傳播（task 拷貝建立時刻的 context）</td>
-<td>任務<strong>內部</strong>的框架呼叫正確歸因</td>
+<td>✅ 傳播（task 拷貝創建時刻的 context）</td>
+<td>任務<strong>內部</strong>的框架調用正確歸因</td>
 </tr>
 <tr>
-<td><code>run_in_executor</code> / 裸執行緒</td>
+<td><code>run_in_executor</code> / 裸線程</td>
 <td>❌ 不傳播</td>
 <td>歸因丟失</td>
 </tr>
 <tr>
-<td>自建事件迴圈</td>
+<td>自建事件循環</td>
 <td>❌ 不傳播</td>
 <td>歸因丟失</td>
 </tr>
 </tbody></table></div>
 <blockquote>
-<p>歸因 ≠ 登記：context 傳播只影響"記在誰頭上"，資源能否被清理
-取決於是否進入了下述取消鏈。</p>
+<p>歸因 ≠ 登記：context 傳播只影響「記在誰頭上」，資源能否被清理<br>取決於是否進入了下述取消鏈。</p>
 </blockquote>
 <h3 id="取消鏈任務登記表">取消鏈（任務登記表）</h3>
-<p><code>runtime/tasks.py</code> 的 <code>_owner_tasks</code> 登記表負責<strong>生命週期</strong>——
-"owner 名下有哪些未完成任務，卸載時統一取消"。任務進入登記表的途徑：</p>
+<p><code>runtime/tasks.py</code> 的 <code>_owner_tasks</code> 登記表負責<strong>生命週期</strong>——<br>「owner 名下有哪些未完成任務，卸載時統一取消」。任務進入登記表的途徑：</p>
 <ol>
-<li><strong>顯式調度</strong>：<code>spawn_background()</code> / <code>self.spawn()</code> → 建立時捕獲
-<code>current_owner</code>（或顯式 <code>owner=</code> 參數）→ 登記入表；</li>
-<li><strong>Task Factory 自動登記</strong>（2.8.3）：<code>install_owner_task_factory()</code>
-在框架啟動時安裝到主事件迴圈——<strong>任何</strong>任務建立（含第三方庫內部的
-<code>create_task</code>）經過工廠時讀取 <code>current_owner</code>，非 None 即登記。</li>
+<li><strong>顯式調度</strong>：<code>spawn_background()</code> / <code>self.spawn()</code> → 創建時捕獲<br><code>current_owner</code>（或顯式 <code>owner=</code> 參數）→ 登記入表；</li>
+<li><strong>Task Factory 自動登記</strong>（2.8.3）：<code>install_owner_task_factory()</code><br>在框架啟動時安裝到主事件循環——<strong>任何</strong>任務創建（含第三方庫內部的<br><code>create_task</code>）經過工廠時讀取 <code>current_owner</code>，非 None 即登記。</li>
 </ol>
 <p>登記表自清理：每個任務帶 <code>done_callback</code>，完成即從表中移除，無泄漏。</p>
 <h3 id="取消時序模組卸載">取消時序（模組卸載）</h3>
 <pre><code>module.unload()
   → on_unload(event)                    # 模組自行清理（兜底超時保護）
-  → 框架註銷該 owner 的命令/事件/鈎子/路由
+  → 框架註銷該 owner 的命令/事件/鉤子/路由
   → cancel_owner_tasks(owner)           # 任務登記表兜底取消
       → 逐個 task.cancel()              # 排除當前執行取消邏輯的任務自身
       → await gather(pending, timeout)  # 等待回收（超時不再阻塞）
 </code></pre>
 <h3 id="排查思路">排查思路</h3>
 <ul>
-<li><strong>資源沒被清理</strong> → 查登記表：<code>get_owner_tasks("MyModule")</code> 是否含該任務；
-不含即註冊路徑未經過所有權鏈（import 期 / 執行緒 / 獨立迴圈），對照上表定位。</li>
-<li><strong>歸因錯誤</strong> → 查 <code>get_current_owner()</code> 在出錯時刻的值；異步延遲執行
-（回調/任務）的歸因取自建立時刻 context，而非執行時刻。</li>
+<li><strong>資源沒被清理</strong> → 查登記表：<code>get_owner_tasks("MyModule")</code> 是否含該任務；<br>不含即註冊路徑未經過歸屬鏈（import 期 / 線程 / 獨立循環），對照上表定位。</li>
+<li><strong>歸因錯誤</strong> → 查 <code>get_current_owner()</code> 在出錯時刻的值；異步延遲執行<br>（回調 / 任務）的歸因取自創建時刻 context，而非執行時刻。</li>
 </ul>
 <h2 id="模組作者指南">模組作者指南</h2>
 <h3 id="推薦寫法">推薦寫法</h3>
@@ -583,15 +597,25 @@ GC 回收（記憶體洩漏，<code>purge</code> 泄漏診斷報告「不可回�
 只有你私有容器中持有的對方句柄才需要 <code>on_cleanup</code>。
 模組開發視角的速查版見
 <a href="/docs/zh-TW/developer-guide/modules/best-practices.html#%E5%B7%A5%E5%85%B7%E6%A8%A1%E7%B5%84%E8%A8%97%E7%AE%A1%E5%88%A5%E4%BA%BA%E6%9D%B1%E8%A5%BF%E6%99%82%E8%A6%81%E6%8E%A5%E4%BD%8F%E5%8D%B8%E8%BC%89%E9%80%9A%E7%9F%A5">最佳實踐 · 工具模組</a>。</p>
+<h2 id="相關文件">相關文件</h2>
+<p>請依下一步意圖選擇：</p>
+<ul>
+<li><strong>想控制「資源是否生效」（權限面）</strong> → <a href="/docs/zh-TW/advanced/scope.html">作用域（scope）</a>——歸屬權管理「資源歸誰、卸載誰回收」，作用域管理「資源何時生效」</li>
+<li><strong>背景工作 / 定時器的兜底取消</strong> → <a href="/docs/zh-TW/advanced/lifecycle.html#%E8%83%8C%E6%99%AF%E5%B7%A5%E4%BD%9C%E6%AD%B8%E5%B1%AC%E8%88%87%E8%87%AA%E5%8B%95%E5%8F%96%E6%B6%88">生命週期管理 · 背景工作歸屬與自動取消</a></li>
+<li><strong>以獨立 owner 隔離進行灰階發佈</strong> → <a href="/docs/zh-TW/advanced/shadow.html">影子模組與灰階轉正</a></li>
+<li><strong>模組開發視角的速查與推薦寫法</strong> → <a href="/docs/zh-TW/developer-guide/modules/best-practices.html">模組最佳實踐</a></li>
+</ul>
 
-        </article>
-        
+            </article>
+            
     <nav class="doc-pager">
-        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/scope.html"><small>Previous</small><br>作用域（scope）</a>
-        <a class="doc-pager-next" href="/docs/zh-TW/advanced/interaction.html"><small>Next</small><br>互動對話系統</a>
+        <a class="doc-pager-prev" href="/docs/zh-TW/advanced/scope.html"><small>上一篇</small><br>作用域（scope）</a>
+        <a class="doc-pager-next" href="/docs/zh-TW/advanced/interaction.html"><small>下一篇</small><br>互動會話系統</a>
     </nav>
-    </main>
-    <footer style="text-align:center;padding:2rem 1rem;border-top:1px solid var(--border);color:var(--text-secondary);font-size:.85rem">
+        </main>
+    </div>
+
+    <footer class="ds-footer">
         © 2026 ErisPulse Project · <a href="https://github.com/ErisPulse/ErisPulse" target="_blank" rel="noopener noreferrer">GitHub</a>
     </footer>
 </body>
