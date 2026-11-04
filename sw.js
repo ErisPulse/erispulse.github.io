@@ -1,4 +1,4 @@
-const CACHE_NAME = "erispulse-v2.32.0";
+const CACHE_NAME = "erispulse-v2.33.0";
 const EXTERNAL_LIBS = [
   "https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/",
   "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/",
@@ -60,10 +60,21 @@ const urlsToCache = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("Opened cache");
-      return cache.addAll(urlsToCache);
-    }),
+    caches
+      .open(CACHE_NAME)
+      .then((cache) =>
+         
+         
+         
+        Promise.allSettled(
+          urlsToCache.map((url) =>
+            cache.add(new Request(url, { cache: "reload" })).catch((err) => {
+              console.warn("SW precache skip:", url, err);
+            }),
+          ),
+        ),
+      )
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -77,7 +88,7 @@ self.addEventListener("activate", (event) => {
             return caches.delete(cacheName);
           }
         }),
-      );
+      ).then(() => self.clients.claim());
     }),
   );
 });
