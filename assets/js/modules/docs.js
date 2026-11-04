@@ -2326,52 +2326,73 @@ function showDocumentError(docsContent, error) {
 
 function injectAiMaterialDownloads(docsContent) {
     var lang = I18n.getLang();
-    var baseUrl = 'https://github.com/ErisPulse/ErisPulse/releases/latest/download/';
-    var materials = [
-        { type: 'ModuleDev', icon: 'fa-puzzle-piece' },
-        { type: 'AdapterDev', icon: 'fa-plug' },
-        { type: 'Full', icon: 'fa-book-open' }
-    ];
+    var baseUrl = 'https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/docs-generated/docs/' + lang + '/ai-support/';
+    var materials = {
+        ModuleDev: { icon: 'fa-puzzle-piece', file: 'prompts/ErisPulse-ModuleDev.md' },
+        AdapterDev: { icon: 'fa-plug', file: 'prompts/ErisPulse-AdapterDev.md' },
+        Full: { icon: 'fa-book-open', file: 'prompts/ErisPulse-Full.md' },
+        DocsPack: { icon: 'fa-cubes', file: 'skills.zip' }
+    };
 
     var labels = {
         'zh-CN': {
             title: 'AI 物料下载',
             subtitle: '下载对应语言的开发物料，投喂给 AI 即可快速生成代码',
             download: '下载',
+            groups: {
+                merged: '整合物料 · 单文件，直接整段注入',
+                pack: '文档全集 · 原文打包，放进工作区按需检索'
+            },
             items: {
                 'ModuleDev': { title: '模块开发物料', desc: '适用于开发功能模块' },
                 'AdapterDev': { title: '适配器开发物料', desc: '适用于开发平台适配器' },
-                'Full': { title: '完整开发参考', desc: '适用于复杂开发场景' }
+                'Full': { title: '完整开发参考', desc: '适用于复杂开发场景' },
+                'DocsPack': { title: '文档全集包', desc: '全部文档原文打包，附索引 README，AI 按需挑着读' }
             }
         },
         'en': {
             title: 'AI Material Downloads',
             subtitle: 'Download language-specific materials for AI-assisted development',
             download: 'Download',
+            groups: {
+                merged: 'Curated prompts · single file, inject as a whole',
+                pack: 'Full docs pack · raw files, put in workspace for on-demand retrieval'
+            },
             items: {
                 'ModuleDev': { title: 'Module Dev Material', desc: 'For developing functional modules' },
                 'AdapterDev': { title: 'Adapter Dev Material', desc: 'For developing platform adapters' },
-                'Full': { title: 'Full Dev Reference', desc: 'For complex development scenarios' }
+                'Full': { title: 'Full Dev Reference', desc: 'For complex development scenarios' },
+                'DocsPack': { title: 'Docs Pack', desc: 'All documents as raw files with a README index; let the AI pick what it needs' }
             }
         },
         'zh-TW': {
             title: 'AI 物料下載',
             subtitle: '下載對應語言的開發物料，投餵給 AI 即可快速生成程式碼',
             download: '下載',
+            groups: {
+                merged: '整合物料 · 單檔，直接整段注入',
+                pack: '文檔全集 · 原文打包，放進工作區按需檢索'
+            },
             items: {
                 'ModuleDev': { title: '模組開發物料', desc: '適用於開發功能模組' },
                 'AdapterDev': { title: '介面卡開發物料', desc: '適用於開發平台介面卡' },
-                'Full': { title: '完整開發參考', desc: '適用於複雜開發場景' }
+                'Full': { title: '完整開發參考', desc: '適用於複雜開發場景' },
+                'DocsPack': { title: '文檔全集包', desc: '全部文檔原文打包，附索引 README，AI 按需挑著讀' }
             }
         },
         'ja': {
             title: 'AI 素材ダウンロード',
             subtitle: '言語別の開発素材をダウンロードしてAIに読み込ませれば、すぐにコードを生成できます',
             download: 'ダウンロード',
+            groups: {
+                merged: '統合素材 · 単一ファイルをそのまま注入',
+                pack: '全ドキュメントパック · 原文のまま、ワークスペースで必要な分だけ検索'
+            },
             items: {
                 'ModuleDev': { title: 'モジュール開発素材', desc: '機能モジュールの開発に' },
                 'AdapterDev': { title: 'アダプター開発素材', desc: 'プラットフォームアダプターの開発に' },
-                'Full': { title: '完全開発リファレンス', desc: '複雑な開発シナリオに' }
+                'Full': { title: '完全開発リファレンス', desc: '複雑な開発シナリオに' },
+                'DocsPack': { title: 'ドキュメントパック', desc: '全ドキュメントの原文＋README 索引付き。AI に必要な文書だけ読ませる' }
             }
         },
         'ru': {
@@ -2381,7 +2402,8 @@ function injectAiMaterialDownloads(docsContent) {
             items: {
                 'ModuleDev': { title: 'Материалы для модулей', desc: 'Для разработки функциональных модулей' },
                 'AdapterDev': { title: 'Материалы для адаптеров', desc: 'Для разработки платформенных адаптеров' },
-                'Full': { title: 'Полный справочник', desc: 'Для сложных сценариев разработки' }
+                'Full': { title: 'Полный справочник', desc: 'Для сложных сценариев разработки' },
+                'Skills': { title: 'Набор навыков', desc: 'Упакованные навыки разработки ErisPulse для ИИ с поддержкой навыков' }
             }
         }
     };
@@ -2394,7 +2416,7 @@ function injectAiMaterialDownloads(docsContent) {
     cardsHtml += '<div class="ai-doc-download-cards">';
 
     materials.forEach(function (mat) {
-        var url = baseUrl + 'ErisPulse-' + mat.type + '-' + lang + '.md';
+        var url = baseUrl + mat.file;
         var item = l.items[mat.type];
         cardsHtml += '<div class="ai-doc-download-card">';
         cardsHtml += '<div class="ai-doc-download-icon"><i class="fas ' + mat.icon + '"></i></div>';
