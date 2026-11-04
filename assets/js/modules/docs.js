@@ -659,6 +659,27 @@ function setChapterBarOpen(open) {
     if (navShell.restore) {
         navShell.restore.hidden = navShell.isMobile || !navShell.collapsed || open;
     }
+    if (open) {
+         
+         
+        scrollActiveNavItemIntoView();
+    }
+}
+
+ 
+function scrollActiveNavItemIntoView() {
+    if (!navShell.panel) return;
+    const active = navShell.panel.querySelector(
+        '.chapter-item.active, .doc-item.active, .category-item.active'
+    );
+    if (!active) return;
+    const itemRect = active.getBoundingClientRect();
+    const panelRect = navShell.panel.getBoundingClientRect();
+    const outOfView = itemRect.top < panelRect.top + 8
+        || itemRect.bottom > panelRect.bottom - 8;
+    if (outOfView) {
+        active.scrollIntoView({ block: 'center' });
+    }
 }
 
  
@@ -688,15 +709,24 @@ function updateChapterBarActive() {
 }
 
 function showChapterToc(docPath) {
-    currentNavState = 'chapters';
     currentDocPath = docPath;
 
     const navContainer = document.querySelector('.docs-nav-container');
     const docTitle = DocsIndexManager.getDocumentTitle(docPath);
 
     if (!currentChapterToc || currentChapterToc.length === 0) {
+         
+         
+        const category = DocsIndexManager.getDocumentCategory(docPath);
+        if (category && category.name) {
+            showDocumentList(category.name);
+        } else {
+            showCategoryLevel();
+        }
         return;
     }
+
+    currentNavState = 'chapters';
 
     let navHtml = '<div class="docs-nav-view">';
 
@@ -830,6 +860,10 @@ function syncNavigationState(docPath) {
         });
     }
 
+     
+     
+    syncChapterBar();
+
     const hash = window.location.hash.substring(1);
 
     if (hash === 'docs') {
@@ -921,6 +955,9 @@ function setupGlobalNavigationEvents() {
                 }
                 document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
                 chapterItem.classList.add('active');
+                 
+                 
+                updateChapterBarLabel();
                  
                 setChapterBarOpen(false);
             }

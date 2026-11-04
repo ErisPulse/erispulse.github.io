@@ -17,11 +17,10 @@ var bannerTimer = null;
 var bannerCurrentIndex = 0;
 
 export function setupHomeAnimations() {
-    var reduceMotion = window.matchMedia
-        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var animationsOff = document.body.classList.contains('no-animations') || reduceMotion;
-
-    if (!animationsOff) setupFeatureStack();
+     
+     
+     
+    setupFeatureStack();
      
     highlightHeroCode();
 }
@@ -159,6 +158,7 @@ export function resetFeatureCards() {
 function setupFeatureStack() {
     var section = document.getElementById('features-scroll-section');
     if (!section) return;
+    unbindFeatureScroll();
     var stage = document.getElementById('features-scroll-stage');
     var panes = Array.prototype.slice.call(section.querySelectorAll('.feature-immersive'));
     if (!stage || !panes.length) return;
@@ -231,7 +231,20 @@ function setupFeatureStack() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
+     
+    _featureScrollHandler = onScroll;
     tick();
+}
+
+ 
+var _featureScrollHandler = null;
+
+function unbindFeatureScroll() {
+    if (_featureScrollHandler) {
+        window.removeEventListener('scroll', _featureScrollHandler);
+        window.removeEventListener('resize', _featureScrollHandler);
+        _featureScrollHandler = null;
+    }
 }
 
 export function initInstallOverlay() {

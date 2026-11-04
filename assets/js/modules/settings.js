@@ -227,10 +227,12 @@ export function setupSettings() {
             home.resetFeatureCards();
             if (this.checked) {
                 document.body.classList.remove('no-animations');
-                home.setupHomeAnimations();
             } else {
                 document.body.classList.add('no-animations');
             }
+             
+             
+            home.setupHomeAnimations();
         });
     }
 
