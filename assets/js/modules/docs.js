@@ -2392,38 +2392,60 @@ function injectAiMaterialDownloads(docsContent) {
             title: 'Загрузка материалов для ИИ',
             subtitle: 'Скачайте материалы для вашего языка и передайте их ИИ для быстрой генерации кода',
             download: 'Скачать',
+            groups: {
+                merged: 'Готовые материалы · один файл, вставляется целиком',
+                pack: 'Полный набор документации · исходные файлы для поиска в рабочей области'
+            },
             items: {
                 'ModuleDev': { title: 'Материалы для модулей', desc: 'Для разработки функциональных модулей' },
                 'AdapterDev': { title: 'Материалы для адаптеров', desc: 'Для разработки платформенных адаптеров' },
                 'Full': { title: 'Полный справочник', desc: 'Для сложных сценариев разработки' },
-                'Skills': { title: 'Набор навыков', desc: 'Упакованные навыки разработки ErisPulse для ИИ с поддержкой навыков' }
+                'DocsPack': { title: 'Набор документации', desc: 'Вся документация в исходном виде с индексом README — ИИ читает нужное' }
             }
         }
     };
 
     var l = labels[lang] || labels['en'];
+    // 俄语标签缺少分组文案时回退到英文，避免渲染出 undefined
+    var groups = l.groups || labels['en'].groups;
+
+    // 分组顺序与组内物料顺序固定，避免依赖对象键顺序
+    var groupOrder = [
+        { key: 'merged', items: ['ModuleDev', 'AdapterDev', 'Full'] },
+        { key: 'pack', items: ['DocsPack'] }
+    ];
 
     var cardsHtml = '<div class="ai-doc-download-section">';
     cardsHtml += '<h3>' + l.title + '</h3>';
     cardsHtml += '<p class="ai-doc-download-subtitle">' + l.subtitle + '</p>';
-    cardsHtml += '<div class="ai-doc-download-cards">';
 
-    materials.forEach(function (mat) {
-        var url = baseUrl + mat.file;
-        var item = l.items[mat.type];
-        cardsHtml += '<div class="ai-doc-download-card">';
-        cardsHtml += '<div class="ai-doc-download-icon"><i class="fas ' + mat.icon + '"></i></div>';
-        cardsHtml += '<div class="ai-doc-download-info">';
-        cardsHtml += '<h4>' + item.title + '</h4>';
-        cardsHtml += '<p>' + item.desc + '</p>';
-        cardsHtml += '</div>';
-        cardsHtml += '<a class="ai-doc-download-btn" href="' + url + '" target="_blank" rel="noopener">';
-        cardsHtml += '<i class="fas fa-download"></i> ' + l.download;
-        cardsHtml += '</a>';
-        cardsHtml += '</div>';
+    groupOrder.forEach(function (group) {
+        cardsHtml += '<div class="ai-doc-download-group">';
+        cardsHtml += '<h4 class="ai-doc-download-group-title">' + groups[group.key] + '</h4>';
+        cardsHtml += '<div class="ai-doc-download-cards">';
+
+        group.items.forEach(function (key) {
+            var mat = materials[key];
+            var item = l.items[key] || labels['en'].items[key];
+            if (!mat || !item) return;
+
+            var url = baseUrl + mat.file;
+            cardsHtml += '<div class="ai-doc-download-card">';
+            cardsHtml += '<div class="ai-doc-download-icon"><i class="fas ' + mat.icon + '"></i></div>';
+            cardsHtml += '<div class="ai-doc-download-info">';
+            cardsHtml += '<h4>' + item.title + '</h4>';
+            cardsHtml += '<p>' + item.desc + '</p>';
+            cardsHtml += '</div>';
+            cardsHtml += '<a class="ai-doc-download-btn" href="' + url + '" target="_blank" rel="noopener">';
+            cardsHtml += '<i class="fas fa-download"></i> ' + l.download;
+            cardsHtml += '</a>';
+            cardsHtml += '</div>';
+        });
+
+        cardsHtml += '</div></div>';
     });
 
-    cardsHtml += '</div></div>';
+    cardsHtml += '</div>';
 
     var target = docsContent.querySelector('h2, h3');
     if (target) {
