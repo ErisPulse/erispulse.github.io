@@ -1,10 +1,10 @@
-
-
-
-
+/**
+ * ErisPulse 网站全局配置
+ * 所有静态配置（站点信息、文档源、API、OAuth、默认设置）集中于此。
+ */
 
 export const CONFIG = {
-   
+  // 网站基础配置
   SITE: {
     name: "ErisPulse",
     description: "高性能异步机器人开发框架",
@@ -14,7 +14,7 @@ export const CONFIG = {
     author: "ErisPulse Team",
   },
 
-   
+  // 友链配置
   FRIEND_LINKS: [
     {
       name: "Python",
@@ -42,7 +42,7 @@ export const CONFIG = {
     },
   ],
 
-   
+  // 核心依赖（与 pyproject.toml 保持一致）
   DEPENDENCIES: [
     {
       name: "rich",
@@ -109,20 +109,20 @@ export const CONFIG = {
     },
   ],
 
-   
+  // 文档配置
   DOCS: {
     baseUrl:
       "https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/",
     githubBaseUrl:
       "https://github.com/ErisPulse/ErisPulse/edit/Develop/v2/docs/",
 
-     
+    // pyproject.toml
     pyprojectUrl:
       "https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/pyproject.toml",
     pyprojectRawUrl:
       "https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/pyproject.toml",
 
-     
+    // 索引文件配置
     index: {
       cdnUrl:
         "https://cdn.gh-proxy.org/https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/",
@@ -130,10 +130,10 @@ export const CONFIG = {
         "https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/",
       mappingFile: "docs-mapping.json",
       searchIndexFile: "docs-search-index.json",
-       
+      // auto_api 独立索引（懒加载）
       autoApiMappingFile: "docs-auto-api-mapping.json",
       autoApiSearchIndexFile: "docs-auto-api-search-index.json",
-      cacheExpiry: 24 * 60 * 60 * 1000,  
+      cacheExpiry: 24 * 60 * 60 * 1000, // 24小时
       storageKeys: {
         mapping: "erispulse-docs-mapping",
         searchIndex: "erispulse-docs-search-index",
@@ -143,15 +143,15 @@ export const CONFIG = {
       },
     },
 
-     
+    // 文档内容缓存配置
     contentCache: {
-      expiry: 4 * 60 * 60 * 1000,  
+      expiry: 4 * 60 * 60 * 1000, // 4小时
       keyPrefix: "erispulse-doc-content:",
       indexKey: "erispulse-doc-content-index",
     },
   },
 
-   
+  // 应用设置
   SETTINGS_VERSION: "1.0",
   STORAGE_KEYS: {
     SETTINGS: "erispulse-settings",
@@ -169,10 +169,10 @@ export const CONFIG = {
     docsLocalized: {},
   },
 
-   
-   
-   
-   
+  // 模块分类：后端（packages.json）只存编号，展示名按当前语言取
+  // i18n 的 category.<key>（见 assets/js/i18n.js）。
+  // 编号是前后端契约，增删分类需同时迁移索引文件中已有的取值，
+  // 并同步 packages_lib.py 的 CATEGORY_TAXONOMY 与 Worker 的白名单。
   MODULE_CATEGORIES: [
     { id: 1, key: "tool" },
     { id: 2, key: "fun" },
@@ -183,11 +183,11 @@ export const CONFIG = {
     { id: 7, key: "analytics" },
   ],
 
-   
-   
+  // SDK 包名：模块市场的版本筛选、提交表单的最低 SDK 版本选项
+  // 都取自这个包在 PyPI 上的实时发布版本（不预设版本列表）
   SDK_PACKAGE: "ErisPulse",
 
-   
+  // API 端点
   API: {
     contributors:
       "https://api.github.com/repos/ErisPulse/ErisPulse/contributors",
@@ -207,8 +207,8 @@ export const CONFIG = {
       clientId: "Ov23lioo2vSXXnRcDixA",
       authUrl: "https://github.com/login/oauth/authorize",
       redirectUri: null,
-       
-       
+      // 这是 GitHub App（Ov23li 前缀），实际权限由 App 后台配置决定（Discussions
+      // 读写需在 App 设置里开启 Discussions: Read and write），scope 参数仅作展示
       scope: "read:user,user:email,public_repo",
       parseUser: function (data) {
         return {
@@ -238,8 +238,8 @@ export const CONFIG = {
       authUrl: "https://oauth2.jwzhd.com/oauth/authorize",
       redirectUri: "https://www.erisdev.com/#market",
       scope: "profile",
-       
-       
+      // 云湖授权服务端暂时返回 invalid_request，前端软屏蔽登录入口；
+      // 恢复后改回 false 即可（代码与 Worker 端点全部保留）
       disabled: true,
       parseUser: function (data) {
         var a = data.avatar_url || "";

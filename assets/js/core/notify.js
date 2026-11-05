@@ -1,15 +1,15 @@
-
-
-
-
+/**
+ * 通用 UI / 工具函数
+ * 提示消息、HTML 转义、相对时间等，被几乎所有功能模块使用。
+ */
 
 import { I18n } from '../i18n.js';
 
-
-
-
-
-
+/**
+ * 显示一条短暂的浮动提示消息
+ * @param {string} message
+ * @param {'success'|'error'|'warning'|'info'} type
+ */
 export function showMessage(message, type) {
     const existingMessage = document.querySelector('.message');
     if (existingMessage) {
@@ -54,9 +54,9 @@ export function showMessage(message, type) {
     }, 3000);
 }
 
-
-
-
+/**
+ * 显示带有操作按钮的 Toast 通知（比 showMessage 存在时间更长，带可点击操作）
+ */
 export function showActionToast(message, actionText, actionCallback, duration) {
     var existing = document.querySelector('.message');
     if (existing) existing.remove();
@@ -124,9 +124,9 @@ export function showActionToast(message, actionText, actionCallback, duration) {
     }, duration || 8000);
 }
 
-
-
-
+/**
+ * HTML 转义
+ */
 export function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function (c) {
         return {
@@ -139,9 +139,9 @@ export function escapeHtml(str) {
     });
 }
 
-
-
-
+/**
+ * 相对时间（x 分钟前 / x 小时前 ...）
+ */
 export function timeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     let interval = Math.floor(seconds / 31536000);

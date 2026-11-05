@@ -63,9 +63,6 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE_NAME)
       .then((cache) =>
-         
-         
-         
         Promise.allSettled(
           urlsToCache.map((url) =>
             cache.add(new Request(url, { cache: "reload" })).catch((err) => {
@@ -100,24 +97,22 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-   
+  // 检查是否为外部库
   const isExternalLib = EXTERNAL_LIBS.some((lib) => requestUrl.startsWith(lib));
 
-   
+  // 检查是否为本地资源
   const isLocalResource =
     !requestUrl.startsWith("http") ||
     requestUrl.includes(self.location.hostname) ||
     (requestUrl.startsWith("/") && !requestUrl.startsWith("//"));
 
   if (isExternalLib) {
-     
+    // 对于外部库，使用缓存优先策略
     event.respondWith(
       caches.match(event.request).then((response) => {
-         
         if (response) {
           return response;
         }
-         
         return fetch(event.request).then((response) => {
           if (!response || response.status !== 200) {
             return response;
@@ -130,17 +125,16 @@ self.addEventListener("fetch", (event) => {
 
           return response;
         }).catch(() => {
-           
+          // 外部库请求失败：返回 503 兜底，避免 undefined Response
           return caches.match(event.request).then((r) => r || new Response("Offline", { status: 503 }));
         });
       }),
     );
   } else if (isLocalResource) {
-     
+    // 对于本地资源，使用网络优先策略
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-           
           if (
             response &&
             response.status === 200 &&
@@ -154,12 +148,12 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => {
-           
+          // 请求失败使用缓存；未预缓存资源返回 503，避免 undefined Response
           return caches.match(event.request).then(r => r || new Response("Offline", { status: 503 }));
         }),
     );
   }
-   
+  // 对于其他请求，使用网络优先，失败后使用缓存的常规策略
   else {
     event.respondWith(
       fetch(event.request).catch(() => {

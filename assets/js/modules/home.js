@@ -1,34 +1,34 @@
-
-
-
-
-
-
-
-
+/**
+ * 首页交互
+ *  - Banner 轮播
+ *  - Bento 特性网格（入场阶梯淡入 + 悬停聚光）
+ *  - 安装命令浮层（Install Overlay）
+ *  - Hero GitHub 实时数据条
+ *  - 社区速览条带（最新 Discussions）
+ */
 
 import { I18n } from '../i18n.js';
 import { CONFIG } from '../config.js';
 
- 
+// 仅首页模块使用的本地状态
 var featureScrollBound = false;
 
 var bannerTimer = null;
 var bannerCurrentIndex = 0;
 
 export function setupHomeAnimations() {
-     
-     
-     
+    // 始终重算特性区布局：函数内部会按 no-animations / reduced-motion
+    // 自行选择"信封滚动叙事"或"纵向平铺"，动画开关切换后必须重跑一次，
+    // 否则会停留在两者的中间态（卡片绝对定位 + 平铺样式）
     setupFeatureStack();
-     
+    // Hero 代码窗（产品图）独立高亮
     highlightHeroCode();
 }
 
 function highlightHeroCode() {
     var heroCode = document.querySelector('.hero-code-window code');
     if (heroCode && typeof Prism !== 'undefined') {
-        try { Prism.highlightElement(heroCode); } catch (e) {   }
+        try { Prism.highlightElement(heroCode); } catch (e) { /* 高亮失败不影响展示 */ }
     }
 }
 
@@ -59,19 +59,19 @@ export function initBannerCarousel() {
         dotsContainer.appendChild(dot);
     });
 
-     
+    /** 文字溢出容器时启用跑马灯：实测溢出量与滚动时长写入 CSS 变量，返回展示毫秒数 */
     function applyMarquee() {
         if (!bannerText) return 0;
         bannerText.classList.remove('marquee');
         var wrapper = bannerText.parentElement;
         if (!wrapper) return 0;
         var overflow = bannerText.scrollWidth - wrapper.clientWidth;
-        if (overflow <= 4) return 0;    
+        if (overflow <= 4) return 0;   // 一屏放得下（PC 宽屏）：纯停留，不滚
 
-        var duration = Math.max(6000, Math.round(overflow / 30 * 1000));   
+        var duration = Math.max(6000, Math.round(overflow / 30 * 1000));  // 30px/s，至少 6s
         bannerText.style.setProperty('--marquee-distance', (overflow + 16) + 'px');
         bannerText.style.setProperty('--marquee-duration', duration + 'ms');
-         
+        // 强制重排后启用动画（同帧添加不触发）
         void bannerText.offsetWidth;
         bannerText.classList.add('marquee');
         return duration;
@@ -107,10 +107,10 @@ export function initBannerCarousel() {
         if (typeof updateHeroMinHeight === 'function') updateHeroMinHeight();
     }
 
-    
-
-
-
+    /**
+     * 轮播节奏：滚动时长 + 1s 停顿，与最少展示时间 5s 取大
+     * （PC 一屏显示全时不会瞬间切走；移动端长文案滚完才切下一条）
+     */
     function scheduleNext(count) {
         clearTimeout(bannerTimer);
         var marqueeMs = applyMarquee();
@@ -123,7 +123,7 @@ export function initBannerCarousel() {
 
     scheduleNext(slides.length);
 
-     
+    // 语言切换/视口变化后重测溢出（文案长度变化会改变滚动距离）
     document.addEventListener('erispulse-lang-changed', function () {
         applyMarquee();
     });
@@ -148,13 +148,13 @@ export function resetFeatureCards() {
     });
 }
 
-
-
-
-
-
-
-
+/**
+ * 特性信封舞台：
+ *  - 舞台 sticky 居中，section 轨道 = 张数 × 视口高
+ *  - 每张卡按滚动进度从信封里抽出（下方一屏 → 居中），到位后被后一张叠加
+ *  - 进度由滚动位置直接计算，往回滚按同一路径收回信封
+ *  - no-animations / prefers-reduced-motion：退化为纵向平铺，内容始终可读
+ */
 function setupFeatureStack() {
     var section = document.getElementById('features-scroll-section');
     if (!section) return;
@@ -163,13 +163,13 @@ function setupFeatureStack() {
     var panes = Array.prototype.slice.call(section.querySelectorAll('.feature-immersive'));
     if (!stage || !panes.length) return;
 
-     
+    // 代码高亮只做一次
     panes.forEach(function (pane) {
         if (pane.dataset.fxFx === '1') return;
         pane.dataset.fxFx = '1';
         var code = pane.querySelector('code');
         if (code && typeof Prism !== 'undefined') {
-            try { Prism.highlightElement(code); } catch (e) {   }
+            try { Prism.highlightElement(code); } catch (e) { /* 高亮失败不影响展示 */ }
         }
     });
 
@@ -231,12 +231,12 @@ function setupFeatureStack() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
-     
+    // 动画开关切换会重新调用本函数：旧监听先摘掉，避免重复绑定
     _featureScrollHandler = onScroll;
     tick();
 }
 
- 
+// 当前生效的滚动处理器（供重新初始化时解绑）
 var _featureScrollHandler = null;
 
 function unbindFeatureScroll() {
@@ -269,7 +269,7 @@ export function initInstallOverlay() {
 
     function updateCommand(platform) {
         var isAndroid = platform === 'android';
-         
+        // Android 走启动器下载而非命令行
         if (codeBlock) codeBlock.classList.toggle('is-hidden', isAndroid);
         if (androidBlock) androidBlock.classList.toggle('is-hidden', !isAndroid);
         if (hint) hint.classList.toggle('is-hidden', isAndroid);
@@ -314,7 +314,7 @@ export function initInstallOverlay() {
         || (navigator.userAgentData && navigator.userAgentData.mobile);
     var isWin = !isMobileUA && navigator.platform && navigator.platform.indexOf('Win') !== -1;
     if (isMobileUA) {
-         
+        // 移动设备默认展示启动器下载
         tabs[0].classList.remove('active');
         var androidTab = overlay.querySelector('.install-tab[data-platform="android"]');
         if (androidTab) androidTab.classList.add('active');
@@ -350,7 +350,7 @@ export function initInstallOverlay() {
     });
 }
 
- 
+// ==================== Hero GitHub 实时数据条 ====================
 
 var STATS_CACHE_KEY = 'erispulse-site-stats';
 var STATS_CACHE_TTL = 10 * 60 * 1000;
@@ -375,7 +375,7 @@ function renderHeroStats(stats) {
     });
 }
 
- 
+/** 单次拉取 /api/stats（Worker 边缘缓存 1h），失败保持 '--' 降级 */
 export function initHeroStats() {
     if (!document.getElementById('stat-stars') && !document.getElementById('hero-stats')) return;
 
@@ -385,7 +385,7 @@ export function initHeroStats() {
             renderHeroStats(cached.stats);
             return;
         }
-    } catch (e) {   }
+    } catch (e) { /* 缓存损坏则忽略 */ }
 
     fetch(CONFIG.API.siteStats)
         .then(function (resp) {
@@ -396,7 +396,7 @@ export function initHeroStats() {
             if (!data || !data.stats) throw new Error('bad payload');
             try {
                 localStorage.setItem(STATS_CACHE_KEY, JSON.stringify({ stats: data.stats, fetchedAt: Date.now() }));
-            } catch (e) {   }
+            } catch (e) { /* 存储异常忽略 */ }
             renderHeroStats(data.stats);
         })
         .catch(function (e) {

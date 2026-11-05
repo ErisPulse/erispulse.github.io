@@ -1,6 +1,6 @@
-
-
-
+/**
+ * 导航与路由：汉堡菜单、基于 hash 的视图切换、Service Worker 注册、在线/离线感知
+ */
 
 import { I18n } from "../i18n.js";
 import { state } from "../core/state.js";
@@ -29,13 +29,13 @@ export function registerServiceWorker() {
   }
 }
 
- 
+// ==================== 在线/离线感知 ====================
 export function setupOnlineOffline() {
   window.addEventListener("online", function () {
     console.log("网络已恢复");
     showMessage(I18n.t("common.onlineRestored"), "success");
     docs.updateDocsCacheStatus();
-     
+    // 网络恢复后重新检查文档版本
     state.versionNotified = false;
     setTimeout(docs.runBackgroundVersionCheck, 1500);
   });
@@ -46,7 +46,7 @@ export function setupOnlineOffline() {
   });
 }
 
- 
+// ==================== UI交互 ====================
 export function setupHamburgerMenu() {
   const hamburger = document.getElementById("hamburger");
   const navContainer = document.getElementById("nav-container");
@@ -78,9 +78,8 @@ export function setupHamburgerMenu() {
 export function setupViewSwitching() {
   const viewLinks = document.querySelectorAll("[data-view]");
 
-   
-   
-   
+  // 为所有 [data-view] 链接设置正确的 hash href，
+  // 这样右键「在新标签页中打开」/ 中键点击也能跳转到对应视图
   viewLinks.forEach((link) => {
     const view = link.getAttribute("data-view");
     if (view === "home") {
@@ -94,22 +93,22 @@ export function setupViewSwitching() {
 
   viewLinks.forEach((link) => {
     link.addEventListener("click", function (e) {
-       
+      // 允许中键 / Ctrl / Cmd / Shift 点击交给浏览器原生「在新标签页打开」
       if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
       e.preventDefault();
       const view = this.getAttribute("data-view");
-      updateView(view, true);  
+      updateView(view, true); // 用户点击，需要更新 hash
     });
   });
 
-   
+  // 优先使用预设的初始视图（从 window.__INITIAL_VIEW__ 读取）
   if (window.__INITIAL_VIEW__) {
-    updateView(window.__INITIAL_VIEW__, false);  
+    updateView(window.__INITIAL_VIEW__, false); // 初始视图，不更新 hash
   } else {
     switchViewByHash();
   }
 
-   
+  // 滚动进度条 + 返回顶部
   const progressBar = document.getElementById("scroll-progress");
   const backToTop = document.getElementById("back-to-top");
   if (progressBar || backToTop) {
@@ -138,10 +137,10 @@ export function setupViewSwitching() {
   }
 }
 
-
-
-
-
+/**
+ * 解析 docs 深链 hash：#docs/<docPath>#<section> 或 #docs/<docPath>%23<section>
+ * 返回 { docPath, section }；无子路径时返回 null。
+ */
 function parseDocsHash(hash) {
   const match = hash.match(/docs\/(.+)/);
   if (!match || !match[1]) return null;
@@ -149,7 +148,7 @@ function parseDocsHash(hash) {
   let rest = match[1];
   let section = null;
 
-   
+  // 章节锚点：第一个内嵌 # 或 %23 之后的部分
   const sepIndex = rest.search(/#|%23/i);
   if (sepIndex !== -1) {
     section = rest.slice(sepIndex).replace(/^#|%23/gi, "");
@@ -162,7 +161,7 @@ function parseDocsHash(hash) {
 function switchViewByHash() {
   if (_hashProgrammatic) return;
 
-   
+  // 预设初始视图优先（docs.html 等 SEO 入口页），hash 中的文档深链仍会解析
   const initialView = window.__INITIAL_VIEW__ || null;
   window.__INITIAL_VIEW__ = null;
 
@@ -224,7 +223,7 @@ function switchViewByHash() {
 }
 
 export function updateView(view, updateHash = false) {
-   
+  // 视图身份同步到 body：CSS 据此切换页面底（首页纸面/文档米色/其余视差图）
   if (view) document.body.dataset.activeView = view;
   document
     .querySelectorAll("[data-view]")
@@ -235,7 +234,7 @@ export function updateView(view, updateHash = false) {
 
   var targetView = document.getElementById(`${view}-view`);
 
-   
+  // 优雅切换：先瞬移到顶部，旧视图原位冻结淡出，新视图上浮入场
   window.scrollTo(0, 0);
 
   document.querySelectorAll(".view-container.active").forEach((container) => {
@@ -269,7 +268,7 @@ export function updateView(view, updateHash = false) {
     targetView.classList.add("active");
   }
 
-   
+  // 只在用户点击导航时更新 hash
   if (updateHash) {
     _hashProgrammatic = true;
     var currentHash = window.location.hash.substring(1);
@@ -278,7 +277,7 @@ export function updateView(view, updateHash = false) {
         history.pushState(null, null, window.location.pathname);
       }
     } else if (view === "docs" && currentHash.startsWith("docs/")) {
-       
+      // keep docs sub-path hash intact
     } else if (currentHash !== view && !currentHash.startsWith(view + "/")) {
       window.location.hash = view;
     }

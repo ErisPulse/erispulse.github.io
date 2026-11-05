@@ -1,27 +1,27 @@
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#!/usr/bin/env node
+/**
+ * SEO 静态化构建脚本（由 build-docs.yml 在 CI 中运行，产物经 erispulse[bot] 提交）
+ *
+ * 产物：
+ *   1. docs/<path>.html        zh-CN 文档静态页（主语言，无语言前缀）
+ *      docs/<lang>/<path>.html 其余语言文档静态页
+ *      —— 主索引 81×5 + auto_api 130×5，单篇拉取失败自动跳过
+ *   2. 入口页爬虫预填充：把 views/*.html 片段经 DOM 操作嵌入
+ *      index/market/community/about 的空 slot（SPA 启动时 loadViews() 会整体
+ *      替换 slot，互不冲突），并补全运行时数据（市场卡片/统计/社区卡/贡献者）
+ *      —— 全程 DOM 操作，不碰正则切 HTML；可重复运行（幂等）
+ *   3. sitemap.xml 重建（入口页 + 全部文档页）
+ *
+ * 数据源（构建时请求 ErisPulse，方案 B：单一真相源在 SDK 仓库）：
+ *   - 文档索引/正文：ErisPulse/ErisPulse Develop/v2（gh-proxy 主源，raw+token 回退）
+ *   - 模块：erisdev.com/packages.json（raw 回退）
+ *   - 讨论/贡献者：GitHub API（token 可选）
+ *   - 首页数据条：erisdev.com/api/stats
+ *
+ * 环境变量：
+ *   GITHUB_TOKEN  GitHub API / raw 提额（Actions 内置，可选）
+ *   LIMIT=N       只构建每语言前 N 篇（本地试跑用）
+ */
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,10 +31,10 @@ import Prism from 'prismjs';
 import loadLanguages from 'prismjs/components/index.js';
 import { enhanceGitHubMarkdown } from '../../assets/js/core/gh-markdown.js';
 
- 
+// ── 常量 ──
 const ROOT = process.cwd();
 const SITE = 'https://www.erisdev.com';
- 
+// 数据 API 走根域名（Cloudflare Worker），站点页面在 www（GitHub Pages）
 const API_BASE = 'https://erisdev.com';
 const UPSTREAM = 'ErisPulse/ErisPulse';
 const BRANCH = 'Develop/v2';
@@ -44,7 +44,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const LIMIT = parseInt(process.env.LIMIT || '', 10) || 0;
 const CONCURRENCY = 6;
 
- 
+// GitHub REST 的 category.emoji 是 :short_code: 文本，转原生 emoji（与前端 community.js 对齐）
 const CATEGORY_EMOJI = {
     mega: '📣', speech_balloon: '💬', bulb: '💡',
     ballot_box_with_check: '🗳️', ballot_box: '🗳️',
@@ -57,10 +57,10 @@ function categoryEmoji(c) {
 
 loadLanguages(['python', 'toml', 'bash', 'json', 'javascript', 'yaml', 'ini', 'markdown']);
 
- 
+// linkedom 提供 DOMParser，gh-markdown.js 直接复用
 globalThis.DOMParser = DOMParser;
 
- 
+// ── 基础工具 ──
 
 function escapeHtml(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, (ch) => (
@@ -76,7 +76,7 @@ async function fetchText(url, token) {
     return resp.text();
 }
 
- 
+/** 拉上游仓库文件：gh-proxy 与 raw（token 提额）互为回退 */
 async function fetchUpstream(repoPath) {
     const targets = GITHUB_TOKEN
         ? [`https://raw.githubusercontent.com/${UPSTREAM}/${BRANCH}/${repoPath}`,
@@ -110,18 +110,18 @@ async function pool(items, worker, size = CONCURRENCY) {
     return results;
 }
 
- 
+// ── DOM 辅助（预填充全程 DOM 操作，杜绝正则切 HTML；可重复运行） ──
 
-
-
-
+/** 解析 HTML 片段（views 片段无 html/body 包装也适用），返回包装元素。
+ *  两个坑：views/home.html 带 BOM 要先剥；linkedom 对裸片段会把内容挂在
+ *  documentElement 下而非 body（body 恒为空），所以包一层 div 再取。 */
 function parseFragment(html) {
     const clean = html.replace(/^\uFEFF/, '').trim();
     const doc = new DOMParser().parseFromString('<div id="__ep_frag">' + clean + '</div>', 'text/html');
     return doc.querySelector('#__ep_frag');
 }
 
- 
+/** 解析完整入口页，返回 { doc, bom } */
 function parsePage(file) {
     const src = fs.readFileSync(path.join(ROOT, file), 'utf-8');
     const bom = src.startsWith('\uFEFF') ? '\uFEFF' : '';
@@ -129,14 +129,14 @@ function parsePage(file) {
     return { doc, bom };
 }
 
- 
+/** 序列化完整文档（保留 BOM 与 doctype） */
 function serializePage(doc, bom) {
     return bom + '<!doctype html>\n' + doc.documentElement.outerHTML + '\n';
 }
 
- 
+// ── docs.js 渲染逻辑复刻（保持锚点与运行时一致） ──
 
- 
+/** GitHub 风格标题 slug：小写、去非字母数字、空白转 -，Unicode 保留 */
 function githubSlug(text) {
     return String(text || '')
         .trim()
@@ -167,7 +167,7 @@ function renderMarkdown(md) {
     return html;
 }
 
- 
+/** 代码块构建时 Prism 高亮（静态页无 JS） */
 function highlightCode(html) {
     const doc = new DOMParser().parseFromString('<div id="__root">' + html + '</div>', 'text/html');
     doc.querySelectorAll('pre code[class*="language-"]').forEach((block) => {
@@ -176,7 +176,7 @@ function highlightCode(html) {
         if (!lang || !Prism.languages[lang]) return;
         try {
             block.innerHTML = Prism.highlight(block.textContent || '', Prism.languages[lang], lang);
-        } catch (e) {   }
+        } catch (e) { /* 高亮失败保持原文 */ }
     });
     return doc.querySelector('#__root').innerHTML;
 }
@@ -186,7 +186,7 @@ function staticDocUrl(lang, docPath) {
     return prefix + docPath.replace(/\.md$/, '') + '.html';
 }
 
- 
+/** 文档内相对 .md 链接 → 静态页 URL（外链/#锚点 不动） */
 function rewriteDocLinks(html, lang, docPath) {
     const doc = new DOMParser().parseFromString('<div id="__root">' + html + '</div>', 'text/html');
     const baseDir = docPath.split('/').slice(0, -1);
@@ -216,7 +216,7 @@ function extractDescription(html) {
     return '';
 }
 
- 
+// ── 文档清单 ──
 
 function collectDocs(mapping, categoryName) {
     const out = [];
@@ -255,9 +255,9 @@ async function loadDocInventory() {
     return inventory;
 }
 
- 
+// ── 文档静态页模板 ──
 
- 
+/** 静态页界面文案（按语言） */
 const STATIC_LABELS = {
     'zh-CN': { docs: '文档中心', toc: '本页章节', prev: '上一篇', next: '下一篇', interactive: '在交互式文档中心打开', mirror: '本文为静态镜像，内容以交互版为准' },
     en: { docs: 'Docs', toc: 'On this page', prev: 'Previous', next: 'Next', interactive: 'Open in interactive docs', mirror: 'Static mirror — the interactive version is canonical' },
@@ -266,7 +266,7 @@ const STATIC_LABELS = {
     ru: { docs: 'Документация', toc: 'Разделы страницы', prev: 'Назад', next: 'Далее', interactive: 'Открыть интерактивную версию', mirror: 'Статическое зеркало — интерактивная версия является основной' },
 };
 
- 
+/** 抽取 H2/H3 章节锚点（renderMarkdown 已写入 id） */
 function extractToc(html) {
     const doc = new DOMParser().parseFromString('<div id="__root">' + html + '</div>', 'text/html');
     const items = [];
@@ -277,7 +277,7 @@ function extractToc(html) {
     return items;
 }
 
- 
+/** 侧栏文档树：分类 details（当前文档所在分类默认展开），当前文档下内嵌章节锚点 */
 function buildSidebarTree(lang, tree, currentPath, toc) {
     const cats = new Map();
     for (const item of tree) {
@@ -433,7 +433,7 @@ function docPageHtml({ lang, docPath, title, category, group, html, description,
 </html>`;
 }
 
- 
+// ── 文档全量静态化 ──
 
 async function buildDocs() {
     const inventory = await loadDocInventory();
@@ -485,7 +485,7 @@ async function buildDocs() {
     return built;
 }
 
- 
+// ── 入口页预填充（DOM 操作，幂等：每次先清空 slot 再填） ──
 
 function timeAgoCn(iso) {
     if (!iso) return '';
@@ -499,7 +499,7 @@ function timeAgoCn(iso) {
     return new Date(iso).toLocaleDateString('zh-CN');
 }
 
- 
+/** 把 views 片段做 DOM 修改后填入入口页 slot */
 function prefillSlot(pageFile, slotName, viewFile, mutate) {
     const pagePath = path.join(ROOT, pageFile);
     if (!fs.existsSync(pagePath)) {
@@ -513,7 +513,7 @@ function prefillSlot(pageFile, slotName, viewFile, mutate) {
     const viewDoc = parseFragment(fs.readFileSync(path.join(ROOT, 'views', viewFile), 'utf-8'));
     if (mutate) mutate(viewDoc);
 
-     
+    // innerHTML 赋值替换全部子节点（幂等），不做跨文档节点搬运
     slot.innerHTML = viewDoc.innerHTML;
 
     fs.writeFileSync(path.join(ROOT, pageFile), serializePage(doc, bom));
@@ -549,10 +549,10 @@ async function prefillEntryPages() {
         contributors = JSON.parse(await fetchText('https://api.github.com/repos/' + UPSTREAM + '/contributors?per_page=12', GITHUB_TOKEN));
     } catch (e) { console.warn('contributors 拉取失败:', e.message); }
 
-     
+    // ── index：hero 数据条 + 社区速览 ──
     prefillSlot('index.html', 'home', 'home.html', (view) => {
-         
-         
+        // 预填充是给爬虫/首屏的静态内容：根节点不能带 active（SPA 未接管时占屏）。
+        // SPA 注入的 views/home.html 片段自带 active，运行时行为不受影响。
         const root = view.querySelector('#home-view');
         if (root) root.classList.remove('active');
 
@@ -587,7 +587,7 @@ async function prefillEntryPages() {
         }
     });
 
-     
+    // ── market：统计数字 + 模块卡片 ──
     if (packages) {
         prefillSlot('market.html', 'market', 'market.html', (view) => {
             const items = [];
@@ -639,7 +639,7 @@ async function prefillEntryPages() {
         });
     }
 
-     
+    // ── community：版块格子 + 讨论卡片 ──
     if (discussions.length) {
         prefillSlot('community.html', 'community', 'community.html', (view) => {
             const boards = view.querySelector('#community-boards');
@@ -679,7 +679,7 @@ async function prefillEntryPages() {
         });
     }
 
-     
+    // ── about：贡献者头像 ──
     prefillSlot('about.html', 'about', 'about.html', (view) => {
         const count = view.querySelector('#contributors-count');
         if (count) count.textContent = String(contributors.length);
@@ -693,7 +693,7 @@ async function prefillEntryPages() {
     });
 }
 
- 
+// ── sitemap ──
 
 function buildSitemap(builtPaths) {
     const today = new Date().toISOString().slice(0, 10);
@@ -728,7 +728,7 @@ function buildSitemap(builtPaths) {
     console.log('sitemap.xml 重建完成，共', entries.length, '条');
 }
 
- 
+// ── 主流程 ──
 
 async function main() {
     console.log('== ErisPulse 官网 SEO 静态化构建 ==');

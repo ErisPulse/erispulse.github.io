@@ -1,12 +1,12 @@
- 
- 
+// ES Module Worker 入口：dashboard 部署时全部变量/绑定经 env 传入，
+// 合并进 globalThis 使既有 globalThis.X 引用零改动继续工作
 
 export default {
     async fetch(request, env) {
         try {
             if (env && typeof env === 'object') {
                 for (const key of Object.keys(env)) {
-                    try { if (globalThis[key] === undefined) globalThis[key] = env[key]; } catch (e) {   }
+                    try { if (globalThis[key] === undefined) globalThis[key] = env[key]; } catch (e) { /* 只读属性跳过 */ }
                 }
             }
             return await handleRequest(request);
@@ -23,23 +23,23 @@ const ALLOWED_ORIGIN = 'https://www.erisdev.com';
 const SUBMIT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const MAX_DAILY_SUBMISSIONS = 3;
 
- 
-const INJECTION_RE = /[\x00-\x1f<>`\\]/;                          
-const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;                
- 
- 
+// ── 输入校验常量 ──
+const INJECTION_RE = /[\x00-\x1f<>`\\]/;                         // 阻止注入/HTML：控制字符、尖括号、反引号、反斜杠（描述/作者允许 | & 引号等正常文本）
+const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/;               // 安全标识符：字母/数字开头 + 字母/数字/下划线/点/短横（模块/包名）
+// 标签：自由文本（不限词表），这里只挡结构性非法输入 ——
+// Unicode 字母（含中文）/数字开头，可含字母/数字/下划线/点/短横/空格，单个 ≤50 字符
 const TAG_RE = /^[\p{L}\p{N}][\p{L}\p{N}_.\- ]{0,49}$/u;
-const TAG_MAX_COUNT = 20;                                           
-const REPO_URL_RE = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;   
- 
+const TAG_MAX_COUNT = 20;                                          // 标签数量上限（卡片折叠展示，索引也不该被单条目塞满）
+const REPO_URL_RE = /^https:\/\/(github\.com|codeberg\.org)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+\/?$/;  // 仓库 URL
+// ErisPulse 版本规则：x.x.x（正式版）或 x.x.x-dev.N / -alpha.N（开发/预发布版）
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-(?:[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*))?$/;
- 
- 
- 
+// 最低 SDK 版本：可选约束符（>=、<=、==、!=、>、<）+ 合法版本（含开发版）
+// 预发布段既可能是 `-dev.3`（仓库内写法），也可能是 PyPI 规范化后的 `.dev3`
+// （提交表单直接选 PyPI 上的版本），两种都接受
 const SDK_CONSTRAINT_RE = /^(?:[><=!]{1,2})?\s*\d+\.\d+\.\d+(?:[-+._]?[0-9A-Za-z][0-9A-Za-z.\-]*)?$/;
 
- 
- 
+// ── 校验辅助函数 ──
+// 标签是自由文本：不校验词表，只挡结构性非法输入与数量
 function validateTags(tags) {
     if (tags.length > TAG_MAX_COUNT) {
         return `Too many tags. Maximum is ${TAG_MAX_COUNT}.`;
@@ -52,7 +52,7 @@ function validateTags(tags) {
     return null;
 }
 
- 
+// 界面语言：BCP-47 风格代码（zh / zh-TW / pt-BR），小写归一，最多 12 个
 const LANG_CODE_RE = /^[a-z]{2,3}(-[a-z0-9]{2,8})*$/i;
 const I18N_MAX = 12;
 
@@ -97,9 +97,9 @@ function validateMinSdk(minSdk) {
     return null;
 }
 
- 
- 
- 
+// 模块分类：受控字段（编号），与自由标签相反 —— 编号是前后端契约，
+// 前端按当前语言渲染展示名（i18n 的 category.<key>），增删分类需同步
+// packages_lib.py 的 CATEGORY_TAXONOMY 与 assets/js/config.js 的 MODULE_CATEGORIES
 const CATEGORY_IDS = [1, 2, 3, 4, 5, 6, 7];
 
 function validateCategory(value) {
@@ -222,12 +222,12 @@ async function checkPyPI(packageName) {
     }
 }
 
- 
- 
+// PyPI 上实际发布的版本串可能带预发布段（如 2.7.0.dev3 / 2.7.0-rc.1 / 2.7.0rc1），
+// 这里比 VERSION_RE 宽松，只挡住明显不是版本号的键
 const PYPI_VERSION_RE = /^\d+(?:\.\d+)+(?:[-+._]?[0-9A-Za-z][0-9A-Za-z.\-]*)?$/;
 
- 
- 
+// 版本列表：市场筛选与提交表单要的是「PyPI 上现在有哪些 SDK 版本」，
+// 直接读 releases，不落 KV —— 边缘缓存 10 分钟足够"实时"，也扛得住刷
 async function fetchPypiVersions(packageName) {
     try {
         const response = await fetch(`https://pypi.org/pypi/${encodeURIComponent(packageName)}/json`, {
@@ -297,7 +297,7 @@ async function handleRequest(request) {
         if (!avatarUrl) {
             return jsonResponse({ error: 'Missing url parameter' }, 400);
         }
-         
+        // 域名白名单：仅代理已知头像源（开放代理会被滥用于 SSRF）
         const AVATAR_HOST_RE = /^https:\/\/([a-z0-9-]+\.)*(githubusercontent\.com|github\.com|codeberg\.org|jwznb\.com|jwzhd\.com|gravatar\.com|erisdev\.com)\//i;
         if (!AVATAR_HOST_RE.test(avatarUrl)) {
             return jsonResponse({ error: 'Avatar host not allowed' }, 403);
@@ -332,7 +332,7 @@ async function handleRequest(request) {
         return handleManageModule(request);
     }
 
-     
+    // ── 社区（GitHub Discussions，旧镜像）──
     if (path === '/api/stats' && request.method === 'GET') {
         return handleSiteStats();
     }
@@ -362,9 +362,9 @@ async function handleRequest(request) {
             });
         }
     } else if (/\.(md|markdown)$/i.test(path)) {
-         
-         
-         
+        // GitHub 风格文档深链（如 /api-reference/event-system.md#章节）→ 文档静态页
+        // （SEO 静态化产物，由 build-docs 工作流生成）；浏览器会保留 fragment。
+        // 旧式 /?md= 链接仍由前端 app.js 归一化为 #docs/... 兜底。
         response = Response.redirect(ALLOWED_ORIGIN + '/docs/' + path.replace(/^\/+/, '').replace(/\.(md|markdown)$/i, '') + '.html', 302);
     } else {
         response = new Response(JSON.stringify({ error: 'Not Found' }), {
@@ -580,7 +580,7 @@ async function handleSubmitModule(request) {
             return jsonResponse({ error: `Invalid type: ${submission.type}` }, 400);
         }
 
-         
+        // ── 字段内容消毒 ──
 
         const name = submission.name.trim();
         if (!SAFE_NAME_RE.test(name) || name.length > 100) {
@@ -625,8 +625,8 @@ async function handleSubmitModule(request) {
             return jsonResponse({ error: minSdkError }, 400);
         }
 
-         
-         
+        // 分类：受控字段（编号），必填 —— 标签自由，但分类必须落在词表内，
+        // 否则前端无法渲染本地化名称
         const categoryError = validateCategory(submission.category);
         if (categoryError) {
             return jsonResponse({ error: categoryError }, 400);
@@ -683,9 +683,9 @@ async function handleSubmitModule(request) {
                     repository: submission.repository,
                     tags: JSON.stringify(tags),
                     submitter: JSON.stringify({ name: verifiedUser.name, uid: verifiedUser.uid, provider: verifiedUser.provider }),
-                     
-                     
-                     
+                    // GitHub dispatch 限制 client_payload 最多 10 个属性：
+                    // 结构化字段（min_sdk_version/category/i18n）统一打包进 data
+                    // （JSON 字符串），ModuleRepo 的 handle_submission.py 负责解包还原
                     data: JSON.stringify({
                         min_sdk_version: minSdk,
                         category: category,
@@ -781,7 +781,7 @@ async function handleManageModule(request) {
         if (action === 'edit') {
             const editData = body_data.edit_data || {};
 
-             
+            // ── 编辑字段消毒 ──
 
             const editPkg = (editData.package || '').trim();
             if (editPkg && (!SAFE_NAME_RE.test(editPkg) || editPkg.length > 200)) {
@@ -806,7 +806,7 @@ async function handleManageModule(request) {
                 return jsonResponse({ error: tagError }, 400);
             }
 
-             
+            // 界面语言：undefined = 不改动；提供则校验（非法代码直接拒绝）
             let editI18n;
             if (editData.i18n !== undefined && editData.i18n !== null && editData.i18n !== '') {
                 const i18nResult = validateI18n(editData.i18n);
@@ -828,7 +828,7 @@ async function handleManageModule(request) {
                 return jsonResponse({ error: minSdkError }, 400);
             }
 
-             
+            // 分类：可选（缺省表示不改动），一旦提供必须是词表内的编号
             let editCategory = null;
             if (editData.category !== undefined && editData.category !== null && editData.category !== '') {
                 const categoryError = validateCategory(editData.category);
@@ -856,8 +856,8 @@ async function handleManageModule(request) {
                         author: editAuthor,
                         repository: editData.repository || '',
                         min_sdk_version: editMinSdk,
-                         
-                         
+                        // 标签未提交时不写进 edit_data：仓库侧据此判定「不改动」，
+                        // 避免旧版前端因缺字段而把已有标签清空
                         ...(editData.tags === undefined ? {} : { tags: JSON.stringify(editTags) }),
                         ...(editI18n === undefined ? {} : { i18n: JSON.stringify(editI18n) }),
                         category: editCategory,
@@ -895,15 +895,15 @@ async function handleManageModule(request) {
     }
 }
 
- 
- 
- 
- 
+// ════════════════ 社区（GitHub Discussions）════════════════
+// 数据源：ErisPulse/ErisPulse 仓库的 Discussions。
+// 读接口匿名 + 边缘缓存（各端点 TTL 内最多打一次 GitHub，远低于匿名 60 次/时限额）；
+// 写接口（发讨论/回帖）服务端 verifyUser 后用用户自己的 token 转发，不落盘、不缓存。
 
 const DISCUSSIONS_REPO = 'ErisPulse/ErisPulse';
 const GH_API = 'https://api.github.com';
 
- 
+// 社区发帖限流：按 uid 的每日配额（与模块提交的 checkRateLimit 分开，互不挤占）
 
 function ghApiHeaders(accessToken) {
     const h = {
@@ -915,7 +915,7 @@ function ghApiHeaders(accessToken) {
     return h;
 }
 
- 
+/** GitHub GraphQL 请求（写操作与分类读取必须走 GraphQL——组织讨论的 REST 写接口 404） */
 async function ghGraphQL(query, variables, accessToken) {
     const token = accessToken || (typeof GITHUB_ACTIONS_TOKEN !== 'undefined' ? GITHUB_ACTIONS_TOKEN : '');
     const resp = await fetch('https://api.github.com/graphql', {
@@ -934,7 +934,7 @@ async function ghGraphQL(query, variables, accessToken) {
     return json.data;
 }
 
- 
+/* 官方 6 分类兜底（GraphQL 不可用时， boards 仍能渲染全部分类） */
 const FALLBACK_CATEGORIES = [
     { name: 'Announcements', slug: 'announcements', emoji: ':mega:' },
     { name: 'General', slug: 'general', emoji: ':speech_balloon:' },
@@ -988,18 +988,18 @@ function trimComment(c, depth) {
     return t;
 }
 
- 
+// Link 头解析：per_page=1 时 rel="last" 的页码即集合总数
 function parseLastPage(linkHeader) {
     const m = (linkHeader || '').match(/[?&]page=(\d+)>;\s*rel="last"/);
     return m ? parseInt(m[1], 10) : null;
 }
 
- 
- 
- 
- 
- 
- 
+// 前端错误码约定：
+//   AUTH_FAILED      → token 失效，前端引导重新登录
+//   PERMISSION_DENIED → token 有效但无 Discussions 写权限（GitHub App 未加权限/需重新授权）
+//   GITHUB_ONLY      → 只有 GitHub 账号能发帖
+//   RATE_LIMITED     → 触发每日配额
+// 首页 Hero 数据条：stars / 贡献者数 / 最新版本 / 讨论总数，一次取齐，边缘缓存 1 小时
 async function handleSiteStats() {
     try {
         const headers = ghApiHeaders();

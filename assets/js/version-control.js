@@ -1,44 +1,37 @@
+/**
+ * 版本控制和缓存管理
+ */
 
-
-
-
-
-
-
- 
+// 当前应用版本
 const APP_VERSION = "1.0.0";
 const CACHE_VERSION_KEY = "erispulse_cache_version";
 const CACHE_CLEAR_KEY = "erispulse_clear_cache";
 
-
-
-
+/**
+ * 检查版本是否需要更新
+ */
 export function checkVersion() {
   const cachedVersion = localStorage.getItem(CACHE_VERSION_KEY);
 
-   
   if (cachedVersion !== APP_VERSION) {
     console.log(`版本更新: ${cachedVersion} -> ${APP_VERSION}`);
 
-     
     clearCache();
 
-     
     localStorage.setItem(CACHE_VERSION_KEY, APP_VERSION);
 
-     
     if (cachedVersion) {
       showVersionUpdateNotice();
     }
   }
 }
 
-
-
-
+/**
+ * 清除所有缓存
+ */
 export function clearCache() {
   try {
-     
+    // 清除 Service Worker 缓存
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         registrations.forEach((registration) => {
@@ -49,7 +42,7 @@ export function clearCache() {
       });
     }
 
-     
+    // 清除 localStorage 中的缓存相关数据（保留用户设置）
     const userSettings = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -58,15 +51,12 @@ export function clearCache() {
       }
     }
 
-     
     localStorage.clear();
 
-     
     Object.entries(userSettings).forEach(([key, value]) => {
       localStorage.setItem(key, value);
     });
 
-     
     sessionStorage.clear();
 
     console.log("缓存已清除");
@@ -75,25 +65,23 @@ export function clearCache() {
   }
 }
 
-
-
-
+/**
+ * 强制刷新页面（不使用缓存）
+ */
 export function forceRefresh() {
   const url = new URL(window.location.href);
   url.searchParams.set("v", Date.now());
   window.location.href = url.toString();
 }
 
-
-
-
+/**
+ * 显示版本更新提示
+ */
 function showVersionUpdateNotice() {
-   
   if (sessionStorage.getItem(CACHE_CLEAR_KEY)) {
     return;
   }
 
-   
   const notice = document.createElement("div");
   notice.id = "version-update-notice";
   notice.style.cssText = `
@@ -145,7 +133,7 @@ function showVersionUpdateNotice() {
     </div>
   `;
 
-   
+  // 添加样式
   const style = document.createElement("style");
   style.textContent = `
     @keyframes slideIn {
@@ -164,10 +152,9 @@ function showVersionUpdateNotice() {
   `;
   document.head.appendChild(style);
 
-   
   document.body.appendChild(notice);
 
-   
+  // 绑定事件
   document.getElementById("refresh-btn").addEventListener("click", () => {
     sessionStorage.setItem(CACHE_CLEAR_KEY, "true");
     forceRefresh();
@@ -181,7 +168,7 @@ function showVersionUpdateNotice() {
     }, 300);
   });
 
-   
+  // 10秒后自动消失
   setTimeout(() => {
     if (notice.parentNode) {
       notice.style.animation = "slideOut 0.3s ease-out";
@@ -194,14 +181,13 @@ function showVersionUpdateNotice() {
   }, 10000);
 }
 
-
-
-
+/**
+ * 监听 Service Worker 更新
+ */
 export function setupServiceWorkerUpdate() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       console.log("Service Worker 已更新");
-       
       showVersionUpdateNotice();
     });
 
@@ -214,12 +200,12 @@ export function setupServiceWorkerUpdate() {
   }
 }
 
-
-
-
+/**
+ * 手动触发版本检查和更新
+ */
 export function manualUpdateCheck() {
   console.log("手动检查更新...");
-   
+  // 暂时更新版本号以触发更新逻辑
   const currentVersion = localStorage.getItem(CACHE_VERSION_KEY);
   if (currentVersion) {
     localStorage.removeItem(CACHE_VERSION_KEY);
@@ -228,7 +214,7 @@ export function manualUpdateCheck() {
   forceRefresh();
 }
 
- 
+// 暴露全局函数（用于控制台调试）
 if (typeof window !== "undefined") {
   window.ErisPulseVersionControl = {
     checkVersion,
@@ -239,7 +225,7 @@ if (typeof window !== "undefined") {
   };
 }
 
- 
+// 页面加载时自动检查版本
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", checkVersion);
 } else {

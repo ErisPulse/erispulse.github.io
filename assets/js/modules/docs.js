@@ -1,10 +1,10 @@
-
-
-
-
-
-
-
+/**
+ * 文档中心：三级导航、搜索浮层、面包屑、文档加载/渲染、
+ * 离线本地化（下载/缓存管理）、版本更新检测、语言切换核心逻辑。
+ *
+ * 这里集中了所有文档视图相关的状态与函数；handleLanguageSwitch /
+ * updateLangSwitcherUI 也定义于此。
+ */
 
 import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
@@ -17,8 +17,8 @@ import { renderModules } from './marketplace.js';
 import { resetBanner } from './home.js';
 import { updateView } from './nav.js';
 
- 
-let currentNavState = 'categories';  
+// 导航状态管理（仅文档模块内部使用）
+let currentNavState = 'categories'; // 'categories', 'documents', 'chapters'
 let currentCategory = null;
 let currentDocPath = null;
 let currentChapterToc = [];
@@ -26,16 +26,16 @@ let currentChapterToc = [];
 var _docsLibsLoaded = false;
 var _docsIndexesLoaded = false;
 
- 
+// 章节深链定位后短暂抑制 scroll-spy 的 hash 回写（时间戳，ms）
 let suppressSectionHashSyncUntil = 0;
- 
+// scroll-spy hash 回写节流定时器
 let _sectionHashSyncTimer = null;
 
- 
+// ==================== 语言切换（核心逻辑） ====================
 
-
-
-
+/**
+ * 更新全局语言切换器按钮标签和选项激活状态
+ */
 export function updateLangSwitcherUI() {
     const switcher = document.getElementById('global-lang-switcher');
     if (!switcher) return;
@@ -55,10 +55,10 @@ export function updateLangSwitcherUI() {
     });
 }
 
-
-
-
-
+/**
+ * 统一处理语言切换（全局切换器和文档侧边栏切换器共用）
+ * 使用 View Transitions API 从点击位置发出圆形波纹揭示动画。
+ */
 export function handleLanguageSwitch(lang, originX, originY) {
     console.log('切换语言:', lang);
 
@@ -105,9 +105,9 @@ export function handleLanguageSwitch(lang, originX, originY) {
     }
 }
 
-
-
-
+/**
+ * 语言切换的实际逻辑（同步 DOM 更新 + 异步索引/文档重载）
+ */
 function _doLanguageSwitch(lang) {
     const prevDocPath = currentDocPath;
 
@@ -155,7 +155,7 @@ function _doLanguageSwitch(lang) {
                     ${docsGuideCardsHtml()}
                 </div>
             `;
-             
+            // 引导卡文案带 data-i18n 属性，注入后统一翻译
             I18n.applyTranslations();
         }
     }
@@ -172,9 +172,9 @@ function _doLanguageSwitch(lang) {
     showMessage(I18n.t('common.langSwitched', { name: I18n.getLanguageName(lang) }), 'success');
 }
 
-
-
-
+/**
+ * 文档欢迎页的「你想做什么」引导卡（紧凑版，与首页引导区共用 guide.* 文案）
+ */
 function docsGuideCardsHtml() {
     const cards = [
         { icon: 'fa-rocket', href: '#docs/quick-start.md', key: 'quickstart' },
@@ -195,7 +195,7 @@ function docsGuideCardsHtml() {
         </a>`).join('')}</div>`;
 }
 
- 
+// ==================== 文档版本更新检测 ====================
 
 export async function runBackgroundVersionCheck() {
     if (state.versionNotified || !navigator.onLine) return;
@@ -230,11 +230,11 @@ export async function runBackgroundVersionCheck() {
             );
         }
     } catch (e) {
-         
+        // 网络异常时静默
     }
 }
 
- 
+// ==================== 文档模块初始化 ====================
 
 export function loadDocsLibs() {
     if (_docsLibsLoaded) return;
@@ -310,7 +310,7 @@ export function setupDocumentation() {
     });
 }
 
- 
+// ==================== 三级导航系统 ====================
 
 function renderDocsNavigation() {
     const navContainer = document.querySelector('.docs-nav-container');
@@ -432,7 +432,7 @@ function showDocumentList(categoryId) {
                     <div class="doc-list subgroup-docs">
             `;
             sg.documents.forEach(doc => { navHtml += renderDocItemHtml(doc); });
-             
+            // auto_api 嵌套二级子分组（CLI / Core / runtime 等）
             if (sg._auto_subgroups) {
                 for (const [childKey, childSg] of Object.entries(sg._auto_subgroups)) {
                     const childIcon = getSubgroupIcon(childSg);
@@ -460,10 +460,10 @@ function showDocumentList(categoryId) {
         navHtml += '</div>';
     }
 
-     
+    // 如果是 API 参考分类且 auto_api 未合并，追加虚拟占位子分组
     const isApiReference = isApiReferenceCategory(category, categoryId);
     if (isApiReference && !DocsIndexManager.autoApiMerged) {
-         
+        // 在最后插入虚拟子分组（默认折叠）
         const autoApiName = getAutoApiSubgroupDisplayName();
         navHtml += `
             <div class="doc-subgroup auto-api-subgroup is-placeholder collapsed" data-auto-api="1">
@@ -492,7 +492,7 @@ function showDocumentList(categoryId) {
         header.addEventListener('click', function (e) {
             e.stopPropagation();
             const subgroup = this.closest('.doc-subgroup');
-             
+            // 首次展开 auto_api 占位子分组 → 触发懒加载
             if (subgroup && subgroup.classList.contains('is-placeholder') && subgroup.classList.contains('collapsed')) {
                 handleAutoApiLazyLoad(subgroup, categoryId);
             }
@@ -509,7 +509,7 @@ function isApiReferenceCategory(category, categoryId) {
     if (docs.length > 0 && docs[0].path && docs[0].path.startsWith('api-reference/')) {
         return true;
     }
-     
+    // 多语言键名兜底
     const apiNames = ['API 参考', 'API Reference', 'API 參考', 'API リファレンス', 'Справочник API'];
     return apiNames.includes(categoryId);
 }
@@ -530,7 +530,7 @@ async function handleAutoApiLazyLoad(subgroupEl, categoryId) {
     subgroupEl.dataset.autoApiLoading = '1';
     try {
         await DocsIndexManager.loadAutoApiMapping();
-         
+        // 合并完成后，重新渲染当前文档列表
         if (currentNavState === 'documents' && currentCategory === categoryId) {
             showDocumentList(categoryId);
         }
@@ -540,11 +540,11 @@ async function handleAutoApiLazyLoad(subgroupEl, categoryId) {
     }
 }
 
-
-
-
-
-
+/* ==================== 文档导航壳（移动端吸顶条 + PC 收起/恢复） ====================
+   ≤991px：侧栏（搜索 + 三态导航）常驻吸顶导航条面板。
+   ≥992px：默认侧栏内联；点侧栏头部的收起按钮 → 侧栏搬进导航条（与移动端
+   同一形态），导航条左侧出现「恢复侧边栏」按钮；点恢复 → 侧栏回布局原位。
+   偏好持久化在 localStorage（erispulse-docs-sidebar）。 */
 const SIDEBAR_STORE_KEY = 'erispulse-docs-sidebar';
 
 const navShell = {
@@ -586,7 +586,7 @@ export function setupChapterBar() {
         navShell.restore.addEventListener('click', () => setSidebarCollapsed(false));
     }
 
-     
+    // PC 收起按钮（在侧栏头部，随侧栏一起被搬移，收起态下兼作恢复入口）
     const aside = document.querySelector('.docs-sidebar');
     const header = document.querySelector('.docs-sidebar-header');
     if (aside && header) {
@@ -599,7 +599,7 @@ export function setupChapterBar() {
         navShell.collapseBtn.addEventListener('click', () => {
             const next = !navShell.collapsed;
             setSidebarCollapsed(next);
-             
+            // 收起后自动展开面板（零延迟）
             if (next) setTimeout(() => setChapterBarOpen(true), 0);
         });
         header.appendChild(navShell.collapseBtn);
@@ -607,7 +607,7 @@ export function setupChapterBar() {
     navShell.layout = document.querySelector('.docs-layout');
     navShell.main = document.querySelector('.docs-main');
 
-    try { navShell.collapsed = localStorage.getItem(SIDEBAR_STORE_KEY) === 'collapsed'; } catch (e) {   }
+    try { navShell.collapsed = localStorage.getItem(SIDEBAR_STORE_KEY) === 'collapsed'; } catch (e) { /* 忽略 */ }
 
     const mq = window.matchMedia('(max-width: 991px)');
     const apply = () => { navShell.isMobile = mq.matches; renderNavShell(); };
@@ -618,11 +618,11 @@ export function setupChapterBar() {
 
 function setSidebarCollapsed(collapsed) {
     navShell.collapsed = collapsed;
-    try { localStorage.setItem(SIDEBAR_STORE_KEY, collapsed ? 'collapsed' : 'open'); } catch (e) {   }
+    try { localStorage.setItem(SIDEBAR_STORE_KEY, collapsed ? 'collapsed' : 'open'); } catch (e) { /* 忽略 */ }
     renderNavShell();
 }
 
- 
+/* 侧栏泊位：移动端或 PC 收起态 → 导航条面板；否则回布局原位 */
 function renderNavShell() {
     if (!navShell.ready || !navShell.sidebar || !navShell.layout || !navShell.main) return;
     const dockInBar = navShell.isMobile || navShell.collapsed;
@@ -655,18 +655,17 @@ function setChapterBarOpen(open) {
     navShell.bar.classList.toggle('open', open);
     navShell.panel.hidden = !open;
     navShell.toggle.setAttribute('aria-expanded', String(open));
-     
+    // 面板展开期间隐藏外侧恢复按钮（面板内已有同功能入口）
     if (navShell.restore) {
         navShell.restore.hidden = navShell.isMobile || !navShell.collapsed || open;
     }
     if (open) {
-         
-         
+        // 展开即定位到当前阅读位置
         scrollActiveNavItemIntoView();
     }
 }
 
- 
+/* 把面板内的当前项（章节/文档/分类）滚到可视区中部 */
 function scrollActiveNavItemIntoView() {
     if (!navShell.panel) return;
     const active = navShell.panel.querySelector(
@@ -682,7 +681,7 @@ function scrollActiveNavItemIntoView() {
     }
 }
 
- 
+/* 导航状态 → 导航条标题（分类态/文档态/章节态） */
 function syncChapterBar() {
     if (!navShell.ready) return;
     updateChapterBarLabel();
@@ -701,7 +700,7 @@ function updateChapterBarLabel() {
     }
 }
 
- 
+/* scrollspy 命中章节时：导航条标题同步（面板内高亮由侧栏 .chapter-item.active 原生承担） */
 function updateChapterBarActive() {
     if (!navShell.ready || navShell.row.hidden || currentNavState !== 'chapters') return;
     const active = document.querySelector('.chapter-item.active .chapter-text');
@@ -715,8 +714,7 @@ function showChapterToc(docPath) {
     const docTitle = DocsIndexManager.getDocumentTitle(docPath);
 
     if (!currentChapterToc || currentChapterToc.length === 0) {
-         
-         
+        // 无章节大纲：导航回退到所属分类的文档列表，避免状态与面板错位
         const category = DocsIndexManager.getDocumentCategory(docPath);
         if (category && category.name) {
             showDocumentList(category.name);
@@ -742,8 +740,7 @@ function showChapterToc(docPath) {
 
     navHtml += '<div class="chapter-toc">';
 
-     
-     
+    // 扁平渲染：跳过 H1，从 H2 开始展示；前缀 H1/H2/H3 徽章，按层级缩进
     const tocItems = currentChapterToc.filter(item => item.level > 1);
     tocItems.forEach(item => {
         navHtml += `
@@ -768,7 +765,7 @@ function showChapterToc(docPath) {
 
     updateActiveChapter();
 
-     
+    // 单列布局下侧栏（分类/文档树）保留在顶部，章节导航由浮动章节条承担
     syncChapterBar();
 }
 
@@ -794,13 +791,13 @@ function updateActiveChapter() {
                         activeItem = item;
                     }
                 });
-                 
+                // 左侧 TOC 跟随滚动，让激活项可见
                 if (activeItem) {
                     scrollChapterIntoView(activeItem);
                 }
-                 
+                // 移动端导航条标题同步当前章节
                 updateChapterBarActive();
-                 
+                // 滚动同步 URL 中的章节锚点
                 syncSectionHash(id);
             }
         });
@@ -811,10 +808,10 @@ function updateActiveChapter() {
     headers.forEach(header => observer.observe(header));
 }
 
-
-
-
-
+/**
+ * 让激活的章节项在左侧侧边栏中保持可见
+ * 仅在激活项被遮挡时滚动，已在可见区域则不动，避免与主滚动条冲突。
+ */
 function scrollChapterIntoView(activeItem) {
     const sidebar = document.querySelector('.docs-sidebar');
     if (!sidebar || !activeItem) return;
@@ -822,20 +819,20 @@ function scrollChapterIntoView(activeItem) {
     const sidebarRect = sidebar.getBoundingClientRect();
     const itemRect = activeItem.getBoundingClientRect();
 
-     
+    // 顶部 / 底部各留 60px 余量
     const margin = 60;
     const itemTopRelativeToSidebar = itemRect.top - sidebarRect.top;
     const itemBottomRelativeToSidebar = itemRect.bottom - sidebarRect.top;
 
     if (itemTopRelativeToSidebar < margin) {
-         
+        // 激活项在可见区域上方，向上滚动
         const delta = itemTopRelativeToSidebar - margin;
         sidebar.scrollTo({
             top: sidebar.scrollTop + delta,
             behavior: 'smooth'
         });
     } else if (itemBottomRelativeToSidebar > sidebarRect.height - margin) {
-         
+        // 激活项在可见区域下方，向下滚动
         const delta = itemBottomRelativeToSidebar - (sidebarRect.height - margin);
         sidebar.scrollTo({
             top: sidebar.scrollTop + delta,
@@ -860,8 +857,7 @@ function syncNavigationState(docPath) {
         });
     }
 
-     
-     
+    // 路由/哈希变化（前进后退、外链跳转）不经过侧栏点击，标题需在此统一同步
     syncChapterBar();
 
     const hash = window.location.hash.substring(1);
@@ -955,10 +951,9 @@ function setupGlobalNavigationEvents() {
                 }
                 document.querySelectorAll('.chapter-item').forEach(i => i.classList.remove('active'));
                 chapterItem.classList.add('active');
-                 
-                 
+                // 手动点选章节后同步导航条标题（scrollspy 未必触发）
                 updateChapterBarLabel();
-                 
+                // 移动端：选定阅读位置后收起导航条面板
                 setChapterBarOpen(false);
             }
             return;
@@ -986,7 +981,7 @@ function setupGlobalNavigationEvents() {
     navContainer.addEventListener('click', clickHandler, false);
 }
 
- 
+// ==================== 搜索浮层 ====================
 
 function setupDocumentationSearch() {
     const searchTrigger = document.createElement('button');
@@ -1194,7 +1189,7 @@ function clearOverlaySearchResults() {
     `;
 }
 
- 
+// ==================== 面包屑 ====================
 
 function setupBreadcrumbNavigation() {
     const breadcrumb = document.querySelector('.docs-breadcrumb');
@@ -1243,7 +1238,7 @@ export function updateBreadcrumb(docPath) {
     }
 }
 
- 
+// ==================== 文档操作按钮 ====================
 
 function setupDocumentActions() {
     const editBtn = document.querySelector('.docs-action-btn:nth-child(1)');
@@ -1303,7 +1298,7 @@ function shareDocument() {
 function copyToClipboard(text) {
     const showCopied = () => showMessage(I18n.t('docs.linkCopied'), 'success');
 
-     
+    // 优先使用 Clipboard API（需安全上下文 HTTPS）；不可用时走 fallback
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(showCopied).catch(() => {
             fallbackCopy(text, showCopied);
@@ -1347,7 +1342,7 @@ function getEditUrl(docPath) {
     return CONFIG.DOCS.githubBaseUrl + lang + '/' + docPath;
 }
 
- 
+// ==================== 文档离线本地化 ====================
 
 async function fetchSdkVersion() {
     const urls = [CONFIG.DOCS.pyprojectUrl, CONFIG.DOCS.pyprojectRawUrl];
@@ -1361,7 +1356,7 @@ async function fetchSdkVersion() {
                 return match[1].trim();
             }
         } catch (e) {
-             
+            // 尝试下一个 URL
         }
     }
     return null;
@@ -1596,7 +1591,7 @@ export async function checkDocsVersionUpdate() {
     }
 }
 
- 
+// ==================== 文档内容加载与渲染 ====================
 
 export async function loadDocument(docPath, targetLine = null, keyword = null, section = null) {
     const docsContent = document.getElementById('docs-content');
@@ -1661,11 +1656,9 @@ export async function loadDocument(docPath, targetLine = null, keyword = null, s
     }
 }
 
-
-
-
-
-
+/**
+ * 同步每篇文档的页面标题与描述（浏览器标签页 + SEO）。
+ */
 function updateDocMeta(docPath, docsContent) {
     const heading = docsContent.querySelector('h1, h2');
     const docTitle = heading ? heading.textContent.trim() : docPath;
@@ -1689,14 +1682,14 @@ function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, key
     const docsContent = document.getElementById('docs-content');
     let htmlContent = marked.parse(markdownContent);
 
-     
+    // GitHub Alerts（> [!NOTE] 等）转提示框
     htmlContent = enhanceGitHubMarkdown(htmlContent);
     htmlContent = addTableOfContents(htmlContent);
     htmlContent = wrapTables(htmlContent);
 
     docsContent.innerHTML = htmlContent;
 
-     
+    // SEO：每篇文档同步页面标题与描述（爬虫 + 浏览器标签页共用）
     updateDocMeta(docPath, docsContent);
     addDocumentMetaInfo(docsContent, docPath, commitInfo);
 
@@ -1706,7 +1699,7 @@ function _renderDocContent(docPath, markdownContent, commitInfo, targetLine, key
 
     addHeadingAnchors(docsContent, docPath);
 
-     
+    // 章节深链定位后短暂抑制 scroll-spy 的 hash 回写
     suppressSectionHashSyncUntil = Date.now() + 2500;
 
     setTimeout(() => {
@@ -1832,15 +1825,15 @@ function scrollToLine(lineNumber) {
     showMessage(I18n.t('docs.docLoaded'), 'success');
 }
 
-
-
-
-
-
+/**
+ * 解析文档内链接（相对/绝对路径，可带 #章节锚点 或 %23锚点），
+ * 返回 { path, section } 或 null。
+ * 例：'lifecycle.md#%E5%90%8E...' → { path: 'xxx/lifecycle.md', section: '%E5%90%8E...' }
+ */
 function getDocIdFromPath(filePath) {
     let raw = String(filePath || '').replace(/\\/g, '/');
 
-     
+    // 拆分章节锚点（# 或 %23 开头）与查询参数，避免污染路径匹配
     let section = null;
     const anchorIndex = raw.search(/#|%23/i);
     if (anchorIndex !== -1) {
@@ -1849,14 +1842,14 @@ function getDocIdFromPath(filePath) {
     }
     raw = raw.split('?')[0].trim();
     if (!raw) {
-         
+        // 纯锚点链接不应走到这里（由站内锚点处理器负责），兜底返回当前文档
         return section ? { path: currentDocPath, section } : null;
     }
 
     let normalizedPath = raw.replace(/\.md$/i, '');
 
     if (normalizedPath.startsWith('../') || normalizedPath.startsWith('./') || !normalizedPath.includes('/')) {
-         
+        // 相对路径基准：优先用当前文档完整路径
         const currentDoc = currentDocPath
             || (window.location.hash.match(/docs\/([^#?]+)/) || [])[1]
             || '';
@@ -1949,10 +1942,10 @@ function clearToc() {
     }
 }
 
-
-
-
-
+/**
+ * 将 URL hash 回写为 #docs/<docPath>#<section>（节流 + 防抖，不触发导航）。
+ * 深链定位后的短暂窗口内跳过，避免刚打开的章节链接被 scroll-spy 覆盖。
+ */
 function syncSectionHash(sectionId) {
     if (!currentDocPath) return;
     if (Date.now() < suppressSectionHashSyncUntil) return;
@@ -1969,16 +1962,16 @@ function syncSectionHash(sectionId) {
     }, 400);
 }
 
-
-
-
-
-
+/**
+ * 章节定位：依次尝试 精确 id → slug → 归一化标题文本 匹配。
+ * 命中后平滑滚动并高亮闪烁；未命中返回 false。
+ * 兼容 GitHub 风格锚点（如 event-system.md#跨平台扩展通配符）与站内旧版 section-N- 锚点。
+ */
 function scrollToSection(section) {
     if (!section) return false;
 
     let target = String(section).replace(/^#+/, '');
-    try { target = decodeURIComponent(target); } catch (e) {   }
+    try { target = decodeURIComponent(target); } catch (e) { /* 保留原样 */ }
     if (!target) return false;
 
     const docsContent = document.getElementById('docs-content');
@@ -2005,22 +1998,22 @@ function scrollToSection(section) {
     return true;
 }
 
-
-
-
+/**
+ * 章节高亮闪烁（定位反馈）
+ */
 function flashSection(el) {
     if (!el) return;
     suppressSectionHashSyncUntil = Math.max(suppressSectionHashSyncUntil, Date.now() + 2000);
     el.classList.remove('section-flash');
-     
+    // 强制 reflow，确保连续触发时动画重新播放
     void el.offsetWidth;
     el.classList.add('section-flash');
     setTimeout(() => el.classList.remove('section-flash'), 2000);
 }
 
-
-
-
+/**
+ * 为文档标题挂载锚点按钮：悬停出现，点击复制 #docs/<path>#<slug> 深链并同步 hash。
+ */
 function addHeadingAnchors(docsContent, docPath) {
     docsContent.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').forEach(h => {
         if (h.querySelector('.heading-anchor')) return;
@@ -2031,7 +2024,7 @@ function addHeadingAnchors(docsContent, docPath) {
         anchor.setAttribute('aria-label', 'Copy section link');
         anchor.innerHTML = '<i class="fas fa-link" aria-hidden="true"></i>';
         anchor.addEventListener('click', function (e) {
-             
+            // 阻止冒泡 + 阻止同元素上后绑定的通用锚点处理器重复处理
             e.preventDefault();
             e.stopImmediatePropagation();
 
@@ -2060,7 +2053,7 @@ function addTableOfContents(htmlContent) {
 
     headers.forEach((header, index) => {
         const headerText = header.textContent.trim();
-         
+        // GitHub 风格 slug：与 GitHub 仓库页锚点一致
         const baseSlug = githubSlug(headerText) || `section-${index}`;
         let id = baseSlug;
         let counter = 2;
@@ -2082,10 +2075,10 @@ function addTableOfContents(htmlContent) {
     return tempDiv.innerHTML;
 }
 
-
-
-
-
+/**
+ * GitHub 风格标题 slug：小写、去除字母/数字/空白/-/_ 以外的字符、空白转 -。
+ * 中文等 Unicode 字母原样保留，与 GitHub 仓库 markdown 锚点规则一致。
+ */
 function githubSlug(text) {
     return String(text || '')
         .trim()
@@ -2099,7 +2092,7 @@ function wrapTables(htmlContent) {
 }
 
 function moveTocToSidebar() {
-     
+    // 已弃用：TOC 现在集成到左侧导航栏的章节目录中
 }
 
 function renderCharts() {

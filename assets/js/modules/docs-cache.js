@@ -1,7 +1,7 @@
-
-
-
-
+/**
+ * 文档内容缓存管理器
+ * 负责文档正文（Markdown）的本地缓存、按语言统计、本地化标记与清理。
+ */
 
 import { CONFIG } from "../config.js";
 import { I18n } from "../i18n.js";
@@ -13,10 +13,10 @@ export const DocsContentCache = (function () {
     return cfg().keyPrefix + lang + ":" + docPath;
   }
 
-  
-
-
-
+  /**
+   * 读取缓存的原始条目（不做过期判断）
+   * @returns {{content:string, commitInfo:object|null, timestamp:number}|null}
+   */
   function getRaw(lang, docPath) {
     try {
       const raw = localStorage.getItem(_key(lang, docPath));
@@ -27,17 +27,17 @@ export const DocsContentCache = (function () {
     }
   }
 
-  
-
-
+  /**
+   * 缓存条目是否在有效期内
+   */
   function isFresh(entry) {
     if (!entry || !entry.timestamp) return false;
     return Date.now() - entry.timestamp <= cfg().expiry;
   }
 
-  
-
-
+  /**
+   * 写入文档内容缓存
+   */
   function set(lang, docPath, content, commitInfo) {
     try {
       const entry = {
@@ -56,17 +56,17 @@ export const DocsContentCache = (function () {
     }
   }
 
-  
-
-
+  /**
+   * 获取当前语言已缓存的文档数量
+   */
   function count(lang) {
     const index = _getIndex();
     return (index[lang] || []).length;
   }
 
-  
-
-
+  /**
+   * 检查某语言是否已标记为完整本地化
+   */
   function isLocalized(lang) {
     try {
       const settings = JSON.parse(
@@ -78,9 +78,9 @@ export const DocsContentCache = (function () {
     }
   }
 
-  
-
-
+  /**
+   * 获取本地化时记录的 SDK 版本号
+   */
   function getLocalizedVersion(lang) {
     try {
       const settings = JSON.parse(
@@ -93,10 +93,10 @@ export const DocsContentCache = (function () {
     }
   }
 
-  
-
-
-
+  /**
+   * 标记/取消标记某语言为已完整本地化。
+   * value 为版本号字符串（标记本地化）或 false/null（取消标记）。
+   */
   function setLocalized(lang, value) {
     try {
       const settings = JSON.parse(
@@ -117,24 +117,24 @@ export const DocsContentCache = (function () {
     }
   }
 
-  
-
-
-
-
-
-
+  /**
+   * 检查指定文档是否需要更新（基于 commitInfo 对比）
+   * @param {string} lang - 语言代码
+   * @param {string} docPath - 文档路径
+   * @param {object|string} newCommitInfo - 新的提交信息（或 commit hash）
+   * @returns {boolean} true 表示需要更新，false 表示可使用缓存
+   */
   function shouldUpdate(lang, docPath, newCommitInfo) {
     const entry = getRaw(lang, docPath);
-    if (!entry) return true;  
+    if (!entry) return true; // 无缓存，需要下载
 
-     
+    // 缓存过期也需要更新
     if (!isFresh(entry)) return true;
 
-     
+    // 对比 commitInfo
     const oldCommitInfo = entry.commitInfo;
 
-     
+    // 如果新旧 commitInfo 都是字符串，直接对比
     if (
       typeof oldCommitInfo === "string" &&
       typeof newCommitInfo === "string"
@@ -142,7 +142,7 @@ export const DocsContentCache = (function () {
       return oldCommitInfo !== newCommitInfo;
     }
 
-     
+    // 如果是对象，对比关键字段（如 hash、sha、lastModified）
     if (
       typeof oldCommitInfo === "object" &&
       typeof newCommitInfo === "object"
@@ -160,17 +160,17 @@ export const DocsContentCache = (function () {
       return oldHash !== newHash;
     }
 
-     
+    // 无法对比，保守起见返回 true
     return true;
   }
 
-  
-
-
-
-
-
-
+  /**
+   * 获取文档内容（带自动更新检查）
+   * @param {string} lang - 语言代码
+   * @param {string} docPath - 文档路径
+   * @param {object|string} newCommitInfo - 新的提交信息
+   * @returns {{content:string|null, needUpdate:boolean, fromCache:boolean}}
+   */
   function getWithCheck(lang, docPath, newCommitInfo) {
     const entry = getRaw(lang, docPath);
     if (!entry) {
@@ -187,12 +187,12 @@ export const DocsContentCache = (function () {
     };
   }
 
-  
-
-
-
-
-
+  /**
+   * 批量检查多个文档是否需要更新
+   * @param {string} lang - 语言代码
+   * @param {Array<{path:string, commitInfo:object|string}>} docs - 文档列表
+   * @returns {Object} { docsToUpdate: Array<{path:string, commitInfo:object|string}>, cachedDocs: Array<{path:string, content:string}> }
+   */
   function batchCheckUpdate(lang, docs) {
     const docsToUpdate = [];
     const cachedDocs = [];
@@ -215,9 +215,9 @@ export const DocsContentCache = (function () {
     return { docsToUpdate, cachedDocs };
   }
 
-  
-
-
+  /**
+   * 获取所有支持语言的缓存统计
+   */
   function getAllLangStats() {
     const langs = I18n.getSupportedLanguages();
     const index = _getIndex();
@@ -232,9 +232,9 @@ export const DocsContentCache = (function () {
     });
   }
 
-  
-
-
+  /**
+   * 清除指定语言的文档内容缓存
+   */
   function clearLang(lang) {
     const index = _getIndex();
     const paths = index[lang] || [];
@@ -246,9 +246,9 @@ export const DocsContentCache = (function () {
     setLocalized(lang, false);
   }
 
-  
-
-
+  /**
+   * 清除所有语言的文档内容缓存
+   */
   function clearAll() {
     const index = _getIndex();
     Object.keys(index).forEach(function (lang) {
@@ -274,7 +274,7 @@ export const DocsContentCache = (function () {
     }
   }
 
-   
+  // ---- 索引管理（用于统计 / 清理 / 本地化标记）----
   function _getIndex() {
     try {
       return JSON.parse(localStorage.getItem(cfg().indexKey) || "{}");

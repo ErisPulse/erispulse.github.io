@@ -1,6 +1,6 @@
-
-
-
+/**
+ * 模块市场：分类 / 筛选 / 搜索 / 排序 / 渲染卡片、市场模态框（安装/文档）
+ */
 
 import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
@@ -9,20 +9,20 @@ import { showMessage } from '../core/notify.js';
 import { enhanceGitHubMarkdown } from '../core/gh-markdown.js';
 import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js';
 
- 
+// 标签云折叠阈值：全站标签上百个，默认只展示热度最高的若干项
 const TAG_PREVIEW_LIMIT = 18;
 
- 
- 
+// 卡片内标签上限：卡片标签位固定为一行，放不下的折叠成「+N」按钮，
+// 点开弹出悬浮面板查看全部标签（标签数量不设上限，卡片内只做概览）
 const CARD_TAG_LIMIT = 5;
 
- 
+// 互斥标记：已验证 / 未验证 同时选中没有意义，选一个自动清掉另一个
 const EXCLUSIVE_FLAGS = { verified: 'unverified', unverified: 'verified' };
 
 const SORT_MODES = ['default', 'name', 'newest'];
 
- 
- 
+// 分类：后端（packages.json）只存编号，展示名按当前语言取 i18n 的
+// category.<key>，编号表见 config.js 的 MODULE_CATEGORIES
 const CATEGORY_KEYS = new Map(CONFIG.MODULE_CATEGORIES.map(item => [item.id, item.key]));
 
 function categoryKey(id) {
@@ -34,26 +34,26 @@ function categoryLabel(id) {
     return key ? I18n.t('category.' + key) : '';
 }
 
- 
+// 分类 → 数据来源
 const CATEGORY_SOURCE = {
     all: () => [...state.allModules, ...state.allAdapters],
     modules: () => state.allModules,
     adapters: () => state.allAdapters
 };
 
- 
+// 仅市场模块使用的本地状态
 let activeCategory = 'all';
 let searchQuery = '';
 let activeFlags = new Set();
 let activeCategories = new Set();
 let activeTags = new Set();
-let sdkCeiling = '';         
-let sdkVersionOptions = getCachedSdkVersions();   
+let sdkCeiling = '';        // 空串表示「不限」
+let sdkVersionOptions = getCachedSdkVersions();  // PyPI 实时版本（降序），为空时回退到索引内的版本
 let sortMode = 'default';
-let activeLang = '';         
+let activeLang = '';        // 界面语言筛选（语言代码，空串表示不限）
 let tagsExpanded = false;
-let allTags = [];            
-let allCategories = [];      
+let allTags = [];           // [{ tag, count }]，按热度降序
+let allCategories = [];     // [{ id, count }]，按 config.js 的分类顺序
 
 export function setupMarketplace() {
     document.querySelectorAll('.category-btn').forEach(btn => {
@@ -72,7 +72,7 @@ export function setupMarketplace() {
         });
     });
 
-     
+    // 快速筛选：按钮固定，状态由 JS 维护
     const flagBox = document.getElementById('market-flag-filters');
     if (flagBox) {
         flagBox.addEventListener('click', (e) => {
@@ -83,7 +83,7 @@ export function setupMarketplace() {
         });
     }
 
-     
+    // 标签筛选：标签按钮动态生成，使用事件委托
     const tagBox = document.getElementById('market-tag-filters');
     if (tagBox) {
         tagBox.addEventListener('click', (e) => {
@@ -105,7 +105,7 @@ export function setupMarketplace() {
         });
     }
 
-     
+    // 分类筛选：按钮由数据动态生成，使用事件委托
     const categoryBox = document.getElementById('market-category-filters');
     if (categoryBox) {
         categoryBox.addEventListener('click', (e) => {
@@ -121,7 +121,7 @@ export function setupMarketplace() {
         });
     }
 
-     
+    // 标签悬浮面板：点击面板与按钮之外、按 Esc、滚动或改窗口尺寸都收起
     document.addEventListener('click', (e) => {
         if (!tagPopoverState) return;
         if (tagPopoverState.panel.contains(e.target) || tagPopoverState.anchor.contains(e.target)) return;
@@ -172,10 +172,10 @@ export function setupMarketplace() {
     });
 }
 
-
-
-
-
+/**
+ * 切换快速筛选标记（已验证 / 未验证 互斥）
+ * @param {string} flag
+ */
 function toggleFlag(flag) {
     if (!flag) return;
 
@@ -188,9 +188,9 @@ function toggleFlag(flag) {
     }
 }
 
-
-
-
+/**
+ * 清空全部筛选条件（含搜索词）
+ */
 function resetFilters() {
     activeFlags.clear();
     activeCategories.clear();
@@ -232,12 +232,12 @@ export async function loadModuleData() {
     }
 }
 
-
-
-
-
-
-
+/**
+ * 归一化索引条目：不同分类的字段缺失情况不一致，统一补默认值
+ * @param {object} source 分类容器（name → 条目）
+ * @param {string} type 分类标识
+ * @returns {Array<object>}
+ */
 function mapCategory(source, type) {
     return Object.entries(source || {}).map(([name, info]) => ({
         name,
@@ -253,7 +253,7 @@ function mapCategory(source, type) {
         verified: info.verified !== false,
         featured: info.featured === true,
         hidden: info.hidden === true,
-         
+        // 分类编号：后端存数字（0 表示索引里没有分类），展示名按当前语言渲染
         category: Number(info.category) || 0,
         tags: Array.isArray(info.tags) ? info.tags.map(String) : [],
         type
@@ -266,7 +266,7 @@ export function updateStats() {
     setText('total-all-modules', modules.length + adapters.length);
     setText('total-modules', modules.length);
     setText('adapter-count', adapters.length);
-     
+    // 分段控制器各分类的计数徽标
     setText('category-count-all', modules.length + adapters.length);
     setText('category-count-modules', modules.length);
     setText('category-count-adapters', adapters.length);
@@ -283,10 +283,10 @@ function toggleHidden(id, hidden) {
     if (el) el.classList.toggle('is-hidden', hidden);
 }
 
-
-
-
-
+/**
+ * 构建筛选控件：排序下拉、SDK 版本下拉、标签云
+ * 数据刷新后调用；标签云与 SDK 下拉基于「全部分类」，保证切换分类时筛选上下文稳定
+ */
 function buildFilterUI() {
     const sortLabels = {
         default: 'market.sort.default',
@@ -304,7 +304,7 @@ function buildFilterUI() {
     renderSdkOptions();
     refreshSdkVersions();
 
-     
+    // 标签热度统计（隐藏条目不计入）
     const counter = new Map();
     collectAll().forEach(pkg => {
         if (pkg.hidden) return;
@@ -314,13 +314,13 @@ function buildFilterUI() {
         .map(([tag, count]) => ({ tag, count }))
         .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 
-     
+    // 数据刷新后可能已不存在的标签，清理掉避免筛选结果恒为空
     const known = new Set(allTags.map(item => item.tag));
     activeTags = new Set([...activeTags].filter(tag => known.has(tag)));
 
     toggleHidden('market-tag-row', allTags.length === 0);
 
-     
+    // 分类统计（隐藏条目与没有分类编号的条目不计入）
     const categoryCounter = new Map();
     collectAll().forEach(pkg => {
         if (pkg.hidden || !CATEGORY_KEYS.has(pkg.category)) return;
@@ -330,7 +330,7 @@ function buildFilterUI() {
         .filter(item => categoryCounter.has(item.id))
         .map(item => ({ id: item.id, count: categoryCounter.get(item.id) }));
 
-     
+    // 数据刷新后可能已不存在的分类，清理掉避免筛选结果恒为空
     const knownCategories = new Set(allCategories.map(item => item.id));
     activeCategories = new Set([...activeCategories].filter(id => knownCategories.has(id)));
 
@@ -342,10 +342,10 @@ function buildFilterUI() {
     renderLangOptions();
 }
 
-
-
-
-
+/**
+ * 语言下拉：候选是条目里出现过的语言代码（大小写不敏感归一），
+ * 展示名用 Intl.DisplayNames 的原生写法（如 zh → 中文、de → Deutsch）
+ */
 function renderLangOptions() {
     const langSelect = document.getElementById('market-lang-select');
     if (!langSelect) return;
@@ -361,42 +361,42 @@ function renderLangOptions() {
     });
 
     const codes = [...counter.keys()].sort();
-     
+    // 数据刷新后可能已不存在的语言，清理掉避免筛选结果恒为空
     if (activeLang && !counter.has(activeLang)) activeLang = '';
 
     langSelect.innerHTML = `<option value="" data-i18n="market.filter.language.any">${I18n.t('market.filter.language.any')}</option>` +
         codes.map(code => `<option value="${escapeHtml(code)}">${escapeHtml(langNativeName(code))} (${escapeHtml(code)}) · ${counter.get(code)}</option>`).join('');
     langSelect.value = activeLang;
 
-     
+    // 没有任何条目声明语言时，标签和下拉一起隐藏
     const langEmpty = codes.length === 0;
     const langLabel = document.getElementById('market-lang-label');
     langSelect.classList.toggle('is-hidden', langEmpty);
     if (langLabel) langLabel.classList.toggle('is-hidden', langEmpty);
 }
 
- 
+/** 语言代码 → 原生语言名（Intl.DisplayNames，失败回退代码本身） */
 const _langNameCache = new Map();
 function langNativeName(code) {
     if (_langNameCache.has(code)) return _langNameCache.get(code);
     let name = code;
     try {
         name = new Intl.DisplayNames([code], { type: 'language' }).of(code) || code;
-    } catch (e) {   }
+    } catch (e) { /* 非法代码回退原样 */ }
     _langNameCache.set(code, name);
     return name;
 }
 
-
-
-
-
+/**
+ * SDK 版本下拉：候选是 PyPI 上 ErisPulse 的实时版本，
+ * 接口拿不到时回退到索引里出现过的版本，保证筛选仍可用
+ */
 function renderSdkOptions() {
     const sdkSelect = document.getElementById('market-sdk-select');
     if (!sdkSelect) return;
 
     const versions = sdkVersionOptions.length > 0 ? sdkVersionOptions : collectSdkVersions();
-     
+    // 已选版本若不在候选里（如接口刷新后该版本被撤下），仍保留条目，避免 UI 与筛选状态不一致
     const selected = sdkCeiling && !versions.includes(sdkCeiling) ? [sdkCeiling] : [];
 
     sdkSelect.innerHTML = `<option value="" data-i18n="market.filter.sdk.any">${I18n.t('market.filter.sdk.any')}</option>` +
@@ -404,9 +404,9 @@ function renderSdkOptions() {
     sdkSelect.value = sdkCeiling;
 }
 
-
-
-
+/**
+ * 拉取 PyPI 实时版本并就地刷新下拉；失败时静默保持当前候选
+ */
 async function refreshSdkVersions() {
     const versions = await fetchSdkVersions();
     if (versions.length === 0) return;
@@ -415,9 +415,9 @@ async function refreshSdkVersions() {
     renderSdkOptions();
 }
 
-
-
-
+/**
+ * 渲染标签云：已选标签始终可见，其余按热度截断
+ */
 function renderTags() {
     const box = document.getElementById('market-tag-filters');
     if (!box) return;
@@ -448,10 +448,10 @@ function tagChipHtml(item, isActive) {
     </button>`;
 }
 
-
-
-
-
+/**
+ * 渲染分类筛选：编号 → 当前语言名称
+ * 文字带 data-i18n，切换语言后由 applyTranslations 就地更新
+ */
 function renderCategories() {
     const box = document.getElementById('market-category-filters');
     if (!box) return;
@@ -471,7 +471,7 @@ export function renderModules() {
     const modulesGrid = document.getElementById('modules-grid');
     if (!modulesGrid) return;
 
-     
+    // 重建卡片会连带移除「+N」按钮，先收起可能已打开的标签面板
     hideTagPopover();
 
     const packagesToShow = applyFilters();
@@ -501,14 +501,14 @@ export function renderModules() {
         });
     });
 
-     
+    // 卡片内的 data-i18n 文本需要按当前语言落位
     I18n.applyTranslations();
 }
 
 function cardHtml(pkg, index) {
     const pkgCategoryKey = categoryKey(pkg.category);
     const badges = [
-         
+        // 分类：编号由后端存储，名称按当前语言渲染
         pkgCategoryKey
             ? `<span class="module-badge badge-category"><i class="fas fa-layer-group"></i> <span data-i18n="category.${pkgCategoryKey}">${escapeHtml(categoryLabel(pkg.category))}</span></span>`
             : '',
@@ -562,22 +562,21 @@ function cardHtml(pkg, index) {
     `;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * 卡片标签概览：单行，最多 CARD_TAG_LIMIT 个，其余折叠为可点击的「+N」
+ *
+ * 容器始终渲染（即使没有标签）：标签位高度固定，保证卡片等高。
+ * 标签列表可以被裁切，「+N」放在列表之外；
+ * 完整标签点开「+N」后由悬浮面板展示（面板内容取自卡片对应的条目）。
+ *
+ * @param {string[]} tags
+ * @returns {string} 标签区 HTML
+ */
+/**
+ * 卡片界面语言：原生语言名芯片（最多 4 个，超出折叠为 +N）
+ * @param {string[]} langs
+ * @returns {string} 语言区 HTML，无语言时返回空串
+ */
 function cardI18nHtml(langs) {
     if (!Array.isArray(langs) || langs.length === 0) return '';
     const shown = langs.slice(0, 4).map(code => `<span class="module-lang">${escapeHtml(langNativeName(code))}</span>`).join('');
@@ -616,10 +615,10 @@ function emptyStateHtml() {
     `;
 }
 
-
-
-
-
+/**
+ * 按当前分类 / 搜索 / 快速筛选 / 标签 / SDK 版本筛选并排序
+ * @returns {Array<object>}
+ */
 function applyFilters() {
     const source = CATEGORY_SOURCE[activeCategory] || CATEGORY_SOURCE.all;
     let packages = source().filter(pkg => !pkg.hidden);
@@ -641,23 +640,23 @@ function applyFilters() {
         });
     }
 
-     
+    // 多选分类取并集：一个条目只有一个分类，取交集会恒为空
     if (activeCategories.size > 0) {
         packages = packages.filter(pkg => activeCategories.has(pkg.category));
     }
 
-     
+    // 多选标签取并集：命中任意一个所选标签即展示
     if (activeTags.size > 0) {
         packages = packages.filter(pkg => pkg.tags.some(tag => activeTags.has(tag)));
     }
 
-     
+    // 界面语言：单选，条目的 i18n 列表大小写不敏感命中
     if (activeLang) {
         packages = packages.filter(pkg => Array.isArray(pkg.i18n) &&
             pkg.i18n.some(code => typeof code === 'string' && code.toLowerCase() === activeLang));
     }
 
-     
+    // SDK 上限无法解析时忽略该条件（例如下拉被外部写入非法值），避免比较时抛错
     const ceiling = parseVersion(sdkCeiling);
     if (ceiling) {
         packages = packages.filter(pkg => {
@@ -669,9 +668,9 @@ function applyFilters() {
     return sortPackages(packages);
 }
 
-
-
-
+/**
+ * 名称 / 描述 / 作者 / 包名 / 标签 / 提交者 均可命中搜索
+ */
 function matchesQuery(pkg, query) {
     return [
         pkg.name,
@@ -691,7 +690,7 @@ function sortPackages(packages) {
     } else if (sortMode === 'newest') {
         sorted.sort((a, b) => (Date.parse(b.submitted_at) || 0) - (Date.parse(a.submitted_at) || 0));
     } else {
-         
+        // 默认排序：推荐位置顶；Array#sort 稳定，其余保持索引文件顺序
         sorted.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
@@ -721,9 +720,9 @@ function collectAll() {
     return CATEGORY_SOURCE.all();
 }
 
-
-
-
+/**
+ * SDK 版本回退候选：PyPI 接口不可用时，取索引中出现过的裸版本号（X.Y.Z），降序
+ */
 function collectSdkVersions() {
     const versions = new Set();
     collectAll().forEach(pkg => {
@@ -735,10 +734,10 @@ function collectSdkVersions() {
     return [...versions].sort((a, b) => compareVersion(parseVersion(b), parseVersion(a)));
 }
 
-
-
-
-
+/**
+ * 宽松解析版本号：取数字主体，`2.7.0-dev.0` 视为 2.7.0
+ * @returns {number[]|null} 无法解析时返回 null（视为不限版本）
+ */
 function parseVersion(value) {
     const match = String(value || '').trim().match(/^\d+(?:\.\d+)*/);
     return match ? match[0].split('.').map(Number) : null;
@@ -787,14 +786,14 @@ function showError(message) {
     `;
 }
 
- 
+// ==================== 卡片标签悬浮面板 ====================
 
-let tagPopoverState = null;    
+let tagPopoverState = null;   // { panel, anchor }
 
-
-
-
-
+/**
+ * 打开 / 收起「+N」对应的标签悬浮面板（同一个按钮再次点击即收起）
+ * @param {HTMLElement} anchor 卡片上的「+N」按钮
+ */
 function toggleTagPopover(anchor) {
     if (tagPopoverState && tagPopoverState.anchor === anchor) {
         hideTagPopover();
@@ -820,9 +819,9 @@ function toggleTagPopover(anchor) {
     tagPopoverState = { panel, anchor };
 }
 
-
-
-
+/**
+ * 定位面板：默认贴在按钮下方，越界时翻到上方并贴边
+ */
 function positionTagPopover(panel, anchor) {
     const rect = anchor.getBoundingClientRect();
     const gap = 8;
@@ -846,7 +845,7 @@ function hideTagPopover() {
     tagPopoverState = null;
 }
 
- 
+// ==================== 市场模态框 ====================
 
 export function setupModals() {
     var closeModalBtn = document.getElementById('close-modal');
@@ -921,11 +920,11 @@ export function showInstallModal(packageName) {
     modal.classList.add('active');
 }
 
-
-
-
-
-
+/**
+ * 按包名在全部分类中查找条目（市场卡片的安装/文档按钮都用它定位）
+ * @param {string} packageName
+ * @returns {object|undefined}
+ */
 function findPackage(packageName) {
     return collectAll().find(pkg => pkg.package === packageName);
 }

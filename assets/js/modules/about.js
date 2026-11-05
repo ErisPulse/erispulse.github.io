@@ -1,6 +1,6 @@
-
-
-
+/**
+ * 关于页：贡献者列表 + 友情链接 + 依赖致谢渲染
+ */
 
 import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
@@ -61,7 +61,7 @@ export async function loadContributors() {
     try {
         const response = await fetch(CONFIG.API.contributors);
         if (!response.ok) throw new Error('贡献者API请求失败');
-         
+        // 只展示真人贡献者：bot 账号（erispulse[bot]/dependabot 等）与占位账号不计入
         const contributors = (await response.json())
             .filter(c => c && c.login && !/\[bot\]$/i.test(c.login) && c.login.toLowerCase() !== 'ghost');
 
@@ -77,7 +77,7 @@ export async function loadContributors() {
                 <img src="${contributor.avatar_url}" alt="${contributor.login}" class="contributor-avatar" referrerpolicy="no-referrer">
                 <span class="contributor-name">${contributor.login.replace(/\[bot\]$/, '<span class="name-bot-tag">[bot]</span>')}</span>
             `;
-             
+            // 头像加载失败时退化为首字母占位
             const avatar = contributorElement.querySelector('img');
             avatar.addEventListener('error', () => {
                 const fallback = document.createElement('span');

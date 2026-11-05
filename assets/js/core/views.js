@@ -1,17 +1,10 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * 视图片段加载器
+ *
+ * index.html 中通过占位符标记注入位置：
+ *     <div data-fragment-slot="home"></div>
+ * 加载完成后该占位符会被片段内容整体替换（保持 DOM 顺序）。
+ */
 
 const FRAGMENTS = [
   "home",
@@ -22,11 +15,11 @@ const FRAGMENTS = [
   "modals",
 ];
 
-
-
-
-
-
+/**
+ * 抓取单个片段
+ * @param {string} name
+ * @returns {Promise<string>}
+ */
 async function fetchFragment(name) {
   const url = `views/${name}.html`;
   const res = await fetch(url, { cache: "no-cache" });
@@ -36,12 +29,12 @@ async function fetchFragment(name) {
   return res.text();
 }
 
-
-
-
-
-
-
+/**
+ * 并行抓取所有视图片段并按顺序注入到对应占位符。
+ * 注入完成后占位符会被替换为真实 DOM。
+ *
+ * @returns {Promise<void>}
+ */
 export async function loadViews() {
   const htmls = await Promise.all(FRAGMENTS.map(fetchFragment));
 
@@ -50,7 +43,7 @@ export async function loadViews() {
     if (slot) {
       slot.outerHTML = htmls[i];
     } else {
-       
+      // 兜底：未找到占位符时追加到 main 末尾
       const main = document.querySelector("main.main-content");
       if (main) main.insertAdjacentHTML("beforeend", htmls[i]);
     }

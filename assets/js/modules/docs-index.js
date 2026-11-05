@@ -1,8 +1,8 @@
-
-
-
-
-
+/**
+ * 文档索引管理器
+ * 负责映射索引 / 搜索索引的加载（CDN → GitHub → 本地缓存三层降级）、
+ * 文档查询与全文搜索。
+ */
 
 import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
@@ -18,17 +18,17 @@ export const DocsIndexManager = (function () {
     let isLoadingAutoApiMapping = false;
     let loadCallbacks = [];
 
-    
-
-
+    /**
+     * 获取当前语言的索引文件名
+     */
     function getLanguageIndexFile(filename) {
         const lang = I18n.getLang();
         return `${lang}/${filename}`;
     }
 
-    
-
-
+    /**
+     * 加载映射索引（三层降级策略）
+     */
     async function loadMapping() {
         if (isLoadingMapping && mappingCache) {
             return mappingCache;
@@ -36,7 +36,7 @@ export const DocsIndexManager = (function () {
 
         isLoadingMapping = true;
 
-         
+        // 离线时直接使用本地缓存（允许过期，不清理）
         if (!navigator.onLine) {
             try {
                 const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.mapping, true);
@@ -91,9 +91,9 @@ export const DocsIndexManager = (function () {
         }
     }
 
-    
-
-
+    /**
+     * 加载搜索索引（三层降级策略）
+     */
     async function loadSearchIndex() {
         if (isLoadingSearchIndex && searchIndexCache) {
             return searchIndexCache;
@@ -101,7 +101,7 @@ export const DocsIndexManager = (function () {
 
         isLoadingSearchIndex = true;
 
-         
+        // 离线时直接使用本地缓存（允许过期，不清理）
         if (!navigator.onLine) {
             try {
                 const data = await loadFromCache(CONFIG.DOCS.index.storageKeys.searchIndex, true);
@@ -156,16 +156,16 @@ export const DocsIndexManager = (function () {
         }
     }
 
-    
-
-
-
-
-
+    /**
+     * 加载 auto_api 独立映射索引（懒加载）
+     * 仅在用户首次展开"自动生成 API"分组时调用。
+     * 注意：auto_api 仅在 zh-CN 生成（其它语言为中文副本），始终从 zh-CN/ 加载。
+     * 加载成功后合并到主 mapping 的"API 参考"分类下作为虚拟子分组。
+     */
     async function loadAutoApiMapping() {
         if (autoApiMappingCache) return autoApiMappingCache;
         if (isLoadingAutoApiMapping) {
-             
+            // 等待已经在进行的加载
             while (isLoadingAutoApiMapping) {
                 await new Promise(r => setTimeout(r, 50));
             }
@@ -175,7 +175,7 @@ export const DocsIndexManager = (function () {
         isLoadingAutoApiMapping = true;
         try {
             console.log('尝试从CDN加载 auto_api 映射索引（zh-CN）...');
-             
+            // auto_api 仅在 zh-CN 生成，固定从 zh-CN/ 加载
             const fixedFilename = `zh-CN/${CONFIG.DOCS.index.autoApiMappingFile}`;
             const data = await loadFromCDN(fixedFilename);
             autoApiMappingCache = data;
@@ -210,10 +210,10 @@ export const DocsIndexManager = (function () {
         }
     }
 
-    
-
-
-
+    /**
+     * 加载 auto_api 独立搜索索引（懒加载）
+     * auto_api 仅在 zh-CN 生成，始终从 zh-CN/ 加载。
+     */
     async function loadAutoApiSearchIndex() {
         if (autoApiSearchCache) return autoApiSearchCache;
 
@@ -222,7 +222,7 @@ export const DocsIndexManager = (function () {
             const data = await loadFromCDN(fixedFilename);
             autoApiSearchCache = data;
             saveToCache(CONFIG.DOCS.index.storageKeys.autoApiSearchIndex, data);
-             
+            // 合并到主搜索索引，使全局搜索能命中 auto_api 内容
             mergeAutoApiIntoSearchIndex();
             return data;
         } catch (cdnError) {
@@ -240,10 +240,10 @@ export const DocsIndexManager = (function () {
         }
     }
 
-    
-
-
-
+    /**
+     * 把 auto_api mapping 合并到主 mapping 的"API 参考"分类下，
+     * 作为额外的虚拟子分组 "__auto_api__"。
+     */
     function mergeAutoApiIntoMapping() {
         if (!mappingCache || !autoApiMappingCache || autoApiMerged) return;
         const apiCat = findApiReferenceCategory(mappingCache);
@@ -255,12 +255,12 @@ export const DocsIndexManager = (function () {
         if (!autoCat) return;
 
         if (!apiCat.subgroups) apiCat.subgroups = {};
-         
+        // 使用稳定 key 避免冲突
         apiCat.subgroups['__auto_api__'] = {
             name: getAutoApiSubgroupDisplayName(),
             icon: 'fa-microchip',
             documents: autoCat.documents || [],
-             
+            // 嵌套：auto_api 自身的子分组作为二级分组数据
             _auto_subgroups: autoCat.subgroups || {},
             isAutoApi: true,
         };
@@ -269,9 +269,9 @@ export const DocsIndexManager = (function () {
         console.log('✓ auto_api 已合并到 API 参考分类');
     }
 
-    
-
-
+    /**
+     * 把 auto_api 搜索索引的关键词合并到主搜索索引。
+     */
     function mergeAutoApiIntoSearchIndex() {
         if (!searchIndexCache || !autoApiSearchCache) return;
         if (!searchIndexCache.keywords) searchIndexCache.keywords = {};
@@ -287,9 +287,9 @@ export const DocsIndexManager = (function () {
 
     function findApiReferenceCategory(mapping) {
         if (!mapping || !mapping.categories) return null;
-         
+        // 按目录名 "api-reference" 反查本地化分类名
         const candidates = Object.values(mapping.categories).filter(c => c.icon === 'fa-book');
-         
+        // 进一步通过子分组/文档路径判断
         for (const [name, cat] of Object.entries(mapping.categories)) {
             const docs = cat.documents || [];
             const sample = docs[0];
@@ -297,12 +297,12 @@ export const DocsIndexManager = (function () {
                 return cat;
             }
         }
-         
+        // 回退：返回第一个 icon=fa-book 的分类
         return candidates[0] || null;
     }
 
     function getAutoApiSubgroupDisplayName() {
-         
+        // 简单本地化（主 i18n.js 没有对应 key 时回退）
         const map = {
             'zh-CN': '自动生成 API',
             'en': 'Auto-generated API',
@@ -313,9 +313,9 @@ export const DocsIndexManager = (function () {
         return map[I18n.getLang()] || 'Auto-generated API';
     }
 
-    
-
-
+    /**
+     * 注册加载完成回调
+     */
     function onLoad(callback) {
         loadCallbacks.push(callback);
     }
@@ -329,16 +329,16 @@ export const DocsIndexManager = (function () {
         });
     }
 
-    
-
-
+    /**
+     * 检查是否正在加载
+     */
     function isLoaded() {
         return mappingCache !== null && searchIndexCache !== null;
     }
 
-    
-
-
+    /**
+     * 从CDN加载
+     */
     async function loadFromCDN(filename) {
         const url = CONFIG.DOCS.index.cdnUrl + filename;
         const response = await fetch(url);
@@ -348,9 +348,9 @@ export const DocsIndexManager = (function () {
         return await response.json();
     }
 
-    
-
-
+    /**
+     * 从GitHub加载
+     */
     async function loadFromGitHub(filename) {
         const url = CONFIG.DOCS.index.githubUrl + filename;
         const response = await fetch(url);
@@ -360,9 +360,9 @@ export const DocsIndexManager = (function () {
         return await response.json();
     }
 
-    
-
-
+    /**
+     * 从缓存加载
+     */
     async function loadFromCache(storageKey, allowExpired = false) {
         try {
             const cached = localStorage.getItem(storageKey);
@@ -372,7 +372,7 @@ export const DocsIndexManager = (function () {
 
             const data = JSON.parse(cached);
 
-             
+            // 检查缓存是否过期（离线时不清理，允许使用过期缓存）
             if (!allowExpired && data.timestamp && Date.now() - data.timestamp > CONFIG.DOCS.index.cacheExpiry) {
                 throw new Error('缓存已过期');
             }
@@ -383,9 +383,9 @@ export const DocsIndexManager = (function () {
         }
     }
 
-    
-
-
+    /**
+     * 保存到缓存
+     */
     function saveToCache(storageKey, content) {
         try {
             const cacheData = {
@@ -398,9 +398,9 @@ export const DocsIndexManager = (function () {
         }
     }
 
-    
-
-
+    /**
+     * 获取文档路径
+     */
     function _findDoc(mapping, predicate) {
         if (!mapping || !mapping.categories) return null;
         for (const [categoryName, category] of Object.entries(mapping.categories)) {
@@ -412,7 +412,7 @@ export const DocsIndexManager = (function () {
                 for (const sg of Object.values(category.subgroups)) {
                     const doc = sg.documents.find(predicate);
                     if (doc) return { doc, categoryName, category };
-                     
+                    // auto_api 嵌套二级子分组（CLI/Core 等）
                     if (sg._auto_subgroups) {
                         for (const childSg of Object.values(sg._auto_subgroups)) {
                             const childDoc = childSg.documents.find(predicate);
@@ -430,17 +430,17 @@ export const DocsIndexManager = (function () {
         return found ? found.doc.path : null;
     }
 
-    
-
-
+    /**
+     * 获取文档标题
+     */
     function getDocumentTitle(docPath) {
         const found = _findDoc(mappingCache, d => d.path === docPath);
         return found ? found.doc.title : null;
     }
 
-    
-
-
+    /**
+     * 获取文档分类
+     */
     function getDocumentCategory(docPath) {
         const found = _findDoc(mappingCache, d => d.path === docPath);
         if (!found) return null;
@@ -451,9 +451,9 @@ export const DocsIndexManager = (function () {
         };
     }
 
-    
-
-
+    /**
+     * 获取所有文档列表
+     */
     function getAllDocuments() {
         if (!mappingCache || !mappingCache.categories) {
             return [];
@@ -471,7 +471,7 @@ export const DocsIndexManager = (function () {
                     sg.documents.forEach(doc => {
                         docs.push({ path: doc.path, title: doc.title, level: doc.level, category: categoryName });
                     });
-                     
+                    // auto_api 嵌套二级子分组（CLI/Core 等）
                     if (sg._auto_subgroups) {
                         for (const childSg of Object.values(sg._auto_subgroups)) {
                             childSg.documents.forEach(doc => {
@@ -485,9 +485,9 @@ export const DocsIndexManager = (function () {
         return docs;
     }
 
-    
-
-
+    /**
+     * 搜索文档
+     */
     function searchDocuments(query) {
         if (!searchIndexCache || !searchIndexCache.keywords) {
             return [];
@@ -511,30 +511,30 @@ export const DocsIndexManager = (function () {
             }
         }
 
-         
+        // 按相关性排序
         results.sort((a, b) => b.relevance - a.relevance);
 
         return results;
     }
 
-    
-
-
+    /**
+     * 计算相关性
+     */
     function calculateRelevance(query, keyword) {
         const lowerQuery = query.toLowerCase();
         const lowerKeyword = keyword.toLowerCase();
 
-         
+        // 精确匹配
         if (lowerKeyword === lowerQuery) {
             return 100;
         }
 
-         
+        // 开头匹配
         if (lowerKeyword.startsWith(lowerQuery)) {
             return 80;
         }
 
-         
+        // 包含匹配
         if (lowerKeyword.includes(lowerQuery)) {
             return 60;
         }
@@ -542,9 +542,9 @@ export const DocsIndexManager = (function () {
         return 0;
     }
 
-    
-
-
+    /**
+     * 清除缓存
+     */
     function clearCache() {
         try {
             localStorage.removeItem(CONFIG.DOCS.index.storageKeys.mapping);
@@ -560,16 +560,16 @@ export const DocsIndexManager = (function () {
         }
     }
 
-    
-
-
+    /**
+     * 重置 auto_api 状态（语言切换时调用，强制重新合并）
+     */
     function resetAutoApiState() {
         autoApiMappingCache = null;
         autoApiSearchCache = null;
         autoApiMerged = false;
     }
 
-     
+    // 公共API
     return {
         loadMapping,
         loadSearchIndex,

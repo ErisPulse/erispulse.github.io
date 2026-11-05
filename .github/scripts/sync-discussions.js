@@ -1,18 +1,18 @@
-
-
-
-
-
-
-
-
-
+/**
+ * Discussions 快照拉取脚本（GitHub Actions 定时任务用）
+ *
+ * 拉取 ErisPulse/ErisPulse 仓库的 Discussions 列表，裁剪字段后写入
+ * assets/data/discussions.json。字段结构与 Worker /api/discussions 的
+ * 响应保持一致，前端把两个来源当作同构数据处理。
+ *
+ * 用法：GITHUB_TOKEN=xxx node sync-discussions.js
+ */
 const fs = require('fs');
 
 const REPO = 'ErisPulse/ErisPulse';
 const OUTPUT = 'assets/data/discussions.json';
 const PER_PAGE = 50;
-const MAX_PAGES = 5;  
+const MAX_PAGES = 5; // 上限 250 条，超出部分列表页不展示（社区页有 GitHub 跳转兜底）
 
 function ghHeaders() {
     return {
@@ -66,9 +66,9 @@ async function main() {
         if (list.length < PER_PAGE) break;
     }
 
-     
-     
-     
+    // 确定性时间戳：取最新一条讨论的 updated_at（而非运行时刻）。
+    // 否则每次运行必然产生 diff，workflow 的「无变动不提交」守卫永远拦不住。
+    // 前端仅用它做数据新鲜度判断，语义上「数据截至最新讨论更新时间」更准确。
     const newestUpdate = all.reduce(
         (acc, d) => (d && d.updated_at && d.updated_at > acc ? d.updated_at : acc),
         ''

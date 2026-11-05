@@ -1,15 +1,15 @@
-
-
-
-
+/**
+ * ErisPulse i18n 国际化模块
+ * 支持语言：zh-CN（简体中文）、en（English）、zh-TW（繁體中文）
+ */
 
 export const I18n = (function () {
   const STORAGE_KEY = "erispulse-lang";
 
-  
-
-
-
+  /**
+   * 根据浏览器语言偏好检测默认语言
+   * zh-CN → 简体中文，其它zh开头 → 繁體中文，其余 → English
+   */
   function detectBrowserLang() {
     const lang = (
       navigator.language ||
@@ -25,10 +25,10 @@ export const I18n = (function () {
 
   let currentLang = localStorage.getItem(STORAGE_KEY) || detectBrowserLang();
 
-   
+  // ==================== 翻译字典 ====================
   const messages = {
     "zh-CN": {
-       
+      // 导航栏
       "nav.home": "首页",
       "nav.market": "模块市场",
       "nav.docs": "文档中心",
@@ -39,22 +39,22 @@ export const I18n = (function () {
       "nav.settings": "设置",
       "nav.about": "我们",
 
-       
+      // 统一账户
       "account.login": "登录",
       "account.yunhuDisabled": "云湖授权暂时不可用。如你发布的模块绑定了云湖账号，请到 ErisPulse 仓库提交 issue 认领归属关系，暂不支持自助迁移。",
       "account.submitModule": "提交模块",
 
-       
+      // 社区（GitHub Discussions）
 
-       
+      // 首页 Hero 数据条
       "hero.stats.stars": "Stars",
       "hero.stats.contributors": "贡献者",
       "hero.stats.release": "最新版本",
       "hero.stats.discussions": "讨论",
 
-       
+      // 首页社区速览
 
-       
+      // 特性长卷合并面板
       "features.pipeline.title": "链式发送与事件管线",
       "features.pipeline.desc": "SendDSL 链式发送、同优先级并行处理与 done(claim, stop) 链路控制，构成可组合、可覆写的异步事件管线",
       "features.modulardev.title": "模块化与声明式开发",
@@ -62,7 +62,7 @@ export const I18n = (function () {
       "features.scopehooks.title": "统一作用域与生命周期",
       "features.scopehooks.desc": "从模块、身份、出站三个维度统一控制可用范围；在框架运行的每个关键阶段插入自定义逻辑，模块卸载时注册的资源自动归属回收",
 
-       
+      // 首页 Hero
       "hero.subtitle": "可扩展的多平台消息处理框架",
       "hero.headline": "可扩展的多平台消息处理框架",
       "hero.lead": "一套代码，让云湖、Telegram、QQ 的每一条消息，流进同一条异步事件管线。",
@@ -93,7 +93,7 @@ export const I18n = (function () {
       "features.section.title": "核心特性",
       "features.section.sub": "从事件驱动架构到 AI 辅助开发，每一项能力都有真实代码与运行界面佐证",
 
-       
+      // 首页引导区（你想做什么）
       "guide.hint": "从这里开始",
       "guide.title": "你想做什么？",
       "guide.subtitle": "选择你的目标，直达对应的文档",
@@ -112,7 +112,7 @@ export const I18n = (function () {
       "guide.app.desc": "免 root、免电脑，一个 App 管理多个实例",
 
 
-       
+      // 首页特性区
       "features.title": "核心特性",
       "features.eventdriven.code":
         '@message.on_message()\nasync def handler(event):\n    text = event.get_text()\n    await event.reply(f"收到: {text}")',
@@ -182,7 +182,7 @@ export const I18n = (function () {
       "features.scope.code":
         '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # 白名单：精确/glob/正则\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # 全禁发送\napi  = { allow = ["get_*"] }   # 仅允许查询类 API',
 
-       
+      // 模块市场
       "market.title": "模块市场",
       "market.submit": "提交模块",
       "market.search": "搜索模块...",
@@ -208,7 +208,7 @@ export const I18n = (function () {
       "market.filter.sdk": "我的 SDK 版本",
       "market.filter.sdk.any": "不限",
       "market.filter.sdk.hint": "选择你的 SDK 版本，只显示可在该版本上运行的组件",
-       
+      // 模块分类：后端只存编号，展示名按当前语言取（编号见 config.js MODULE_CATEGORIES）
       "category.tool": "工具",
       "category.fun": "娱乐",
       "category.admin": "管理",
@@ -222,7 +222,7 @@ export const I18n = (function () {
       "submit.i18n": "界面语言",
       "submit.i18nPlaceholder": "语言代码，逗号分隔，如：zh, zh-TW, en",
       "submit.i18nHint": "模块界面或文档支持的语言代码（BCP-47），母语者可按语言筛选发现你的模块",
-       
+      // 卡片标签折叠：点开 +N 查看全部标签的悬浮面板
       "market.tags.all": "全部标签",
       "market.tags.more": "还有 {count} 个标签",
       "market.filter.sort": "排序",
@@ -238,7 +238,7 @@ export const I18n = (function () {
       "market.minSdkVersion": "最低 SDK 版本",
       "market.submittedAt": "提交时间",
 
-       
+      // 提交模块
       "submit.title": "提交模块",
       "submit.loginTitle": "选择登录方式",
       "submit.loginDesc": "登录后即可提交您的模块到 ErisPulse 生态系统",
@@ -286,11 +286,11 @@ export const I18n = (function () {
       "submit.oauthNotConfigured": "GitHub 登录暂未配置，请联系管理员",
       "submit.unknownError": "未知错误",
 
-       
+      // 提交模块 - 标签页
       "submit.tabSubmit": "提交模块",
       "submit.tabMyModules": "我的模块",
 
-       
+      // 模块管理
       "manage.loading": "加载中...",
       "manage.empty": "还没有提交过任何模块",
       "manage.cacheHint": "刚提交的模块可能需要几分钟才会显示",
@@ -304,7 +304,7 @@ export const I18n = (function () {
       "manage.successDelete": "模块已删除",
       "manage.failed": "操作失败，请重试",
 
-       
+      // 文档中心
       "docs.title": "文档中心",
       "docs.welcome": "欢迎使用 ErisPulse",
       "docs.welcomeShort": "欢迎使用",
@@ -348,7 +348,7 @@ export const I18n = (function () {
       "docs.retryHint": "请检查网络连接或稍后再试",
       "docs.loadingModuleDoc": "正在加载文档...",
 
-       
+      // 设置页
       "settings.title": "个性化设置",
       "settings.subtitle": "自定义您的 ErisPulse 体验",
       "settings.animations": "动画效果",
@@ -368,7 +368,7 @@ export const I18n = (function () {
       "settings.resetConfirm":
         "确定要重置所有设置吗？这将恢复所有选项为默认值。",
 
-       
+      // 文档离线缓存
       "settings.docsCache": "文档离线缓存",
       "settings.manageDocsCache": "管理缓存",
       "settings.docsCacheManageTitle": "文档缓存管理",
@@ -408,7 +408,7 @@ export const I18n = (function () {
         "文档有更新（{old} → {new}），建议重新下载离线缓存",
       "settings.docsCacheGoUpdate": "去更新",
 
-       
+      // 关于页
       "about.contributors": "感谢我们的贡献者",
       "about.contributorsDesc": "感谢这些优秀的开发者为项目做出的贡献",
       "about.friendLinks": "友情链接",
@@ -419,7 +419,7 @@ export const I18n = (function () {
       "about.copyrightText":
         "ErisPulse 使用 MIT 开源协议，允许自由分发和修改。",
 
-       
+      // 页脚
       "footer.home": "项目主页",
       "footer.docs": "使用文档",
       "footer.contribute": "贡献与开发",
@@ -429,14 +429,14 @@ export const I18n = (function () {
       "footer.social": "社交平台",
       "footer.copyright": "开源许可证：MIT",
 
-       
+      // 模态框
       "modal.moduleDetail": "模块详情",
       "modal.tags": "标签",
       "modal.repoInfo": "仓库信息",
       "modal.viewSource": "查看源代码",
       "modal.loadDocFailed": "无法加载文档",
 
-       
+      // 通用
       "common.loading": "加载中...",
       "common.noData": "暂无数据",
       "common.langSwitched": "已切换到{name}",
@@ -445,7 +445,7 @@ export const I18n = (function () {
       "common.offlineMode": "已进入离线模式，将使用本地缓存",
       "common.copyFailed": "复制失败，请手动复制",
 
-       
+      // AI 物料横幅
       "banner.text": "知道吗？ErisPulse 支持完整的 Vibe Coding 工作流",
       "banner.link": "了解详情",
       "banner.slides": [
@@ -486,7 +486,7 @@ export const I18n = (function () {
         },
       ],
 
-       
+      // 时间格式
       "time.yearsAgo": "{n}年前",
       "time.monthsAgo": "{n}个月前",
       "time.daysAgo": "{n}天前",
@@ -494,7 +494,7 @@ export const I18n = (function () {
       "time.minutesAgo": "{n}分钟前",
       "time.secondsAgo": "{n}秒前",
 
-       
+      // 安装
       "install.btn": "立即安装",
       "install.title": "一键安装",
       "install.desc": "自动检测环境，引导选择最适合的安装方式",
@@ -509,7 +509,7 @@ export const I18n = (function () {
     },
 
     en: {
-       
+      // 导航栏
       "nav.home": "Home",
       "nav.market": "Market",
       "nav.docs": "Docs",
@@ -520,20 +520,20 @@ export const I18n = (function () {
       "nav.settings": "Settings",
       "nav.about": "About",
 
-       
+      // Unified account
       "account.login": "Sign in",
       "account.yunhuDisabled": "Yunhu sign-in is temporarily unavailable. If any of your published modules are bound to a Yunhu account, please file an issue in the ErisPulse repo to claim ownership — no self-service migration for now.",
       "account.submitModule": "Submit Module",
 
 
-       
+      // Homepage hero stats
       "hero.stats.stars": "Stars",
       "hero.stats.contributors": "Contributors",
       "hero.stats.release": "Latest",
       "hero.stats.discussions": "Discussions",
 
 
-       
+      // Merged feature panels
       "features.pipeline.title": "Chained Sending & Event Pipeline",
       "features.pipeline.desc": "SendDSL chained sending, same-priority parallel processing and done(claim, stop) flow control compose a composable, overridable async event pipeline",
       "features.modulardev.title": "Modular & Declarative Development",
@@ -541,7 +541,7 @@ export const I18n = (function () {
       "features.scopehooks.title": "Unified Scope & Lifecycle",
       "features.scopehooks.desc": "Control availability across modules, identities and outbound actions; hook into every key stage, with ownership-based auto cleanup on unload",
 
-       
+      // 首页 Hero
       "hero.subtitle": "Extensible multi-platform messaging framework",
       "hero.headline": "The extensible multi-platform messaging framework",
       "hero.lead": "One codebase — every message from Yunhu, Telegram and QQ flows into the same async event pipeline.",
@@ -572,7 +572,7 @@ export const I18n = (function () {
       "features.section.title": "Core Features",
       "features.section.sub": "From the event-driven core to AI-assisted development — every capability is backed by real code and a live interface.",
 
-       
+      // Getting-started guide (homepage)
       "guide.hint": "Start Here",
       "guide.title": "What do you want to do?",
       "guide.subtitle": "Pick your goal and jump straight to the right docs",
@@ -591,7 +591,7 @@ export const I18n = (function () {
       "guide.app.desc": "No root, no PC — manage multiple instances from one app",
 
 
-       
+      // 首页特性区
       "features.title": "Core Features",
       "features.eventdriven.code":
         '@message.on_message()\nasync def handler(event):\n    text = event.get_text()\n    await event.reply(f"Received: {text}")',
@@ -661,7 +661,7 @@ export const I18n = (function () {
       "features.scope.code":
         '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # allowlist: exact/glob/regex\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # block all sends\napi  = { allow = ["get_*"] }   # query APIs only',
 
-       
+      // 模块市场
       "market.title": "Module Market",
       "market.submit": "Submit Module",
       "market.search": "Search modules...",
@@ -715,7 +715,7 @@ export const I18n = (function () {
       "market.minSdkVersion": "Minimum SDK version",
       "market.submittedAt": "Submitted",
 
-       
+      // 提交模块
       "submit.title": "Submit Module",
       "submit.loginTitle": "Choose a login method",
       "submit.loginDesc":
@@ -783,7 +783,7 @@ export const I18n = (function () {
       "manage.successDelete": "Module deleted",
       "manage.failed": "Operation failed, please retry",
 
-       
+      // 文档中心
       "docs.title": "Documentation",
       "docs.welcome": "Welcome to ErisPulse",
       "docs.welcomeShort": "Welcome",
@@ -829,7 +829,7 @@ export const I18n = (function () {
         "Please check your network connection or try again later",
       "docs.loadingModuleDoc": "Loading documentation...",
 
-       
+      // 设置页
       "settings.title": "Personalization",
       "settings.subtitle": "Customize your ErisPulse experience",
       "settings.animations": "Animations",
@@ -850,7 +850,7 @@ export const I18n = (function () {
       "settings.resetConfirm":
         "Are you sure you want to reset all settings? This will restore all options to defaults.",
 
-       
+      // Docs offline cache
       "settings.docsCache": "Docs Offline Cache",
       "settings.manageDocsCache": "Manage cache",
       "settings.docsCacheManageTitle": "Docs cache management",
@@ -893,7 +893,7 @@ export const I18n = (function () {
         "Docs updated ({old} → {new}). Re-download recommended.",
       "settings.docsCacheGoUpdate": "Update",
 
-       
+      // 关于页
       "about.contributors": "Thanks to Our Contributors",
       "about.contributorsDesc":
         "Thanks to these excellent developers for their contributions",
@@ -906,7 +906,7 @@ export const I18n = (function () {
       "about.copyrightText":
         "ErisPulse is licensed under MIT, allowing free distribution and modification.",
 
-       
+      // 页脚
       "footer.home": "Project Home",
       "footer.docs": "Documentation",
       "footer.contribute": "Contribute & Develop",
@@ -916,14 +916,14 @@ export const I18n = (function () {
       "footer.social": "Social",
       "footer.copyright": "License: MIT",
 
-       
+      // 模态框
       "modal.moduleDetail": "Module Details",
       "modal.tags": "Tags",
       "modal.repoInfo": "Repository",
       "modal.viewSource": "View Source",
       "modal.loadDocFailed": "Unable to load documentation",
 
-       
+      // 通用
       "common.loading": "Loading...",
       "common.noData": "No data",
       "common.langSwitched": "Switched to {name}",
@@ -932,7 +932,7 @@ export const I18n = (function () {
       "common.offlineMode": "Offline mode: using local cache",
       "common.copyFailed": "Copy failed, please copy manually",
 
-       
+      // AI Material Banner
       "banner.text":
         "Did you know? ErisPulse supports a complete Vibe Coding workflow",
       "banner.link": "Learn More",
@@ -974,7 +974,7 @@ export const I18n = (function () {
         },
       ],
 
-       
+      // 时间格式
       "time.yearsAgo": "{n}y ago",
       "time.monthsAgo": "{n}mo ago",
       "time.daysAgo": "{n}d ago",
@@ -982,7 +982,7 @@ export const I18n = (function () {
       "time.minutesAgo": "{n}m ago",
       "time.secondsAgo": "{n}s ago",
 
-       
+      // Install
       "install.btn": "Install Now",
       "install.title": "Quick Install",
       "install.desc":
@@ -998,7 +998,7 @@ export const I18n = (function () {
     },
 
     "zh-TW": {
-       
+      // 导航栏
       "nav.home": "首頁",
       "nav.market": "模組市場",
       "nav.docs": "文檔中心",
@@ -1009,21 +1009,21 @@ export const I18n = (function () {
       "footer.demo": "儀表盤演示",
       "submit.unifiedHint": "支援 GitHub / Codeberg OAuth 與郵箱驗證碼；登入後可在設定頁綁定多種身份",
 
-       
+      // 統一帳戶
       "account.login": "登入",
       "account.submitModule": "提交模組",
 
-       
+      // 社群（GitHub Discussions）
 
-       
+      // 首頁 Hero 數據條
       "hero.stats.stars": "Stars",
       "hero.stats.contributors": "貢獻者",
       "hero.stats.release": "最新版本",
       "hero.stats.discussions": "討論",
 
-       
+      // 首頁社群速覽
 
-       
+      // 特性長卷合併面板
       "features.pipeline.title": "鏈式發送與事件管線",
       "features.pipeline.desc": "SendDSL 鏈式發送、同優先級並行處理與 done(claim, stop) 鏈路控制，構成可組合、可覆寫的非同步事件管線",
       "features.modulardev.title": "模組化與宣告式開發",
@@ -1031,7 +1031,7 @@ export const I18n = (function () {
       "features.scopehooks.title": "統一作用域與生命週期",
       "features.scopehooks.desc": "從模組、身分、出站三個維度統一控制可用範圍；在框架執行的每個關鍵階段插入自訂邏輯，模組卸載時註冊的資源自動歸屬回收",
 
-       
+      // 首页 Hero
       "hero.subtitle": "可擴展的多平台訊息處理框架",
       "hero.headline": "可擴展的多平台訊息處理框架",
       "hero.lead": "一套程式碼，讓雲湖、Telegram、QQ 的每一則訊息，流進同一條非同步事件管線。",
@@ -1062,7 +1062,7 @@ export const I18n = (function () {
       "features.section.title": "核心特性",
       "features.section.sub": "從事件驅動架構到 AI 輔助開發，每一項能力都有真實程式碼與運行介面佐證",
 
-       
+      // 首頁引導區（你想做什麼）
       "guide.hint": "從這裡開始",
       "guide.title": "你想做什麼？",
       "guide.subtitle": "選擇你的目標，直達對應的文件",
@@ -1081,7 +1081,7 @@ export const I18n = (function () {
       "guide.app.desc": "免 root、免電腦，一個 App 管理多個實例",
 
 
-       
+      // 首页特性区
       "features.title": "核心特性",
       "features.eventdriven.code":
         '@message.on_message()\nasync def handler(event):\n    text = event.get_text()\n    await event.reply(f"收到: {text}")',
@@ -1151,7 +1151,7 @@ export const I18n = (function () {
       "features.scope.code":
         '[ErisPulse.scope.platforms.onebot11]\nmodules = ["Chat", "Tool*"]   # 白名單：精確/glob/正規\nblocked = ["re:^Danger"]\n\n[ErisPulse.scope.identity.users.onebot11]\nallow = ["u_admin"]\ndeny = ["spam_*"]\n\n[ErisPulse.scope.actions.MyModule]\nsend = { deny = true }        # 全禁發送\napi  = { allow = ["get_*"] }   # 僅允許查詢類 API',
 
-       
+      // 模块市场
       "market.title": "模組市場",
       "market.submit": "提交模組",
       "market.search": "搜尋模組...",
@@ -1202,7 +1202,7 @@ export const I18n = (function () {
       "market.minSdkVersion": "最低 SDK 版本",
       "market.submittedAt": "提交時間",
 
-       
+      // 提交模組
       "submit.title": "提交模組",
       "submit.loginTitle": "選擇登入方式",
       "submit.loginDesc": "登入後即可提交您的模組到 ErisPulse 生態系統",
@@ -1265,7 +1265,7 @@ export const I18n = (function () {
       "manage.successDelete": "模組已刪除",
       "manage.failed": "操作失敗，請重試",
 
-       
+      // 文档中心
       "docs.title": "文檔中心",
       "docs.welcome": "歡迎使用 ErisPulse",
       "docs.welcomeShort": "歡迎使用",
@@ -1309,7 +1309,7 @@ export const I18n = (function () {
       "docs.retryHint": "請檢查網路連線或稍後再試",
       "docs.loadingModuleDoc": "正在載入文檔...",
 
-       
+      // 设置页
       "settings.title": "個人化設定",
       "settings.subtitle": "自訂您的 ErisPulse 體驗",
       "settings.animations": "動畫效果",
@@ -1329,7 +1329,7 @@ export const I18n = (function () {
       "settings.resetConfirm":
         "確定要重置所有設定嗎？這將恢復所有選項為預設值。",
 
-       
+      // 文檔離線快取
       "settings.docsCache": "文檔離線快取",
       "settings.manageDocsCache": "管理快取",
       "settings.docsCacheManageTitle": "文檔快取管理",
@@ -1365,7 +1365,7 @@ export const I18n = (function () {
       "settings.docsCacheCurrentLang": "目前語言",
       "settings.docsCacheNoVersion": "未記錄版本",
 
-       
+      // 关于页
       "about.contributors": "感謝我們的貢獻者",
       "about.contributorsDesc": "感謝這些優秀的開發者為專案做出的貢獻",
       "about.friendLinks": "友情連結",
@@ -1376,7 +1376,7 @@ export const I18n = (function () {
       "about.copyrightText":
         "ErisPulse 使用 MIT 開源協議，允許自由分發和修改。",
 
-       
+      // 页脚
       "footer.home": "專案主頁",
       "footer.docs": "使用文檔",
       "footer.contribute": "貢獻與開發",
@@ -1386,14 +1386,14 @@ export const I18n = (function () {
       "footer.social": "社交平台",
       "footer.copyright": "開源授權：MIT",
 
-       
+      // 模态框
       "modal.moduleDetail": "模組詳情",
       "modal.tags": "標籤",
       "modal.repoInfo": "倉庫資訊",
       "modal.viewSource": "檢視原始碼",
       "modal.loadDocFailed": "無法載入文檔",
 
-       
+      // 通用
       "common.loading": "載入中...",
       "common.noData": "暫無資料",
       "common.langSwitched": "已切換到{name}",
@@ -1402,7 +1402,7 @@ export const I18n = (function () {
       "common.offlineMode": "已進入離線模式，將使用本地快取",
       "common.copyFailed": "複製失敗，請手動複製",
 
-       
+      // AI 物料橫幅
       "banner.text": "你知道嗎？ErisPulse 支援完整的 Vibe Coding 工作流",
       "banner.link": "瞭解詳情",
       "banner.slides": [
@@ -1443,7 +1443,7 @@ export const I18n = (function () {
         },
       ],
 
-       
+      // 时间格式
       "time.yearsAgo": "{n}年前",
       "time.monthsAgo": "{n}個月前",
       "time.daysAgo": "{n}天前",
@@ -1451,7 +1451,7 @@ export const I18n = (function () {
       "time.minutesAgo": "{n}分鐘前",
       "time.secondsAgo": "{n}秒前",
 
-       
+      // 安裝
       "install.btn": "立即安裝",
       "install.title": "一鍵安裝",
       "install.desc": "自動偵測環境，引導選擇最適合的安裝方式",
@@ -1476,21 +1476,21 @@ export const I18n = (function () {
       "footer.demo": "ダッシュボードデモ",
       "submit.unifiedHint": "GitHub / Codeberg OAuth とメール認証コードに対応。ログイン後、設定で複数の ID を連携できます",
 
-       
+      // 統一アカウント
       "account.login": "ログイン",
       "account.submitModule": "モジュールを投稿",
 
-       
+      // コミュニティ（GitHub Discussions）
 
-       
+      // ホーム Hero 統計
       "hero.stats.stars": "Stars",
       "hero.stats.contributors": "コントリビューター",
       "hero.stats.release": "最新版",
       "hero.stats.discussions": "ディスカッション",
 
-       
+      // ホームコミュニティ
 
-       
+      // 統合パネル
       "features.pipeline.title": "チェーン送信とイベントパイプライン",
       "features.pipeline.desc": "SendDSL のチェーン送信、同優先度の並列処理、done(claim, stop) によるフロー制御で、組み合わせ可能で上書き可能な非同期イベントパイプラインを実現",
       "features.modulardev.title": "モジュール式 & 宣言型開発",
@@ -1529,7 +1529,7 @@ export const I18n = (function () {
       "features.section.title": "主要な機能",
       "features.section.sub": "イベント駆動コアから AI 支援開発まで、すべての機能は実際のコードと動作するインターフェースで裏付けられています。",
 
-       
+      // ホーム・ガイドエリア（何をしたいですか）
       "guide.hint": "ここから始める",
       "guide.title": "何をしたいですか？",
       "guide.subtitle": "目的を選んで、対応するドキュメントへすぐ移動",
@@ -1801,7 +1801,7 @@ export const I18n = (function () {
       "settings.resetConfirm":
         "すべての設定をリセットしてもよろしいですか？すべてのオプションがデフォルト値に戻ります。",
 
-       
+      // ドキュメントオフラインキャッシュ
       "settings.docsCache": "ドキュメントオフラインキャッシュ",
       "settings.manageDocsCache": "キャッシュを管理",
       "settings.docsCacheManageTitle": "ドキュメントキャッシュ管理",
@@ -1955,21 +1955,21 @@ export const I18n = (function () {
       "footer.demo": "Демо дашборда",
       "submit.unifiedHint": "Поддерживаются GitHub / Codeberg OAuth и коды по почте; после входа привяжите идентичности в настройках",
 
-       
+      // Единый аккаунт
       "account.login": "Войти",
       "account.submitModule": "Опубликовать модуль",
 
-       
+      // Сообщество (GitHub Discussions)
 
-       
+      // Статистика на главной
       "hero.stats.stars": "Звёзды",
       "hero.stats.contributors": "Участники",
       "hero.stats.release": "Версия",
       "hero.stats.discussions": "Обсуждения",
 
-       
+      // Блок сообщества на главной
 
-       
+      // Объединённые панели
       "features.pipeline.title": "Цепочки отправки и конвейер событий",
       "features.pipeline.desc": "SendDSL-цепочки, параллельная обработка в рамках приоритета и управление done(claim, stop) — компонуемый и переопределяемый асинхронный конвейер событий",
       "features.modulardev.title": "Модульная и декларативная разработка",
@@ -2008,7 +2008,7 @@ export const I18n = (function () {
       "features.section.title": "Ключевые возможности",
       "features.section.sub": "От событийного ядра до разработки с помощью ИИ — каждая возможность подкреплена реальным кодом и работающим интерфейсом.",
 
-       
+      // Гид на главной (с чего начать)
       "guide.hint": "Начните здесь",
       "guide.title": "Что вы хотите сделать?",
       "guide.subtitle": "Выберите цель — и сразу переходите к нужной документации",
@@ -2280,7 +2280,7 @@ export const I18n = (function () {
       "settings.resetConfirm":
         "Вы уверены, что хотите сбросить все настройки? Все параметры вернутся к значениям по умолчанию.",
 
-       
+      // Офлайн-кэш документов
       "settings.docsCache": "Офлайн-кэш документов",
       "settings.manageDocsCache": "Управление кэшем",
       "settings.docsCacheManageTitle": "Управление кэшем документов",
@@ -2425,14 +2425,14 @@ export const I18n = (function () {
     },
   };
 
-   
+  // ==================== 核心方法 ====================
 
-  
-
-
-
-
-
+  /**
+   * 获取翻译文本
+   * @param {string} key - 翻译键
+   * @param {Object} params - 替换参数，如 { name: 'xxx', n: 5 }
+   * @returns {string}
+   */
   function t(key, params) {
     const lang = currentLang;
     let text =
@@ -2449,18 +2449,18 @@ export const I18n = (function () {
     return text;
   }
 
-  
-
-
+  /**
+   * 获取当前语言
+   */
   function getLang() {
     return currentLang;
   }
 
-  
-
-
-
-
+  /**
+   * 设置语言并更新所有 UI
+   * @param {string} lang - 语言代码
+   * @param {boolean} syncDocs - 是否同步文档语言
+   */
   function setLang(lang, syncDocs = true) {
     if (!messages[lang]) {
       console.warn(`不支持的语言: ${lang}`);
@@ -2470,7 +2470,7 @@ export const I18n = (function () {
     currentLang = lang;
     localStorage.setItem(STORAGE_KEY, lang);
 
-     
+    // 更新 HTML lang 属性
     const langMap = {
       "zh-CN": "zh-CN",
       en: "en",
@@ -2480,68 +2480,68 @@ export const I18n = (function () {
     };
     document.documentElement.lang = langMap[lang] || lang;
 
-     
+    // 更新所有全局语言切换器的选中状态
     document.querySelectorAll(".global-lang-select").forEach((select) => {
       select.value = lang;
     });
 
-     
+    // 同步文档语言
     if (syncDocs) {
       localStorage.setItem("erispulse-docs-lang", lang);
     }
 
-     
+    // 更新所有带 data-i18n 属性的元素
     applyTranslations();
 
-     
+    // 通知动态渲染模块（社区列表、首页数据条等）按新语言重渲染
     document.dispatchEvent(new CustomEvent("erispulse-lang-changed"));
 
     return true;
   }
 
-  
-
-
+  /**
+   * 应用翻译到所有带 data-i18n 属性的元素
+   */
   function applyTranslations() {
-     
+    // 文本内容
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const key = el.getAttribute("data-i18n");
       el.textContent = t(key);
 
-       
+      // 代码块文本替换后需要重新高亮
       if (el.tagName === "CODE" && typeof Prism !== "undefined") {
         Prism.highlightElement(el);
       }
     });
 
-     
+    // placeholder 属性
     document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
       const key = el.getAttribute("data-i18n-placeholder");
       el.placeholder = t(key);
     });
 
-     
+    // title 属性
     document.querySelectorAll("[data-i18n-title]").forEach((el) => {
       const key = el.getAttribute("data-i18n-title");
       el.title = t(key);
     });
 
-     
+    // aria-label 属性
     document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
       const key = el.getAttribute("data-i18n-aria");
       el.setAttribute("aria-label", t(key));
     });
 
-     
+    // innerHTML 属性（用于渲染 Markdown 等含 HTML 的翻译）
     document.querySelectorAll("[data-i18n-html]").forEach((el) => {
       const key = el.getAttribute("data-i18n-html");
       el.innerHTML = t(key);
     });
   }
 
-  
-
-
+  /**
+   * 获取语言显示名称
+   */
   function getLanguageName(lang) {
     const names = {
       "zh-CN": "简体中文",
@@ -2553,9 +2553,9 @@ export const I18n = (function () {
     return names[lang] || lang;
   }
 
-  
-
-
+  /**
+   * 获取支持的语言列表
+   */
   function getSupportedLanguages() {
     return [
       { code: "zh-CN", name: "简体中文" },
@@ -2566,21 +2566,21 @@ export const I18n = (function () {
     ];
   }
 
-  
-
-
+  /**
+   * 初始化（在 DOMContentLoaded 时调用）
+   */
   function init() {
-     
+    // 同步 localStorage
     localStorage.setItem("erispulse-docs-lang", currentLang);
 
-     
+    // 应用翻译
     applyTranslations();
 
-     
+    // 设置 HTML lang
     document.documentElement.lang = currentLang;
   }
 
-   
+  // 公共 API
   return {
     t,
     getLang,

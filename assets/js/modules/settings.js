@@ -1,9 +1,9 @@
-
-
-
-
-
-
+/**
+ * 设置与主题：用户偏好持久化、主题切换、全局语言切换器、设置页表单
+ *
+ * 说明：语言切换的核心逻辑 handleLanguageSwitch 定义在 docs.js，
+ * 本模块只负责 UI 绑定并委托调用。
+ */
 
 import { CONFIG } from '../config.js';
 import { I18n } from '../i18n.js';
@@ -12,7 +12,7 @@ import { showMessage } from '../core/notify.js';
 import * as docs from './docs.js';
 import * as home from './home.js';
 
- 
+// 仅设置模块使用的本地状态
 let currentTheme = 'light';
 
 export function applyUserSettings() {
@@ -157,23 +157,23 @@ function toggleTheme(event) {
     }
 }
 
- 
+// ==================== 全局语言切换 ====================
 
 export function setupGlobalLangSwitcher() {
     const switcher = document.getElementById('global-lang-switcher');
     const btn = document.getElementById('lang-switcher-btn');
     if (!switcher || !btn) return;
 
-     
+    // 设置初始按钮标签和激活状态
     docs.updateLangSwitcherUI();
 
-     
+    // 点击按钮 → 切换下拉
     btn.addEventListener('click', function (e) {
         e.stopPropagation();
         switcher.classList.toggle('open');
     });
 
-     
+    // 点击语言选项 → 切换语言
     switcher.querySelectorAll('.lang-switcher-option').forEach(option => {
         option.addEventListener('click', function (e) {
             e.stopPropagation();
@@ -183,7 +183,7 @@ export function setupGlobalLangSwitcher() {
             }
             switcher.classList.remove('open');
 
-             
+            // 移动端：切换后收起汉堡菜单
             if (window.innerWidth <= 768) {
                 const hamburger = document.getElementById('hamburger');
                 const navContainer = document.getElementById('nav-container');
@@ -195,7 +195,7 @@ export function setupGlobalLangSwitcher() {
         });
     });
 
-     
+    // 点击页面其他区域关闭下拉
     document.addEventListener('click', function (e) {
         if (!switcher.contains(e.target)) {
             switcher.classList.remove('open');
@@ -203,7 +203,7 @@ export function setupGlobalLangSwitcher() {
     });
 }
 
- 
+// ==================== 设置页表单 ====================
 
 export function setupSettings() {
     const themeToggle = document.getElementById('theme-toggle');
@@ -230,8 +230,8 @@ export function setupSettings() {
             } else {
                 document.body.classList.add('no-animations');
             }
-             
-             
+            // 开关切换后必须重算特性区布局（内部按当前状态选择叙事/平铺），
+            // 否则会停在"绝对定位 + 平铺样式"的中间态
             home.setupHomeAnimations();
         });
     }
@@ -280,7 +280,7 @@ export function setupSettings() {
         });
     }
 
-     
+    // 离线优先模式
     if (document.getElementById('disable-online-refresh')) {
         document.getElementById('disable-online-refresh').addEventListener('change', function () {
             state.userSettings.disableOnlineCacheRefresh = this.checked;
@@ -292,14 +292,14 @@ export function setupSettings() {
         });
     }
 
-     
+    // 管理文档缓存
     if (document.getElementById('manage-docs-cache-btn')) {
         document.getElementById('manage-docs-cache-btn').addEventListener('click', function () {
             docs.openDocsCacheModal();
         });
     }
 
-     
+    // 清除全部语言文档缓存
     if (document.getElementById('clear-all-docs-cache-btn')) {
         document.getElementById('clear-all-docs-cache-btn').addEventListener('click', function () {
             docs.clearAllDocsContentCache();
