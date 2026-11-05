@@ -1,0 +1,35 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { groupByPath, flattenMapping, getMapping, normalize } from "../../utils/docs";
+
+// /docs 入口：重定向到第一篇文档（以集合中真实存在的为准）
+const entries = await getCollection("docs");
+const byPath = groupByPath(entries as any);
+const mapping = getMapping("zh-CN");
+const flat = flattenMapping(mapping);
+
+// 用 mapping 顺序找到第一个在集合中确实存在的文档
+const firstExisting = flat.find((d) => byPath.has(normalize(d.path)));
+if (firstExisting) {
+  let p = normalize(firstExisting.path);
+  if (p.endsWith("/README")) p = p.slice(0, -"/README".length);
+  return Astro.redirect("/docs/" + p);
+}
+
+// 兜底：集合里的第一个
+const firstKey = byPath.keys().next().value;
+if (firstKey) {
+  let p = normalize(firstKey);
+  if (p.endsWith("/README")) p = p.slice(0, -"/README".length);
+  return Astro.redirect("/docs/" + p);
+}
+---
+
+<BaseLayout activeView="docs" title="文档中心 - ErisPulse">
+  <main class="main-content">
+    <div class="container">
+      <p>暂无文档</p>
+    </div>
+  </main>
+</BaseLayout>

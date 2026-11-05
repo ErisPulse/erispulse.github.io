@@ -2315,6 +2315,11 @@ const ErisPulseApp = (function () {
         const docsView = document.getElementById('docs-view');
         if (!docsView) return;
 
+        // 静态文档页面由 Astro 构建期渲染，无需运行时动态拉取
+        if (document.getElementById('docs-i18n-data')) {
+            return;
+        }
+
         // 立即初始化UI，不等待索引加载
         setupLanguageSwitcher();
         renderDocsNavigation();

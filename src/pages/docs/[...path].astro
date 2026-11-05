@@ -1,82 +1,88 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import PageLoader from '../../components/PageLoader.astro';
-import Navbar from '../../components/Navbar.astro';
-import DocsView from '../../components/DocsView.astro';
-import Modals from '../../components/Modals.astro';
-import Footer from '../../components/Footer.astro';
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageLoader from "../../components/PageLoader.astro";
+import Navbar from "../../components/Navbar.astro";
+import DocsView from "../../components/DocsView.astro";
+import Modals from "../../components/Modals.astro";
+import Footer from "../../components/Footer.astro";
+import {
+  DEFAULT_LANG,
+  LANGS,
+  flattenMapping,
+  getMapping,
+  getNeighbors,
+  groupByPath,
+  renderMarkdown,
+  normalize,
+} from "../../utils/docs";
 
+/**
+ * 生成静态路径：每篇文档一个页面（路径不含语言前缀）。
+ * 默认语言（zh-CN）在构建期渲染为 HTML 写入页面（SEO 友好）；
+ * 其余语言同样构建期渲染，内嵌为 JSON 供客户端即时切换。
+ */
 export async function getStaticPaths() {
-  const paths = [
-    { params: { path: undefined } } // 匹配 /docs
-  ];
-  
-  try {
-    const res = await fetch('https://raw.githubusercontent.com/ErisPulse/ErisPulse/Develop/v2/docs/_meta/docs-mapping.json');
-    if (res.ok) {
-      const data = await res.json();
-      
-      const traverseDocs = (items: any[]) => {
-        if (!items) return;
-        items.forEach(doc => {
-          if (doc.path) {
-            let cleanPath = doc.path.replace(/\\/g, '/');
-            if (cleanPath.startsWith('docs/')) {
-              cleanPath = cleanPath.substring(5);
-            }
-            paths.push({ params: { path: cleanPath } });
-            if (cleanPath.endsWith('.md')) {
-              paths.push({ params: { path: cleanPath.slice(0, -3) } });
-            }
-          }
-        });
-      };
-      
-      if (data.categories) {
-        Object.values(data.categories).forEach((category: any) => {
-          if (category.documents) {
-            traverseDocs(category.documents);
-          }
-          if (category.subgroups) {
-            Object.values(category.subgroups).forEach((subgroup: any) => {
-              if (subgroup.documents) {
-                traverseDocs(subgroup.documents);
-              }
-            });
-          }
-        });
-      }
-    }
-  } catch (e) {
-    console.error('获取文档映射索引失败，使用默认列表:', e);
-  }
-  
-  // 保底配置，防止 GitHub 接口波动导致构建中断
-  const fallbackPaths = [
-    'changelog',
-    'quick-start/README.md',
-    'ai-support/README.md'
-  ];
-  
-  fallbackPaths.forEach(p => {
-    if (!paths.some(x => x.params.path === p)) {
-      paths.push({ params: { path: p } });
-      if (p.endsWith('.md')) {
-        paths.push({ params: { path: p.slice(0, -3) } });
-      }
-    }
-  });
+  const entries = await getCollection("docs");
+  const byPath = groupByPath(entries as any);
+  const mapping = getMapping(DEFAULT_LANG);
+  const flat = flattenMapping(mapping);
 
+  const paths = [];
+  for (const [docPath, langs] of byPath) {
+    // 至少要有默认语言才生成页面
+    if (!langs[DEFAULT_LANG]) continue;
+
+    // 渲染各语言 HTML
+    const rendered: Record<string, string> = {};
+    for (const lang of LANGS) {
+      if (langs[lang]) {
+        rendered[lang] = renderMarkdown(langs[lang]);
+      }
+    }
+
+    const neighbors = getNeighbors(flat, docPath);
+    paths.push({
+      params: { path: normalize(docPath) },
+      props: {
+        docPath,
+        rendered,
+        defaultHtml: rendered[DEFAULT_LANG],
+        availableLangs: Object.keys(rendered),
+        flat,
+        prev: neighbors.prev,
+        next: neighbors.next,
+      },
+    });
+  }
   return paths;
 }
+
+const { docPath, rendered, defaultHtml, availableLangs, flat, prev, next } = Astro.props;
+const canonicalPath = "/docs/" + normalize(docPath);
+
+// 当前文档标题（默认语言 mapping）
+const defaultMapping = getMapping(DEFAULT_LANG);
+const currentMeta = flat.find((d) => normalize(d.path) === normalize(docPath));
+const docTitle = currentMeta?.title ?? docPath;
 ---
 
-<BaseLayout activeView="docs" title="文档中心 - ErisPulse">
+<BaseLayout activeView="docs" title={`${docTitle} - ErisPulse 文档`} canonicalPath={canonicalPath}>
   <PageLoader />
   <Navbar activeView="docs" />
-  
+
   <main class="main-content">
-    <DocsView activeView="docs" />
+    <DocsView
+      activeView="docs"
+      docPath={docPath}
+      defaultHtml={defaultHtml}
+      i18nData={rendered}
+      availableLangs={availableLangs}
+      flat={flat}
+      currentTitle={docTitle}
+      prev={prev}
+      next={next}
+    />
     <Modals />
   </main>
 

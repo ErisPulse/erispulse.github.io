@@ -1,0 +1,29 @@
+---
+import { getCollection } from "astro:content";
+import { DEFAULT_LANG, groupByPath } from "../utils/docs";
+
+const entries = await getCollection("docs");
+
+// 统计每个语言前缀的条目数
+const langCount: Record<string, number> = {};
+const zhCnSamples: string[] = [];
+for (const e of entries as any) {
+  const m = e.id.match(/^([a-zA-Z-]+)\//);
+  const prefix = m ? m[1] : "(none)";
+  langCount[prefix] = (langCount[prefix] || 0) + 1;
+  if (prefix === "zh-CN" && zhCnSamples.length < 3) {
+    zhCnSamples.push(e.id);
+  }
+}
+
+const byPath = groupByPath(entries as any);
+// 取第一个有 zh-CN 的 entry 看 langs 结构
+let firstWithZh: any = null;
+let firstWithoutZh: any = null;
+for (const [docPath, langs] of byPath) {
+  if (langs[DEFAULT_LANG] && !firstWithZh) firstWithZh = { docPath, langs: Object.keys(langs) };
+  if (!langs[DEFAULT_LANG] && !firstWithoutZh) firstWithoutZh = { docPath, langs: Object.keys(langs) };
+  if (firstWithZh && firstWithoutZh) break;
+}
+---
+<pre>{JSON.stringify({ langCount, zhCnSamples, firstWithZh, firstWithoutZh, byPathSize: byPath.size }, null, 2)}</pre>

@@ -1,0 +1,31 @@
+# ErisPulse 仓库文档更新触发器
+#
+# 将本文件放到 ErisPulse/ErisPulse 仓库的 .github/workflows/ 下。
+# 当 docs/ 目录有变更并合入 Develop/v2 时，通过 repository_dispatch
+# 通知 erispulse.github.io 仓库重新构建文档站。
+#
+# 需要在 ErisPulse 仓库添加 Secret：
+#   DOCS_SITE_TRIGGER_PAT  — 一个有权限触发 erispulse.github.io
+#                            repository_dispatch 的 GitHub PAT
+#
+# （也可改用 GitHub App / fine-grained token）
+
+name: Trigger Docs Site Rebuild
+
+on:
+  push:
+    branches: [Develop/v2]
+    paths:
+      - "docs/**"
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify docs site
+        run: |
+          curl -s -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.DOCS_SITE_TRIGGER_PAT }}" \
+            https://api.github.com/repos/ErisPulse/erispulse.github.io/dispatches \
+            -d '{"event_type":"docs-updated","client_payload":{"branch":"'"$GITHUB_REF_NAME"'"}}'

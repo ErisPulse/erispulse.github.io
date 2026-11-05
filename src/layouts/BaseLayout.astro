@@ -93,6 +93,23 @@ const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
 
     <slot name="head" />
 
+    {/* 旧版 SPA hash 路由兼容：#docs/xxx → /docs/xxx 等 */}
+    <script is:inline>
+      (function () {
+        var h = location.hash.replace(/^#/, "");
+        if (!h) return;
+        var m = h.match(/^(docs|market|about|settings)(?:\/(.*))?$/);
+        if (!m) return;
+        var view = m[1];
+        var rest = m[2] || "";
+        var url = "/" + view + (rest ? "/" + rest : "");
+        // 仅当目标不是当前路径时跳转（避免循环）
+        if (location.pathname + location.search !== url) {
+          history.replaceState(null, "", url);
+        }
+      })();
+    </script>
+
     {/* 核心 Client-side JS 资源 */}
     <script is:inline src="/assets/js/i18n.js" defer></script>
     <script is:inline src="/assets/js/main.js" defer></script>
