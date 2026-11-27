@@ -2,12 +2,12 @@
  * 模块市场：分类 / 筛选 / 搜索 / 排序 / 渲染卡片、市场模态框（安装/文档）
  */
 
-import { CONFIG } from '../config.js';
-import { I18n } from '../i18n.js';
-import { state } from '../core/state.js';
-import { showMessage } from '../core/notify.js';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js';
-import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js';
+import { CONFIG } from '../config.js?v=501c4e82cb';
+import { I18n } from '../i18n.js?v=501c4e82cb';
+import { state } from '../core/state.js?v=501c4e82cb';
+import { showMessage } from '../core/notify.js?v=501c4e82cb';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=501c4e82cb';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=501c4e82cb';
 
 // 标签云折叠阈值：全站标签上百个，默认只展示热度最高的若干项
 const TAG_PREVIEW_LIMIT = 18;

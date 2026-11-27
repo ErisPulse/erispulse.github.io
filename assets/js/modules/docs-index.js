@@ -4,8 +4,8 @@
  * 文档查询与全文搜索。
  */
 
-import { CONFIG } from '../config.js';
-import { I18n } from '../i18n.js';
+import { CONFIG } from '../config.js?v=501c4e82cb';
+import { I18n } from '../i18n.js?v=501c4e82cb';
 
 export const DocsIndexManager = (function () {
     let mappingCache = null;

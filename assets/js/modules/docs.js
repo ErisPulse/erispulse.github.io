@@ -6,16 +6,16 @@
  * updateLangSwitcherUI 也定义于此。
  */
 
-import { CONFIG } from '../config.js';
-import { I18n } from '../i18n.js';
-import { state, saveUserSettings } from '../core/state.js';
-import { showMessage, showActionToast, escapeHtml, timeAgo } from '../core/notify.js';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js';
-import { DocsIndexManager } from './docs-index.js';
-import { DocsContentCache } from './docs-cache.js';
-import { renderModules } from './marketplace.js';
-import { resetBanner } from './home.js';
-import { updateView } from './nav.js';
+import { CONFIG } from '../config.js?v=501c4e82cb';
+import { I18n } from '../i18n.js?v=501c4e82cb';
+import { state, saveUserSettings } from '../core/state.js?v=501c4e82cb';
+import { showMessage, showActionToast, escapeHtml, timeAgo } from '../core/notify.js?v=501c4e82cb';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=501c4e82cb';
+import { DocsIndexManager } from './docs-index.js?v=501c4e82cb';
+import { DocsContentCache } from './docs-cache.js?v=501c4e82cb';
+import { renderModules } from './marketplace.js?v=501c4e82cb';
+import { resetBanner } from './home.js?v=501c4e82cb';
+import { updateView } from './nav.js?v=501c4e82cb';
 
 // 导航状态管理（仅文档模块内部使用）
 let currentNavState = 'categories'; // 'categories', 'documents', 'chapters'

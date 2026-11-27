@@ -2,17 +2,17 @@
  * 应用入口（原生 ES Module）
  */
 
-import { I18n } from "./i18n.js";
-import { loadUserSettings } from "./core/state.js";
-import { loadViews } from "./core/views.js";
-import * as settings from "./modules/settings.js";
-import * as nav from "./modules/nav.js";
-import * as market from "./modules/marketplace.js";
-import * as docs from "./modules/docs.js";
-import { renderFriendLinks, renderDependencies } from "./modules/about.js";
-import * as home from "./modules/home.js";
-import { initLineField } from "./modules/linefield.js";
-import { initReveal } from "./modules/reveal.js";
+import { I18n } from "./i18n.js?v=501c4e82cb";
+import { loadUserSettings } from "./core/state.js?v=501c4e82cb";
+import { loadViews } from "./core/views.js?v=501c4e82cb";
+import * as settings from "./modules/settings.js?v=501c4e82cb";
+import * as nav from "./modules/nav.js?v=501c4e82cb";
+import * as market from "./modules/marketplace.js?v=501c4e82cb";
+import * as docs from "./modules/docs.js?v=501c4e82cb";
+import { renderFriendLinks, renderDependencies } from "./modules/about.js?v=501c4e82cb";
+import * as home from "./modules/home.js?v=501c4e82cb";
+import { initLineField } from "./modules/linefield.js?v=501c4e82cb";
+import { initReveal } from "./modules/reveal.js?v=501c4e82cb";
 
 /** 加载页最长停留时间（ms）：启动链路卡住时的强制揭幕兜底 */
 const LOADER_MAX_WAIT_MS = 10000;

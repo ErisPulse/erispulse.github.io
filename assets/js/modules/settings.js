@@ -5,12 +5,12 @@
  * 本模块只负责 UI 绑定并委托调用。
  */
 
-import { CONFIG } from '../config.js';
-import { I18n } from '../i18n.js';
-import { state, saveUserSettings } from '../core/state.js';
-import { showMessage } from '../core/notify.js';
-import * as docs from './docs.js';
-import * as home from './home.js';
+import { CONFIG } from '../config.js?v=501c4e82cb';
+import { I18n } from '../i18n.js?v=501c4e82cb';
+import { state, saveUserSettings } from '../core/state.js?v=501c4e82cb';
+import { showMessage } from '../core/notify.js?v=501c4e82cb';
+import * as docs from './docs.js?v=501c4e82cb';
+import * as home from './home.js?v=501c4e82cb';
 
 // 仅设置模块使用的本地状态
 let currentTheme = 'light';
