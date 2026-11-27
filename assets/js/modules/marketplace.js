@@ -467,7 +467,7 @@ function renderCategories() {
     I18n.applyTranslations();
 }
 
-export // 托管域名映射：module_type:module_name → fqdn（来自 workbench 公开接口，仅含已生效域名）
+// 托管域名映射：module_type:module_name → fqdn（来自 workbench 公开接口，仅含已生效域名）
 let _siteMap = null;
 async function loadSiteMap() {
     if (_siteMap) return _siteMap;
@@ -479,7 +479,7 @@ async function loadSiteMap() {
     return _siteMap;
 }
 
-async function renderModules() {
+export async function renderModules() {
     const modulesGrid = document.getElementById('modules-grid');
     if (!modulesGrid) return;
     const siteMap = await loadSiteMap();
