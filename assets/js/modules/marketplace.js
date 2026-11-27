@@ -467,14 +467,27 @@ function renderCategories() {
     I18n.applyTranslations();
 }
 
-export function renderModules() {
+export // 托管域名映射：module_type:module_name → fqdn（来自 workbench 公开接口，仅含已生效域名）
+let _siteMap = null;
+async function loadSiteMap() {
+    if (_siteMap) return _siteMap;
+    try {
+        const r = await fetch('https://workbench.erisdev.com/api/public/domains');
+        const d = await r.json();
+        _siteMap = new Map((d.domains || []).map(x => [x.module_type + ':' + x.module_name, x.fqdn]));
+    } catch (e) { _siteMap = new Map(); }
+    return _siteMap;
+}
+
+async function renderModules() {
     const modulesGrid = document.getElementById('modules-grid');
     if (!modulesGrid) return;
+    const siteMap = await loadSiteMap();
 
     // 重建卡片会连带移除「+N」按钮，先收起可能已打开的标签面板
     hideTagPopover();
 
-    const packagesToShow = applyFilters();
+    const packagesToShow = applyFilters().map(p => ({ ...p, _site: siteMap.get(p.type + ':' + p.name) || '' }));
     updateFilterSummary(packagesToShow.length);
 
     if (packagesToShow.length === 0) {
@@ -517,6 +530,9 @@ function cardHtml(pkg, index) {
             : '',
         pkg.official
             ? `<span class="module-badge badge-official"><i class="fas fa-check-circle"></i> <span data-i18n="market.filter.official">${I18n.t('market.filter.official')}</span></span>`
+            : '',
+        pkg._site
+            ? `<a class="module-badge badge-site" href="https://${pkg._site}" target="_blank" rel="noopener" title="${pkg._site}"><i class="fas fa-globe"></i> ${I18n.t('market.moduleSite')}</a>`
             : '',
         pkg.verified
             ? ''
@@ -914,6 +930,7 @@ export function showInstallModal(packageName) {
         ${pkg.repository ? `
         <h4 style="margin-top: 1.5rem;">${I18n.t('modal.repoInfo')}</h4>
         <p><a href="${escapeHtml(pkg.repository)}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
+        ${pkg._site ? `<p><a href="https://${pkg._site}" target="_blank">${I18n.t('market.moduleSite')}</a> · https://${pkg._site}</p>` : ''}
         ` : ''}
     `;
 
