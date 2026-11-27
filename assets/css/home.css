@@ -213,25 +213,6 @@ div.hero-glow-lavender {
     margin-bottom: 0.8rem;
 }
 
-/* 主立绘：右下角站台式点缀（ep 娘），轻微浮动 */
-.hero-mascot {
-    position: absolute;
-    bottom: 0;
-    right: 2vw;
-    height: min(62vh, 600px);
-    width: auto;
-    z-index: 1;
-    pointer-events: none;
-    user-select: none;
-    animation: mascotFloat 7s ease-in-out infinite alternate;
-    filter: drop-shadow(0 14px 30px rgba(var(--dark-bg-rgb), 0.14));
-}
-
-@keyframes mascotFloat {
-    from { transform: translateY(0); }
-    to { transform: translateY(-12px); }
-}
-
 .hero-subtitle {
     font-size: clamp(1.05rem, 2.2vw, 1.35rem);
     color: var(--text-secondary);
@@ -2365,30 +2346,13 @@ div.hero-glow-lavender {
 }
 
 @media (max-width: 1080px) {
-    .hero-mascot {
-        height: 50vh;
-        right: -6vw;
-        opacity: 0.9;
-    }
-
     .home-community-thanks {
         height: 250px;
         right: -2vw;
     }
 }
 
-/* 平板竖屏（769-1024）立绘收纳：置于 1080px 断点之后保证级联生效，
-   立绘缩到右下角落并降透明度，避免压住居中的按钮/快捷链接 */
-@media (max-width: 1024px) {
-    .hero-mascot {
-        height: 42vh;
-        right: -7vw;
-        opacity: 0.85;
-    }
-}
-
 @media (max-width: 768px) {
-    .hero-mascot,
     .home-community-thanks {
         display: none;
     }
@@ -2437,8 +2401,9 @@ div.hero-glow-lavender {
     position: relative;
     z-index: 2;
     display: grid;
-    grid-template-columns: minmax(0, 11fr) minmax(0, 10fr);
-    gap: clamp(2.2rem, 5vw, 5rem);
+    /* 文案列略宽于线场卡列：标题「可扩展的多平台消息处理框架」在 1440 宽度下保持单行 */
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(2.2rem, 4vw, 4rem);
     align-items: center;
     width: min(1200px, 100%);
     /* 垂直居中：hero-section 是 flex column，auto 外边距让内容块上下居中 */
@@ -2460,6 +2425,14 @@ div.hero-glow-lavender {
 
 
 .hero-title {
+    /* 上限 3rem：13 字标题在 1200 容器、1.25:1 分栏下保持单行 */
+    font-size: clamp(2.4rem, 5vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text);
+    /* 窄屏需要折行时各行长度均衡，避免末行只剩一两个字 */
+    text-wrap: balance;
     margin-bottom: 1rem;
 }
 
@@ -2509,29 +2482,38 @@ a.hero-meta-item:hover {
 
 /* ── 右列：线场 Logo 卡 ── */
 .hero-stage {
+    position: relative;
     min-width: 0;
     animation: heroFadeIn 0.8s ease-out 0.18s backwards;
 }
 
-
-
-
-
-/* 卡片：画框式作品卡 + 底板层级（纯 translate 视差，占位不变） */
+/* 卡片：透明玻璃面，卡面透出视差背景；三层阴影给出厚度
+   （外层深影 + 顶边内高光 + 底边内暗缘） */
 .linefield-card {
     position: relative;
     aspect-ratio: 2.35 / 1;
-    background: #eeeeeb;
-    border-radius: 17px;
+    border-radius: 24px;
     outline: none;
-    transition: transform 300ms ease-out;
+    transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 500ms cubic-bezier(0.16, 1, 0.3, 1);
     cursor: default;
     min-width: 0;
-    box-shadow: var(--shadow-card);
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+        0 16px 40px rgba(3, 7, 18, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -1px 0 rgba(2, 6, 16, 0.12);
 }
 
 [data-theme="dark"] .linefield-card {
-    background: #111212;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow:
+        0 16px 40px rgba(3, 7, 18, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 -1px 0 rgba(2, 6, 16, 0.35);
 }
 
 .linefield-card:focus-visible {
@@ -2539,30 +2521,27 @@ a.hero-meta-item:hover {
     outline-offset: 5px;
 }
 
-.linefield-plate {
-    position: absolute;
-    inset: 0;
-    border-radius: 17px;
-    background: #cdcdca;
-    border: 1px solid rgba(32, 34, 32, 0.12);
-    opacity: 0.7;
-    transform: translateY(6px);
-    transition: transform 300ms ease-out, opacity 300ms ease-out;
-    z-index: 0;
-}
-
-[data-theme="dark"] .linefield-plate {
-    background: #545554;
-    border-color: rgba(250, 250, 248, 0.14);
-}
-
 .linefield-canvas {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    border-radius: inherit;
     z-index: 1;
     display: block;
+}
+
+/* ep 娘立绘：站在卡片右下角外沿（卡外），不进入卡面、不遮挡线场图形 */
+.hero-mascot {
+    position: absolute;
+    right: -18px;
+    bottom: -46px;
+    width: clamp(72px, 13%, 96px);
+    height: auto;
+    z-index: 2;
+    pointer-events: none;
+    user-select: none;
+    filter: drop-shadow(0 10px 22px rgba(var(--dark-bg-rgb), 0.28));
 }
 
 /* 采样/渲染不可用时的静态降级 */
@@ -2577,21 +2556,6 @@ a.hero-meta-item:hover {
     width: 72%;
     height: auto;
     z-index: 1;
-}
-
-/* ep 娘立绘：线场卡右下角的小尺寸点缀（覆盖原 hero 大立绘定位；
-   display:block 同时解除旧断点 ≤768 的隐藏与 769-1024 的 42vh 大尺寸） */
-.hero-mascot {
-    display: block;
-    position: absolute;
-    right: 10px;
-    bottom: 6px;
-    width: clamp(72px, 18%, 124px);
-    height: auto;
-    z-index: 2;
-    pointer-events: none;
-    user-select: none;
-    filter: drop-shadow(0 8px 18px rgba(var(--dark-bg-rgb), 0.18));
 }
 
 /* 滚动提示 */
@@ -2624,6 +2588,11 @@ a.hero-meta-item:hover {
         max-width: 560px;
         width: 100%;
         margin: 0 auto;
+    }
+
+    .hero-mascot {
+        width: 72px;
+        bottom: -36px;
     }
 }
 
