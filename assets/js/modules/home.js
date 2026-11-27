@@ -7,8 +7,8 @@
  *  - 社区速览条带（最新 Discussions）
  */
 
-import { I18n } from '../i18n.js?v=501c4e82cb';
-import { CONFIG } from '../config.js?v=501c4e82cb';
+import { I18n } from '../i18n.js?v=f6b8770ba2';
+import { CONFIG } from '../config.js?v=f6b8770ba2';
 
 // 仅首页模块使用的本地状态
 var featureScrollBound = false;

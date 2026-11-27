@@ -2,8 +2,8 @@
  * 关于页：贡献者列表 + 友情链接 + 依赖致谢渲染
  */
 
-import { CONFIG } from '../config.js?v=501c4e82cb';
-import { I18n } from '../i18n.js?v=501c4e82cb';
+import { CONFIG } from '../config.js?v=f6b8770ba2';
+import { I18n } from '../i18n.js?v=f6b8770ba2';
 
 function escapeHtml(str) {
     return String(str ?? '')

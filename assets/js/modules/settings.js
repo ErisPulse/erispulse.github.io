@@ -5,12 +5,12 @@
  * 本模块只负责 UI 绑定并委托调用。
  */
 
-import { CONFIG } from '../config.js?v=501c4e82cb';
-import { I18n } from '../i18n.js?v=501c4e82cb';
-import { state, saveUserSettings } from '../core/state.js?v=501c4e82cb';
-import { showMessage } from '../core/notify.js?v=501c4e82cb';
-import * as docs from './docs.js?v=501c4e82cb';
-import * as home from './home.js?v=501c4e82cb';
+import { CONFIG } from '../config.js?v=f6b8770ba2';
+import { I18n } from '../i18n.js?v=f6b8770ba2';
+import { state, saveUserSettings } from '../core/state.js?v=f6b8770ba2';
+import { showMessage } from '../core/notify.js?v=f6b8770ba2';
+import * as docs from './docs.js?v=f6b8770ba2';
+import * as home from './home.js?v=f6b8770ba2';
 
 // 仅设置模块使用的本地状态
 let currentTheme = 'light';
@@ -117,6 +117,12 @@ function toggleTheme(event) {
         });
 
         transition.ready.then(function () {
+            // 圆形揭示：ease-in-out 使半径全程匀速变化；ease-out 类曲线前段过快，
+            // 视觉上接近瞬切
+            var reveal = {
+                duration: 450,
+                easing: 'cubic-bezier(0.42, 0, 0.58, 1)'
+            };
             if (newTheme === 'dark') {
                 document.documentElement.animate(
                     {
@@ -125,11 +131,7 @@ function toggleTheme(event) {
                             'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)'
                         ]
                     },
-                    {
-                        duration: 320,
-                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                        pseudoElement: '::view-transition-new(root)'
-                    }
+                    Object.assign({ pseudoElement: '::view-transition-new(root)' }, reveal)
                 );
             } else {
                 document.documentElement.animate(
@@ -139,11 +141,7 @@ function toggleTheme(event) {
                             'circle(0px at ' + x + 'px ' + y + 'px)'
                         ]
                     },
-                    {
-                        duration: 320,
-                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                        pseudoElement: '::view-transition-old(root)'
-                    }
+                    Object.assign({ pseudoElement: '::view-transition-old(root)' }, reveal)
                 );
             }
         });
