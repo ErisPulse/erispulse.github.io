@@ -2,12 +2,12 @@
  * 模块市场：分类 / 筛选 / 搜索 / 排序 / 渲染卡片、市场模态框（安装/文档）
  */
 
-import { CONFIG } from '../config.js?v=a76904a98c';
-import { I18n } from '../i18n.js?v=a76904a98c';
-import { state } from '../core/state.js?v=a76904a98c';
-import { showMessage } from '../core/notify.js?v=a76904a98c';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=a76904a98c';
-import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=a76904a98c';
+import { CONFIG } from '../config.js?v=999fab1127';
+import { I18n } from '../i18n.js?v=999fab1127';
+import { state } from '../core/state.js?v=999fab1127';
+import { showMessage } from '../core/notify.js?v=999fab1127';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=999fab1127';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=999fab1127';
 
 // 标签云折叠阈值：全站标签上百个，默认只展示热度最高的若干项
 const TAG_PREVIEW_LIMIT = 18;
@@ -507,33 +507,37 @@ async function loadSiteMap() {
     return _siteMap;
 }
 
+/** 分类编号 → 占位线性图标（与市场筛选的分类一致） */
+const CATEGORY_PLACEHOLDER_ICONS = {
+    1: 'fa-wrench',
+    2: 'fa-gamepad',
+    3: 'fa-sliders',
+    4: 'fa-bell',
+    5: 'fa-robot',
+    6: 'fa-plug',
+    7: 'fa-chart-column',
+};
+
 /**
- * 头图占位：模块名驱动的对称像素纹样，同名恒定、异名互异
- * @param {string} name
- * @returns {string} 50×50 viewBox 的内联 SVG
+ * 模块头图占位：分类线性图标；适配器固定插头，无分类用方块
+ * @param {object} pkg 模块条目
+ * @returns {string}
  */
-function identiconSvg(name) {
-    let h = 7;
-    for (const c of String(name || '?')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-    const col = `hsl(${h % 360} 62% 62%)`, dim = `hsl(${h % 360} 45% 28%)`;
-    let cells = '';
-    for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
-        const mx = x < 3 ? x : 4 - x;
-        if ((h >> (y * 3 + mx)) & 1) cells += `<rect x="${x * 10}" y="${y * 10}" width="10" height="10" fill="${col}"/>`;
-    }
-    return `<svg class="module-logo-tile" viewBox="0 0 50 50" aria-hidden="true"><rect width="50" height="50" fill="${dim}"/>${cells}</svg>`;
+function modulePlaceholderHtml(pkg) {
+    const icon = pkg.type === 'adapter' ? 'fa-plug'
+        : (CATEGORY_PLACEHOLDER_ICONS[Number(pkg.category)] || 'fa-cube');
+    return `<span class="module-logo-tile module-logo-ph"><i class="fas ${icon}" aria-hidden="true"></i></span>`;
 }
 
 /**
- * 模块头图标记：索引 logo 优先；无 logo 时以几何纹样占位。
- * logo 图层叠于纹样之上，加载失败时移除即露出纹样。
+ * 模块头图标记：索引 logo 覆盖于占位之上，加载成功即隐藏占位、失败则露出
  * @param {object} pkg 模块条目
  * @returns {string}
  */
 function moduleLogoHtml(pkg) {
-    const svg = identiconSvg(pkg.name);
-    if (!pkg.logo) return svg;
-    return svg + `<img class="module-logo-img" src="${escapeHtml(pkg.logo)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`;
+    const ph = modulePlaceholderHtml(pkg);
+    if (!pkg.logo) return ph;
+    return ph + `<img class="module-logo-img" src="${escapeHtml(pkg.logo)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">`;
 }
 
 /** 作者行小头像：仅 GitHub 仓库可由拥有者名拼接地址；与主图同源时跳过 */

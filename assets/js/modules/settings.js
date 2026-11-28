@@ -5,15 +5,15 @@
  * 本模块只负责 UI 绑定并委托调用。
  */
 
-import { CONFIG } from '../config.js?v=a76904a98c';
-import { I18n } from '../i18n.js?v=a76904a98c';
-import { state, saveUserSettings } from '../core/state.js?v=a76904a98c';
-import { showMessage } from '../core/notify.js?v=a76904a98c';
-import * as docs from './docs.js?v=a76904a98c';
+import { CONFIG } from '../config.js?v=999fab1127';
+import { I18n } from '../i18n.js?v=999fab1127';
+import { state, saveUserSettings } from '../core/state.js?v=999fab1127';
+import { showMessage } from '../core/notify.js?v=999fab1127';
+import * as docs from './docs.js?v=999fab1127';
 
 /** 主题切换过渡结束后，卡面由实心恢复为毛玻璃的过渡时长（ms） */
 const THEME_SETTLE_MS = 220;
-import * as home from './home.js?v=a76904a98c';
+import * as home from './home.js?v=999fab1127';
 
 // 仅设置模块使用的本地状态
 let currentTheme = 'light';
