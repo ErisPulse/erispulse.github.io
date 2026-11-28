@@ -3,8 +3,8 @@
  * 负责文档正文（Markdown）的本地缓存、按语言统计、本地化标记与清理。
  */
 
-import { CONFIG } from "../config.js?v=f6b8770ba2";
-import { I18n } from "../i18n.js?v=f6b8770ba2";
+import { CONFIG } from "../config.js?v=e3628ef016";
+import { I18n } from "../i18n.js?v=e3628ef016";
 
 export const DocsContentCache = (function () {
   const cfg = () => CONFIG.DOCS.contentCache;

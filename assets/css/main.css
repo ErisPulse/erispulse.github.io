@@ -1418,6 +1418,30 @@ html.theme-transitioning *::after {
     transition: none !important;
 }
 
+/* 过渡快照不含 backdrop-filter 的模糊结果：半透明卡面在快照里透出下层新画面，
+   整页呈现灰蒙。过渡期间卡面改用不透明等效色并关闭模糊，快照即为实心画面 */
+html.theme-transitioning,
+html.theme-transitioning * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+html.theme-transitioning {
+    --card-bg: #ffffff;
+    --glass-bg: #ffffff;
+}
+
+html[data-theme="dark"].theme-transitioning {
+    --card-bg: #1c2027;
+    --glass-bg: #1c2027;
+}
+
+/* 过渡结束后的恢复期：卡面从实心回到半透明毛玻璃，以短过渡完成而非跳变 */
+html.theme-settling,
+html.theme-settling * {
+    transition: background-color 220ms ease-out, backdrop-filter 220ms ease-out, -webkit-backdrop-filter 220ms ease-out !important;
+}
+
 /* ==================== 语言切换圆形波纹动画 ==================== */
 
 html.lang-transitioning,
@@ -1443,6 +1467,7 @@ html.lang-transitioning *::after {
     }
 }
 
+/* 新画面在上层做圆形扩张，旧画面完整垫底 */
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation: none;
@@ -1455,14 +1480,6 @@ html.lang-transitioning *::after {
 
 ::view-transition-new(root) {
     z-index: 9999;
-}
-
-html.theme-reveal-out::view-transition-old(root) {
-    z-index: 9999;
-}
-
-html.theme-reveal-out::view-transition-new(root) {
-    z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

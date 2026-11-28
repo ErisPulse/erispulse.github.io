@@ -5,12 +5,15 @@
  * 本模块只负责 UI 绑定并委托调用。
  */
 
-import { CONFIG } from '../config.js?v=f6b8770ba2';
-import { I18n } from '../i18n.js?v=f6b8770ba2';
-import { state, saveUserSettings } from '../core/state.js?v=f6b8770ba2';
-import { showMessage } from '../core/notify.js?v=f6b8770ba2';
-import * as docs from './docs.js?v=f6b8770ba2';
-import * as home from './home.js?v=f6b8770ba2';
+import { CONFIG } from '../config.js?v=e3628ef016';
+import { I18n } from '../i18n.js?v=e3628ef016';
+import { state, saveUserSettings } from '../core/state.js?v=e3628ef016';
+import { showMessage } from '../core/notify.js?v=e3628ef016';
+import * as docs from './docs.js?v=e3628ef016';
+
+/** 主题切换过渡结束后，卡面由实心恢复为毛玻璃的过渡时长（ms） */
+const THEME_SETTLE_MS = 220;
+import * as home from './home.js?v=e3628ef016';
 
 // 仅设置模块使用的本地状态
 let currentTheme = 'light';
@@ -104,12 +107,8 @@ function toggleTheme(event) {
             Math.max(y, window.innerHeight - y)
         );
 
-        if (newTheme === 'dark') {
-            document.documentElement.classList.remove('theme-reveal-out');
-        } else {
-            document.documentElement.classList.add('theme-reveal-out');
-        }
-
+        // 两个方向统一为新画面圆形扩张：旧画面完整垫底，过渡结束时伪元素销毁
+        // 露出的即真实画面；旧画面在上层收缩的方向会在销毁瞬间露出底层造成闪烁
         document.documentElement.classList.add('theme-transitioning');
 
         var transition = document.startViewTransition(function () {
@@ -117,38 +116,31 @@ function toggleTheme(event) {
         });
 
         transition.ready.then(function () {
-            // 圆形揭示：ease-in-out 使半径全程匀速变化；ease-out 类曲线前段过快，
-            // 视觉上接近瞬切
-            var reveal = {
-                duration: 450,
-                easing: 'cubic-bezier(0.42, 0, 0.58, 1)'
-            };
-            if (newTheme === 'dark') {
-                document.documentElement.animate(
-                    {
-                        clipPath: [
-                            'circle(0px at ' + x + 'px ' + y + 'px)',
-                            'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)'
-                        ]
-                    },
-                    Object.assign({ pseudoElement: '::view-transition-new(root)' }, reveal)
-                );
-            } else {
-                document.documentElement.animate(
-                    {
-                        clipPath: [
-                            'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)',
-                            'circle(0px at ' + x + 'px ' + y + 'px)'
-                        ]
-                    },
-                    Object.assign({ pseudoElement: '::view-transition-old(root)' }, reveal)
-                );
-            }
+            // ease-in-out 使半径全程匀速变化；ease-out 类曲线前段过快，视觉上接近瞬切
+            document.documentElement.animate(
+                {
+                    clipPath: [
+                        'circle(0px at ' + x + 'px ' + y + 'px)',
+                        'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)'
+                    ]
+                },
+                {
+                    duration: 450,
+                    easing: 'cubic-bezier(0.42, 0, 0.58, 1)',
+                    pseudoElement: '::view-transition-new(root)'
+                }
+            );
         });
 
         transition.finished.then(function () {
-            document.documentElement.classList.remove('theme-reveal-out');
+            // 换为恢复期类：卡面由实心回到毛玻璃，带过渡而非跳变
             document.documentElement.classList.remove('theme-transitioning');
+            document.documentElement.classList.add('theme-settling');
+            setTimeout(function () {
+                document.documentElement.classList.remove('theme-settling');
+            }, THEME_SETTLE_MS);
+        }).catch(function () {
+            document.documentElement.classList.remove('theme-transitioning', 'theme-settling');
         });
     } else {
         applyThemeSetting();

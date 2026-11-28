@@ -6,16 +6,16 @@
  * updateLangSwitcherUI 也定义于此。
  */
 
-import { CONFIG } from '../config.js?v=f6b8770ba2';
-import { I18n } from '../i18n.js?v=f6b8770ba2';
-import { state, saveUserSettings } from '../core/state.js?v=f6b8770ba2';
-import { showMessage, showActionToast, escapeHtml, timeAgo } from '../core/notify.js?v=f6b8770ba2';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=f6b8770ba2';
-import { DocsIndexManager } from './docs-index.js?v=f6b8770ba2';
-import { DocsContentCache } from './docs-cache.js?v=f6b8770ba2';
-import { renderModules } from './marketplace.js?v=f6b8770ba2';
-import { resetBanner } from './home.js?v=f6b8770ba2';
-import { updateView } from './nav.js?v=f6b8770ba2';
+import { CONFIG } from '../config.js?v=e3628ef016';
+import { I18n } from '../i18n.js?v=e3628ef016';
+import { state, saveUserSettings } from '../core/state.js?v=e3628ef016';
+import { showMessage, showActionToast, escapeHtml, timeAgo } from '../core/notify.js?v=e3628ef016';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=e3628ef016';
+import { DocsIndexManager } from './docs-index.js?v=e3628ef016';
+import { DocsContentCache } from './docs-cache.js?v=e3628ef016';
+import { renderModules } from './marketplace.js?v=e3628ef016';
+import { resetBanner } from './home.js?v=e3628ef016';
+import { updateView } from './nav.js?v=e3628ef016';
 
 // 导航状态管理（仅文档模块内部使用）
 let currentNavState = 'categories'; // 'categories', 'documents', 'chapters'
