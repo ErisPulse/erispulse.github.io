@@ -2,18 +2,18 @@
  * 应用入口（原生 ES Module）
  */
 
-import { I18n } from "./i18n.js?v=999fab1127";
-import { loadUserSettings } from "./core/state.js?v=999fab1127";
-import { loadViews } from "./core/views.js?v=999fab1127";
-import { setupNiceSelects } from "./core/nice-select.js?v=999fab1127";
-import * as settings from "./modules/settings.js?v=999fab1127";
-import * as nav from "./modules/nav.js?v=999fab1127";
-import * as market from "./modules/marketplace.js?v=999fab1127";
-import * as docs from "./modules/docs.js?v=999fab1127";
-import { renderFriendLinks, renderDependencies } from "./modules/about.js?v=999fab1127";
-import * as home from "./modules/home.js?v=999fab1127";
-import { initLineField } from "./modules/linefield.js?v=999fab1127";
-import { initReveal } from "./modules/reveal.js?v=999fab1127";
+import { I18n } from "./i18n.js?v=744bda8114";
+import { loadUserSettings } from "./core/state.js?v=744bda8114";
+import { loadViews } from "./core/views.js?v=744bda8114";
+import { setupNiceSelects } from "./core/nice-select.js?v=744bda8114";
+import * as settings from "./modules/settings.js?v=744bda8114";
+import * as nav from "./modules/nav.js?v=744bda8114";
+import * as market from "./modules/marketplace.js?v=744bda8114";
+import * as docs from "./modules/docs.js?v=744bda8114";
+import { renderFriendLinks, renderDependencies } from "./modules/about.js?v=744bda8114";
+import * as home from "./modules/home.js?v=744bda8114";
+import { initLineField } from "./modules/linefield.js?v=744bda8114";
+import { initReveal } from "./modules/reveal.js?v=744bda8114";
 
 /** 加载页最长停留时间（ms）：启动链路卡住时的强制揭幕兜底 */
 const LOADER_MAX_WAIT_MS = 10000;

@@ -2,12 +2,12 @@
  * 导航与路由：汉堡菜单、基于 hash 的视图切换、Service Worker 注册、在线/离线感知
  */
 
-import { I18n } from "../i18n.js?v=999fab1127";
-import { state } from "../core/state.js?v=999fab1127";
-import { showMessage } from "../core/notify.js?v=999fab1127";
-import * as docs from "./docs.js?v=999fab1127";
-import * as market from "./marketplace.js?v=999fab1127";
-import { loadContributors } from "./about.js?v=999fab1127";
+import { I18n } from "../i18n.js?v=744bda8114";
+import { state } from "../core/state.js?v=744bda8114";
+import { showMessage } from "../core/notify.js?v=744bda8114";
+import * as docs from "./docs.js?v=744bda8114";
+import * as market from "./marketplace.js?v=744bda8114";
+import { loadContributors } from "./about.js?v=744bda8114";
 
 let _hashProgrammatic = false;
 

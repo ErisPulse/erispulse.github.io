@@ -5,7 +5,7 @@
  * 代理不可用时直连 PyPI 的 JSON API（允许跨域）。
  */
 
-import { CONFIG } from '../config.js?v=999fab1127';
+import { CONFIG } from '../config.js?v=744bda8114';
 
 // 缓存 10 分钟
 const CACHE_TTL = 10 * 60 * 1000;

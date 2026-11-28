@@ -2,12 +2,12 @@
  * 模块市场：分类 / 筛选 / 搜索 / 排序 / 渲染卡片、市场模态框（安装/文档）
  */
 
-import { CONFIG } from '../config.js?v=999fab1127';
-import { I18n } from '../i18n.js?v=999fab1127';
-import { state } from '../core/state.js?v=999fab1127';
-import { showMessage } from '../core/notify.js?v=999fab1127';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=999fab1127';
-import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=999fab1127';
+import { CONFIG } from '../config.js?v=744bda8114';
+import { I18n } from '../i18n.js?v=744bda8114';
+import { state } from '../core/state.js?v=744bda8114';
+import { showMessage } from '../core/notify.js?v=744bda8114';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=744bda8114';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=744bda8114';
 
 // 标签云折叠阈值：全站标签上百个，默认只展示热度最高的若干项
 const TAG_PREVIEW_LIMIT = 18;
@@ -20,6 +20,9 @@ const CARD_TAG_LIMIT = 5;
 const EXCLUSIVE_FLAGS = { verified: 'unverified', unverified: 'verified' };
 
 const SORT_MODES = ['default', 'name', 'newest'];
+
+/** README 渲染依赖的 CDN 脚本就绪等待上限（ms） */
+const README_LIBS_TIMEOUT_MS = 12000;
 
 // 分类：后端（packages.json）只存编号，展示名按当前语言取 i18n 的
 // category.<key>，编号表见 config.js 的 MODULE_CATEGORIES
@@ -558,8 +561,10 @@ export async function renderModules() {
     hideTagPopover();
 
     const packagesToShow = applyFilters().map(p => {
-        const raw = p.erisdev_site || siteMap.get(p.type + ':' + p.name) || '';
-        return { ...p, _site: raw ? (String(raw).startsWith('http') ? raw : 'https://' + raw) : '' };
+        // 索引存完整地址，公开接口存裸域名；仅接受 https，其余视为无网站
+        const raw = String(p.erisdev_site || siteMap.get(p.type + ':' + p.name) || '');
+        const url = raw && !raw.includes(':') ? 'https://' + raw : raw;
+        return { ...p, _site: url.startsWith('https://') ? url : '' };
     });
     updateFilterSummary(packagesToShow.length);
 
@@ -613,7 +618,7 @@ function cardHtml(pkg, index) {
             ? `<span class="module-badge badge-official"><i class="fas fa-check-circle"></i> <span data-i18n="market.filter.official">${I18n.t('market.filter.official')}</span></span>`
             : '',
         pkg._site
-            ? `<a class="module-badge badge-site" href="${pkg._site}" target="_blank" rel="noopener" title="${pkg._site}"><i class="fas fa-globe"></i> ${I18n.t('market.moduleSite')}</a>`
+            ? `<a class="module-badge badge-site" href="${escapeHtml(pkg._site)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(pkg._site)}"><i class="fas fa-globe"></i> ${I18n.t('market.moduleSite')}</a>`
             : '',
         pkg.verified
             ? ''
@@ -1030,7 +1035,7 @@ export function showInstallModal(packageName) {
         ${pkg.repository ? `
         <h4 style="margin-top: 1.5rem;">${I18n.t('modal.repoInfo')}</h4>
         <p><a href="${escapeHtml(pkg.repository)}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
-        ${pkg._site ? `<p><a href="${pkg._site}" target="_blank">${I18n.t('market.moduleSite')}</a> · ${pkg._site}</p>` : ''}
+        ${pkg._site ? `<p><a href="${escapeHtml(pkg._site)}" target="_blank" rel="noopener noreferrer">${I18n.t('market.moduleSite')}</a> · ${escapeHtml(pkg._site)}</p>` : ''}
         ` : ''}
     `;
 
@@ -1046,7 +1051,7 @@ function findPackage(packageName) {
     return collectAll().find(pkg => pkg.package === packageName);
 }
 
-export function showDocsModal(packageName, repoUrl) {
+export async function showDocsModal(packageName, repoUrl) {
     const pkg = findPackage(packageName);
     if (!pkg || !repoUrl) return;
 
@@ -1062,53 +1067,113 @@ export function showDocsModal(packageName, repoUrl) {
 
     modal.classList.add('active');
 
-    fetchReadmeContent(repoUrl).then(markdown => {
-        const htmlContent = enhanceGitHubMarkdown(marked.parse(markdown));
+    // marked / DOMPurify / Prism 是 defer 的 CDN 脚本，未就绪时等待，超时按加载失败处理
+    try {
+        await waitForGlobal(['marked', 'DOMPurify', 'Prism'], README_LIBS_TIMEOUT_MS);
+    } catch (e) {
+        showReadmeError(modalContent, pkg);
+        return;
+    }
 
-        modalContent.innerHTML = `
-            <div class="markdown-content">
-                <h3>${escapeHtml(pkg.name)} v${escapeHtml(pkg.version)}</h3>
-                ${htmlContent}
-            </div>
-        `;
-
-        document.querySelectorAll('#module-modal-content pre code').forEach((block) => {
-            if (!block.className || !block.className.startsWith('language-')) {
-                block.classList.add('language-python');
-            }
-            Prism.highlightElement(block);
-        });
-    }).catch(error => {
+    let markdown;
+    try {
+        markdown = await fetchReadmeContent(repoUrl);
+    } catch (error) {
         console.error('获取文档失败:', error);
-        modalContent.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
-                <h3>${I18n.t('modal.loadDocFailed')}</h3>
-                <p><a href="${pkg.repository}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
-            </div>
-        `;
+        showReadmeError(modalContent, pkg);
+        return;
+    }
+
+    // README 来自第三方仓库：渲染结果经 DOMPurify 消毒后写入 DOM。
+    // 钩子须经 addHook 注册，作为配置项传入不生效
+    DOMPurify.addHook('afterSanitizeAttributes', readmeLinkHook);
+    let htmlContent;
+    try {
+        htmlContent = DOMPurify.sanitize(enhanceGitHubMarkdown(marked.parse(markdown)), {
+            FORBID_TAGS: ['style', 'form', 'input', 'button', 'iframe', 'object', 'embed'],
+            FORBID_ATTR: ['style'],
+            ADD_ATTR: ['target'],
+        });
+    } finally {
+        DOMPurify.removeHook('afterSanitizeAttributes', readmeLinkHook);
+    }
+
+    modalContent.innerHTML = `
+        <div class="markdown-content">
+            <h3>${escapeHtml(pkg.name)} v${escapeHtml(pkg.version)}</h3>
+            ${htmlContent}
+        </div>
+    `;
+
+    document.querySelectorAll('#module-modal-content pre code').forEach((block) => {
+        if (!block.className || !block.className.startsWith('language-')) {
+            block.classList.add('language-python');
+        }
+        Prism.highlightElement(block);
     });
 }
 
+/** 消毒钩子：README 内的链接在新窗口打开并切断来源页的引用 */
+function readmeLinkHook(node) {
+    if (node.tagName !== 'A') return;
+    node.setAttribute('target', '_blank');
+    node.setAttribute('rel', 'noopener noreferrer');
+}
+
+/** 文档弹窗的加载失败态 */
+function showReadmeError(modalContent, pkg) {    modalContent.innerHTML = `
+        <div class="error-message">
+            <i class="fas fa-exclamation-triangle" style="color: var(--wr-c);"></i>
+            <h3>${I18n.t('modal.loadDocFailed')}</h3>
+            <p><a href="${escapeHtml(pkg.repository)}" target="_blank" rel="noopener noreferrer">${I18n.t('modal.viewSource')}</a></p>
+        </div>
+    `;
+}
+
+/**
+ * 轮询等待全局变量就绪
+ * @param {string[]} names 全局变量名
+ * @param {number} timeoutMs 超时毫秒数，超时拒绝
+ */
+function waitForGlobal(names, timeoutMs) {
+    return new Promise((resolve, reject) => {
+        const startedAt = Date.now();
+        const timer = setInterval(() => {
+            if (names.every(name => typeof window[name] !== 'undefined')) {
+                clearInterval(timer);
+                resolve();
+            } else if (Date.now() - startedAt > timeoutMs) {
+                clearInterval(timer);
+                reject(new Error('libraries not ready: ' + names.join(', ')));
+            }
+        }, 100);
+    });
+}
+
+/** 仓库默认分支的候选，按序尝试 */
+const README_BRANCHES = ['main', 'master'];
+
+/**
+ * 拉取仓库 README：依次尝试候选分支，不经 GitHub API 查询默认分支
+ * @param {string} repoUrl 仓库地址
+ * @returns {Promise<string>} README Markdown
+ * @throws {Error} 全部候选分支都取不到时抛出
+ */
 async function fetchReadmeContent(repoUrl) {
-    try {
-        const repoPath = repoUrl.replace('https://github.com/', '');
-        const [owner, repo] = repoPath.split('/');
+    const path = String(repoUrl).replace(/^https?:\/\/[^/]+\//, '').replace(/\/+$/, '').split('/');
+    const [owner, repo] = path;
+    if (!owner || !repo) throw new Error('invalid repository URL');
 
-        const repoInfo = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
-        const repoData = await repoInfo.json();
-        const defaultBranch = repoData.default_branch;
+    const host = new URL(repoUrl).host;
+    const base = host === 'codeberg.org'
+        ? `https://codeberg.org/${owner}/${repo}/raw/branch/`
+        : `${CONFIG.DEFAULT_USER_SETTINGS.gh_proxy}https://raw.githubusercontent.com/${owner}/${repo}/`;
 
-        const readmeUrl = CONFIG.DEFAULT_USER_SETTINGS.gh_proxy + `https://raw.githubusercontent.com/${owner}/${repo}/${defaultBranch}/README.md`;
-        const response = await fetch(readmeUrl);
-
-        if (!response.ok) {
-            throw new Error('README文件不存在或无法访问');
-        }
-
-        return await response.text();
-    } catch (error) {
-        console.error('获取README失败:', error);
-        throw error;
+    for (const branch of README_BRANCHES) {
+        try {
+            const response = await fetch(`${base}${branch}/README.md`, { cache: 'force-cache' });
+            if (response.ok) return await response.text();
+        } catch (e) { /* 单个候选失败继续尝试下一个 */ }
     }
+    throw new Error('README not found on any candidate branch');
 }
