@@ -2,17 +2,18 @@
  * 应用入口（原生 ES Module）
  */
 
-import { I18n } from "./i18n.js?v=95a92ab6fa";
-import { loadUserSettings } from "./core/state.js?v=95a92ab6fa";
-import { loadViews } from "./core/views.js?v=95a92ab6fa";
-import * as settings from "./modules/settings.js?v=95a92ab6fa";
-import * as nav from "./modules/nav.js?v=95a92ab6fa";
-import * as market from "./modules/marketplace.js?v=95a92ab6fa";
-import * as docs from "./modules/docs.js?v=95a92ab6fa";
-import { renderFriendLinks, renderDependencies } from "./modules/about.js?v=95a92ab6fa";
-import * as home from "./modules/home.js?v=95a92ab6fa";
-import { initLineField } from "./modules/linefield.js?v=95a92ab6fa";
-import { initReveal } from "./modules/reveal.js?v=95a92ab6fa";
+import { I18n } from "./i18n.js?v=a76904a98c";
+import { loadUserSettings } from "./core/state.js?v=a76904a98c";
+import { loadViews } from "./core/views.js?v=a76904a98c";
+import { setupNiceSelects } from "./core/nice-select.js?v=a76904a98c";
+import * as settings from "./modules/settings.js?v=a76904a98c";
+import * as nav from "./modules/nav.js?v=a76904a98c";
+import * as market from "./modules/marketplace.js?v=a76904a98c";
+import * as docs from "./modules/docs.js?v=a76904a98c";
+import { renderFriendLinks, renderDependencies } from "./modules/about.js?v=a76904a98c";
+import * as home from "./modules/home.js?v=a76904a98c";
+import { initLineField } from "./modules/linefield.js?v=a76904a98c";
+import { initReveal } from "./modules/reveal.js?v=a76904a98c";
 
 /** 加载页最长停留时间（ms）：启动链路卡住时的强制揭幕兜底 */
 const LOADER_MAX_WAIT_MS = 10000;
@@ -58,6 +59,7 @@ function runInit() {
   settings.setupGlobalLangSwitcher();
   // 以下模块彼此独立：单个失败只影响自身功能，留痕后继续初始化其余模块
   const modules = [
+    ["niceSelect", () => setupNiceSelects(document)],
     ["marketplace", market.setupMarketplace],
     ["docs", docs.setupDocumentation],
     ["modals", market.setupModals],

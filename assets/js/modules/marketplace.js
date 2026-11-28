@@ -2,12 +2,12 @@
  * 模块市场：分类 / 筛选 / 搜索 / 排序 / 渲染卡片、市场模态框（安装/文档）
  */
 
-import { CONFIG } from '../config.js?v=95a92ab6fa';
-import { I18n } from '../i18n.js?v=95a92ab6fa';
-import { state } from '../core/state.js?v=95a92ab6fa';
-import { showMessage } from '../core/notify.js?v=95a92ab6fa';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=95a92ab6fa';
-import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=95a92ab6fa';
+import { CONFIG } from '../config.js?v=a76904a98c';
+import { I18n } from '../i18n.js?v=a76904a98c';
+import { state } from '../core/state.js?v=a76904a98c';
+import { showMessage } from '../core/notify.js?v=a76904a98c';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=a76904a98c';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=a76904a98c';
 
 // 标签云折叠阈值：全站标签上百个，默认只展示热度最高的若干项
 const TAG_PREVIEW_LIMIT = 18;
@@ -52,6 +52,7 @@ let sdkVersionOptions = getCachedSdkVersions();  // PyPI 实时版本（降序�
 let sortMode = 'default';
 let activeLang = '';        // 界面语言筛选（语言代码，空串表示不限）
 let tagsExpanded = false;
+let authorFilter = '';      // 作者筛选（来自点击卡片作者行；空串表示不限）
 let allTags = [];           // [{ tag, count }]，按热度降序
 let allCategories = [];     // [{ id, count }]，按 config.js 的分类顺序
 
@@ -162,6 +163,28 @@ export function setupMarketplace() {
         resetBtn.addEventListener('click', resetFilters);
     }
 
+    // 筛选折叠条：默认收起，点击展开/收起
+    const toggleBtn = document.getElementById('market-filter-toggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const panel = document.getElementById('market-filters');
+            const open = panel.hidden;
+            panel.hidden = !open;
+            toggleBtn.setAttribute('aria-expanded', String(open));
+            toggleBtn.classList.toggle('open', open);
+        });
+    }
+
+    // 作者筛选 chip：点击移除作者筛选
+    const authorChip = document.getElementById('market-author-chip');
+    if (authorChip) {
+        authorChip.addEventListener('click', () => {
+            authorFilter = '';
+            updateFilterCount();
+            renderModules();
+        });
+    }
+
     const searchInput = document.getElementById('module-search');
     if (!searchInput) return;
     var _searchTimer = null;
@@ -200,6 +223,8 @@ function resetFilters() {
     searchQuery = '';
     tagsExpanded = false;
     activeLang = '';
+    authorFilter = '';
+    updateFilterCount();
 
     const searchInput = document.getElementById('module-search');
     if (searchInput) searchInput.value = '';
@@ -256,6 +281,9 @@ function mapCategory(source, type) {
         // 分类编号：后端存数字（0 表示索引里没有分类），展示名按当前语言渲染
         category: Number(info.category) || 0,
         tags: Array.isArray(info.tags) ? info.tags.map(String) : [],
+        logo: info.logo || '',
+        erisdev_site: info.erisdev_site || '',
+        i18n: Array.isArray(info.i18n) ? info.i18n.map(String) : [],
         type
     }));
 }
@@ -480,28 +508,41 @@ async function loadSiteMap() {
 }
 
 /**
- * 模块头图的来源地址。降级链：索引中的 logo → 仓库拥有者头像 → 无（由调用方显示首字母）。
- * GitHub 头像地址可由拥有者名直接拼接；Codeberg 头像地址带哈希，需查 API，不在此推导。
- * @param {object} pkg 模块条目
- * @returns {string} 图片地址，无可用的图片时为空字符串
+ * 头图占位：模块名驱动的对称像素纹样，同名恒定、异名互异
+ * @param {string} name
+ * @returns {string} 50×50 viewBox 的内联 SVG
  */
-function moduleLogoSource(pkg) {
-    if (pkg.logo) return pkg.logo;
-    const repo = String(pkg.repository || '');
-    const m = repo.match(/^https?:\/\/github\.com\/([^/]+)\//i);
-    return m ? `https://github.com/${m[1]}.png?size=128` : '';
+function identiconSvg(name) {
+    let h = 7;
+    for (const c of String(name || '?')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    const col = `hsl(${h % 360} 62% 62%)`, dim = `hsl(${h % 360} 45% 28%)`;
+    let cells = '';
+    for (let y = 0; y < 5; y++) for (let x = 0; x < 5; x++) {
+        const mx = x < 3 ? x : 4 - x;
+        if ((h >> (y * 3 + mx)) & 1) cells += `<rect x="${x * 10}" y="${y * 10}" width="10" height="10" fill="${col}"/>`;
+    }
+    return `<svg class="module-logo-tile" viewBox="0 0 50 50" aria-hidden="true"><rect width="50" height="50" fill="${dim}"/>${cells}</svg>`;
 }
 
 /**
- * 模块头图标记。图片之后紧跟隐藏的首字母占位，图片加载失败时显示占位。
+ * 模块头图标记：索引 logo 优先；无 logo 时以几何纹样占位。
+ * logo 图层叠于纹样之上，加载失败时移除即露出纹样。
  * @param {object} pkg 模块条目
  * @returns {string}
  */
 function moduleLogoHtml(pkg) {
-    const fallback = `<span class="module-logo-fallback">${escapeHtml((pkg.name || '?').charAt(0).toUpperCase())}</span>`;
-    const src = moduleLogoSource(pkg);
-    if (!src) return fallback;
-    return `<img src="${escapeHtml(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false">${fallback.replace('<span', '<span hidden')}`;
+    const svg = identiconSvg(pkg.name);
+    if (!pkg.logo) return svg;
+    return svg + `<img class="module-logo-img" src="${escapeHtml(pkg.logo)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`;
+}
+
+/** 作者行小头像：仅 GitHub 仓库可由拥有者名拼接地址；与主图同源时跳过 */
+function authorAvatarHtml(pkg) {
+    const m = String(pkg.repository || '').match(/^https?:\/\/github\.com\/([^/]+)\//i);
+    if (!m) return '';
+    const ava = `https://github.com/${m[1]}.png`;
+    if (pkg.logo && String(pkg.logo).split('?')[0] === ava) return '';
+    return `<img class="author-ava" src="${ava}?size=64" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`;
 }
 
 export async function renderModules() {
@@ -512,7 +553,10 @@ export async function renderModules() {
     // 重建卡片会连带移除「+N」按钮，先收起可能已打开的标签面板
     hideTagPopover();
 
-    const packagesToShow = applyFilters().map(p => ({ ...p, _site: siteMap.get(p.type + ':' + p.name) || '' }));
+    const packagesToShow = applyFilters().map(p => {
+        const raw = p.erisdev_site || siteMap.get(p.type + ':' + p.name) || '';
+        return { ...p, _site: raw ? (String(raw).startsWith('http') ? raw : 'https://' + raw) : '' };
+    });
     updateFilterSummary(packagesToShow.length);
 
     if (packagesToShow.length === 0) {
@@ -539,6 +583,14 @@ export async function renderModules() {
         });
     });
 
+    modulesGrid.querySelectorAll('.module-author').forEach(el => {
+        el.addEventListener('click', () => {
+            authorFilter = el.dataset.author || '';
+            updateFilterCount();
+            renderModules();
+        });
+    });
+
     // 卡片内的 data-i18n 文本需要按当前语言落位
     I18n.applyTranslations();
 }
@@ -557,7 +609,7 @@ function cardHtml(pkg, index) {
             ? `<span class="module-badge badge-official"><i class="fas fa-check-circle"></i> <span data-i18n="market.filter.official">${I18n.t('market.filter.official')}</span></span>`
             : '',
         pkg._site
-            ? `<a class="module-badge badge-site" href="https://${pkg._site}" target="_blank" rel="noopener" title="${pkg._site}"><i class="fas fa-globe"></i> ${I18n.t('market.moduleSite')}</a>`
+            ? `<a class="module-badge badge-site" href="${pkg._site}" target="_blank" rel="noopener" title="${pkg._site}"><i class="fas fa-globe"></i> ${I18n.t('market.moduleSite')}</a>`
             : '',
         pkg.verified
             ? ''
@@ -583,7 +635,7 @@ function cardHtml(pkg, index) {
             ${cardI18nHtml(pkg.i18n)}
             <div class="module-footer">
                 <div class="module-footer-info">
-                    <div class="module-author">${escapeHtml(pkg.author)}</div>
+                    <div class="module-author" data-author="${escapeHtml(pkg.author)}" role="button" tabindex="0" title="${escapeHtml(I18n.t('market.filterByAuthor'))} · ${escapeHtml(pkg.author)}">${authorAvatarHtml(pkg)}<span>${escapeHtml(pkg.author)}</span></div>
                     ${pkg.min_sdk_version ? `<div class="module-sdk"><i class="fas fa-code-branch"></i> SDK ≥ ${escapeHtml(pkg.min_sdk_version)}</div>` : ''}
                 </div>
                 <div class="module-actions">
@@ -672,6 +724,7 @@ function applyFilters() {
                 if (flag === 'official' && !pkg.official) return false;
                 if (flag === 'verified' && !pkg.verified) return false;
                 if (flag === 'unverified' && pkg.verified) return false;
+                if (flag === 'site' && !pkg.erisdev_site) return false;
             }
             return true;
         });
@@ -685,6 +738,10 @@ function applyFilters() {
     // 多选标签取并集：命中任意一个所选标签即展示
     if (activeTags.size > 0) {
         packages = packages.filter(pkg => pkg.tags.some(tag => activeTags.has(tag)));
+    }
+
+    if (authorFilter) {
+        packages = packages.filter(pkg => pkg.author === authorFilter);
     }
 
     // 界面语言：单选，条目的 i18n 列表大小写不敏感命中
@@ -735,6 +792,7 @@ function sortPackages(packages) {
 }
 
 function updateFilterSummary(count) {
+    updateFilterCount();
     document.querySelectorAll('#market-flag-filters .filter-chip').forEach(chip => {
         chip.classList.toggle('active', activeFlags.has(chip.dataset.flag));
     });
@@ -750,7 +808,24 @@ function updateFilterSummary(count) {
 
 function hasActiveFilters() {
     return activeFlags.size > 0 || activeCategories.size > 0 || activeTags.size > 0 ||
-        Boolean(sdkCeiling) || Boolean(searchQuery);
+        Boolean(sdkCeiling) || Boolean(activeLang) || Boolean(authorFilter) || Boolean(searchQuery);
+}
+
+/** 折叠条角标与作者筛选 chip 的同步 */
+function updateFilterCount() {
+    const n = activeFlags.size + activeCategories.size + activeTags.size
+        + (sdkCeiling ? 1 : 0) + (activeLang ? 1 : 0) + (authorFilter ? 1 : 0) + (searchQuery ? 1 : 0);
+    const el = document.getElementById('market-filter-count');
+    if (el) {
+        el.textContent = n;
+        el.classList.toggle('is-hidden', n === 0);
+    }
+    const chip = document.getElementById('market-author-chip');
+    if (chip) {
+        chip.classList.toggle('is-hidden', !authorFilter);
+        const nm = document.getElementById('market-author-chip-name');
+        if (nm) nm.textContent = authorFilter;
+    }
 }
 
 function collectAll() {
@@ -951,7 +1026,7 @@ export function showInstallModal(packageName) {
         ${pkg.repository ? `
         <h4 style="margin-top: 1.5rem;">${I18n.t('modal.repoInfo')}</h4>
         <p><a href="${escapeHtml(pkg.repository)}" target="_blank">${I18n.t('modal.viewSource')}</a></p>
-        ${pkg._site ? `<p><a href="https://${pkg._site}" target="_blank">${I18n.t('market.moduleSite')}</a> · https://${pkg._site}</p>` : ''}
+        ${pkg._site ? `<p><a href="${pkg._site}" target="_blank">${I18n.t('market.moduleSite')}</a> · ${pkg._site}</p>` : ''}
         ` : ''}
     `;
 
