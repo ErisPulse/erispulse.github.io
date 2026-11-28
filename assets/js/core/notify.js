@@ -3,7 +3,7 @@
  * 提示消息、HTML 转义、相对时间等，被几乎所有功能模块使用。
  */
 
-import { I18n } from '../i18n.js?v=e3628ef016';
+import { I18n } from '../i18n.js?v=95a92ab6fa';
 
 /**
  * 显示一条短暂的浮动提示消息

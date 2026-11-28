@@ -2,12 +2,12 @@
  * 模块市场：分类 / 筛选 / 搜索 / 排序 / 渲染卡片、市场模态框（安装/文档）
  */
 
-import { CONFIG } from '../config.js?v=e3628ef016';
-import { I18n } from '../i18n.js?v=e3628ef016';
-import { state } from '../core/state.js?v=e3628ef016';
-import { showMessage } from '../core/notify.js?v=e3628ef016';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=e3628ef016';
-import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=e3628ef016';
+import { CONFIG } from '../config.js?v=95a92ab6fa';
+import { I18n } from '../i18n.js?v=95a92ab6fa';
+import { state } from '../core/state.js?v=95a92ab6fa';
+import { showMessage } from '../core/notify.js?v=95a92ab6fa';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=95a92ab6fa';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=95a92ab6fa';
 
 // 标签云折叠阈值：全站标签上百个，默认只展示热度最高的若干项
 const TAG_PREVIEW_LIMIT = 18;
@@ -479,6 +479,31 @@ async function loadSiteMap() {
     return _siteMap;
 }
 
+/**
+ * 模块头图的来源地址。降级链：索引中的 logo → 仓库拥有者头像 → 无（由调用方显示首字母）。
+ * GitHub 头像地址可由拥有者名直接拼接；Codeberg 头像地址带哈希，需查 API，不在此推导。
+ * @param {object} pkg 模块条目
+ * @returns {string} 图片地址，无可用的图片时为空字符串
+ */
+function moduleLogoSource(pkg) {
+    if (pkg.logo) return pkg.logo;
+    const repo = String(pkg.repository || '');
+    const m = repo.match(/^https?:\/\/github\.com\/([^/]+)\//i);
+    return m ? `https://github.com/${m[1]}.png?size=128` : '';
+}
+
+/**
+ * 模块头图标记。图片之后紧跟隐藏的首字母占位，图片加载失败时显示占位。
+ * @param {object} pkg 模块条目
+ * @returns {string}
+ */
+function moduleLogoHtml(pkg) {
+    const fallback = `<span class="module-logo-fallback">${escapeHtml((pkg.name || '?').charAt(0).toUpperCase())}</span>`;
+    const src = moduleLogoSource(pkg);
+    if (!src) return fallback;
+    return `<img src="${escapeHtml(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false">${fallback.replace('<span', '<span hidden')}`;
+}
+
 export async function renderModules() {
     const modulesGrid = document.getElementById('modules-grid');
     if (!modulesGrid) return;
@@ -539,15 +564,11 @@ function cardHtml(pkg, index) {
             : `<span class="module-badge badge-unverified"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="market.unverified">${I18n.t('market.unverified')}</span></span>`
     ].join('');
 
-    const logoHtml = pkg.logo
-        ? `<img src="${escapeHtml(pkg.logo)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${escapeHtml(pkg.name.charAt(0).toUpperCase())}',className:'module-logo-fallback'}))">`
-        : `<span class="module-logo-fallback">${escapeHtml(pkg.name.charAt(0).toUpperCase())}</span>`;
-
     return `
         <div class="module-card${pkg.featured ? ' is-featured' : ''}" data-package="${escapeHtml(pkg.package)}" style="animation-delay: ${index * 0.05}s">
             <div class="module-header">
                 <div class="module-icon module-logo">
-                    ${logoHtml}
+                    ${moduleLogoHtml(pkg)}
                 </div>
                 <div>
                     <h3 class="module-name">${escapeHtml(pkg.name)}</h3>
