@@ -4,7 +4,7 @@
  * 仅放「被多个模块读写」的状态；只被单个模块使用的状态仍留在该模块内部。
  */
 
-import { CONFIG } from '../config.js?v=744bda8114';
+import { CONFIG } from '../config.js?v=c644e0bc94';
 
 // 用户设置（设置 / 文档 / 市场等多模块共享）
 export const state = {

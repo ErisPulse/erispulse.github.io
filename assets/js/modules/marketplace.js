@@ -2,12 +2,12 @@
  * 模块市场：分类 / 筛选 / 搜索 / 排序 / 渲染卡片、市场模态框（安装/文档）
  */
 
-import { CONFIG } from '../config.js?v=744bda8114';
-import { I18n } from '../i18n.js?v=744bda8114';
-import { state } from '../core/state.js?v=744bda8114';
-import { showMessage } from '../core/notify.js?v=744bda8114';
-import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=744bda8114';
-import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=744bda8114';
+import { CONFIG } from '../config.js?v=c644e0bc94';
+import { I18n } from '../i18n.js?v=c644e0bc94';
+import { state } from '../core/state.js?v=c644e0bc94';
+import { showMessage } from '../core/notify.js?v=c644e0bc94';
+import { enhanceGitHubMarkdown } from '../core/gh-markdown.js?v=c644e0bc94';
+import { fetchSdkVersions, getCachedSdkVersions } from '../core/sdk-versions.js?v=c644e0bc94';
 
 // 标签云折叠阈值：全站标签上百个，默认只展示热度最高的若干项
 const TAG_PREVIEW_LIMIT = 18;
@@ -294,14 +294,10 @@ function mapCategory(source, type) {
 export function updateStats() {
     const modules = state.allModules.filter(pkg => !pkg.hidden);
     const adapters = state.allAdapters.filter(pkg => !pkg.hidden);
-    setText('total-all-modules', modules.length + adapters.length);
-    setText('total-modules', modules.length);
-    setText('adapter-count', adapters.length);
-    // 分段控制器各分类的计数徽标
+    // 分类计数徽章（分段控制器按钮上）
     setText('category-count-all', modules.length + adapters.length);
     setText('category-count-modules', modules.length);
     setText('category-count-adapters', adapters.length);
-    setText('contributors-count', '--');
 }
 
 function setText(id, value) {
@@ -651,7 +647,7 @@ function cardHtml(pkg, index) {
                     <button class="module-btn" data-action="install" data-package="${escapeHtml(pkg.package)}">
                         <i class="fas fa-download"></i> ${I18n.t('market.install')}
                     </button>
-                    ${pkg.repository ? `<button class="module-btn" data-action="docs" data-package="${escapeHtml(pkg.package)}" data-repo="${escapeHtml(pkg.repository)}">
+                    ${pkg.repository ? `<button class="module-btn secondary" data-action="docs" data-package="${escapeHtml(pkg.package)}" data-repo="${escapeHtml(pkg.repository)}">
                         <i class="fas fa-book"></i> ${I18n.t('market.docs')}
                     </button>` : ''}
                 </div>
